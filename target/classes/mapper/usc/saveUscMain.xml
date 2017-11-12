@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="saveUscMain">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="insert" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.usc_bom_insert_proc(
+					 #{project_no}
+				   , #{state_flag}
+				   , #{area}
+				   , #{block_no}
+				   , #{block_str_flag}
+				   , NVL(#{job_str_flag}, #{block_str_flag})
+				   , #{usc_job_type}
+				   , #{block_code}
+				   , #{act_code}
+				   , #{job_code}				   
+				   , #{eco_no}
+				   , #{work_yn}
+				   , #{upper_block}
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+	
+	<select id="uscMainEcoUpdate" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.usc_main_eco_update_proc(
+					 #{p_eco_no}
+				   , #{project_no}
+				   , #{area}
+				   , #{block_no}
+				   , #{block_str_flag}
+				   , NVL(#{job_str_flag}, #{block_str_flag})
+				   <if test='usc_job_type != null and !usc_job_type.equalsIgnoreCase("")'>
+				   , #{usc_job_type}
+				   </if>
+				   <if test='usc_job_type == null or usc_job_type.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='block_catalog != null and !block_catalog.equalsIgnoreCase("")'>
+				   , #{block_catalog}
+				   </if>
+				   <if test='block_catalog == null or block_catalog.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='activity_catalog != null and !activity_catalog.equalsIgnoreCase("")'>
+				   , #{activity_catalog}
+				   </if>
+				   <if test='activity_catalog == null or activity_catalog.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='job_catalog != null and !job_catalog.equalsIgnoreCase("")'>
+				   , #{job_catalog}
+				   </if>
+				   <if test='job_catalog == null or job_catalog.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   , #{work_yn}
+				   <if test='upper_block != null and !upper_block.equalsIgnoreCase("")'>
+				   , #{upper_block}
+				   </if>
+				   <if test='upper_block == null or upper_block.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   , #{state_flag}
+				   , #{delete_gbn}				   
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+	
+	<select id="uscMainEcoCreate" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.usc_main_eco_create_proc(
+					 #{p_eco_no}
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+  
+</mapper>  	

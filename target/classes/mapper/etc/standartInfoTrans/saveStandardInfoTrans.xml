@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveStandardInfoTrans">
+
+	<insert id="insertSelectLIST_APPROVAL_HIS" parameterType="java.util.Map">
+		 INSERT 
+		   INTO STX_DIS_INFO_LIST_APPROVAL_HIS 
+		        ( 
+		                LIST_ID 
+		              , RETRUN_DATE 
+		              , PROCESS_TYPE 
+		              , CONFIRM_TYPE 
+		              , APROVE_TYPE 
+		              , APROVE_EMP_NO 
+		              , APROVE_COMMENT 
+		              , CONFIRM_FLAG 
+		              , CONFIRM_DATE 
+		              , LAST_UPDATE_DATE 
+		              , LAST_UPDATED_BY 
+		              , CREATION_DATE 
+		              , CREATED_BY 
+		        ) 
+		 SELECT LIST_ID 
+		      , SYSDATE 
+		      , PROCESS_TYPE 
+		      , CONFIRM_TYPE 
+		      , APROVE_TYPE 
+		      , CONFIRM_EMP_NO 
+		      , CONFIRM_COMMENT 
+		      , CONFIRM_FLAG 
+		      , CONFIRM_DATE 
+		      , LAST_UPDATE_DATE 
+		      , LAST_UPDATED_BY 
+		      , CREATION_DATE 
+		      , CREATED_BY 
+		   FROM STX_DIS_INFO_LIST_APPROVAL 
+		  WHERE LIST_ID = #{list_id}
+	</insert>
+	<delete id="deleteListApproval" parameterType="java.util.Map">
+		DELETE 									
+			FROM	STX_DIS_INFO_LIST_APPROVAL  	
+		 WHERE	LIST_ID = #{list_id}      	
+			 AND    PROCESS_TYPE IN ('04','05')		
+	</delete>
+	<update id="updateListApproval" parameterType="java.util.Map">
+	UPDATE	 STX_DIS_INFO_LIST_APPROVAL	
+		   SET   CONFIRM_FLAG = 'N'			
+			    ,CONFIRM_DATE = ''			
+		 WHERE   LIST_ID = #{list_id} 	
+		   AND	 PROCESS_TYPE = '02'		
+	</update>
+	
+	<update id="updateInfoListPromote" parameterType="java.util.Map">
+	UPDATE  STX_DIS_INFO_LIST 
+		   SET  LIST_STATUS = #{list_status}
+		<if test='list_status == "01"'>
+					 ,CONFIRM_DATE=''	
+					 ,FEEDBACK_DATE=''	
+		</if>
+		<if test='list_status == "03"'>
+					 ,CONFIRM_DATE=SYSDATE	
+		</if>
+		<if test='list_status == "04"'>
+					 ,FEEDBACK_DATE=SYSDATE	
+		</if>
+		<if test='list_status == "05"'>
+					 ,COMPLETE_DATE=SYSDATE	
+		</if>
+		<if test='admin_chk == "Y"'>
+					 ,REQUEST_TITLE=#{sub_title}
+					 ,REQUEST_DESC =#{request_desc}	
+		</if>
+		 WHERE  LIST_ID = #{list_id} 
+	</update>
+	
+	<select id="stxDisItemMailing" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call STX_DIS_ITEM_MAILING(P_LIST_ID			=> #{p_list_id,jdbcType=VARCHAR},
+								P_ERROR_CODE		=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                P_ERROR_MSG			=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	<select id="stxDisItemMailingRe" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call STX_DIS_ITEM_MAILING_RE(P_LIST_ID			=> #{p_list_id,jdbcType=VARCHAR},
+									P_ERROR_CODE		=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+	                                P_ERROR_MSG			=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	<select id="insertInfoList" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	{ call STX_DIS_INFO_LIST_PROC(P_LIST_ID				=> #{p_list_id,jdbcType=VARCHAR},
+								  P_LIST_TYPE			=> #{p_list_type,jdbcType=VARCHAR},
+                                  P_LIST_STATUS			=> #{p_list_status,jdbcType=VARCHAR},
+                                  P_REQUEST_DEPT_CODE	=> #{p_dept_code,jdbcType=VARCHAR},
+                                  P_REQUEST_EMP_NO		=> #{p_user_id,jdbcType=VARCHAR},
+                                  P_REQUEST_DESC		=> #{p_request_desc,jdbcType=VARCHAR},
+                                  P_REQUEST_TITLE		=> #{p_sub_title,jdbcType=VARCHAR},
+								  p_err_code			=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+	                              p_err_msg				=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	<delete id="deleteStxTbcInfoList" parameterType="java.util.Map">
+		DELETE FROM STX_DIS_INFO_LIST WHERE LIST_ID = #{list_id}
+	</delete>
+	<delete id="deleteStxTbcInfoListCatalog" parameterType="java.util.Map">
+		DELETE FROM STX_DIS_INFO_LIST_CATALOG WHERE LIST_ID = #{list_id}
+	</delete>
+	<delete id="deleteStxTbcInfoListItem" parameterType="java.util.Map">
+		DELETE FROM STX_DIS_INFO_LIST_ITEM WHERE LIST_ID = #{list_id}
+	</delete>
+	<delete id="deleteStxTbcInfoDocAll" parameterType="java.util.Map">
+		DELETE FROM STX_DIS_INFO_DOC WHERE LIST_ID = #{list_id}
+	</delete>
+	<delete id="deleteStxTbcInfoListRefUser" parameterType="java.util.Map">
+		DELETE FROM STX_DIS_INFO_LIST_REF_USER WHERE LIST_ID = #{list_id}
+	</delete>
+	<insert id="insertStxTbcInfoListApprovalHis" parameterType="java.util.Map">
+			INSERT INTO STX_DIS_INFO_LIST_APPROVAL_HIS	
+				(	
+					 LIST_ID	
+					,RETRUN_DATE	
+					,CONFIRM_TYPE	
+					,PROCESS_TYPE	
+					,APROVE_TYPE	
+					,APROVE_EMP_NO	
+					,APROVE_COMMENT	
+					,CONFIRM_FLAG	
+					,CONFIRM_DATE	
+					,LAST_UPDATE_DATE	
+					,LAST_UPDATED_BY	
+					,CREATION_DATE	
+					,CREATED_BY	
+				)	
+				values	
+				(	
+					#{list_id}
+					,SYSDATE	
+					,'04'	
+					,#{list_status}	
+					,'05'	
+					,#{user_id}	
+					,''	
+					,'Y'	
+					,SYSDATE	
+					,SYSDATE	
+					,#{user_id}	
+					,SYSDATE	
+					,#{user_id}	
+				)	
+	</insert>
+	<delete id="deleteStxTbcInfoDoc" parameterType="java.util.Map">
+		DELETE 	
+			FROM STX_DIS_INFO_DOC	
+		 WHERE LIST_ID #{list_id}	
+			 AND DOCUMENT_ID = #{document_id}	
+	</delete>
+	
+	<insert id="insertInfoListCatalog" parameterType="java.util.Map">
+	 INSERT 
+		   INTO STX_DIS_INFO_LIST_CATALOG 
+		        ( 
+		                LIST_ID 
+		              , CATALOG 
+		              , CATEGORY 
+		              , DESCRIPTION 
+		              , UOM 
+		              , ATTIBUTE_01 
+		              , ATTIBUTE_02 
+		              , ATTIBUTE_03 
+		              , ATTIBUTE_04 
+		              , ATTIBUTE_05 
+		              , ATTIBUTE_06 
+		              , ATTIBUTE_07 
+		              , ATTIBUTE_08 
+		              , ATTIBUTE_09 
+		              , ATTIBUTE_10 
+		              , ATTIBUTE_11 
+		              , ATTIBUTE_12 
+		              , ATTIBUTE_13 
+		              , ATTIBUTE_14 
+		              , ATTIBUTE_15 
+		              , PO_REQUEST_TYPE 
+		              , PO_DELEGATE_ITEM 
+		              , VENDOR_DRAWING_NO 
+		              , BOM_CREATE_DATE 
+		              , LEVEL_01 
+		              , LEVEL_02 
+		              , LEVEL_03 
+		              , TECH_SPEC_FLAG 
+						, SHIP_TYPE	
+		              , BUYER_EMP_NO 
+						, PROCESS_EMP_NO	
+		              , STANDAR_LEAD_TIME 
+		              , MRP_PLANNING_FLAG 
+		              , PEGGING_FLAG 
+						, DISTRIBUTOR_EMP_NO	
+						, F_ORDER_CANCEL	
+						, F_ORDER_OPEN	
+		        ) 
+		        VALUES 
+		        ( 
+					   #{list_id}  <!-- LIST_ID -->
+		              , #{catalog}  <!-- CATALOG -->
+		              , #{category}  <!-- CATEGORY -->
+		              , #{description}  <!-- DESCRIPTION -->
+		              , #{uom}  <!-- UOM -->
+		              , #{attibute_01}  <!-- ATTR1 -->
+		              , #{attibute_02}  <!-- ATTR2 -->
+		              , #{attibute_03}  <!-- ATTR3 -->
+		              , #{attibute_04}  <!-- ATTR4 -->
+		              , #{attibute_05}  <!-- ATTR5 -->
+		              , #{attibute_06}  <!-- ATTR6 -->
+		              , #{attibute_07}  <!-- ATTR7 -->
+		              , #{attibute_08}  <!-- ATTR8 -->
+		              , #{attibute_09}  <!-- ATTR9 -->
+		              , #{attibute_10}  <!-- ATTR10 -->
+		              , #{attibute_11}  <!-- ATTR11 -->
+		              , #{attibute_12}  <!-- ATTR12 -->
+		              , #{attibute_13}  <!-- ATTR13 -->
+		              , #{attibute_14}  <!-- ATTR14 -->
+		              , #{attibute_15}  <!-- ATTR15 -->
+		              , #{po_request_type}  <!-- 구매요청기준 -->
+		              , #{po_delegate_item}  <!-- 구매요청대표품목코드 -->
+		              , #{vendor_drawing_no}  <!-- VENDOR_DRAWING_NO -->
+		              , #{bom_create_date}  <!-- BOM -->
+																						<!-- 구성예정 -->
+		              , #{level_01}  <!-- 대분류 -->
+		              , #{level_02}  <!-- 대중분류 -->
+		              , #{level_03}  <!-- SALES -->
+																				<!-- BOM -->
+																				<!-- 재료비예산 -->
+																				<!-- 중분류 -->
+		              , #{tech_spec_flag}  <!-- TECH -->
+																					<!-- SPEC -->
+																					<!-- 품목 -->
+																					<!-- 여부 -->
+					  , #{ship_type}	
+		              , #{buyer_emp_no}  <!-- 구매자 -->
+		              , #{process_emp_no}  <!-- 공정관리자 -->
+		              , #{standar_lead_time}  <!-- 표준 -->
+																						<!-- 리드타임 -->
+		              , #{mrp_planning_flag}  <!-- MRP계획 -->
+																						<!-- 대상여부 -->
+		              , #{pegging_flag}  <!-- 페깅여부 -->
+		              , #{distributor_emp_no}  <!-- 물류담당자 -->
+		              , #{f_order_cancel}  <!-- F.ORDER(취소) -->
+		              , #{f_order_open}  <!-- F.ORDER(납기) -->
+		        ) 
+	</insert>
+	<update id="updateInfoCatalog" parameterType="java.util.Map">
+	 UPDATE STX_DIS_INFO_LIST_CATALOG 
+		    SET CATALOG           = #{catalog} 
+		      , CATEGORY          = #{category} 
+		      , DESCRIPTION       = #{description} 
+		      , UOM               = #{uom} 
+		      , ATTIBUTE_01       = #{attibute_01} 
+		      , ATTIBUTE_02       = #{attibute_02} 
+		      , ATTIBUTE_03       = #{attibute_03} 
+		      , ATTIBUTE_04       = #{attibute_04} 
+		      , ATTIBUTE_05       = #{attibute_05} 
+		      , ATTIBUTE_06       = #{attibute_06} 
+		      , ATTIBUTE_07       = #{attibute_07} 
+		      , ATTIBUTE_08       = #{attibute_08} 
+		      , ATTIBUTE_09       = #{attibute_09} 
+		      , ATTIBUTE_10       = #{attibute_10} 
+		      , ATTIBUTE_11       = #{attibute_11} 
+		      , ATTIBUTE_12       = #{attibute_12} 
+		      , ATTIBUTE_13       = #{attibute_13} 
+		      , ATTIBUTE_14       = #{attibute_14} 
+		      , ATTIBUTE_15       = #{attibute_15} 
+		      , PO_REQUEST_TYPE   = #{po_request_type} 
+		      , PO_DELEGATE_ITEM  = #{po_delegate_item} 
+		      , VENDOR_DRAWING_NO = #{vendor_drawing_no} 
+		      , BOM_CREATE_DATE   = #{bom_create_date} 
+		      , LEVEL_01          = #{level_01} 
+		      , LEVEL_02          = #{level_02} 
+		      , LEVEL_03          = #{level_03} 
+		      , TECH_SPEC_FLAG    = #{tech_spec_flag} 
+		      , SHIP_TYPE    		= #{ship_type} 
+		      , BUYER_EMP_NO      = #{buyer_emp_no} 
+		      , PROCESS_EMP_NO    = #{process_emp_no} 
+		      , STANDAR_LEAD_TIME = #{standar_lead_time} 
+		      , MRP_PLANNING_FLAG = #{mrp_planning_flag} 
+		      , PEGGING_FLAG      = #{pegging_flag} 
+		      , DISTRIBUTOR_EMP_NO= #{distributor_emp_no} 
+		      , F_ORDER_CANCEL    = #{f_order_cancel} 
+		      , F_ORDER_OPEN      = #{f_order_open} 
+		  WHERE 1                 = 1 
+		    AND 
+		        ROWID = #{id} 
+		</update>
+		<insert id="insertInfoListItem" parameterType="java.util.Map">
+		 INSERT 
+		   INTO STX_DIS_INFO_LIST_ITEM 
+		        ( 
+		                LIST_ID 
+		              , PART_NO 
+		              , DESCRIPTION 
+		              , WEIGHT 
+		              <!-- , UOM --> 
+		              , ATTR00 
+		              , ATTR01 
+		              , ATTR02 
+		              , ATTR03 
+		              , ATTR04 
+		              , ATTR05 
+		              , ATTR06 
+		              , ATTR07 
+		              , ATTR08 
+		              , ATTR09 
+		              , ATTR10 
+		              , ATTR11 
+		              , ATTR12 
+		              , ATTR13 
+		              , ATTR14 
+		              , CABLE_OUTDIA 
+		              , CABLE_SIZE 
+		              , STXSVR 
+		              , THINNER_CODE 
+		              , PAINT_CODE 
+		              , CABLE_TYPE 
+		              , CABLE_LENGTH 
+		              , STXSTANDARD 
+		        ) 
+		        VALUES 
+		        ( 
+		                #{list_id} 
+		              , #{part_no} 
+		              , #{description} 
+		              , #{weight} 
+		              <!--, #{uom} -->  
+		              , #{attr00} 
+		              , #{attr01} 
+		              , #{attr02} 
+		              , #{attr03} 
+		              , #{attr04} 
+		              , #{attr05} 
+		              , #{attr06} 
+		              , #{attr07} 
+		              , #{attr08} 
+		              , #{attr09} 
+		              , #{attr10} 
+		              , #{attr11} 
+		              , #{attr12} 
+		              , #{attr13} 
+		              , #{attr14} 
+		              , #{cable_outdia} 
+		              , #{cable_size} 
+		              , #{stxsvr} 
+		              , #{thinner_code} 
+		              , #{paint_code} 
+		              , #{cable_type} 
+		              , #{cable_length} 
+					  , #{stxstandard}	 
+		        ) 
+		</insert>
+		<update id="updateInfoItem" parameterType="java.util.Map">
+		 UPDATE STX_DIS_INFO_LIST_ITEM 
+		    SET PART_NO      = #{part_no} 
+		      , DESCRIPTION  = #{description} 
+		      , WEIGHT       = #{weight}  
+		      <!--, UOM          = #{uom}  -->
+		      , ATTR00       = #{attr00} 
+		      , ATTR01       = #{attr01} 
+		      , ATTR02       = #{attr02} 
+		      , ATTR03       = #{attr03} 
+		      , ATTR04       = #{attr04} 
+		      , ATTR05       = #{attr05} 
+		      , ATTR06       = #{attr06} 
+		      , ATTR07       = #{attr07} 
+		      , ATTR08       = #{attr08} 
+		      , ATTR09       = #{attr09} 
+		      , ATTR10       = #{attr10} 
+		      , ATTR11       = #{attr11} 
+		      , ATTR12       = #{attr12} 
+		      , ATTR13       = #{attr13} 
+		      , ATTR14       = #{attr14} 
+		      , CABLE_OUTDIA = #{cable_outdia} 
+		      , CABLE_SIZE   = #{cable_size} 
+		      , STXSVR       = #{stxsvr} 
+		      , THINNER_CODE = #{thinner_code} 
+		      , PAINT_CODE   = #{paint_code} 
+		      , CABLE_TYPE   = #{cable_type} 
+		      , CABLE_LENGTH = #{cable_length} 
+		      , STXSTANDARD  = #{stxstandard} 
+		  WHERE 1            = 1  
+		    AND 
+		        rowid = #{id} 
+		</update>
+		<select id="insertRefUser" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{ call STX_DIS_INFO_REF_USER_PROC(P_LIST_ID			=> #{p_list_id,jdbcType=VARCHAR},
+										P_REF_EMP_NO		=> #{p_print_user_id,jdbcType=VARCHAR},
+								        P_USER_EMP_NO		=> #{p_user_id,jdbcType=VARCHAR},
+										p_err_code			=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                p_err_msg			=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+		}
+		</select>
+		
+		<select id="insertListApproval" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{ call STX_DIS_LIST_APPROVAL_PROC(P_LIST_ID			=> #{p_list_id,jdbcType=VARCHAR},
+										P_PROCESS_TYPE		=> #{p_list_status,jdbcType=VARCHAR},
+								        P_CONFRIM_TYPE		=> #{p_confirm_type,jdbcType=VARCHAR},
+								        P_APROVE_TYPE		=> #{p_aprove_type,jdbcType=VARCHAR},
+								        P_CONFIRM_EMP_NO	=> #{p_aprove_emp_no,jdbcType=VARCHAR},
+								        P_CONFIRM_COMMENT	=> #{p_aprove_comment,jdbcType=VARCHAR},
+								        P_CONFIRM_FLAG		=> #{p_confirm_flag,jdbcType=VARCHAR},
+								        P_USER_EMP_NO		=> #{p_user_id,jdbcType=VARCHAR},
+										p_err_code			=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                p_err_msg			=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+		}
+		</select>
+		<select id="selectStxTbcInfoListSeq" parameterType="java.util.HashMap"  resultType="String">
+		SELECT STX_DIS_INFO_LIST_S.NEXTVAL AS SEQ FROM DUAL
+		</select>
+		<select id="selectStxTbcInfoDocSeq" parameterType="java.util.HashMap"  resultType="String">
+		SELECT STX_DIS_INFO_DOC_S.NEXTVAL AS SEQ FROM DUAL
+		</select>
+		<insert id="insertDoc" parameterType="java.util.Map">
+		 				INSERT 
+					   INTO STX_DIS_INFO_DOC 
+					        ( 
+					                LIST_ID 
+					              , DOCUMENT_ID 
+					              , DOCUMENT_NAME 
+					              , DOCUMENT_DATA 
+					              , LAST_UPDATE_DATE 
+					              , LAST_UPDATED_BY 
+					              , CREATION_DATE 
+					              , CREATED_BY 
+					        ) 
+					        VALUES 
+					        ( 
+									#{list_id}
+					              , #{document_id} 
+					              , #{fileName} 
+					              , #{fileByte} 
+					              , SYSDATE 
+					              , #{user_id} 
+					              , SYSDATE 
+					              , #{user_id} 
+					        ) 
+		</insert>
+</mapper>

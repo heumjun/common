@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintBlock">
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_block
+	  where 1=1 
+	    and project_no = #{project_no}
+	    and revision   = #{revision} 
+	    and block_code = #{block_code}
+	    <if test='blockCntFlag == null or blockCntFlag != "Y" '>
+	    and area_code  = #{area_code}
+	    </if>
+  	</select>
+  	
+  	<insert id="insert" parameterType="java.util.Map">
+	 insert into stx_dis_pis_block
+	   (
+	     project_no
+	    ,revision 
+		,block_code
+		,area_code
+		<!-- ,area_desc -->
+	    ,area
+	   
+	    ,created_by        
+	    ,creation_date
+	    ,last_updated_by
+	    ,last_update_date    
+	   )
+	   values
+	   (
+	    #{project_no}
+	   ,#{revision}
+	   ,#{block_code}
+	   ,#{area_code}
+	   <!-- ,(select area_desc 
+		  from stx_dis_pis_area
+		 where area_code = #{area_code}) -->	
+	   ,#{area}
+	   ,#{loginId}
+	   ,sysdate
+	   ,#{loginId}
+	   ,sysdate     
+	   )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+	 update stx_dis_pis_block
+	   set area				= #{area}
+	      <!-- ,area_desc		= #{area_desc} -->
+	      ,last_updated_by  = #{loginId}
+	      ,last_update_date = sysdate
+	 where 1=1 
+	   and project_no = #{project_no}
+	   and revision   = #{revision}
+	   and block_code = #{block_code} 
+	   and area_code  = #{area_code}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  	 delete from stx_dis_pis_block
+	      where 1=1 
+		    and project_no = #{project_no}
+		    and revision   = #{revision}
+		    and block_code = #{block_code} 
+		    and area_code  = #{area_code}
+  	 
+  	</delete>
+  	<select id="selectExistAreaCodeFromBlock" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt
+       from stx_dis_pis_block
+      where project_no = #{project_no}  
+        and revision   = #{revision} 
+        and area_code  = #{area_code} 
+	</select>
+	<select id="selectExistPatternCode" parameterType="java.util.Map" resultType="string" >
+	 select max(pattern_code) as pattern_code
+       from stx_dis_pis_pattern_area
+      where project_no = #{project_no}
+        and revision   = #{revision}
+        and area_code  = #{area_code} 
+	</select>
+	<delete id="deletePaintPatternArea">
+	delete from stx_dis_pis_pattern_area
+     where 1=1
+       and project_no 	= #{project_no}
+       and revision   	= #{revision} 
+       and pattern_code = #{pattern_code}
+       and area_code  	= #{area_code} 
+	</delete> 
+</mapper>

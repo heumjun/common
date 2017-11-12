@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="searchPatternPaintItem">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.project_no
+	      ,t1.revision
+	      ,t1.pattern_code	
+	      ,t1.paint_count
+	      ,t1.paint_item
+	      ,t2.item_desc 			   as paint_desc      
+	      ,t1.paint_dft
+	      ,t1.paint_stage
+	      ,t1.paint_svr
+	      ,t1.season_code
+	      ,t1.pre_loss
+	      ,t1.post_loss 
+	      ,cast(t1.rowid as char(18))  as pattern_rowid      
+	  from stx_dis_pis_pattern_item t1
+	  	  ,stx_dis_item             t2
+	 where t1.paint_item       =   t2.item_code
+	   and t1.project_no       =   #{project_no}                 
+	   and t1.revision         =   #{revision}
+	   and t1.pattern_code     =   #{pattern_code}
+	   and t1.season_code	   =   'S' 
+	 order by t1.paint_count, t1.season_code
+ 	</select>
+</mapper>

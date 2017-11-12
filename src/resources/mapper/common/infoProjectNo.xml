@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoProjectNo">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	
+	SELECT 
+		<if test='pipe_project == "Y"'>
+		distinct x.project_no
+		from STX_PIPE_PCS_LIST@stxerp x
+  		</if>
+	    <if test='pipe_project == null or !pipe_project.equalsIgnoreCase("Y")'>
+	    x.project_no
+	    FROM stx_dis_bom_schedule_v x
+	    </if>
+		<where>
+			<if test='p_delegate_project_no != "none"'>
+	   AND x.delegate_project_no = #{p_delegate_project_no}
+			</if>
+			<if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+	   AND x.project_no LIKE REPLACE(#{p_project_no} , '*', '%') || '%'
+			</if>
+		</where>
+	 ORDER BY x.project_no
+	</select>
+</mapper>

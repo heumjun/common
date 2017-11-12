@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpDelayReasonDesc">
+  	<select id="selectPLMActivityDeviationDesc" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		SELECT * FROM PLM_ACTIVITY_DEVIATION T WHERE T.PROJECTNO = #{projectNo} AND T.DWGNO = #{dwgCode}
+  	</select>
+  	
+  	<update id="savePLMActivityDeviationDesc"  parameterType="java.util.Map">
+  		MERGE INTO PLM_ACTIVITY_DEVIATION
+		USING DUAL
+		ON (PROJECTNO = #{projectNo} AND DWGNO = #{dwgCode})
+		WHEN MATCHED THEN
+		UPDATE SET DELAYREASON_DESC = #{delayreason_desc}, UPDATEDATE = SYSDATE, UPDATEBY = #{loginId}   
+		WHEN NOT MATCHED THEN                                                                        
+		INSERT (PROJECTNO, DWGNO, DELAYREASON_DESC, CREATEDATE, CREATEBY, UPDATEDATE, UPDATEBY) 
+		VALUES (#{projectNo}, #{dwgCode}, #{delayreason_desc}, SYSDATE, #{loginId}, SYSDATE, #{loginId})     
+  	</update>
+</mapper>

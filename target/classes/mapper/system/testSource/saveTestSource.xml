@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveTestSource">
+  	
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*) cnt
+		  FROM STX_DIS_PROJECT SDP
+		 WHERE SDP.PROJECT_NO LIKE #{project_no,jdbcType=VARCHAR} || '%' 
+  	</select>
+  	
+	<select id="saveProject" statementType="CALLABLE" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+	{ call stx_dis_project_pkg.project_info_proc(p_action_type            => #{p_action_type,jdbcType=VARCHAR},
+                                                 p_project_no             => #{p_project_no,jdbcType=VARCHAR},
+                                                 p_model_no               => #{p_model_no,jdbcType=VARCHAR},
+                                                 p_marketing_text         => #{p_marketing_text,jdbcType=VARCHAR},
+                                                 p_stxsite                => #{p_stxsite,jdbcType=VARCHAR},
+                                                 p_representative_pro_num => #{p_representative_pro_num,jdbcType=VARCHAR},
+                                                 p_representative_pro_yn  => #{p_representative_pro_yn,jdbcType=VARCHAR},
+                                                 p_series                 => #{p_series,jdbcType=VARCHAR},
+                                                 p_reference_pro_num      => #{p_reference_pro_num,jdbcType=VARCHAR},
+                                                 p_flag                   => #{p_flag,jdbcType=VARCHAR},
+                                                 p_buyer                  => #{p_buyer,jdbcType=VARCHAR},
+                                                 p_enable_flag            => #{p_enable_flag,jdbcType=VARCHAR},
+                                                 p_paint_new_rule_flag    => #{p_paint_new_rule_flag,jdbcType=VARCHAR},
+                                                 p_supply_enable_flag     => #{p_supply_enable_flag,jdbcType=VARCHAR},
+                                                 p_supply_close_flag      => #{p_supply_close_flag,jdbcType=VARCHAR}, 
+                                                 p_dl_flag                => #{p_dl_flag,jdbcType=VARCHAR},
+                                                 p_doc_project_no         => #{p_doc_project_no,jdbcType=VARCHAR},
+                                                 p_doc_enable_flag        => #{p_doc_enable_flag,jdbcType=VARCHAR},
+                                                 p_user_id                => #{p_user_id,jdbcType=VARCHAR},
+                                                 p_class1                 => #{p_class1,jdbcType=VARCHAR},
+                                                 p_class2                 => #{p_class2,jdbcType=VARCHAR},
+                                                 p_pis_representative_pro_num  => #{p_pis_representative_pro_num,jdbcType=VARCHAR},
+                                                 p_err_msg                => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                 p_err_code               => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	
+</mapper>

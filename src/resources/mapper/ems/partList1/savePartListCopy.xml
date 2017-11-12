@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePartListCopy">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="mainInsert" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PARTLIST_PKG.save_partlist_copy_proc(
+					 #{project_no}
+				   , #{dwg_no}
+				   <if test='maker != null and !maker.equalsIgnoreCase("")'>
+				   , #{maker}
+				   </if>
+				   <if test='maker == null or maker.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='maker_no != null and !maker_no.equalsIgnoreCase("")'>
+				   , #{maker_no}
+				   </if>
+				   <if test='maker_no == null or maker_no.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='part_list_s != null and !part_list_s.equalsIgnoreCase("")'>
+				   , #{part_list_s}
+				   </if>
+				   <if test='part_list_s == null or part_list_s.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='maker_desc != null and !maker_desc.equalsIgnoreCase("")'>
+				   , #{maker_desc}
+				   </if>
+				   <if test='maker_desc == null or maker_desc.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   , #{partlist_type}
+				   <if test='item_code != null and !item_code.equalsIgnoreCase("")'>
+				   , #{item_code}
+				   </if>
+				   <if test='item_code == null or item_code.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='ea != null and !ea.equalsIgnoreCase("")'>
+				   , #{ea}
+				   </if>
+				   <if test='ea == null or ea.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='weight != null and !weight.equalsIgnoreCase("")'>
+				   , #{weight}
+				   </if>
+				   <if test='weight == null or weight.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='comments != null and !comments.equalsIgnoreCase("")'>
+				   , #{comments}
+				   </if>
+				   <if test='comments == null or comments.equalsIgnoreCase("")'>
+				   , ''
+				   </if>				   
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 	
+	 
+</mapper>

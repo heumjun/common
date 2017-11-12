@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpInputProjectSelectedNInvaildItem">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT PROJECTNO,
+		       TO_CHAR(DL, 'YYYY-MM-DD')DL,
+		       DL_EFFECTIVE,
+		       DWGSERIESPROJECTNO,
+		       GUBUN,
+		       OPER
+		FROM   (SELECT DECODE(DL_EFFECTIVE, NULL, 'Z'||PROJECTNO, 'N', 'Z'||PROJECTNO, PROJECTNO) AS PROJECTNO,
+		               DL,
+		               DL_EFFECTIVE,
+		               DWGSERIESPROJECTNO,
+		               'SELECTED' AS GUBUN,
+		       		   'U' as OPER
+		        FROM   (SELECT PROJECTNO,
+		                       NVL(DL, SYSDATE + 1) AS DL,
+		                       DECODE(SIGN(TRUNC(SYSDATE) - LAST_DAY(ADD_MONTHS(NVL(DL, SYSDATE + 1), 1))), 1, 'N', 0, 'N', -1, 'Y') AS DL_EFFECTIVE,
+		                       DWGSERIESPROJECTNO
+		                FROM   LPM_NEWPROJECT
+		                WHERE  CASENO='1'
+		                AND    PROJECTNO IN (SELECT PROJECT_NO
+		                        FROM   PLM_USER_PROJECT
+		                        WHERE  EMPLOYEE_NO = #{employee_id}
+		                        AND    (END_DATE IS NULL
+		                                OR     END_DATE >= SYSDATE) )
+		                AND    DWGMHYN = 'Y'
+		                ORDER BY PROJECTNO )
+		        UNION
+		SELECT PROJECT_NO,
+		               SYSDATE + 1,
+		               'Y',
+		               '',
+		               'SELECTED' AS GUBUN,
+		       		   'U' as OPER
+		        FROM   PLM_USER_PROJECT A
+		        WHERE  EMPLOYEE_NO = #{employee_id}
+		        AND    (END_DATE IS NULL
+		                OR     END_DATE >= SYSDATE)
+		        AND    SUBSTR(PROJECT_NO, 1, 1) >= '1'
+		        AND    SUBSTR(PROJECT_NO, 1, 1) &lt;= '9'
+		        AND    EXISTS (SELECT 1
+		                FROM   LPM_NEWPROJECT L
+		                WHERE  L.PROJECTNO = A.PROJECT_NO
+		                AND    L.CASENO = '1'
+		                AND    NVL(L.DWGMHYN, 'N') = 'Y' ) )
+		UNION ALL
+		SELECT PROJECT_NO AS PROJECTNO,
+		       '' DL,
+		       '' DL_EFFECTIVE,
+		       '' DWGSERIESPROJECTNO,
+		       'INVALID' AS GUBUN,
+		       'U' as OPER
+		FROM   (SELECT PROJECT_NO
+		        FROM   (SELECT PROJECT_NO
+		                FROM   PLM_USER_PROJECT
+		                WHERE  EMPLOYEE_NO = #{employee_id}
+		                AND    (END_DATE IS NULL
+		                        OR     END_DATE >= SYSDATE)
+		                AND    PROJECT_NO NOT IN (SELECT PROJECTNO
+		                        FROM   LPM_NEWPROJECT
+		                        WHERE  CASENO = '1')
+		                ORDER BY PROJECT_NO )
+		        MINUS
+		SELECT PROJECT_NO
+		        FROM   PLM_USER_PROJECT
+		        WHERE  EMPLOYEE_NO = #{employee_id}
+		        AND    (END_DATE IS NULL
+		                OR     END_DATE >= SYSDATE)
+		        AND    SUBSTR(PROJECT_NO, 1, 1) >= '1'
+		        AND    SUBSTR(PROJECT_NO, 1, 1) &lt;= '9' )
+  	</select>
+  	
+</mapper>

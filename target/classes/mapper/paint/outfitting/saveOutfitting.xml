@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveOutfitting">
+	<select id="selectExistOutfittingPaintItem" parameterType="java.util.Map" resultType="int" >
+	select count(paint_item) as cnt
+	  from stx_dis_pis_outfitting
+	 where project_no  = #{project_no}
+	   and revision    = #{revision}
+	   and team_count  = #{team_count}
+	   and paint_gbn   = #{paint_gbn}
+	   and paint_item  = #{paint_item}    	 	 
+  	</select>
+  	<insert id="insertOutfittingPaintItem" parameterType="java.util.Map">
+	insert into stx_dis_pis_outfitting
+	      (
+	       project_no
+	      ,revision 
+	      ,team_count
+	      ,paint_gbn
+	      ,paint_item
+	      ,quantity
+	      ,theory_quantity
+	      ,created_by        
+	      ,creation_date
+	      ,last_updated_by
+	      ,last_update_date  
+	      )
+	     values
+	      (
+	       #{project_no}
+	      ,#{revision} 
+	      ,#{team_count}
+	      ,#{paint_gbn}
+	      ,#{paint_item}
+	      ,#{quantity}
+	      ,#{quantity}
+	      ,#{loginId}
+		  ,sysdate
+		  ,#{loginId}
+		  ,sysdate   
+	      )
+	</insert>
+	<delete id="deleteOutfittingPaintItem">
+	delete from stx_dis_pis_outfitting
+	      where project_no		= #{project_no}
+			and revision  		= #{revision}
+			and team_count		= #{team_count}
+			and paint_gbn 		= #{paint_gbn}
+			and paint_item   	= #{paint_item} 
+	</delete>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscAllBom">
+
+	<select id="sscAllBomApplyAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">	 
+		 {CALL STX_DIS_SSC_PKG.ALL_BOM_PROC(
+		 		 P_ITEM_TYPE_CD => #{p_item_type_cd}
+				,P_CHK_SERIES   => #{p_chk_series}
+				,P_DWG_NO       => #{p_dwg_no}
+				,P_BLOCK_NO     => #{p_block_no}
+				,P_STR_FLAG     => #{p_str_flag}
+				,P_UPPERACTION  => #{p_upperaction}
+				,P_JOB_STATUS   => #{p_job_status}
+				,P_MOTHER_CODE  => #{p_mother_code}
+				,P_ITEM_CODE    => #{p_item_code}
+				,P_DESC_DETAIL  => #{p_desc_detail}
+				,P_START_DATE   => #{p_start_date}
+				,P_END_DATE     => #{p_end_date}
+				,P_STATE_FLAG   => #{p_state_flag}
+				,P_IS_ECO       => #{p_is_eco}
+				,P_RELEASE      => #{p_release}
+				,P_PIECE_NO     => #{p_piece_no}
+				,P_ATTR1        => #{p_attr1}
+				,P_ATTR2        => #{p_attr2}
+				,P_ATTR5        => #{p_attr5}
+				,P_DEPT_CODE    => #{p_dept_code}
+				,P_ECO_NO       => #{p_eco_no}
+				,P_USER_ID      => #{p_user_id}
+				,P_ERROR_CODE   => #{p_error_code,      jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				,P_ERROR_MSG    => #{p_error_msg,       jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+         )}
+	</select>
+	
+</mapper>

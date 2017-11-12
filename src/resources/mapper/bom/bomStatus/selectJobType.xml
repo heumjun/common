@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectJobType">
+	<select id="select" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT *
+		  FROM STX_DIS_INFO_USC_JOB_TYPE
+		 WHERE JOB_CATALOG = #{item_catalog}
+	</select>
+</mapper>

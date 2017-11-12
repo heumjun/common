@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsPurchasingNewMain">
+
+<!-- 신규 START 2017-04 -->	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="emsPurchasingInstallTime" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDSC.SD_CODE AS VALUE
+				,SDSC.SD_DESC AS TEXT
+		FROM STX_DIS_SD_CODE SDSC 
+		WHERE SDSC.SD_TYPE = 'STR' 
+		AND SDSC.ENABLE_FLAG = 'Y'
+	</select>
+	
+	<select id="emsPurchasingInstallLocation" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDSC.SD_CODE AS VALUE
+		      ,SDSC.SD_DESC AS TEXT
+		FROM STX_DIS_SD_CODE SDSC 
+		WHERE SDSC.SD_TYPE     = 'INSTALLATION_AREA' 
+		AND SDSC.ENABLE_FLAG = 'Y'
+	</select>
+	
+	
+	
+	<select id="selectPosChk" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDI.PROJECT_NO 
+			  ,SUBSTR(PA.ACTIVITYCODE, 1,8) AS DWG_NO 
+		FROM DPM_ACTIVITY@STXDP PA 
+			,( 
+				SELECT SDI.REPRESENTATIVE_PRO_NUM AS PROJECT_NO 
+				FROM STX_DIS_PROJECT@STXDIS SDI 
+				WHERE SDI.PROJECT_NO = #{p_project_no} 
+				AND SDI.ENABLE_FLAG = 'Y' 
+			 ) SDI 
+		WHERE 1 = 1 
+		AND PA.PROJECTNO = SDI.PROJECT_NO 
+		AND PA.CASENO = '1' 
+		AND PA.WORKTYPE = 'DW' 
+		AND PA.ACTIVITYCODE = #{p_dwg_no} ||'DW' 
+		AND PA.DWGDEPTCODE = #{p_dept_code}
+	</select>	
+	
+	<select id="selectEmsApprovedBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DU.EMP_NO AS SB_VALUE  
+			  ,DU.NAME AS SB_NAME 
+			  ,X.POSITION_NAME AS POSITION_NAME 
+			  ,DW.DWGDEPTNM AS DEPT_NAME 
+			  ,DW.DWGDEPTCODE AS DEPT_CODE 
+		FROM STX_DIS_USER DU 
+			,STX_COM_INSA_USER@STXERP X 
+			,STX_DIS_DEPTCODE DD 
+			,STX_DIS_DWGDEPTCODE DW 
+			WHERE DU.DEPT_CODE = DD.DEPTCODE 
+			AND DD.DWGDEPTCODE = DW.DWGDEPTCODE 
+			AND (DU.AUTHOR_CODE LIKE '%0%' OR DU.AUTHOR_CODE LIKE '%4%') 
+			AND DU.USE_YN = 'Y' 
+			AND DU.EMP_NO = X.EMP_NO 
+			AND X.DEL_DATE IS NULL 
+			AND X.EMP_KIND_CD IN ( '01', '02', '04' ) 
+			AND X.USER_NAME LIKE UPPER( '' ) || '%' 
+			AND DW.DWGDEPTCODE = #{p_dept_code} 
+			ORDER BY X.user_name
+
+						
+	</select>
+	
+	<select id="emsDwgNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT SUBSTR(PA.ACTIVITYCODE, 0, 8) AS OBJECT 
+		  FROM DPM_ACTIVITY@STXDP PA 
+		     , LPM_NEWPROJECT@STXDP LN 
+		     , ( SELECT STX_DIS_GET_MASTER_F(#{p_project_no, jdbcType=VARCHAR}) AS MASTER_SHIP FROM DUAL ) A
+		 WHERE 1=1 
+		   AND PA.DWGDEPTCODE        = #{p_dp_dept_code, jdbcType=VARCHAR}
+		   AND PA.PROJECTNO          = LN.PROJECTNO 
+		   AND PA.WORKTYPE           = 'DW' 
+		   AND LN.CASENO             = '1' 
+		   AND LN.CASENO             = PA.CASENO
+		   AND LN.DWGSERIESPROJECTNO   = A.MASTER_SHIP
+		 ORDER BY OBJECT
+	</select>
+	
+	<select id="emsPurchasingMainList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_SELECT_PROC (
+					P_CHK_SERIES 		=>  #{p_chk_series},
+					P_DWG_NO 			=>  #{p_dwg_no},
+					P_DWG_DESC 			=>  #{p_dwg_desc}, 
+					P_ITEM_CODE 		=>  #{p_item_code}, 
+					P_DP_DEPT_CODE 		=>  #{p_dp_dept_code}, 
+					P_STATUS 			=>  #{p_status}, 
+					P_PR_NO 			=>  #{p_pr_no}, 
+					P_PO_NO 			=>  #{p_po_no}, 
+					P_SPEC_STATE 		=>  #{p_spec_state}, 
+					P_BOM 				=>  #{p_bom}, 
+					P_APPROVED_BY 		=>  #{p_approved_by}, 
+					P_CURPAGENO 		=>  #{curPageNo}, 
+					P_PAGESIZE 			=>  #{pageSize}, 
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=emsPurchasingNewMain.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	<insert id="emsPurchasingReqCrtProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_REQUEST_CREATE_PROC
+					(	
+						P_REQUEST_FLAG 		=> #{p_request_flag		}, 
+						P_REQUEST_EMP_NO 	=> #{p_request_emp_no	}, 
+						P_RECEIPT_EMP_NO 	=> #{p_receipt_emp_no	}, 
+						P_USER_ID 			=> #{p_user_id			}, 
+						P_MAIL_SEQ_ID 		=> #{p_mail_seq_id,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}, 
+						P_ERROR_CODE 		=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}, 
+						P_ERROR_MSG 		=> #{p_error_msg,        jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+					)}
+	</insert>
+	
+	<insert id="emsPurchasingInstProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_REQUEST_INSERT_PROC
+					(
+						P_MAIL_SEQ_ID 		=> #{p_mail_seq_id		}, 
+						P_EMS_PUR_NO 		=> #{p_ems_pur_no		}, 
+						P_USER_ID 			=> #{p_user_id			}, 
+						P_ERROR_CODE 		=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT	}, 
+						P_ERROR_MSG 		=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT	}
+					)} 
+	</insert>
+	
+	<insert id="emsPurchasingMailProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_REQUEST_CONFIRM_PROC
+					(
+						P_MAIL_SEQ_ID 		=> #{p_mail_seq_id		},
+						P_USER_ID 			=> #{p_user_id			},  
+						P_ERROR_CODE 		=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT	}, 
+						P_ERROR_MSG 		=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT	}
+					)}
+	</insert>
+<!-- 신규 END 2017-04 -->
+	<select id="getSelectBoxDeptList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT A.DEPT_CODE AS SB_VALUE,
+		       A.DEPT_CODE || ' : ' || A.DEPT_NAME AS SB_NAME,
+		       CASE
+		         WHEN A.DEPT_CODE = #{sb_type} THEN
+		          'selected="selected"'
+		         ELSE
+		          ''
+		       END AS SB_SELECTED
+		  FROM STX_COM_INSA_DEPT@STXERP A
+		 WHERE DEPT_CODE IN
+		       (SELECT C.DEPTCODE
+		          FROM DCC_DEPTCODE@STXDP C
+		         WHERE C.DWGDEPTCODE IN
+		               (SELECT DWG_DEPT_CODE FROM PLM_VENDOR_DWG_PR_INFO@STXDP))
+		   AND A.USE_YN = 'Y'
+		 ORDER BY DEPT_CODE
+  	</select>
+  	
+  	<select id="getSelectBoxPjtList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SHIP_SIZE||SHIP_TYPE SHIP_INFO
+		  FROM STX_PO_EQUIP_EVENT_V@STXERP
+		 WHERE PROJECT_NO = #{master}
+  	</select>
+  	
+  	<select id="getSelectBoxCauseDeptList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT AC.DWGDEPTCODE AS VALUE 
+		     , AC.DWGDEPTNM AS TEXT 
+		  FROM DCC_DWGDEPTCODE@STXDP AC 
+		 WHERE AC.USERYN      = 'Y' 
+		 ORDER BY AC.DWGDEPTNM 
+  	</select>
+  	
+  	<select id="getSelectBoxPosTypeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	  	SELECT CODE_VALUE AS VALUE 
+		     , CODE_TEXT AS TEXT 
+		  FROM STX_TBC_CODE@STXPLM 
+		 WHERE CODE_TYPE = 'POS_TYPE' 
+		 ORDER BY CODE_SEQ ASC 
+  	</select>  	
+  	
+	<select id="posSelectProjectId" parameterType="java.util.Map" resultType="string" >
+		SELECT PROJECT_ID
+		  FROM PA_PROJECTS_ALL@STXERP
+		 WHERE SEGMENT1 = #{p_master}
+  	</select>  	
+  	
+  	<select id="posSelectEquipName" parameterType="java.util.Map" resultType="string" >
+		SELECT DISTINCT EQUIP_NAME
+		  FROM STX_EMS_DB_MASTER@STXERP
+		 WHERE DWG_CODE = #{p_dwg_no}
+		   AND ROWNUM = 1 
+  	</select>
+  	
+  	<select id="posGetFileId" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+		{CALL STX_PO_EPMS_FILE_PKG.FILE_UPLOAD(
+			    #{o_errbuff,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    #{o_retcode,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    #{o_file_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    
+			    #{p_access_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_access_flag,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_project_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_project_no,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_equipment_name,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_doc_type_code,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_file_content_type,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    EMPTY_BLOB(),
+			    #{p_file_name,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_remark,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_plm_user_id,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_user_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_login_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_system,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN}      	
+		)}    	
+    </select>
+    
+    <update id="posUploadFile">
+		UPDATE STX_PO_EPMS_FILE
+		   SET FILE_BLOB = #{p_file_Byte}
+		 WHERE FILE_ID = #{p_file_id}
+	</update>
+	
+	<select id="posInsertRow" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+		{CALL STX_PO_EPMS_SPEC_REVIEW_PKG.INSERT_ROW(
+			    #{o_errbuff,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    #{o_retcode,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    #{o_spec_review_id,		jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    
+			    #{p_project_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_project_no,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_equipment_name,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_vendor_site_id,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_vendor_site_name,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_act_from,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_act_to,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_dwg_no,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    SYSDATE,
+			    #{p_act_comment,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_act_currency,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_act_price,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_complete_flag,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_plm_user_id,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_user_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_login_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_system,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN}
+		)}    	
+    </select>
+    
+	<select id="posInsertSelectedFile" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+		{CALL STX_PO_EPMS_SPEC_REVIEW_PKG.INSERT_SELECTED_FILE(
+			    #{o_errbuff,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    #{o_retcode,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    
+			    #{p_spec_review_id,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_file_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_plm_user_id,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_user_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_login_id,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_system,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN}
+		)}    	
+    </select>
+
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+		<result column="file_name"	 	property="file_name" />
+		<result column="file_blob" 		property="file_blob"  javaType="[B" jdbcType="BLOB" />
+	</resultMap> 
+
+	<select id="posDownloadFile" parameterType="java.util.Map" resultMap="fileMaps" >    
+		SELECT FILE_NAME
+		      ,FILE_BLOB      
+		  FROM STX_PO_EPMS_FILE             
+		 WHERE 1=1                       
+		   AND FILE_ID = #{p_file_id}         
+	</select> 
+
+    <delete id="deletePurchasingA" parameterType="java.util.Map">
+	    DELETE FROM STX_EMS_PURCHASING@STXERP
+		 WHERE EMS_PUR_NO = #{pur_no}
+		   AND STATUS     = 'A'
+    </delete>
+	
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="catalogMgntItemValue">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select a.catalog_code               as item_catalog_code 
+          ,a.attribute_type             as item_attribute_type
+          ,a.attribute_code             as item_attribute_code 
+	      ,a.value_code					as item_value_code
+	      ,a.item_make_value			as item_item_make_value
+	      ,a.value_code					as org_value_code
+	      ,a.item_make_value			as org_item_make_value
+	  from stx_dis_sd_catalog_attr_value a 
+	 where a.attribute_type = 'ITEM'
+	   and a.catalog_code   = #{catalog_code} 
+	   and a.attribute_code = #{attribute_code} 
+	   <if test="value_code != null and value_code !='' ">
+	   and a.value_code like '%' || #{value_code} || '%'
+       </if>
+       <if test="item_order != null and item_order !='' ">
+	   	<if test='item_order == "asc" '>
+	   		<if test="column_name != null and column_name !='' ">
+	   			<if test='column_name == "item_value_code" '>
+	   				order by a.value_code
+	   			</if>
+	   			<if test='column_name == "item_item_make_value" '>
+	   				order by a.item_make_value
+	   			</if>
+	   		</if>
+	   	</if>
+	   	<if test='item_order == "desc" '>
+	   		<if test="column_name != null and column_name !='' ">
+	   			<if test='column_name == "item_value_code" '>
+	   				order by a.value_code desc
+	   			</if>
+	   			<if test='column_name == "item_item_make_value" '>
+	   				order by a.item_make_value desc
+	   			</if>
+	   		</if>
+	   	</if>
+       </if>
+  	</select>
+	
+</mapper>

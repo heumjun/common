@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ndtPcsList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select *
+		from(
+		select ROWNUM as rnum,
+		t.*
+		from(
+
+		SELECT SPPL.PROJECT_NO-- 호선
+		,SPPL.DWG_NO
+		, SPPL.PIECE_NO-- PCS No
+		, SPPL.PCS_ITEM_CODE -- 품목코드
+		
+		
+		
+		
+		, SPPL.DIAMETER --[ERP]Pipe Piece 물성치 10 관경
+		, SPPL.MATERIAL --[ERP]Pipe Piece 물성치 20 재질
+		, SPPL.THICKNESS --[ERP]Pipe Piece 물성치 30 두께
+		, SPPL.CLASS_PIPE --[ERP]Pipe Piece 물성치 50 급관
+		, SPPL.WATER_PRESS --[ERP]Pipe Piece 물성치 70 수압
+		, SPPL.UNIT_WEIGHT --[ERP]단위 중량
+		, SPPL.FORM -- [ERP]Pipe Piece 물성치 60 고정관-조정관-관통관
+		, SPPL.RT --[ERP]Pipe Piece 물성치 100 RT
+		
+		
+		,SDD.EMP_NO
+		,SDD.FILE_NAME
+		
+		,( SELECT TO_CHAR( A.SCHEDULED_START_DATE, 'yyyy-mm-dd' )
+			FROM   STX_PM_ACTIVITY_SCHEDULE@stxerp  A
+			WHERE  1=1
+			AND    A.PROJECT_NAME   = SPPL.PROJECT_NO
+			AND    A.TASK_NUMBER    = SPPL.ACTIVITY
+			<![CDATA[
+			AND    A.ACD_TYPE       <> 'D'
+			]]>) AS SCHEDULED_START_DATE
+		
+		,NVL((SELECT 'Y'
+              FROM STX_QM_SHIP_NO_SCH_HEADERS_ADD@stxerp TEMP
+             WHERE TEMP.ATTRIBUTE5 = SPPL.STX_PIPE_PCS_SEQ
+            ),'N')   AS QM_CHECK_FLAG
+		
+		
+		,SPPL.NDT_PCS_FLAG
+		,SPPL.NDT_PCS_FLAG AS NDT_PCS_FLAG_CHANGED
+        ,SPPL.PROJECT_ID
+        ,SPPL.PIPE_STAGE-- BOM STAGE
+        ,SPPL.JOB_ITEM_ID
+        ,SPPL.PCS_ITEM_ID
+		 FROM STX_PIPE_PCS_LIST@stxerp SPPL
+		      ,STX_DWG_DW302TBL@STXERP SDD
+		<![CDATA[
+		WHERE SPPL.INF_STATUS_CODE <> 'D'
+		]]>
+		
+		AND SDD.SHP_NO = SPPL.DWG_PROJECT_NO
+		AND SDD.DWG_NO= SPPL.DWG_NO
+		AND SDD.DWG_SEQ_ID = SPPL.DWG_SEQ_ID
+		AND SDD.DWG_REV = SPPL.DWG_PAGE_REV
+		
+		
+		 <if test='dwgDept != "ALL"'>
+		AND (SELECT DDDC.UPPERDWGDEPTCODE AS DWG_DEPT_CODE
+	          FROM STX_COM_INSA_USER@STXERP SCIU
+	             , DCC_DEPTCODE@STXDP DDC
+	             , DCC_DWGDEPTCODE@STXDP DDDC
+	         WHERE SCIU.DEPT_CODE = DDC.DEPTCODE
+	           AND DDC.DWGDEPTCODE = DDDC.DWGDEPTCODE
+	           AND DDDC.USERYN = 'Y'
+               AND SCIU.EMP_NO = SDD.EMP_NO) = #{dwgDept}
+		</if>
+		 <if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+		AND SPPL.PROJECT_NO = #{p_project_no}
+		</if>
+		 <if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>
+		AND SPPL.DWG_NO like #{p_dwg_no}||'%'
+		</if>
+		 <if test='p_stage_no != null and !p_stage_no.equalsIgnoreCase("")'>
+		AND SPPL.PIPE_STAGE like #{p_stage_no}||'%'
+		</if>
+		<if test='p_pcs_no != null and !p_pcs_no.equalsIgnoreCase("")'>
+		AND SPPL.PIECE_NO like #{p_pcs_no}||'%'
+		</if>
+		<if test='p_form == "N"'>
+		<![CDATA[
+		AND SPPL.FORM <> 'P'
+		]]>
+		</if>
+		<if test='p_form == "P"'>
+		AND SPPL.FORM = #{p_form}
+		</if>
+		<if test='p_ndt_pcs_flag =="Y"'>
+		<if test='p_pcs_item_code1 != null and !p_pcs_item_code1.equalsIgnoreCase("")'>
+		AND SPPL.PCS_ITEM_CODE like  #{p_pcs_item_code1}||'%'
+		</if>
+		</if>
+		<if test='p_ndt_pcs_flag =="N"'>
+		<if test='p_pcs_item_code2 != null and !p_pcs_item_code2.equalsIgnoreCase("")'>
+		AND SPPL.PCS_ITEM_CODE like  #{p_pcs_item_code2}||'%'
+		</if>
+		</if>
+		AND SPPL.NDT_PCS_FLAG = #{p_ndt_pcs_flag}
+		)t
+
+	        <![CDATA[
+	    where ROWNUM <= (#{curPageNo}*#{pageSize}))
+	    	]]>
+		where rnum >= (#{curPageNo}*#{pageSize}) - (#{pageSize}-1)
+
+
+	</select>
+
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT count(*) as cnt
+		 FROM
+		STX_PIPE_PCS_LIST@stxerp SPPL
+		<![CDATA[
+		WHERE SPPL.INF_STATUS_CODE <> 'D'
+		]]>
+		 <if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+		AND SPPL.PROJECT_NO = #{p_project_no}
+		</if>
+		 <if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>
+		AND SPPL.DWG_NO like #{p_dwg_no}||'%'
+		</if>
+		 <if test='p_stage_no != null and !p_stage_no.equalsIgnoreCase("")'>
+		AND SPPL.PIPE_STAGE like #{p_stage_no}||'%'
+		</if>
+		<if test='p_pcs_no != null and !p_pcs_no.equalsIgnoreCase("")'>
+		AND SPPL.PIECE_NO like #{p_pcs_no}||'%'
+		</if>
+		
+		<if test='p_form == "N"'>
+		<![CDATA[
+		AND SPPL.FORM <> 'P'
+		]]>
+		</if>
+		<if test='p_form == "P"'>
+		AND SPPL.FORM = #{p_form}
+		</if>
+		<if test='p_ndt_pcs_flag =="Y"'>
+		<if test='p_pcs_item_code1 != null and !p_pcs_item_code1.equalsIgnoreCase("")'>
+		AND SPPL.PCS_ITEM_CODE like  #{p_pcs_item_code1}||'%'
+		</if>
+		</if>
+		<if test='p_ndt_pcs_flag =="N"'>
+		<if test='p_pcs_item_code2 != null and !p_pcs_item_code2.equalsIgnoreCase("")'>
+		AND SPPL.PCS_ITEM_CODE like  #{p_pcs_item_code2}||'%'
+		</if>
+		</if>
+		AND SPPL.NDT_PCS_FLAG = #{p_ndt_pcs_flag}
+	</select>
+
+</mapper>

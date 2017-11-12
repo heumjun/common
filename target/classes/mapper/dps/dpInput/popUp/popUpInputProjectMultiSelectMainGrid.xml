@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpInputProjectMultiSelectMainGrid">
+  	<select id="list"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DECODE(DL_EFFECTIVE, NULL, 'Z'||PROJECTNO, 'N', 'Z'||PROJECTNO, PROJECTNO) AS PROJECTNO,
+		       DL,
+		       DL_EFFECTIVE,
+		       DWGSERIESPROJECTNO
+		FROM   (SELECT PROJECTNO,
+		               NVL(DL, SYSDATE + 1) AS DL,
+		               DECODE(SIGN(TRUNC(SYSDATE) - LAST_DAY(ADD_MONTHS(NVL(DL, SYSDATE + 1), 1))), 1, 'N', 0, 'N', -1, 'Y') AS DL_EFFECTIVE,
+		               DWGSERIESPROJECTNO
+		        FROM   LPM_NEWPROJECT
+		        WHERE  CASENO='1'
+		        AND    PROJECTNO IN (SELECT PROJECT_NO
+		                FROM   PLM_USER_PROJECT
+		                WHERE  EMPLOYEE_NO = #{employee_id}
+		                AND    (END_DATE IS NULL
+		                        OR     END_DATE >= SYSDATE) )
+		        AND    DWGMHYN = 'Y'
+		        ORDER BY PROJECTNO )
+		UNION
+		SELECT PROJECT_NO,
+		       SYSDATE + 1,
+		       'Y',
+		       ''
+		FROM   PLM_USER_PROJECT A
+		WHERE  EMPLOYEE_NO = #{employee_id}
+		AND    (END_DATE IS NULL
+		        OR     END_DATE >= SYSDATE)
+		AND    SUBSTR(PROJECT_NO, 1, 1) >= '1'
+		AND    SUBSTR(PROJECT_NO, 1, 1) &lt;= '9'
+		AND    EXISTS (SELECT 1
+		        FROM   LPM_NEWPROJECT L
+		        WHERE  L.PROJECTNO = A.PROJECT_NO
+		        AND    L.CASENO = '1'
+		        AND    NVL(L.DWGMHYN, 'N') = 'Y' ) 
+	</select>
+  	
+</mapper>

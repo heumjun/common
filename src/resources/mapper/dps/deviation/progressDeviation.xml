@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="progressDeviation">
+	<select id="selectPartPersons_Dalian"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.SAWON_ID,
+	       A.SAWON_NAME,
+	       '' AS PHONE
+		FROM   Z_DALIAN_SAWON_TO111231 A,
+		       DCC_DEPTCODE B
+		WHERE  1 = 1
+		AND    A.DWG_DEPTCODE = B.DWGDEPTCODE
+		AND    B.DEPTCODE = #{dept_code}
+	</select>
+</mapper>

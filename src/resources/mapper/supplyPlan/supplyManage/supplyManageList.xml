@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="supplyManageList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	  from (  
+	        select t1.*  
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					SELECT SDSM.SUPPLY_ID              AS SUPPLY_ID
+					      ,SDSM.GBN                    AS GBN
+					      ,SDSM.GROUP1                 AS GROUP1
+					      ,SDSM.GROUP2                 AS GROUP2
+					      ,SDSM.DESCRIPTION AS DESCRIPTION
+					      ,SDSM.UOM1        AS UOM1
+					      ,SDSM.UOM2        AS UOM2
+					      ,SDSM.RANK        AS RANK
+					      ,SDSM.JOIN_DATA   AS JOIN_DATA
+					      ,SDSM.DEPT_CODE   AS DEPT_CODE
+                          ,(SELECT B.DWGDEPTNM
+                              FROM DCC_DWGDEPTCODE@STXDP B
+                             WHERE B.DWGDEPTCODE = SDSM.DEPT_CODE) AS DEPT_CODE_DESC
+					      ,SDSM.RESULT_YN   AS RESULT_YN
+					      ,SDSM.RESULT_YN   AS RESULT_YN_TEMP
+					      ,SDSM.UNIT_YN     AS UNIT_YN
+					      ,SDSM.REMARK      AS REMARK
+					 FROM STX_DIS_SUPPLY_MAIN SDSM
+					WHERE 1=1
+					<if test="i_supplyId!=null and i_supplyId!='' ">
+					  AND SDSM.SUPPLY_ID LIKE #{i_supplyId} || '%'
+					</if>
+					<if test="i_gubun != null and i_gubun !='' ">
+					  AND SDSM.GBN LIKE #{i_gubun} || '%'
+					</if>
+					<if test="i_group1 != null and i_group1 !='' ">
+					  AND SDSM.GROUP1 LIKE #{i_group1} || '%'
+					</if>
+					<if test="i_group2 != null and i_group2 !='' ">
+					  AND SDSM.GROUP2 LIKE #{i_group2} || '%'
+					</if>
+					<if test="i_description != null and i_description !='' ">
+					  AND SDSM.DESCRIPTION like '%' || #{i_description} || '%'
+					</if>
+					<if test="i_sel_join_data != null and i_sel_join_data !='' ">
+					  AND SDSM.JOIN_DATA = #{i_sel_join_data}
+					</if>
+					<if test="i_dept != null and i_dept !='' ">
+					  AND (SELECT B.DWGDEPTNM
+                              FROM DCC_DWGDEPTCODE@STXDP B
+                             WHERE B.DWGDEPTCODE = SDSM.DEPT_CODE) LIKE '%' || #{i_dept} || '%'
+					</if>
+					ORDER BY SDSM.RANK
+                		) t1
+         			) t2
+  			 where page = #{curPageNo}           
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+ 		SELECT COUNT(*)
+		  FROM STX_DIS_SUPPLY_MAIN SDSM
+		 WHERE 1=1
+		<if test="i_supplyId!=null and i_supplyId!='' ">
+		  AND SDSM.SUPPLY_ID LIKE #{i_supplyId} || '%'
+		</if>
+		<if test="i_gubun != null and i_gubun !='' ">
+		  AND SDSM.GBN LIKE #{i_gubun} || '%'
+		</if>
+		<if test="i_group1 != null and i_group1 !='' ">
+		  AND SDSM.GROUP1 LIKE #{i_group1} || '%'
+		</if>
+		<if test="i_group2 != null and i_group2 !='' ">
+		  AND SDSM.GROUP2 LIKE #{i_group2} || '%'
+		</if>
+		<if test="i_description != null and i_description !='' ">
+		  AND SDSM.DESCRIPTION like '%' || #{i_description} || '%'
+		</if>
+		<if test="i_sel_join_data != null and i_sel_join_data !='' ">
+		  AND SDSM.JOIN_DATA = #{i_sel_join_data}
+		</if>
+		<if test="i_dept != null and i_dept !='' ">
+		  AND (SELECT B.DWGDEPTNM
+                 FROM DCC_DWGDEPTCODE@STXDP B
+                WHERE B.DWGDEPTCODE = SDSM.DEPT_CODE) LIKE '%' || #{i_dept} || '%'
+		</if>
+  	</select>
+  	
+	<select id="loginGubun" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT CASE WHEN COUNT(*) = 1 THEN 'Y'
+		            ELSE 'N'
+		       END AS SUPPLY_ADMIN
+		  FROM STX_DIS_SD_CODE
+		 WHERE SD_TYPE = 'SUPPLY_ADMIN'
+		   AND SD_CODE = #{loginId}
+	</select>
+</mapper>

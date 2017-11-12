@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="downLoadDoc">
+	
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+	        <result column="filename"	 		property="filename" />
+	        <result column="fileContentType" 	property="fileContentType" />
+	        <result column="fileDataBytes" 		property="fileDataBytes"  javaType="[B" jdbcType="BLOB" />
+	</resultMap> 
+	
+	<select id="getUploadedFileForDoc" parameterType="java.util.Map" resultMap="fileMaps" >    
+		select 
+	        filename,
+	        fileContentType,
+	        blobdata as fileDataBytes   
+	      from STX_DIS_DOCUMENT
+	      where document_code = #{document_code}  
+	</select> 
+	
+	
+</mapper>

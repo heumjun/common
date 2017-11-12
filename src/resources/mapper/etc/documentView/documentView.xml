@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="documentView">
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+	        <result column="FILE_NAME"	 	property="FILE_NAME" />
+	        <result column="FILE_DATA" 		property="FILE_DATA"  javaType="[B" jdbcType="BLOB" />
+	</resultMap>
+	
+	<select id="selectDocumentView" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT	*
+		FROM STX_PLM_EP_INFO_DOCUMENTS 
+		WHERE DISABLE_DATE IS NULL
+
+	</select>
+	
+	<select id="documentFileDownload" parameterType="java.util.Map" resultMap="fileMaps">
+		 SELECT L.FILE_NAME, L.FILE_DATA         
+          FROM FND_LOBS               L                    
+              ,FND_DOCUMENTS_TL       TL                   
+              ,FND_ATTACHED_DOCUMENTS A                    
+         WHERE A.DOCUMENT_ID = TL.DOCUMENT_ID              
+           AND TL.MEDIA_ID   = L.FILE_ID                   
+           AND TL.LANGUAGE   = USERENV('LANG')             
+           AND A.ENTITY_NAME = 'STX_PLM_EP_INFO_DOCUMENTS' 
+           AND A.PK1_VALUE = #{file_id}                
+	</select>
+	
+	<select id="getFileIdSeq" parameterType="java.util.Map" resultType="string">
+		SELECT FND_LOBS_S.NEXTVAL FROM DUAL 
+	</select>
+	
+	<select id="getDocumenIdSeq" parameterType="java.util.Map" resultType="string">
+		SELECT FND_DOCUMENTS_S.NEXTVAL FROM DUAL 
+	</select>
+	
+	<select id="getAttachedDocumenIdSeq" parameterType="java.util.Map" resultType="string">
+		SELECT FND_ATTACHED_DOCUMENTS_S.NEXTVAL FROM DUAL 
+	</select>
+	
+	<select id="getUpdatePersonId" parameterType="java.util.Map" resultType="string">
+		select  fu.user_id 
+             from per_people_f ppf 
+                , fnd_user fu 
+            where ppf.person_id = fu.employee_id 
+              and ppf.employee_number = #{loginId}
+              and ppf.effective_end_date > trunc(sysdate) 
+              and nvl(fu.end_date,sysdate) >= trunc(sysdate) 
+	</select>
+	
+	<insert id="insertFileInfo" parameterType="java.util.Map">
+		INSERT INTO FND_LOBS                                                                
+                   (FILE_ID, FILE_NAME, FILE_CONTENT_TYPE, FILE_DATA, UPLOAD_DATE, PROGRAM_NAME,          
+                    LANGUAGE, ORACLE_CHARSET, FILE_FORMAT)                                     
+            VALUES (#{file_id}, #{fileName}, #{fileType}, #{fileByte},sysdate, 'FNDATTCH', 'KO', 'UTF8', 'BINARY')                       
+	</insert>
+	
+	<insert id="insertDocumentInfo" parameterType="java.util.Map">
+		INSERT INTO FND_DOCUMENTS                                                          
+                  (DOCUMENT_ID, CREATION_DATE, CREATED_BY, LAST_UPDATE_DATE, LAST_UPDATED_BY, 
+                   DATATYPE_ID, CATEGORY_ID, SECURITY_TYPE,                                   
+                   SECURITY_ID, PUBLISH_FLAG, USAGE_TYPE)                                     
+           VALUES (#{document_id}, sysdate, #{updatePersonId}, sysdate, #{updatePersonId}, 6, 1, 1, 0, 'Y', 'O')                                        
+	</insert>
+	
+	<insert id="insertAttachedDocumentInfo_KO" parameterType="java.util.Map">
+		INSERT INTO FND_DOCUMENTS_TL                                                        
+                   (DOCUMENT_ID, CREATION_DATE, CREATED_BY, LAST_UPDATE_DATE, LAST_UPDATED_BY,  
+                    LANGUAGE, DESCRIPTION, FILE_NAME, MEDIA_ID, SOURCE_LANG)                    
+            VALUES (#{document_id}, sysdate, #{updatePersonId}, sysdate, #{updatePersonId}, 'KO', 'EP기준정보_문서', #{fileName}, #{file_id}, 'KO')   
+              
+                                       
+	</insert>
+	
+	<insert id="insertAttachedDocumentInfo_US" parameterType="java.util.Map">
+		
+       	INSERT INTO FND_DOCUMENTS_TL                                                        
+                   (DOCUMENT_ID, CREATION_DATE, CREATED_BY, LAST_UPDATE_DATE, LAST_UPDATED_BY,  
+                    LANGUAGE, DESCRIPTION, FILE_NAME, MEDIA_ID, SOURCE_LANG)                    
+            VALUES (#{document_id}, sysdate, #{updatePersonId}, sysdate, #{updatePersonId}, 'US', 'EP기준정보_문서', #{fileName}, #{file_id}, 'KO')                                                    
+	</insert>
+	
+	<insert id="insertAttachedDocumentLinkInfo" parameterType="java.util.Map">
+		 INSERT INTO FND_ATTACHED_DOCUMENTS                                                  
+                   (ATTACHED_DOCUMENT_ID, DOCUMENT_ID, CREATION_DATE, CREATED_BY, LAST_UPDATE_DATE, LAST_UPDATED_BY,   
+                    SEQ_NUM, ENTITY_NAME, PK1_VALUE, AUTOMATICALLY_ADDED_FLAG)                  
+            VALUES (#{attached_document_id}, #{document_id}, sysdate, #{updatePersonId}, sysdate, #{updatePersonId}, 10, 'STX_PLM_EP_INFO_DOCUMENTS', #{file_id}, 'N')                                          
+	</insert>
+	
+	<insert id="insertDocumentListMgtInfo" parameterType="java.util.Map">
+		INSERT INTO STX_PLM_EP_INFO_DOCUMENTS( FILE_ID,                     
+             									  FILE_NAME,                   
+             									  ENTITY_NAME,                 
+             									  CREATED_BY,                  
+             									  CREATION_DATE )              
+                                          VALUES ( #{file_id},                           
+                                                   #{fileName},                           
+                                                   'STX_PLM_EP_INFO_DOCUMENTS', 
+                                                   #{updatePersonId},                           
+                                                   SYSDATE )                                                            
+	</insert>
+	
+	<update id="updateDocumentFile" parameterType="java.util.Map">
+		UPDATE STX_PLM_EP_INFO_DOCUMENTS                
+               SET DISABLE_DATE = SYSDATE                   
+             WHERE FILE_ID = #{select_value}               
+	</update>
+</mapper>

@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpInputCommon">
+	<delete id="deletePlmDesignMH" parameterType="java.util.Map">
+		DELETE
+		FROM   PLM_DESIGN_MH
+		WHERE  EMPLOYEE_NO = #{employee_id}
+		AND    WORK_DAY >= TO_DATE(#{from_date}, 'YYYY-MM-DD')
+		AND    WORK_DAY &lt;= TO_DATE(#{to_date}, 'YYYY-MM-DD') 
+	</delete>
+	<select id="selectInsedeWorkTimeTarget" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TO_CHAR(WORKINGDAY, 'YYYY-MM-DD') as workingday,
+		       INSIDEWORKTIME
+		FROM   CCC_CALENDAR
+		WHERE  WORKINGDAY BETWEEN TO_DATE(#{from_date}, 'YYYY-MM-DD') AND TO_DATE(#{to_date}, 'YYYY-MM-DD')
+		AND    ISWORKDAY = 'Y'
+		ORDER BY WORKINGDAY 
+	</select>
+	
+	<insert id="insertPlmDesignMH" parameterType="java.util.Map">
+		INSERT
+		INTO   PLM_DESIGN_MH ( EMPLOYEE_NO, DEPT_CODE, WORK_DAY, START_TIME, PROJECT_NO, DWG_TYPE, DWG_CODE, OP_CODE, CAUSE_DEPART, BASIS, 
+								WORK_DESC, EVENT1, EVENT2, EVENT3, NORMAL_TIME, OVERTIME, SPECIAL_TIME, INPUTDONE_YN, CONFIRM_YN, CREATE_DATE, CREATE_BY,
+								UPDATE_DATE, UPDATE_BY, SHIP_TYPE )
+		VALUES (#{employee_id},
+		               (SELECT DEPT_CODE
+		                FROM   CCC_SAWON
+		                WHERE  EMPLOYEE_NUM =#{employee_id}),
+		               TO_DATE(#{dateStr}, 'YYYY-MM-DD'),
+		               '08:00',
+		               'S000',
+		               '',
+		               '*****',
+		               #{opCode},
+		               '',
+		               '',
+		               #{workContent},
+		               '',
+		               '',
+		               '',
+		               #{workTimeStr},
+		               0,
+		               0,
+		               'Y',
+		               'N',
+		               SYSDATE,
+		               #{loginId},
+		               SYSDATE,
+		               #{loginId},
+		               '') 
+	</insert>
+	<insert id="insertPlmDesignMHProject" parameterType="java.util.Map">
+		INSERT
+		INTO   PLM_DESIGN_MH ( EMPLOYEE_NO, DEPT_CODE, WORK_DAY, START_TIME, PROJECT_NO, DWG_TYPE, DWG_CODE, OP_CODE, CAUSE_DEPART, BASIS, 
+								WORK_DESC, EVENT1, EVENT2, EVENT3, NORMAL_TIME, OVERTIME, SPECIAL_TIME, INPUTDONE_YN, CONFIRM_YN, CREATE_DATE, CREATE_BY,
+								UPDATE_DATE, UPDATE_BY, SHIP_TYPE )
+		VALUES (#{employee_id},
+		               (SELECT DEPT_CODE
+		                FROM   CCC_SAWON
+		                WHERE  EMPLOYEE_NUM =#{employee_id}),
+		               TO_DATE(#{dateStr}, 'YYYY-MM-DD'),
+		               '08:00',
+		               #{projectNo},
+		               '',
+		               '*****',
+		               #{opCode},
+		               '',
+		               '',
+		               #{workContent},
+		               '',
+		               '',
+		               '',
+		               #{workTimeStr},
+		               0,
+		               0,
+		               'Y',
+		               'N',
+		               SYSDATE,
+		               #{loginId},
+		               SYSDATE,
+		               #{loginId},
+		               '') 
+	</insert>
+	
+	
+	<delete id="deletePlmDesignMHTrial"  parameterType="java.util.Map">
+		DELETE
+		FROM   PLM_DESIGN_MH
+		<choose>
+			<when test="type_action == 'grid'">
+				WHERE  EMPLOYEE_NO = #{designerList}
+				AND    WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+			</when>
+			<otherwise>
+				WHERE  EMPLOYEE_NO = #{employee_id}
+				AND    WORK_DAY = TO_DATE(#{dateStr}, 'YYYY-MM-DD')
+			</otherwise>
+		</choose>
+		 
+	</delete>
+	
+	<select id="selectInsedeWorkTimeTargetTrial" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT ISWORKDAY,
+		       INSIDEWORKTIME
+		FROM   CCC_CALENDAR
+		WHERE  WORKINGDAY = TO_DATE(#{dateStr}, 'YYYY-MM-DD')
+	</select>
+	
+	<insert id="insertPlmDesignMHProjectTrial" parameterType="java.util.Map">
+	INSERT
+	INTO   PLM_DESIGN_MH ( EMPLOYEE_NO, DEPT_CODE, WORK_DAY, START_TIME, PROJECT_NO, DWG_TYPE, DWG_CODE, OP_CODE, CAUSE_DEPART, BASIS, 
+							WORK_DESC, EVENT1, EVENT2, EVENT3, NORMAL_TIME, OVERTIME, SPECIAL_TIME, INPUTDONE_YN, CONFIRM_YN, CREATE_DATE, 
+							CREATE_BY, UPDATE_DATE, UPDATE_BY, SHIP_TYPE )
+	VALUES (#{employee_id},
+	               (SELECT DEPT_CODE
+	                FROM   CCC_SAWON
+	                WHERE  EMPLOYEE_NUM = #{employee_id}),
+	               TO_DATE(#{dateStr}, 'YYYY-MM-DD'),
+	               '08:00',
+	               #{project_no},
+	               '',
+	               '*****',
+	               'B53',
+	               '',
+	               '',
+	               '시운전',
+	               '',
+	               '',
+	               '',
+	               #{normalTime},
+	               #{overTime},
+	               #{specialTime},
+	               'Y',
+	               'N',
+	               SYSDATE,
+	               #{loginId},
+	               SYSDATE,
+	               #{loginId},
+	               '') 
+	</insert>
+	
+	<insert id="insertPlmDesignMHProjectInsert" parameterType="java.util.Map">
+		INSERT
+		INTO   PLM_DESIGN_MH ( EMPLOYEE_NO, DEPT_CODE, WORK_DAY, START_TIME, PROJECT_NO, DWG_TYPE, DWG_CODE, OP_CODE, CAUSE_DEPART, BASIS, 
+		                        WORK_DESC, EVENT1, EVENT2, EVENT3, NORMAL_TIME, OVERTIME, SPECIAL_TIME, INPUTDONE_YN, CONFIRM_YN, CREATE_DATE, 
+		                        CREATE_BY, UPDATE_DATE, UPDATE_BY, SHIP_TYPE )
+		VALUES ( 
+						<choose>
+							<when test="type_action == 'grid'">
+								#{designerList},
+				               (SELECT DEPT_CODE
+				                FROM   CCC_SAWON
+				                WHERE  EMPLOYEE_NUM = #{designerList}),
+				               TO_DATE(#{dateselected}, 'YYYY-MM-DD'),
+				               #{start_time},
+				               #{project_no},
+				               #{dwg_type},
+				               #{dwg_code},
+				               #{op_code},
+				               #{cause_depart},
+				               #{basis},
+				               #{work_desc},
+				               #{event1},
+				               #{event2},
+				               #{event3},
+				               #{normalTime},
+				               #{overTime},
+				               #{specialTime},
+				               #{inputDoneYN},
+				               'N',
+				               SYSDATE,
+				               #{loginId},
+				               SYSDATE,
+				               #{loginId},
+				               <if test="ship_type != null and ship_type != ''">
+				               	#{ship_type}	
+				               </if>
+				               <if test="ship_type == null or ship_type == ''">
+				               	''	
+				               </if>
+							</when>
+							<otherwise>
+								#{employee_id},
+				               (SELECT DEPT_CODE
+				                FROM   CCC_SAWON
+				                WHERE  EMPLOYEE_NUM = #{employee_id}),
+				               TO_DATE(#{dateStr}, 'YYYY-MM-DD'),
+				               #{timeKey},
+				               #{projectNo},
+				               #{dwgType},
+				               #{dwgCode},
+				               #{opCode},
+				               #{causeDepart},
+				               #{basis},
+				               #{workDesc},
+				               #{event1},
+				               #{event2},
+				               #{event3},
+				               #{normalTime},
+				               #{overtime},
+				               #{specialTime},
+				               #{inputDoneYN},
+				               'N',
+				               SYSDATE,
+				               #{loginId},
+				               SYSDATE,
+				               #{loginId},
+				               <if test="shipType != null and shipType != ''">
+				               	#{shipType}	
+				               </if>
+				               <if test="shipType == null or shipType == ''">
+				               	''	
+				               </if>
+							</otherwise>
+						</choose>
+		                ) 
+	</insert>
+	
+	<select id="selectOpCodeListGRT"  parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT T.GRT_CODE ,
+		       T.GRT_DESC
+		FROM   PLM_DESIGN_MH_OP_GRT T
+		WHERE  1=1
+		AND    USE_YN='Y' 
+		<choose>
+			<when test="isNonProject != null and isNonProject != '' and isNonProject == true">
+				AND GRT_CODE IN ('C','D')       
+			</when>
+			<when test="isMultiProject != null and isMultiProject != '' and isMultiProject == true">
+				AND GRT_CODE IN ('B')
+			</when>
+			<when test="isRealProject != null and isRealProject != '' and isRealProject == true">
+				AND GRT_CODE IN ('A','B')       
+			</when>
+		</choose>
+		  ORDER BY T.GRT_CODE                
+	</select>
+	
+	<select id="selectOpCodeListMID"  parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT T.GRT_CODE ,
+		       T.MID_CODE ,
+		       T.MID_DESC
+		FROM   PLM_DESIGN_MH_OP_MID T
+		WHERE  1=1
+		AND    USE_YN='Y'
+		<choose>
+			<when test="isNonProject != null and isNonProject != '' and isNonProject == true">
+				AND    GRT_CODE IN ('C','D')   
+			</when>
+			<when test="isMultiProject != null and isMultiProject != '' and isMultiProject == true">
+				AND GRT_CODE IN ('B')
+			</when>
+			<when test="isRealProject != null and isRealProject != '' and isRealProject == true">
+				AND GRT_CODE IN ('A','B')       
+			</when>
+		</choose>
+		  ORDER BY T.GRT_CODE, T.MID_CODE               
+	</select>
+	
+	<select id="selectOpCodeListSUB"  parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT (T.GRT_CODE || T.MID_CODE || T.SUB_CODE) AS OP_CODE ,
+		       T.GRT_CODE ,
+		       T.MID_CODE ,
+		       T.SUB_CODE ,
+		       T.SUB_DESC
+		FROM   PLM_DESIGN_MH_OP_SUB T
+		WHERE  1=1
+		AND    USE_YN = 'Y' 
+		<choose>
+			<when test="isNonProject != null and isNonProject != '' and isNonProject == true">
+				AND    GRT_CODE IN ('C','D')   
+			</when>
+			<when test="isMultiProject != null and isMultiProject != '' and isMultiProject == true">
+				AND GRT_CODE IN ('B')
+			</when>
+			<when test="isRealProject != null and isRealProject != '' and isRealProject == true">
+				AND GRT_CODE IN ('A','B')       
+			</when>
+		</choose>
+		  ORDER BY T.GRT_CODE, T.MID_CODE, T.SUB_CODE              
+	</select>
+	<select id="selectDrawingListForWorkNormal" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SUBSTR(ACTIVITYCODE, 1, 8) as DWGNO,DWGTITLE
+		FROM   PLM_ACTIVITY
+		WHERE  PROJECTNO = #{project_no}
+		AND    WORKTYPE = 'DW' 
+		<if test="depart_code != '440500'"> <!--  검도교육P는 업무특성으로 인해 전 부서 도면을 조회 -->
+		AND    DWGDEPTCODE = (SELECT E.DWGDEPTCODE
+		        FROM   DCC_DEPTCODE E
+		        WHERE  E.DEPTCODE = #{depart_code}) 
+		</if>
+		AND    DWGTYPE = #{dwg_type}
+		ORDER BY ACTIVITYCODE 
+	</select>
+	<select id="selectDrawingListForWorkNotDp1" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DWGNO,
+		       A.DWGTITLE
+		FROM   DPC_HEAD A
+		WHERE  1 = 1
+		AND    A.CASENO = (SELECT MAX(CASENO)
+		        FROM   DPC_HEAD)
+		AND    A.DWGTYPE = #{dwg_type} 
+		<if test="depart_code != '440500'"> <!-- 검도교육P는 업무특성으로 인해 전 부서 도면을 조회 -->
+		AND    DWGDEPTCODE = (SELECT E.DWGDEPTCODE
+		        FROM   DCC_DEPTCODE E
+		        WHERE  E.DEPTCODE = #{depart_code}) 
+		</if>
+		AND    (SELECT COUNT(*)
+		        FROM   CCC_CODE B
+		        WHERE  B.P_CODE = 'SHIPTYPE'
+		        AND    B.M_CODE = 'SHIPTYPE'
+		        AND    B.C_CODE = (SELECT C.SHIPTYPE
+		                FROM   LPM_NEWPROJECT C
+		                WHERE  C.CASENO = '1'
+		                AND    C.PROJECTNO = #{project_no})
+		        AND    B.ATTRIBUTE1 = BITAND(B.ATTRIBUTE1, A.SHIPTYPE) ) > 0 
+	</select>
+	<select id="selectDrawingListForWorkNotDp2" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SUBSTR(ACTIVITYCODE, 1, 8) as DWGNO,
+		       DWGTITLE
+		FROM   PLM_ACTIVITY
+		WHERE  PROJECTNO = #{project_no}
+		AND    WORKTYPE = 'DW'
+		AND    DWGDEPTCODE IN ('000051')
+		AND    DWGTYPE = #{dwg_type}
+		ORDER BY ACTIVITYCODE 
+	</select>
+	<select id="selectDrawingListForWorkNotDp3" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DWGNO,
+		       A.DWGTITLE
+		FROM   DPC_HEAD A
+		WHERE  1 = 1
+		AND    A.CASENO = (SELECT MAX(CASENO)
+		        FROM   DPC_HEAD)
+		AND    A.DWGTYPE = #{dwg_type}
+		AND    DWGDEPTCODE IN ('000051')
+		AND    (SELECT COUNT(*)
+		        FROM   CCC_CODE B
+		        WHERE  B.P_CODE = 'SHIPTYPE'
+		        AND    B.M_CODE = 'SHIPTYPE'
+		        AND    B.C_CODE = (SELECT C.SHIPTYPE
+		                FROM   LPM_NEWPROJECT C
+		                WHERE  C.CASENO = '1'
+		                AND    C.PROJECTNO = #{project_no})
+		        AND    B.ATTRIBUTE1 = BITAND(B.ATTRIBUTE1, A.SHIPTYPE) ) > 0 
+	</select>
+</mapper>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="itemStandardView">
+
+	<select id="selectItemStandardViewLevel1" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT	 L_CATALOG_CODE AS catalog_L
+					,L_CATALOG_DESC  AS name_L
+		FROM STX_DWG_PART_LIST_CATEGORY_L_V
+		ORDER BY L_CATALOG_CODE ASC 
+
+	</select>
+
+	<select id="selectItemStandardViewLevel2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT	 L_CATALOG_CODE AS catalog_L
+					,M_CATALOG_CODE  AS catalog_M
+					,M_CATALOG_DESC  AS name_M
+		FROM STX_DWG_PART_LIST_CATEGORY_M_V
+		WHERE L_CATALOG_CODE = #{catalog_L}
+		ORDER BY L_CATALOG_CODE ASC, M_CATALOG_CODE ASC
+
+	</select>
+	
+	<select id="selectItemStandardViewLevel3" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SP.L_CATALOG_CODE                        AS catalog_L          
+              ,SP.M_CATALOG_CODE                        AS catalog_M          
+              ,SP.S_CATALOG_CODE                        AS catalog_S          
+              ,SP.S_CATALOG_DESC                        AS name_S          
+              ,SP.ITEM_CATALOG_GROUP_ID                 AS item_catalog_group_id   
+              ,SDPL.FILE_NAME                           AS file_name               
+              ,STX_DWG_ITEM_URL_F(SP.S_CATALOG_CODE, SDPL.FILE_NAME) AS file_url   
+              ,NVL((SELECT 'Y'                                                     
+                      FROM STX_DWG_PART_DISTRIBUTION   SDPD                        
+                          ,STX_DWG_PART_DEPT_MANAGER   SDPDM                       
+                          ,STX_DWG_PART_DEPT_MAPPING   SDPDD                       
+                          ,STX_COM_INSA_USER           SCIU                        
+                     WHERE SDPL.ITEM_CATALOG_GROUP_ID = SDPD.ITEM_CATALOG_GROUP_ID 
+                       AND SDPD.ENABLE_FLAG           = 'Y'                        
+                       AND SDPD.DWG_APPL_DEPT_ID      = SDPDM.DEPT_ID              
+                       AND SDPDM.DEPT_ID              = SDPDD.DEPT_ID              
+                       AND SDPDD.DEPT_CODE            = SCIU.DEPT_CODE             
+                       AND SCIU.EMP_NO                = #{loginID}                          
+               ),'N')                                   AS view_flag               
+              ,SDPL.PART_SEQ_ID                         AS PART_SEQ_ID             
+          FROM (                                                                   
+                SELECT SV.L_CATALOG_CODE                AS L_CATALOG_CODE          
+                      ,SV.M_CATALOG_CODE                AS M_CATALOG_CODE          
+                      ,SV.S_CATALOG_CODE                AS S_CATALOG_CODE          
+                      ,SV.S_CATALOG_DESC                AS S_CATALOG_DESC          
+                      ,SV.ITEM_CATALOG_GROUP_ID         AS ITEM_CATALOG_GROUP_ID   
+                      ,MAX(SDP.PART_REV_NO)             AS PART_REV_NO             
+                  FROM STX_DWG_PART_LIST_CATEGORY_S_V   SV                         
+                      ,STX_DWG_PART_LIST_INDEX          SDP                        
+                 WHERE SV.ITEM_CATALOG_GROUP_ID = SDP.ITEM_CATALOG_GROUP_ID        
+                   AND SDP.CONFIRM_FLAG = 'Y'                                      
+                   AND L_CATALOG_CODE   = #{catalog_L}                                        
+                   AND M_CATALOG_CODE   = #{catalog_M}                                       
+              GROUP BY SV.L_CATALOG_CODE                                           
+                      ,SV.M_CATALOG_CODE                                           
+                      ,SV.S_CATALOG_CODE                                           
+                      ,SV.S_CATALOG_DESC                                           
+                      ,SV.ITEM_CATALOG_GROUP_ID                                    
+               )                           SP                                      
+              ,STX_DWG_PART_LIST_INDEX     SDPL                                    
+         WHERE SP.ITEM_CATALOG_GROUP_ID = SDPL.ITEM_CATALOG_GROUP_ID               
+           AND SP.PART_REV_NO           = SDPL.PART_REV_NO                         
+         ORDER BY SP.S_CATALOG_CODE                                                
+
+	</select>
+
+	<select id="itemStandardViewSearch" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SP.L_CATALOG_CODE                        AS catalog_L          
+		      ,SP.M_CATALOG_CODE                        AS catalog_M          
+		      ,SP.S_CATALOG_CODE                        AS catalog_S          
+		      ,SP.S_CATALOG_DESC                        AS name_S       
+		      ,SDSC.UOM_CODE                            AS UOM 
+		      ,SP.ITEM_CATALOG_GROUP_ID                 AS item_catalog_group_id   
+		      ,SDPL.FILE_NAME                           AS file_name                 
+		      ,NVL((SELECT 'Y'                                                     
+		              FROM STX_DWG_PART_DISTRIBUTION   SDPD                        
+		                  ,STX_DWG_PART_DEPT_MANAGER   SDPDM                       
+		                  ,STX_DWG_PART_DEPT_MAPPING   SDPDD                       
+		                  ,STX_COM_INSA_USER           SCIU                        
+		             WHERE SP.ITEM_CATALOG_GROUP_ID   = SDPD.ITEM_CATALOG_GROUP_ID 
+		               AND SDPD.ENABLE_FLAG           = 'Y'                        
+		               AND SDPD.DWG_APPL_DEPT_ID      = SDPDM.DEPT_ID              
+		               AND SDPDM.DEPT_ID              = SDPDD.DEPT_ID              
+		               AND SDPDD.DEPT_CODE            = SCIU.DEPT_CODE             
+		               AND SCIU.EMP_NO                =  #{loginID}                         
+		       ),'N')                                   AS view_flag               
+		      ,SDPL.PART_SEQ_ID                         AS PART_SEQ_ID          
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '01' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR01
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '02' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR02
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '03' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR03
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '04' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR04
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '05' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR05
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '06' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR06
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '07' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR07
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '08' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR08
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '09' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR09
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '10' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR10
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '11' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR11
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '12' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR12
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '13' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR13
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '14' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR14
+		      ,MAX(CASE WHEN SDSC_A.ATTRIBUTE_CODE = '15' THEN SDSC_A.ATTRIBUTE_NAME ELSE NULL END) AS CATALOG_ATTR15  
+		  FROM (                                                                   
+		        SELECT SV.L_CATALOG_CODE                AS L_CATALOG_CODE          
+		              ,SV.M_CATALOG_CODE                AS M_CATALOG_CODE          
+		              ,SV.S_CATALOG_CODE                AS S_CATALOG_CODE          
+		              ,SV.S_CATALOG_DESC                AS S_CATALOG_DESC          
+		              ,SV.ITEM_CATALOG_GROUP_ID         AS ITEM_CATALOG_GROUP_ID   
+		              ,MAX(SDP.PART_REV_NO)             AS PART_REV_NO             
+		          FROM STX_DWG_PART_LIST_CATEGORY_S_V   SV                         
+		              ,STX_DWG_PART_LIST_INDEX          SDP                        
+		         WHERE SV.ITEM_CATALOG_GROUP_ID = SDP.ITEM_CATALOG_GROUP_ID        
+		           AND SDP.CONFIRM_FLAG = 'Y'                                      
+		           AND (S_CATALOG_CODE   like '%'||#{sItemName}||'%' OR S_CATALOG_DESC   like '%'||#{sItemName}||'%' )                                        
+		      GROUP BY SV.L_CATALOG_CODE                                           
+		              ,SV.M_CATALOG_CODE                                           
+		              ,SV.S_CATALOG_CODE                                           
+		              ,SV.S_CATALOG_DESC                                           
+		              ,SV.ITEM_CATALOG_GROUP_ID                                    
+		       )                              SP                                      
+		      ,STX_DWG_PART_LIST_INDEX        SDPL
+		      ,STX_DIS_SD_CATALOG@STXDIS             SDSC
+		      ,STX_DIS_SD_CATALOG_ATTRIBUTE@STXDIS   SDSC_A                           
+		 WHERE SP.ITEM_CATALOG_GROUP_ID = SDPL.ITEM_CATALOG_GROUP_ID               
+		   AND SP.PART_REV_NO           = SDPL.PART_REV_NO  
+		   AND SP.S_CATALOG_CODE        = SDSC.CATALOG_CODE
+		   AND SDSC.CATALOG_CODE        = SDSC_A.CATALOG_CODE   
+		GROUP BY SP.L_CATALOG_CODE                        
+		        ,SP.M_CATALOG_CODE                       
+		        ,SP.S_CATALOG_CODE                       
+		        ,SP.S_CATALOG_DESC                       
+		        ,SDSC.UOM_CODE                           
+		        ,SP.ITEM_CATALOG_GROUP_ID         
+		        ,SDPL.FILE_NAME       
+		        ,SDPL.PART_SEQ_ID     
+		ORDER BY SP.S_CATALOG_CODE ${orderby}
+
+	</select>
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveEcrBasedOn">
+  
+	
+	<delete id="delete" parameterType="java.util.Map">
+	
+		DELETE
+		  FROM stx_dis_ecr_based x
+		 WHERE x.main_states_code = #{statesCode}
+		 AND x.sub_states_code = #{states_code}
+	
+	</delete>
+	
+	
+	<insert id="insert" parameterType="java.util.Map">
+
+		INSERT
+		  INTO stx_dis_ecr_based ( ecr_base_code
+		                         , main_states_code
+		                         , sub_states_code
+		                         , enable_flag
+		                         , create_by
+		                         , create_date
+		                         , last_updated_by
+		                         , last_update_date )
+		VALUES ( STX_DIS_ECR_BASED_SEQ.Nextval
+		       , #{statesCode}
+		       , #{states_code}
+		       , 'Y'
+		       , #{loginId}
+		       , SYSDATE
+		       , #{loginId}
+		       , SYSDATE )
+
+	</insert>
+
+</mapper>

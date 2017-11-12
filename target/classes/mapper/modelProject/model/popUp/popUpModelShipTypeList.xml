@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpModelShipTypeList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT SDSC.SD_CODE
+	      ,SDSC.SD_DESC
+	  FROM STX_DIS_SD_CODE SDSC
+	 WHERE SDSC.SD_TYPE     = 'SHIP_TYPE'
+	   AND SDSC.ENABLE_FLAG = 'Y'
+	   <if test='p_sd_code != ""'>
+	   AND SDSC.SD_CODE  like '%' || REPLACE(#{p_sd_code} , '*', '%') || '%'
+	   </if>
+	   <if test='p_sd_desc != ""'>
+	   AND UPPER(SDSC.SD_DESC)  like '%' || REPLACE(#{p_sd_desc} , '*', '%') || '%'
+	   </if>
+	   <if test='p_ship_category != ""'>
+	   AND SDSC.ATTRIBUTE1  = #{p_ship_category}
+	   </if>
+	   <if test='p_ship_category2 != ""'>
+	   AND SDSC.ATTRIBUTE2 = #{p_ship_category2}
+	   </if>
+	 ORDER BY SDSC.SD_CODE
+	</select>
+  	
+</mapper>

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveCreatePaintPR">
+  <select id="selectItemStatusCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select t1.inventory_item_status_code
+	   	   ,t1.inventory_item_id
+       from mtl_system_items_b@stxerp t1
+      where t1.segment1        = #{paint_item}
+        and t1.organization_id = '82'
+ 	</select>
+ 	<select id="selectPaintItemUom" parameterType="java.util.Map" resultType="string" >
+   select uom 
+	 from stx_dis_item
+	where item_code = #{paint_item}
+	  and rownum = 1
+   </select>
+   <select id="selectUserInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+ 	select ppf.person_id
+	     , fu.user_id
+	     , ppf.attribute1
+	  from per_people_f@stxerp ppf
+	     , fnd_user@stxerp fu
+	 where ppf.person_id          = fu.employee_id
+	   and ppf.employee_number    = #{user_id}
+	   and ppf.effective_end_date > trunc(sysdate)
+   </select> 
+   <select id="selectProjectInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+   select ppa.project_id						 as project_id
+      	, decode(ppa.attribute2, '부산', 143, 141) as deliver_to_location_id
+     from pa_projects_all@stxerp ppa
+    where ppa.segment1               = #{p_project_no}
+      and nvl(closed_date, sysdate) <![CDATA[>=]]> sysdate
+   </select>
+   <select id="selectPORequest" parameterType="java.util.Map" resultType="string" >
+    select stx_std_plm_po_request_s.nextval@stxerp from dual
+   </select>
+   <update id="updatePaintPRGroup" parameterType="java.util.Map">
+ 	update stx_dis_pis_prgroup
+	   set pr_no		=  #{pr_no}
+	 where project_no 	=  #{p_project_no} 
+	   and revision 	=  #{p_revision}  
+	   and group_code 	=  #{group_code} 
+ 	</update>
+ 	<insert id="insertPORequisitionInterface" parameterType="java.util.Map">
+   insert
+   into po_requisitions_interface@stxerp
+        (
+                last_updated_by
+              , last_update_date
+              , last_update_login
+              , creation_date
+              , created_by
+              , item_id
+              , quantity
+              , need_by_date
+              , interface_source_code
+              , deliver_to_location_id
+              , destination_type_code
+              , preparer_id
+              , source_type_code
+              , authorization_status
+              , uom_code
+              , destination_organization_id
+              , autosource_flag
+              , org_id
+          <!--  , project_id  -->
+              , deliver_to_requestor_id
+              , unit_price
+              , charge_account_id
+              , header_description
+              , batch_id
+              , header_attribute4
+              , distribution_attribute2
+              , suggested_buyer_id
+              , project_accounting_context
+        )
+        values
+        (
+                #{update_person_id}
+              , sysdate
+              , -1
+              , sysdate
+              , #{update_person_id}
+              , #{child_id}
+              , #{can_quantity}
+              , to_date(#{pr_date}, 'yyyy-mm-dd')
+              , 'PNT'
+              , #{deliver_to_location_id}
+              , 'INVENTORY'
+              , #{person_id}
+              , 'VENDOR'
+              , 'INCOMPLETE'
+              , #{uom}
+              , 82
+              , 'P'
+              , 0
+          <!--  , #{project_id} -->
+              , #{person_id}
+              , 0
+              , 1004
+              , #{pr_desc}
+              , #{batch_id}
+              , #{dept_id}
+              , #{paint_plan_name}
+              , stx_po_buyerid_fn@stxerp(#{paint_plan_name}, #{child_id})
+              , decode(#{project_id}, null, 'N', 'Y')
+        )
+  	</insert>
+ 	
+  	<select id="procedurePrRequestProc" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_std_plm_pr_request_proc(p_pr_no					=> #{p_pr_no,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                       p_requisition_header_id	=> #{p_requisition_header_id,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                       p_error_msg				=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                       p_error_code				=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                       p_organization_id		=> #{p_organization_id,jdbcType=NUMERIC},
+                                       p_batch_id				=> #{p_batch_id,jdbcType=VARCHAR},
+                                       p_user_id				=> #{p_user_id,jdbcType=NUMERIC},
+                                       p_source_type_code		=> #{p_source_type_code,jdbcType=VARCHAR})
+	}
+	</select>
+	<insert id="deletePrItemList" parameterType="java.util.Map">
+	
+   DELETE FROM STX_DIS_PIS_PR_LIST
+        WHERE PROJECT_NO = #{p_project_no}
+        AND REVISION = #{p_revision}
+        AND GROUP_CODE = #{group_code}
+  	</insert>
+  	<select id="selectPaintItemInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	SELECT SDI.ITEM_CODE AS PAINT_CODE ,
+	  SDI.ITEM_DESC AS PAINT_DESC ,
+	  NVL(SDI.CAN_SIZE, 0) AS CAN_SIZE
+	FROM STX_DIS_ITEM SDI ,
+	  STX_DIS_SD_CATALOG SDSC
+	WHERE 1 = 1
+	  AND SDI.ITEM_CATALOG = SDSC.CATALOG_CODE
+	  AND SDSC.PAINT_FLAG = 'Y'
+	  AND SDI.ITEM_CODE = #{paint_item}
+	</select>
+  	<select id="selectPrItemList" parameterType="java.util.Map" resultType="int" >
+    SELECT COUNT(*) AS CNT FROM STX_DIS_PIS_PR_LIST
+    WHERE PROJECT_NO = #{p_project_no}
+    AND   REVISION   = #{p_revision}
+    AND   GROUP_CODE = #{group_code}
+    AND   PAINT_ITEM = #{paint_item}
+   </select>
+	<insert id="insertPrItemList" parameterType="java.util.Map">
+   INSERT INTO STX_DIS_PIS_PR_LIST
+        (
+                PROJECT_NO,
+				REVISION,
+				GROUP_CODE,
+				PAINT_ITEM,
+				QUANTITY,
+				CREATED_BY,
+				CREATION_DATE,
+				LAST_UPDATED_BY,
+				LAST_UPDATE_DATE
+        )
+        values
+        (
+               #{p_project_no}
+              ,#{p_revision}
+              ,#{group_code}
+              ,#{paint_item}
+              ,#{quantity}
+              ,#{loginId}
+              , sysdate
+              ,#{loginId}
+              ,sysdate
+        )
+  	</insert>
+</mapper>  	

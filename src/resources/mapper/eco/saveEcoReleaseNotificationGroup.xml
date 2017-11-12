@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveEcoReleaseNotificationGroup">
+	<select id="getSeqNextVal" parameterType="java.util.Map" resultType="String" >
+	select STX_DIS_ECO_NOTI_GROUP_ID_SEQ.nextval from dual 
+	</select>
+	<select id="duplicate" parameterType="java.util.Map" resultType="int">
+	SELECT count(*) cnt
+	  FROM STX_DIS_ECO_NOTI_GROUP_DETAIL X
+	 WHERE X.GROUP_ID = #{group_id}
+	   AND X.RECEIVER_EMPNO = #{emp_no}
+  	</select>
+	<insert id="addSTX_DIS_ECO_NOTI_GROUP_HEAD" parameterType="java.util.HashMap">
+  	INSERT INTO STX_DIS_ECO_NOTI_GROUP_HEAD
+		  (
+			  GROUP_ID       
+			 ,DESCRIPTION                  
+			 ,CREATED_BY                  
+			 ,CREATION_DATE
+			 ,LAST_UPDATED_BY
+			 ,LAST_UPDATE_DATE
+		  )
+		VALUES
+		  (
+			  #{group_id}       
+			 ,#{description}                  
+			 ,#{user}                  
+			 ,SYSDATE                 
+			 ,#{user}             
+			 ,SYSDATE
+		  )
+  	
+  	</insert>
+  	
+	<insert id="addSTX_DIS_ECO_NOTI_GROUP_DETAIL" parameterType="java.util.HashMap">
+  	INSERT INTO STX_DIS_ECO_NOTI_GROUP_DETAIL
+		  (
+			 GROUP_ID
+			,RECEIVER_EMPNO
+			,CREATED_BY
+			,CREATION_DATE
+			,LAST_UPDATED_BY
+			,LAST_UPDATE_DATE
+		  )
+		VALUES
+		  (
+			 #{group_id}
+			,#{emp_no}
+			,#{user}
+			,SYSDATE
+			,#{user}
+			,SYSDATE
+		  )
+  	</insert>  	
+
+</mapper>

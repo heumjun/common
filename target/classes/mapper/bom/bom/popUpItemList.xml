@@ -1,0 +1,718 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpItemList">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select *
+	from(
+	    select ROWNUM as rnum,
+	      t.*
+	    from
+	        ( 
+	           SELECT BOM_LIST.MOTHER_CODE   AS MOTHER_CODE
+	                 ,BOM_LIST.ITEM_CODE     AS ITEM_CODE
+                     ,SDI.ITEM_DESC          AS ITEM_DESC
+                     ,SDI.STATES_DESC        AS ITEM_STATES_DESC
+                     ,CASE WHEN (SDSC.WBS_FLAG     = 'Y' OR SDSC.WBS_SUB_FLAG = 'Y')       THEN 'WBS'
+					            WHEN SDSC.ACTIVITY_FLAG = 'Y' AND SDSC_ASSY.ACTIVITY_FLAG = 'N' THEN 'ACT'
+					            WHEN SDSC.ACTIVITY_FLAG = 'Y' AND SDSC_ASSY.ACTIVITY_FLAG = 'Y' THEN 'JOB'
+					            WHEN SDSC.JOB_FLAG      = 'Y'                                   THEN 'JOB'
+					            WHEN SDSC.PD_FLAG       = 'Y'                                   THEN 'PD'
+					       ELSE 'SSC'
+					       END                                                            AS BOM_TYPE
+	                 ,BOM_LIST.ITEM_CATALOG  AS ITEM_CATALOG 
+	                 ,SDI.UOM                AS UOM
+                     ,BOM_LIST.ECO_NO        AS ECO_NO
+	                 ,BOM_LIST.BOM_QTY       AS BOM_QTY
+	                 ,BOM_LIST.EMP_NO        AS EMP_NO
+	                 ,STX_DIS_SHORT_EMP_NAME_F(BOM_LIST.CREATED_BY)     AS CREATED_BY
+	                 ,DECODE(BOM_LIST.STATES_FLAG, 'A', '추가', 'D', '삭제', 'C', '수정', BOM_LIST.STATES_FLAG) AS STATES_FLAG_DESC
+	                 ,BOM_LIST.BOM1          AS BOM1  
+	                 ,BOM_LIST.BOM2          AS BOM2  
+	                 ,BOM_LIST.BOM3          AS BOM3
+	                 ,(SELECT DECODE(COUNT(MOTHER_CODE), 0 ,'true', COUNT(CASE WHEN STATES_FLAG IN ('A','D','C') THEN 1 END))  AS CNT 
+	                   FROM(            
+			       			SELECT SDB.MOTHER_CODE
+			       			, 'BOM' AS STATES_FLAG
+			           FROM STX_DIS_USC_BOM              SDB
+			               ,STX_DIS_ENG_CHANGE_ORDER SDECO
+			               , STX_DIS_SD_CODE         SDSC
+			           WHERE SDB.PROJECT_NO   = #{p_project_no}
+			             AND SDB.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+			             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+			             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+			             AND NOT EXISTS 
+			                 (SELECT 1
+	                            FROM STX_DIS_USC_BOM_WORK SDBW
+	                           WHERE SDBW.PROJECT_NO  = SDB.PROJECT_NO
+	                             AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+	                             AND SDBW.ITEM_CODE   = SDB.ITEM_CODE
+	                          )
+			          UNION ALL
+			          SELECT SDBW.MOTHER_CODE
+			          , SDBW.STATE_FLAG	          AS STATES_FLAG
+			            FROM STX_DIS_USC_BOM_WORK         SDBW
+			                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+			               , STX_DIS_SD_CODE          SDSC
+			           WHERE SDBW.PROJECT_NO   = #{p_project_no}
+			             AND SDBW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+			             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+			             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+			          UNION ALL
+			          SELECT SDP.JOB_CD AS MOTHER_CODE
+			          	   , NULL           AS STATES_FLAG
+			            FROM STX_DIS_PENDING          SDP
+			                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+			               , STX_DIS_SD_CODE          SDSC
+			           WHERE 1=1
+			           	 AND SDP.PROJECT_NO    = #{p_project_no}
+			             AND SDP.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+			             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+			             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+			             AND NOT EXISTS
+	                         (SELECT 1
+	                            FROM STX_DIS_PENDING_WORK SDPW_SUB
+	                           WHERE SDP.PROJECT_NO  = SDPW_SUB.PROJECT_NO
+	                             AND SDP.JOB_CD      = SDPW_SUB.JOB_CD
+	                             AND SDP.MOTHER_CODE = SDPW_SUB.MOTHER_CODE
+	                         ) 
+	                  UNION ALL
+                      SELECT SDPW.JOB_CD    AS MOTHER_CODE
+                           , NULL           AS STATES_FLAG
+                        FROM STX_DIS_PENDING_WORK          SDPW
+                           , STX_DIS_ENG_CHANGE_ORDER SDECO
+                           , STX_DIS_SD_CODE          SDSC
+		                 WHERE 1=1                  
+		                   AND SDPW.PROJECT_NO    = #{p_project_no}
+		                   AND SDPW.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+		                   AND SDECO.STATES_CODE  = SDSC.SD_CODE(+)
+		                   AND SDSC.SD_TYPE(+)    = 'ECO_STATES'
+			          UNION ALL
+			          SELECT SDSH.MOTHER_CODE
+			          , NULL		  AS STATES_FLAG
+			            FROM STX_DIS_SSC_HEAD         SDSH
+			            	,STX_DIS_ITEM       	  SDI
+			                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+			               , STX_DIS_SD_CODE          SDSC
+			           WHERE 1=1
+			          	 AND SDSH.PROJECT_NO   = #{p_project_no}
+			             AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+			             AND SDSH.ITEM_CODE    = SDI.ITEM_CODE(+)
+			             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+			             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+			             AND NOT EXISTS
+	                          (SELECT 1
+	                             FROM STX_DIS_SSC_HEAD_WORK SDSHW_SUB
+	                            WHERE SDSH.SSC_SUB_ID = SDSHW_SUB.SSC_SUB_ID
+	                            )
+	                   UNION ALL
+		                SELECT SDSHW.MOTHER_CODE AS MOTHER_CODE
+		                     , NULL              AS STATES_FLAG
+		                  FROM STX_DIS_SSC_HEAD_WORK         SDSHW
+		                      ,STX_DIS_ITEM           SDI
+		                      ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		                     , STX_DIS_SD_CODE          SDSC
+		                 WHERE 1=1                  
+		                   AND SDSHW.PROJECT_NO   = #{p_project_no}                
+		                   AND SDSHW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+		                   AND SDSHW.ITEM_CODE    = SDI.ITEM_CODE(+)
+		                   AND SDECO.STATES_CODE  = SDSC.SD_CODE(+)
+		                   AND SDSC.SD_TYPE(+)    = 'ECO_STATES' 
+		                UNION ALL
+		                SELECT SDR.MOTHER_CODE  AS MOTHER_CODE
+		                     , NULL             AS STATES_FLAG
+		                  FROM STX_DIS_RAWLEVEL          SDR
+		                      ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		                     , STX_DIS_SD_CODE          SDSC
+		                 WHERE SDR.PROJECT_NO   = #{p_project_no}
+		                   AND SDR.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+		                   AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+		                   AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+		                   AND NOT EXISTS
+		                          (SELECT 1
+		                             FROM STX_DIS_RAWLEVEL_WORK SDRW_SUB
+		                            WHERE SDR.SSC_SUB_ID = SDRW_SUB.SSC_SUB_ID
+		                            )    
+		                UNION ALL
+		                SELECT SDRW.MOTHER_CODE AS MOTHER_CODE
+		                     , NULL             AS STATES_FLAG
+		                  FROM STX_DIS_RAWLEVEL_WORK          SDRW
+		                      ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		                     , STX_DIS_SD_CODE          SDSC
+		                 WHERE 1=1                  
+		                   AND SDRW.PROJECT_NO   = #{p_project_no}
+		                   AND SDRW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+		                   AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+		                   AND SDSC.SD_TYPE(+)   = 'ECO_STATES' 
+			         ) CNT WHERE CNT.MOTHER_CODE  = BOM_LIST.ITEM_CODE) 	AS LEAF
+	            FROM (
+	                  SELECT SDB.MOTHER_CODE   AS MOTHER_CODE
+	                        ,SDB.ITEM_CODE     AS ITEM_CODE
+	                        ,SDB.ITEM_CATALOG  AS ITEM_CATALOG 
+	                        ,''		           AS DWG_NO
+	                        ,SDB.QTY           AS BOM_QTY
+	                        ,SDB.CREATE_BY     AS EMP_NO
+	                        ,SDB.ECO_NO        AS ECO_NO
+                            ,SDECO.CREATE_BY  AS CREATED_BY
+                            ,'BOM' 			   AS STATES_FLAG
+	                        ,SDB.BOM1          AS BOM1  
+	                        ,SDB.BOM2          AS BOM2  
+	                        ,SDB.BOM3          AS BOM3  
+	                        ,SDB.BOM4          AS BOM4  
+	                        ,SDB.BOM5          AS BOM5  
+	                        ,SDB.BOM6          AS BOM6  
+	                        ,SDB.BOM7          AS BOM7  
+	                        ,SDB.BOM8          AS BOM8  
+	                        ,SDB.BOM9          AS BOM9  
+	                        ,SDB.BOM10         AS BOM10 
+	                        ,SDB.BOM11         AS BOM11 
+	                        ,SDB.BOM12         AS BOM12 
+	                        ,SDB.BOM13         AS BOM13 
+	                        ,SDB.BOM14         AS BOM14 
+	                        ,SDB.BOM15         AS BOM15 
+	                    FROM STX_DIS_USC_BOM         SDB
+                            ,STX_DIS_ENG_CHANGE_ORDER SDECO
+                            ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO
+	                   WHERE NOT EXISTS
+	                        (SELECT 1
+	                           FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+	                          WHERE SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+                                AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+                                AND SDB.PROJECT_NO  = SDBW_SUB.PROJECT_NO
+	                          )
+                       AND SDB.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                       AND SDB.PROJECT_NO    = #{p_project_no}
+                       AND SDB.CREATE_BY = SDU_ITEM.EMP_NO  
+                   	   AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                        <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+				       AND SDB.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+				       </if>
+	                  UNION ALL
+	                  SELECT SDBW.MOTHER_CODE   AS MOTHER_CODE
+	                        ,SDBW.ITEM_CODE     AS ITEM_CODE
+	                        ,SDBW.ITEM_CATALOG  AS ITEM_CATALOG 
+	                        ,''                 AS DWG_NO
+	                        ,SDBW.QTY           AS BOM_QTY
+	                        ,SDBW.CREATE_BY     AS EMP_NO
+	                        ,SDBW.ECO_NO        AS ECO_NO
+                            ,SDECO.CREATE_BY    AS CREATED_BY
+                            ,SDBW.STATE_FLAG    AS STATES_FLAG
+	                        ,SDBW.BOM1          AS BOM1  
+	                        ,SDBW.BOM2          AS BOM2  
+	                        ,SDBW.BOM3          AS BOM3  
+	                        ,SDBW.BOM4          AS BOM4  
+	                        ,SDBW.BOM5          AS BOM5  
+	                        ,SDBW.BOM6          AS BOM6  
+	                        ,SDBW.BOM7          AS BOM7  
+	                        ,SDBW.BOM8          AS BOM8  
+	                        ,SDBW.BOM9          AS BOM9  
+	                        ,SDBW.BOM10         AS BOM10 
+	                        ,SDBW.BOM11         AS BOM11 
+	                        ,SDBW.BOM12         AS BOM12 
+	                        ,SDBW.BOM13         AS BOM13 
+	                        ,SDBW.BOM14         AS BOM14 
+	                        ,SDBW.BOM15         AS BOM15
+	                    FROM STX_DIS_USC_BOM_WORK    SDBW
+                            ,STX_DIS_ENG_CHANGE_ORDER SDECO
+                            ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO
+                        WHERE SDBW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                          AND SDBW.PROJECT_NO    = #{p_project_no}
+                          AND SDBW.CREATE_BY = SDU_ITEM.EMP_NO  
+                		  AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                       <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+				        AND SDBW.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'				        
+				       </if>
+	                  UNION ALL
+	                    SELECT SDP.JOB_CD        AS MOTHER_CODE
+	                          ,SDP.MOTHER_CODE     AS ITEM_CODE
+	                          ,SDP.ITEM_CATALOG  AS ITEM_CATALOG 
+	                          ,SDP.DWG_NO        AS DWG_NO
+	                          ,1                 AS BOM_QTY
+	                          ,SDP.CREATE_BY       AS EMP_NO
+	                          ,SDP.ECO_NO               AS ECO_NO
+                              ,SDECO.CREATE_BY          AS CREATED_BY
+                              ,SDP.PROJECT_NO||'-'||'PD'           		  AS STATES_FLAG
+	                          ,SDP.BLOCK_NO      AS BOM1  
+	                          ,SDP.STR_FLAG      AS BOM2  
+	                          ,SDP.STAGE_NO      AS BOM3  
+	                          ,NULL              AS BOM4  
+	                          ,NULL              AS BOM5  
+	                          ,NULL              AS BOM6  
+	                          ,NULL              AS BOM7  
+	                          ,NULL              AS BOM8  
+	                          ,NULL              AS BOM9  
+	                          ,NULL              AS BOM10 
+	                          ,NULL              AS BOM11 
+	                          ,NULL              AS BOM12 
+	                          ,NULL              AS BOM13 
+	                          ,NULL              AS BOM14 
+	                          ,NULL              AS BOM15
+	                    FROM STX_DIS_PENDING          SDP
+	                        ,STX_DIS_ENG_CHANGE_ORDER SDECO
+	                        ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO
+	                   WHERE NOT EXISTS
+                          (SELECT 1
+                             FROM STX_DIS_PENDING_WORK SDPW_SUB
+                            WHERE  SDP.PROJECT_NO  = SDPW_SUB.PROJECT_NO
+                              AND SDP.MOTHER_CODE = SDPW_SUB.MOTHER_CODE
+                              AND SDP.JOB_CD      = SDPW_SUB.JOB_CD
+                            )
+                         AND SDP.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+	                     AND SDP.PROJECT_NO   = #{p_project_no}
+	                     AND SDP.CREATE_BY = SDU_ITEM.EMP_NO  
+                   		 AND SDECO.CREATE_BY = SDU_ECO.EMP_NO                     
+				        <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+				         AND SDP.MOTHER_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'				        
+				        </if>
+				      UNION ALL
+	                    SELECT SDPW.JOB_CD        AS MOTHER_CODE
+	                          ,SDPW.MOTHER_CODE     AS ITEM_CODE
+	                          ,SDPW.ITEM_CATALOG  AS ITEM_CATALOG 
+	                          ,SDPW.DWG_NO        AS DWG_NO
+	                          ,1                 AS BOM_QTY
+	                          ,SDPW.CREATE_BY       AS EMP_NO
+	                          ,SDPW.ECO_NO               AS ECO_NO
+                              ,SDPW.CREATE_BY          AS CREATED_BY
+                              ,SDPW.PROJECT_NO||'-'||'PD'           		  AS STATES_FLAG
+	                          ,SDPW.BLOCK_NO      AS BOM1  
+	                          ,SDPW.STR_FLAG      AS BOM2  
+	                          ,SDPW.STAGE_NO      AS BOM3  
+	                          ,NULL              AS BOM4  
+	                          ,NULL              AS BOM5  
+	                          ,NULL              AS BOM6  
+	                          ,NULL              AS BOM7  
+	                          ,NULL              AS BOM8  
+	                          ,NULL              AS BOM9  
+	                          ,NULL              AS BOM10 
+	                          ,NULL              AS BOM11 
+	                          ,NULL              AS BOM12 
+	                          ,NULL              AS BOM13 
+	                          ,NULL              AS BOM14 
+	                          ,NULL              AS BOM15
+	                    FROM STX_DIS_PENDING_WORK          SDPW
+	                        ,STX_DIS_ENG_CHANGE_ORDER SDECO
+	                        ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO
+	                   WHERE 1=1
+                         AND SDPW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+	                     AND SDPW.PROJECT_NO   = #{p_project_no}
+	                     AND SDPW.CREATE_BY = SDU_ITEM.EMP_NO  
+                   		 AND SDECO.CREATE_BY = SDU_ECO.EMP_NO                   
+				        <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+				         AND SDPW.MOTHER_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'				        
+				        </if>
+                      UNION ALL
+			          SELECT SDSH.MOTHER_CODE
+			               , SDSH.ITEM_CODE
+			               , SDI.ITEM_CATALOG AS ITEM_CATALOG
+			               , SDSH.DWG_NO
+			               , SDSH.BOM_QTY AS BOM_QTY
+			               , SDSH.CREATE_BY AS EMP_NO
+			               , SDSH.ECO_NO
+			               , SDECO.CREATE_BY          AS CREATED_BY
+			               , SDSH.PROJECT_NO||'-'||'SSC'		  AS STATES_FLAG
+			               , SDSH.BOM1
+			               , SDSH.BOM2
+			               , SDSH.BOM3
+			               , SDSH.BOM4
+			               , SDSH.BOM5
+			               , SDSH.BOM6
+			               , SDSH.BOM7
+			               , SDSH.BOM8
+			               , SDSH.BOM9
+			               , SDSH.BOM10
+			               , SDSH.BOM11
+			               , SDSH.BOM12
+			               , SDSH.BOM13
+			               , SDSH.BOM14
+			               , SDSH.BOM15
+			            FROM STX_DIS_SSC_HEAD         SDSH
+			            	,STX_DIS_ITEM        SDI
+			                ,STX_DIS_ENG_CHANGE_ORDER SDECO	
+			                ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO 		                
+			           WHERE NOT EXISTS
+                          (SELECT 1
+                             FROM STX_DIS_SSC_HEAD_WORK SDSHW_SUB
+                            WHERE SDSH.SSC_SUB_ID = SDSHW_SUB.SSC_SUB_ID
+                            )
+			             AND SDSH.PROJECT_NO   = #{p_project_no}
+			             AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+			             AND SDSH.ITEM_CODE    = SDI.ITEM_CODE(+)
+			             AND SDSH.CREATE_BY = SDU_ITEM.EMP_NO  
+                   		 AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+			        <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+			         AND SDSH.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+			        </if>
+		            UNION ALL
+               		SELECT SDSHW.MOTHER_CODE                   
+                     , SDSHW.ITEM_CODE
+                     , SDI.ITEM_CATALOG AS ITEM_CATALOG
+                     , SDSHW.DWG_NO
+                     , SDSHW.BOM_QTY AS BOM_QTY
+                     , SDSHW.CREATE_BY AS EMP_NO
+                     , SDSHW.ECO_NO
+                     , SDECO.CREATE_BY          AS CREATED_BY
+                     , SDSHW.PROJECT_NO||'-'||'SSC'      AS STATES_FLAG
+                     , SDSHW.BOM1
+                     , SDSHW.BOM2
+                     , SDSHW.BOM3
+                     , SDSHW.BOM4
+                     , SDSHW.BOM5
+                     , SDSHW.BOM6
+                     , SDSHW.BOM7
+                     , SDSHW.BOM8
+                     , SDSHW.BOM9
+                     , SDSHW.BOM10
+                     , SDSHW.BOM11
+                     , SDSHW.BOM12
+                     , SDSHW.BOM13
+                     , SDSHW.BOM14
+                     , SDSHW.BOM15
+                  FROM STX_DIS_SSC_HEAD_WORK         SDSHW
+                    ,STX_DIS_ITEM        SDI
+                    ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+                    ,STX_DIS_USER SDU_ITEM       
+                    ,STX_DIS_USER SDU_ECO                     
+                 WHERE 1=1                  
+                   AND SDSHW.PROJECT_NO   = #{p_project_no}                  
+                   AND SDSHW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                   AND SDSHW.ITEM_CODE    = SDI.ITEM_CODE(+)
+                   AND SDSHW.CREATE_BY = SDU_ITEM.EMP_NO  
+                   AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                   <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+			         AND SDSHW.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+			        </if>
+               UNION ALL
+                SELECT SDR.MOTHER_CODE                   
+                     , SDR.ITEM_CODE
+                     , SDR.ITEM_CATALOG
+                     , ''     AS DWG_NO
+                     , SDR.BOM_QTY AS BOM_QTY
+                     , SDR.CREATE_BY AS EMP_NO
+                     , SDR.ECO_NO
+                     , SDECO.CREATE_BY          AS CREATED_BY
+                     , SDR.PROJECT_NO||'-'||'SSC'      AS STATES_FLAG
+                     , SDR.BOM1
+                     , SDR.BOM2
+                     , SDR.BOM3
+                     , SDR.BOM4
+                     , SDR.BOM5
+                     , SDR.BOM6
+                     , SDR.BOM7
+                     , SDR.BOM8
+                     , SDR.BOM9
+                     , SDR.BOM10
+                     , SDR.BOM11
+                     , SDR.BOM12
+                     , SDR.BOM13
+                     , SDR.BOM14
+                     , SDR.BOM15
+                  FROM STX_DIS_RAWLEVEL         SDR
+                    ,STX_DIS_ENG_CHANGE_ORDER SDECO  
+                    ,STX_DIS_USER SDU_ITEM       
+                    ,STX_DIS_USER SDU_ECO                       
+                 WHERE NOT EXISTS
+                          (SELECT 1
+                             FROM STX_DIS_RAWLEVEL_WORK SDRW_SUB
+                            WHERE SDR.SSC_SUB_ID = SDRW_SUB.SSC_SUB_ID
+                            )
+                   AND SDR.PROJECT_NO   = #{p_project_no}                 
+                   AND SDR.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                   AND SDR.CREATE_BY 	= SDU_ITEM.EMP_NO  
+                   AND SDECO.CREATE_BY 	= SDU_ECO.EMP_NO
+                   <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+			         AND SDR.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+			        </if>
+                UNION ALL
+               SELECT SDRW.MOTHER_CODE                     
+                     , SDRW.ITEM_CODE
+                     , SDRW.ITEM_CATALOG
+                     , ''     AS DWG_NO
+                     , SDRW.BOM_QTY AS BOM_QTY
+                     , SDRW.CREATE_BY AS EMP_NO
+                     , SDRW.ECO_NO
+                     , SDECO.CREATE_BY          AS CREATED_BY
+                     , SDRW.PROJECT_NO||'-'||'SSC'      AS STATES_FLAG
+                     , SDRW.BOM1
+                     , SDRW.BOM2
+                     , SDRW.BOM3
+                     , SDRW.BOM4
+                     , SDRW.BOM5
+                     , SDRW.BOM6
+                     , SDRW.BOM7
+                     , SDRW.BOM8
+                     , SDRW.BOM9
+                     , SDRW.BOM10
+                     , SDRW.BOM11
+                     , SDRW.BOM12
+                     , SDRW.BOM13
+                     , SDRW.BOM14
+                     , SDRW.BOM15
+                  FROM STX_DIS_RAWLEVEL_WORK         SDRW
+                     ,STX_DIS_ENG_CHANGE_ORDER SDECO
+                     ,STX_DIS_USER SDU_ITEM       
+                     ,STX_DIS_USER SDU_ECO                      
+                 WHERE 1=1                  
+                   AND SDRW.PROJECT_NO   = #{p_project_no}                  
+                   AND SDRW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                   AND SDRW.CREATE_BY = SDU_ITEM.EMP_NO  
+                   AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                   <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+			         AND SDRW.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+			        </if>
+	                 ) BOM_LIST
+                     , STX_DIS_ITEM        SDI
+                     , STX_DIS_SD_CATALOG  SDSC                     
+                     , STX_DIS_ITEM        SDI_ASSY
+                     , STX_DIS_SD_CATALOG  SDSC_ASSY
+     WHERE BOM_LIST.ITEM_CODE            	 = SDI.ITEM_CODE(+)
+       AND BOM_LIST.ITEM_CATALOG       		 = SDSC.CATALOG_CODE(+)
+       
+       AND BOM_LIST.MOTHER_CODE         	 = SDI_ASSY.ITEM_CODE(+)
+       AND SDI_ASSY.ITEM_CATALOG   			 = SDSC_ASSY.CATALOG_CODE(+)
+       <if test='p_item_desc != null and !p_item_desc.equalsIgnoreCase("")'>
+       AND SDI.ITEM_DESC LIKE '%' || REPLACE(#{p_item_desc} , '*', '%') || '%'
+       </if>
+     )t
+	        <![CDATA[
+	    where ROWNUM <= (#{curPageNo}*#{pageSize}))
+	    	]]>
+	where rnum >= (#{curPageNo}*#{pageSize}) - (#{pageSize}-1)
+	</select>
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int">
+	 
+	           SELECT COUNT(*) cnt
+	            FROM (
+	            	SELECT SDB.MOTHER_CODE   AS MOTHER_CODE
+	                        ,SDB.ITEM_CODE     AS ITEM_CODE
+	                        ,SDB.ITEM_CATALOG  AS ITEM_CATALOG 
+	                        ,''		           AS DWG_NO
+	                        ,SDB.QTY           AS BOM_QTY
+	                        ,SDB.CREATE_BY     AS EMP_NO
+	                        ,SDB.ECO_NO        AS ECO_NO
+                            ,SDECO.CREATE_BY  AS CREATED_BY
+                            ,'BOM' 			   AS STATES_FLAG
+	                        ,SDB.BOM1          AS BOM1  
+	                        ,SDB.BOM2          AS BOM2  
+	                        ,SDB.BOM3          AS BOM3  
+	                    FROM STX_DIS_USC_BOM         SDB
+                            ,STX_DIS_ENG_CHANGE_ORDER SDECO
+                            ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO  
+	                   WHERE NOT EXISTS
+	                        (SELECT 1
+	                           FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+	                          WHERE SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+                                AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+                                AND SDB.PROJECT_NO  = SDBW_SUB.PROJECT_NO
+	                          )
+                       AND SDB.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                       AND SDB.PROJECT_NO    = #{p_project_no}
+                       AND SDB.CREATE_BY = SDU_ITEM.EMP_NO  
+                   	   AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                        <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+				       AND SDB.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+				       </if>
+	                  UNION ALL
+	                  SELECT SDBW.MOTHER_CODE   AS MOTHER_CODE
+	                        ,SDBW.ITEM_CODE     AS ITEM_CODE
+	                        ,SDBW.ITEM_CATALOG  AS ITEM_CATALOG 
+	                        ,''                 AS DWG_NO
+	                        ,SDBW.QTY           AS BOM_QTY
+	                        ,SDBW.CREATE_BY     AS EMP_NO
+	                        ,SDBW.ECO_NO        AS ECO_NO
+                            ,SDECO.CREATE_BY    AS CREATED_BY
+                            ,SDBW.STATE_FLAG    AS STATES_FLAG
+	                        ,SDBW.BOM1          AS BOM1  
+	                        ,SDBW.BOM2          AS BOM2  
+	                        ,SDBW.BOM3          AS BOM3  
+	                    FROM STX_DIS_USC_BOM_WORK    SDBW
+                            ,STX_DIS_ENG_CHANGE_ORDER SDECO
+                            ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO
+                        WHERE SDBW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                          AND SDBW.PROJECT_NO    = #{p_project_no}
+                          AND SDBW.CREATE_BY = SDU_ITEM.EMP_NO  
+                   		  AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                       <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+				        AND SDBW.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'				        
+				       </if>
+	                  UNION ALL
+	                    SELECT SDP.JOB_CD        AS MOTHER_CODE
+	                          ,SDP.MOTHER_CODE     AS ITEM_CODE
+	                          ,SDP.ITEM_CATALOG  AS ITEM_CATALOG 
+	                          ,SDP.DWG_NO        AS DWG_NO
+	                          ,1                 AS BOM_QTY
+	                          ,SDP.CREATE_BY       AS EMP_NO
+	                          ,SDP.ECO_NO               AS ECO_NO
+                              ,SDECO.CREATE_BY          AS CREATED_BY
+                              ,SDP.PROJECT_NO||'-'||'PD'           		  AS STATES_FLAG
+	                          ,SDP.BLOCK_NO      AS BOM1  
+	                          ,SDP.STR_FLAG      AS BOM2  
+	                          ,SDP.STAGE_NO      AS BOM3 
+	                    FROM STX_DIS_PENDING          SDP
+	                        ,STX_DIS_ENG_CHANGE_ORDER SDECO
+	                        ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO 
+	                   WHERE NOT EXISTS
+                          (SELECT 1
+                             FROM STX_DIS_PENDING_WORK SDPW_SUB
+                            WHERE  SDP.PROJECT_NO  = SDPW_SUB.PROJECT_NO
+                              AND SDP.MOTHER_CODE = SDPW_SUB.MOTHER_CODE
+                              AND SDP.JOB_CD      = SDPW_SUB.JOB_CD
+                            )
+                         AND SDP.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+	                     AND SDP.PROJECT_NO   = #{p_project_no}     
+	                     AND SDP.CREATE_BY = SDU_ITEM.EMP_NO  
+                  	 	 AND SDECO.CREATE_BY = SDU_ECO.EMP_NO                  
+				        <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+				         AND SDP.MOTHER_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'				        
+				        </if>
+				      UNION ALL
+	                    SELECT SDPW.JOB_CD        AS MOTHER_CODE
+	                          ,SDPW.MOTHER_CODE     AS ITEM_CODE
+	                          ,SDPW.ITEM_CATALOG  AS ITEM_CATALOG 
+	                          ,SDPW.DWG_NO        AS DWG_NO
+	                          ,1                 AS BOM_QTY
+	                          ,SDPW.CREATE_BY       AS EMP_NO
+	                          ,SDPW.ECO_NO               AS ECO_NO
+                              ,SDPW.CREATE_BY          AS CREATED_BY
+                              ,SDPW.PROJECT_NO||'-'||'PD'           		  AS STATES_FLAG
+	                          ,SDPW.BLOCK_NO      AS BOM1  
+	                          ,SDPW.STR_FLAG      AS BOM2  
+	                          ,SDPW.STAGE_NO      AS BOM3  
+	                    FROM STX_DIS_PENDING_WORK     SDPW
+	                        ,STX_DIS_ENG_CHANGE_ORDER SDECO
+	                        ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO
+	                   WHERE 1=1
+                         AND SDPW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+	                     AND SDPW.PROJECT_NO   = #{p_project_no}    
+	                     AND SDPW.CREATE_BY = SDU_ITEM.EMP_NO  
+                   		 AND SDECO.CREATE_BY = SDU_ECO.EMP_NO                   
+				        <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+				         AND SDPW.MOTHER_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'				        
+				        </if>
+                      UNION ALL
+			          SELECT SDSH.MOTHER_CODE
+			               , SDSH.ITEM_CODE
+			               , SDI.ITEM_CATALOG AS ITEM_CATALOG
+			               , SDSH.DWG_NO
+			               , SDSH.BOM_QTY AS BOM_QTY
+			               , SDSH.CREATE_BY AS EMP_NO
+			               , SDSH.ECO_NO
+			               , SDECO.CREATE_BY          AS CREATED_BY
+			               , SDSH.PROJECT_NO||'-'||'SSC'		  AS STATES_FLAG
+			               , SDSH.BOM1
+			               , SDSH.BOM2
+			               , SDSH.BOM3
+			            FROM STX_DIS_SSC_HEAD         SDSH
+			            	,STX_DIS_ITEM        SDI
+			                ,STX_DIS_ENG_CHANGE_ORDER SDECO		
+			                ,STX_DIS_USER SDU_ITEM       
+                    		,STX_DIS_USER SDU_ECO 	                
+			           WHERE NOT EXISTS
+                          (SELECT 1
+                             FROM STX_DIS_SSC_HEAD_WORK SDSHW_SUB
+                            WHERE SDSH.SSC_SUB_ID = SDSHW_SUB.SSC_SUB_ID
+                            )
+			             AND SDSH.PROJECT_NO   = #{p_project_no}
+			             AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+			             AND SDSH.ITEM_CODE    = SDI.ITEM_CODE(+)
+			             AND SDSH.CREATE_BY = SDU_ITEM.EMP_NO  
+                   		 AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+			        <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+			         AND SDSH.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+			        </if>
+		            UNION ALL
+               		SELECT SDSHW.MOTHER_CODE                   
+                     , SDSHW.ITEM_CODE
+                     , SDI.ITEM_CATALOG AS ITEM_CATALOG
+                     , SDSHW.DWG_NO
+                     , SDSHW.BOM_QTY AS BOM_QTY
+                     , SDSHW.CREATE_BY AS EMP_NO
+                     , SDSHW.ECO_NO
+                     , SDECO.CREATE_BY          AS CREATED_BY
+                     , SDSHW.PROJECT_NO||'-'||'SSC'      AS STATES_FLAG
+                     , SDSHW.BOM1
+                     , SDSHW.BOM2
+                     , SDSHW.BOM3
+                  FROM STX_DIS_SSC_HEAD_WORK         SDSHW
+                      ,STX_DIS_ITEM        SDI
+                      ,STX_DIS_ENG_CHANGE_ORDER SDECO      
+                      ,STX_DIS_USER SDU_ITEM       
+                      ,STX_DIS_USER SDU_ECO                
+                 WHERE 1=1                  
+                   AND SDSHW.PROJECT_NO   = #{p_project_no}                  
+                   AND SDSHW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                   AND SDSHW.ITEM_CODE    = SDI.ITEM_CODE(+)
+                   AND SDSHW.CREATE_BY = SDU_ITEM.EMP_NO  
+                   AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                   <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+			         AND SDSHW.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+			        </if>
+               UNION ALL
+                SELECT SDR.MOTHER_CODE                   
+                     , SDR.ITEM_CODE
+                     , SDR.ITEM_CATALOG
+                     , ''     AS DWG_NO
+                     , SDR.BOM_QTY AS BOM_QTY
+                     , SDR.CREATE_BY AS EMP_NO
+                     , SDR.ECO_NO
+                     , SDECO.CREATE_BY          AS CREATED_BY
+                     , SDR.PROJECT_NO||'-'||'SSC'      AS STATES_FLAG
+                     , SDR.BOM1
+                     , SDR.BOM2
+                     , SDR.BOM3
+                  FROM STX_DIS_RAWLEVEL         SDR
+                    ,STX_DIS_ENG_CHANGE_ORDER SDECO
+                    ,STX_DIS_USER SDU_ITEM       
+                    ,STX_DIS_USER SDU_ECO                      
+                 WHERE NOT EXISTS
+                          (SELECT 1
+                             FROM STX_DIS_RAWLEVEL_WORK SDRW_SUB
+                            WHERE SDR.SSC_SUB_ID = SDRW_SUB.SSC_SUB_ID
+                            )
+                   AND SDR.PROJECT_NO   = #{p_project_no}                 
+                   AND SDR.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                   AND SDR.CREATE_BY = SDU_ITEM.EMP_NO  
+                   AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                   <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+			         AND SDR.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+			        </if>
+                UNION ALL
+               SELECT SDRW.MOTHER_CODE                     
+                     , SDRW.ITEM_CODE
+                     , SDRW.ITEM_CATALOG
+                     , ''     AS DWG_NO
+                     , SDRW.BOM_QTY AS BOM_QTY
+                     , SDRW.CREATE_BY AS EMP_NO
+                     , SDRW.ECO_NO
+                     , SDECO.CREATE_BY          AS CREATED_BY
+                     , SDRW.PROJECT_NO||'-'||'SSC'      AS STATES_FLAG
+                     , SDRW.BOM1
+                     , SDRW.BOM2
+                     , SDRW.BOM3
+                   FROM STX_DIS_RAWLEVEL_WORK         SDRW
+                     ,STX_DIS_ENG_CHANGE_ORDER SDECO    
+                     ,STX_DIS_USER SDU_ITEM       
+                     ,STX_DIS_USER SDU_ECO                  
+                 WHERE 1=1                  
+                   AND SDRW.PROJECT_NO   = #{p_project_no}                  
+                   AND SDRW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+                   AND SDRW.CREATE_BY = SDU_ITEM.EMP_NO  
+                   AND SDECO.CREATE_BY = SDU_ECO.EMP_NO
+                   <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+			         AND SDRW.ITEM_CODE LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+			        </if>
+					) BOM_LIST, STX_DIS_ITEM        SDI
+	                 WHERE BOM_LIST.ITEM_CODE            	 = SDI.ITEM_CODE(+)	             		
+			       <if test='p_item_desc != null and !p_item_desc.equalsIgnoreCase("")'>
+			       AND SDI.ITEM_DESC LIKE '%' || REPLACE(#{p_item_desc} , '*', '%') || '%'
+			       </if>
+	</select>
+</mapper>

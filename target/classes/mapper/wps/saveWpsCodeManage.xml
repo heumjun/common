@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveWpsCodeManage">
+
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*) as CNT
+		  FROM STX_DWG_WPS_CODE
+  	     WHERE CODE_TYPE	= #{code_type_value}
+		   AND CODE_VALUE   = #{code_value}
+  	</select>
+  	
+  	<insert id="insert" parameterType="java.util.Map">
+		INSERT INTO STX_DWG_WPS_CODE (
+	                         CODE_TYPE
+	                        ,CODE_NAME
+	                        ,CODE_VALUE
+	                        ,CODE_DESC
+	                        ,CREATED_BY
+	                        ,CREATION_DATE
+	                        ,LAST_UPDATED_BY
+	                        ,LAST_UPDATE_DATE
+	                       )
+	    VALUES (
+	                         #{code_type_value}     
+	                        ,#{code_name}
+	                        ,#{code_value}
+	                        ,#{code_desc}
+	                        ,#{loginId}
+	                        ,SYSDATE 
+	                        ,#{loginId}
+	                        ,SYSDATE 
+	        )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE STX_DWG_WPS_CODE
+		   SET  CODE_TYPE           = #{code_type_value}
+		       ,CODE_NAME           = #{code_name}
+		       ,CODE_DESC           = #{code_desc}
+		       ,LAST_UPDATED_BY		= #{loginId}
+		       ,LAST_UPDATE_DATE 	= SYSDATE
+		 WHERE CODE_TYPE            = #{code_type_value}
+		   AND CODE_VALUE           = #{code_value}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+		DELETE FROM STX_DWG_WPS_CODE
+		 WHERE CODE_TYPE	= #{code_type_value}
+		   AND CODE_VALUE   = #{code_value}
+  	</delete>
+  	
+</mapper>

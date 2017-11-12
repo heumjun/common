@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ecoList">
+<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+
+<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+
+	<choose>
+	<when test='!mainType.equalsIgnoreCase("Y")'>
+	 select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					 select SDECO.ENG_CHANGE_ORDER_CODE                          AS MAIN_CODE
+                             ,SDECO.ENG_CHANGE_ORDER_CODE                          AS MAIN_NAME
+                             ,SDECO.ENG_CHANGE_ORDER_DESC                          AS MAIN_DESCRIPTION
+                             ,SDSC.SD_DESC                                         AS STATES_DESC
+                             ,SDSC.SD_CODE                                         AS STATES_CODE
+                             ,(SELECT SUBSTR(XMLAGG(XMLELEMENT(ENG_CHANGE_REQ_CODE,'|' || ENG_CHANGE_REQ_CODE) order by ENG_CHANGE_REQ_CODE).extract('//text()'), 2) AS ENG_CHANGE_REQ_CODE
+                             		 FROM STX_DIS_ENG_REL        T
+                                     ,STX_DIS_ENG_CHANGE_REQ R
+                                WHERE T.SUB_CODE = SDECO.ENG_CHANGE_ORDER_CODE
+                                  AND T.MAIN_CODE  = R.ENG_CHANGE_REQ_CODE
+                                  AND T.ENG_TYPE  = 'ECR'
+                               )                                                       AS ENG_CHANGE_NAME
+                             ,SDSC_CA.SD_DESC                                          AS COUSE_DESC
+                             ,SDECO.ENG_CHANGE_ORDER_CAUSE                             AS ECO_CAUSE
+                             ,DECODE(SDECO.PERMANENT_TEMPORARY_FLAG,5,'영구',7,'잠정') AS PERMANENT_TEMPORARY_FLAG
+                             ,SDECO.ENG_ECO_PROJECT                                    AS ENG_ECO_PROJECT
+                             ,SDECO.ENG_ECO_PROJECT                                    AS ENG_ECO_PROJECT_CODE
+                             <!-- ,STX_DIS_SHORT_EMP_NAME_F(SDECO.DESIGN_ENGINEER)          AS DESIGN_ENGINEER
+                             ,STX_DIS_SHORT_EMP_NAME_F(SDECO.MANUFACTURING_ENGINEER)   AS MANUFACTURING_ENGINEER-->
+                             ,STX_DIS_GET_USER_NAME_F(SDECO.DESIGN_ENGINEER)          AS DESIGN_ENGINEER
+                             ,STX_DIS_GET_USER_NAME_F(SDECO.MANUFACTURING_ENGINEER)   AS MANUFACTURING_ENGINEER
+                             ,SCID.DEPT_NAME                                           AS USER_GROUP_NAME
+                             ,SCID.DEPT_CODE                                           AS USER_GROUP
+                             ,SDECO.LOCKER_BY                                          AS LOCKER_BY
+                             ,STX_DIS_EMP_MAILID_F(SDECO.DESIGN_ENGINEER)              AS DESIGN_ENGINEER_MAIL
+                             ,STX_DIS_EMP_MAILID_F(SDECO.MANUFACTURING_ENGINEER)       AS MANUFACTURING_ENGINEER_MAIL
+                             ,STX_DIS_EMP_MAILID_F(SDECO.CREATE_BY)                    AS CREATED_BY_MAIL
+                             ,STX_DIS_SHORT_EMP_NAME_F(SDECO.CREATE_BY)                AS CREATED_BY_NAME
+                             ,SDECO.DESIGN_ENGINEER                                    AS DESIGN_ENGINEER_EMP_NO
+                             ,SDECO.MANUFACTURING_ENGINEER                             AS MANUFACTURING_ENGINEER_EMP_NO
+                             ,SDECO.CREATE_BY										   AS CREATED_BY
+                             ,'...' AS POPUP_ENG_CHANGE_NAME
+                             ,'...' AS POPUP_COUSE_DESC
+                             ,'...' AS POPUP_DESIGN_ENGINEER
+                             ,'...' AS POPUP_MANUFACTURING_ENGINEER
+                             ,'...' AS POPUP_ENG_ECO_PROJECT
+                        FROM STX_DIS_ENG_CHANGE_ORDER SDECO
+                            ,STX_DIS_SD_CODE          SDSC
+                            ,STX_COM_INSA_USER@STXERP SCID
+                            ,STX_COM_INSA_DEPT@STXERP SCIP
+                            ,STX_DIS_SD_CODE          SDSC_CA
+                       WHERE SDECO.STATES_CODE            = SDSC.SD_CODE(+)
+                         <if test='p_locker_by != null and p_locker_by != ""'> 
+                         AND SDECO.LOCKER_BY              = #{p_locker_by}
+                         AND SDSC.ATTRIBUTE1              = 'Y'  --RELEASE만 'N'임. RELEASE 안된 대상만 찾기를 원함.
+                          </if>
+                         AND SDSC.SD_TYPE                 = 'ECO_STATES'
+                         AND SDECO.CREATE_BY              = SCID.EMP_NO
+                         AND SCID.DEPT_CODE              = SCIP.DEPT_CODE
+                         AND SDECO.ENG_CHANGE_ORDER_CAUSE = SDSC_CA.SD_CODE(+)
+                         AND SDSC_CA.SD_TYPE(+)           = 'CAUSE'
+				     <if test='main_name != null and !main_name.equalsIgnoreCase("")'>
+					 AND SDECO.ENG_CHANGE_ORDER_CODE like REPLACE(#{main_name}, '*', '%')||'%' <!--  eco 번호  검색-->
+					 </if>
+					 <if test='created_by != null and !created_by.equalsIgnoreCase("")'>
+					 AND SDECO.CREATE_BY = #{created_by} <!--  작성자 검색-->
+					</if>
+					<if test='user_group != null and !user_group.equalsIgnoreCase("")'>
+					AND SCID.DEPT_CODE = #{user_group} <!--  그룹 검색-->
+					</if>
+					<if test="created_date_start != null and created_date_start !='' "> <!--  작성 날자로 검색  -->
+					<![CDATA[
+					 AND SDECO.CREATE_DATE >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+					]]>
+					</if>		
+					<if test="created_date_end != null and created_date_end !='' "> <!--  작성 날자로 검색  -->
+					<![CDATA[
+					 AND SDECO.CREATE_DATE <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+					]]>
+					</if>
+					<if test="permanent_temporary_flag != null and permanent_temporary_flag !='' ">
+					 AND SDECO.PERMANENT_TEMPORARY_FLAG = #{permanent_temporary_flag}
+					</if>
+					<if test="s_eco_cause != null and s_eco_cause !='' ">
+					  AND SDECO.ENG_CHANGE_ORDER_CAUSE = #{s_eco_cause}
+					</if>
+					<if test="main_appr != null and main_appr !='' ">
+						AND SDSC.SD_CODE NOT IN ('CANCEL')
+					</if>
+					          ORDER BY SDECO.CREATE_DATE DESC
+ 	 				 ) t1
+         			) t2
+  			 where page = #{curPageNo} 
+		</when>
+		<otherwise>
+			SELECT T2.*
+			  FROM (SELECT T1.*, FLOOR((ROWNUM - 1) / #{pageSize} + 1) AS PAGE
+			          FROM (SELECT 
+			                       SDECO.ENG_CHANGE_ORDER_CODE AS MAIN_CODE,
+			                       SDECO.ENG_CHANGE_ORDER_CODE AS MAIN_NAME,
+			                       SDECO.ENG_CHANGE_ORDER_DESC AS MAIN_DESCRIPTION,
+			                       SDSC.SD_DESC AS STATES_DESC,
+			                       SDSC.SD_CODE AS STATES_CODE,
+			                       SXT_DIS_GET_ECR_NAME(SDECO.ENG_CHANGE_ORDER_CODE) AS ENG_CHANGE_NAME,
+			                       SDSC_CA.SD_DESC AS COUSE_DESC,
+			                       SDECO.ENG_CHANGE_ORDER_CAUSE AS ECO_CAUSE,
+			                       DECODE(SDECO.PERMANENT_TEMPORARY_FLAG,
+			                              5,
+			                              '영구',
+			                              7,
+			                              '잠정') AS PERMANENT_TEMPORARY_FLAG,
+			                       SDECO.ENG_ECO_PROJECT AS ENG_ECO_PROJECT,
+			                       SDECO.ENG_ECO_PROJECT AS ENG_ECO_PROJECT_CODE,
+			                       STX_DIS_GET_USER_NAME_F(SDECO.DESIGN_ENGINEER) AS DESIGN_ENGINEER,
+			                       STX_DIS_GET_USER_NAME_F(SDECO.MANUFACTURING_ENGINEER) AS MANUFACTURING_ENGINEER,
+			                       SCID.DEPT_NAME AS USER_GROUP_NAME,
+			                       SCID.DEPT_CODE AS USER_GROUP,
+			                       SDECO.LOCKER_BY AS LOCKER_BY,
+			                       STX_DIS_EMP_MAILID_F(SDECO.DESIGN_ENGINEER) AS DESIGN_ENGINEER_MAIL,
+			                       STX_DIS_EMP_MAILID_F(SDECO.MANUFACTURING_ENGINEER) AS MANUFACTURING_ENGINEER_MAIL,
+			                       STX_DIS_EMP_MAILID_F(SDECO.CREATE_BY) AS CREATED_BY_MAIL,
+			                       STX_DIS_SHORT_EMP_NAME_F(SDECO.CREATE_BY) AS CREATED_BY_NAME,
+			                       SDECO.DESIGN_ENGINEER AS DESIGN_ENGINEER_EMP_NO,
+			                       SDECO.MANUFACTURING_ENGINEER AS MANUFACTURING_ENGINEER_EMP_NO,
+			                       SDECO.CREATE_BY AS CREATED_BY,
+			                       '...' AS POPUP_ENG_CHANGE_NAME,
+			                       '...' AS POPUP_COUSE_DESC,
+			                       '...' AS POPUP_DESIGN_ENGINEER,
+			                       '...' AS POPUP_MANUFACTURING_ENGINEER,
+			                       '...' AS POPUP_ENG_ECO_PROJECT
+			                  FROM STX_DIS_ENG_CHANGE_ORDER SDECO,
+			                       STX_DIS_SD_CODE          SDSC,
+			                       STX_COM_INSA_USER@STXERP SCID,
+			                       STX_COM_INSA_DEPT@STXERP SCIP,
+			                       STX_DIS_SD_CODE          SDSC_CA
+			                 WHERE SDECO.STATES_CODE = SDSC.SD_CODE(+)
+			                   AND SDSC.SD_TYPE = 'ECO_STATES'
+			                   AND SDECO.CREATE_BY = SCID.EMP_NO
+			                   AND SCID.DEPT_CODE = SCIP.DEPT_CODE
+			                   AND SDECO.ENG_CHANGE_ORDER_CAUSE = SDSC_CA.SD_CODE(+)
+			                   AND SDSC_CA.SD_TYPE(+) = 'CAUSE'
+			                   AND SDECO.STATES_CODE IN ('CREATE','REVIEW')
+			                   AND SDECO.LOCKER_BY = #{loginid}
+			                   AND SDECO.STATES_CODE != 'CANCEL'
+			                 ORDER BY SDECO.CREATE_DATE DESC) T1) T2
+			WHERE PAGE = #{curPageNo}
+		</otherwise>
+		</choose>
+  	</select>
+  <select id="selectTotalRecord" parameterType="java.util.Map" resultType="int">
+		<choose>
+		<when test='!mainType.equalsIgnoreCase("Y")'>
+	 	   SELECT  COUNT(*) AS CNT
+            FROM STX_DIS_ENG_CHANGE_ORDER SDECO
+                ,STX_DIS_SD_CODE          SDSC
+                ,STX_COM_INSA_USER@STXERP SCID
+           WHERE SDECO.STATES_CODE            = SDSC.SD_CODE(+)
+             <if test='p_locker_by != null and p_locker_by != ""'> 
+             AND SDECO.LOCKER_BY              = #{p_locker_by}
+             AND SDSC.ATTRIBUTE1              = 'Y'  --RELEASE만 'N'임. RELEASE 안된 대상만 찾기를 원함.
+              </if>
+             AND SDSC.SD_TYPE                 = 'ECO_STATES'
+             AND SDECO.CREATE_BY              = SCID.EMP_NO
+	         <if test='main_name != null and !main_name.equalsIgnoreCase("")'>
+	         AND SDECO.ENG_CHANGE_ORDER_CODE like REPLACE(#{main_name}, '*', '%')||'%' <!--  eco 번호  검색-->
+	         </if>
+	         <if test='created_by != null and !created_by.equalsIgnoreCase("")'>
+	         AND SDECO.CREATE_BY = #{created_by} <!--  작성자 검색-->
+	        </if>
+	        <if test='user_group != null and !user_group.equalsIgnoreCase("")'>
+	        AND SCID.DEPT_CODE = #{user_group} <!--  그룹 검색-->
+	        </if>
+	        <if test="created_date_start != null and created_date_start !='' "> <!--  작성 날자로 검색  -->
+	        <![CDATA[
+	         AND SDECO.CREATE_DATE >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+	        ]]>
+	        </if>		
+	        <if test="created_date_end != null and created_date_end !='' "> <!--  작성 날자로 검색  -->
+	        <![CDATA[
+	         AND SDECO.CREATE_DATE <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+	        ]]>
+	        </if>
+	        <if test="permanent_temporary_flag != null and permanent_temporary_flag !='' ">
+			 AND SDECO.PERMANENT_TEMPORARY_FLAG = #{permanent_temporary_flag}
+			</if>
+			<if test="s_eco_cause != null and s_eco_cause !='' ">
+			 AND SDECO.ENG_CHANGE_ORDER_CAUSE = #{s_eco_cause}
+			</if>
+			<if test="main_appr != null and main_appr !='' ">
+				AND SDSC.SD_CODE NOT IN ('CANCEL')
+			</if>
+		</when>
+		<otherwise>
+			          SELECT 
+	                       COUNT(*) AS CNT
+	                  FROM STX_DIS_ENG_CHANGE_ORDER SDECO,
+	                       STX_DIS_SD_CODE          SDSC,
+	                       STX_COM_INSA_USER@STXERP SCID,
+	                       STX_COM_INSA_DEPT@STXERP SCIP,
+	                       STX_DIS_SD_CODE          SDSC_CA
+	                 WHERE SDECO.STATES_CODE = SDSC.SD_CODE(+)
+	                   AND SDSC.SD_TYPE = 'ECO_STATES'
+	                   AND SDECO.CREATE_BY = SCID.EMP_NO
+	                   AND SCID.DEPT_CODE = SCIP.DEPT_CODE
+	                   AND SDECO.ENG_CHANGE_ORDER_CAUSE = SDSC_CA.SD_CODE(+)
+	                   AND SDSC_CA.SD_TYPE(+) = 'CAUSE'
+	                   AND SDECO.STATES_CODE IN ('CREATE','REVIEW')
+	                   AND SDECO.LOCKER_BY = #{loginid}
+	                   AND SDECO.STATES_CODE != 'CANCEL'
+	                 ORDER BY SDECO.CREATE_DATE DESC
+		</otherwise>
+		</choose>
+			
+			
+  	</select>
+  	
+  	<select id="ecoRegisterInfo" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_ECO_PKG.get_approval_proc(
+					 #{manufacturing_engineer_emp_no}
+				   , #{p_main_type}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{vcursor, mode=OUT, jdbcType=CURSOR, javaType=ResultSet	, resultMap=ecoList.procResultMap})
+			}
+	</select>
+</mapper>

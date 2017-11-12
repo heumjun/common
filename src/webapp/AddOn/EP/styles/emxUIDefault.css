@@ -1,0 +1,164 @@
+/*=================================================================
+ *  Default Stylesheet for Windows/Mac Platforms
+ *  emxUIDefault.css
+ *  Version 1.0
+ *  Requires: (nothing)
+  *
+ *  This file contains the default style definitions for the apps.
+ *  This file should be included in every page to ensure consistent
+ *  formatting across all application pages.
+ *
+ *  Copyright (c) 1992-2003 MatrixOne, Inc. All Rights Reserved.
+ *  This program contains proprietary and trade secret information 
+ *  of MatrixOne,Inc. Copyright notice is precautionary only
+ *  and does not evidence any actual or intended publication of such program
+ * 
+ *  static const char RCSID[] = $Id: emxUIDefault.css,v 1.2 2005/02/15 00:40:19 kgw Exp $
+ *=================================================================
+ */
+
+/* --------------------------------------------------------------------
+// Default Settings 
+// -------------------------------------------------------------------- */
+
+* { -moz-box-sizing: border-box; }
+ 
+/* Background Appearance */
+body { 
+	background-color: white; 
+}
+
+/* Font Appearance */
+body, th, td, p, div, layer { 
+	font-family: verdana, helvetica, arial, sans-serif; 
+	font-size: 8pt; 
+}
+
+/* Link Appearance */
+a { 
+	color: #003366; 
+}
+
+a:hover { }
+
+/* Object Link Appearance */
+a.object { 
+	font-weight: bold; 
+}
+
+a.object:hover { }
+
+/* Object Text (Non-link) Appearance */
+span.object {  
+	font-weight: bold; 
+}
+
+/* --------------------------------------------------------------------
+// Additional Link Settings 
+// -------------------------------------------------------------------- */
+
+/* Button Link Appearance */
+a.button { }
+a.button:hover { }
+
+/* Content-Specific Function Appearance */
+a.contextual { }
+a.contextual:hover { }
+
+/* Remove Button Appearance */
+a.remove { }
+a.remove:hover { }
+
+/* --------------------------------------------------------------------
+// Page Header Settings 
+// -------------------------------------------------------------------- */
+
+/* Page Header Text Appearance */
+.pageHeader {  
+	color:#990000; 
+	font-family: Arial, Helvetica, Sans-Serif; 
+	font-weight: bold; 
+	font-size: 12pt; 
+	letter-spacing: 0pt; 
+	line-height: 22px; 
+	text-decoration: none;
+}
+
+/* Page Subtitle Appearance */
+.pageSubTitle {
+	color:#990000; 
+	font-family: Arial, Helvetica, Sans-Serif; 
+	font-size: 11px; 
+letter-spacing: 1pt;
+	text-decoration: none;
+}
+
+/* Page Header Border Appearance */
+td.pageBorder {  
+	background-color: #003366; 
+}
+
+/* --------------------------------------------------------------------
+// Page Subheader Settings 
+// -------------------------------------------------------------------- */
+
+/* Page Header Text Appearance */
+td.pageSubheader {  
+	color: #990000; 
+	font-family: Arial, Helvetica, Sans-Serif; 
+	font-size: 13pt; 
+	font-weight: bold; 
+}
+
+/* --------------------------------------------------------------------
+// Miscellaneous Settings 
+// -------------------------------------------------------------------- */
+
+/* Welcome message for loading page */
+td.welcome { 
+	color: #000000; 
+	font-family: Arial, Helvetica, sans-serif; 
+	font-size: 14px; 
+	font-weight: bold; 
+}
+
+/* Small Space Appearance - for non-breaking space workaround at end of files */
+td.smallSpace { 
+	font-family: verdana,arial, helvetica,sans-serif; 
+	font-size: 4pt; 
+}
+td.blackrule {  
+	background-color: #000000;
+}
+
+/* Filter/Pagination Control Appearance */
+td.filter, select.filter, td.pagination, select.pagination { 
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
+	font-size: 11px 
+}
+
+/* Pagination Control Background Appearance */
+table.pagination { 
+	background-color: #eeeeee; 
+}
+
+/* History Subheader */
+td.historySubheader { 
+	font-weight: bold; 
+}
+
+/* ?? */
+a.headerLink {  
+        color: #FFFFFF; 
+}
+
+a.headerLink:hover {  
+        color: #00FFFF;
+}
+
+
+span.hint {
+        color: #999999;
+        font-size: 10px;
+        
+}

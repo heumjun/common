@@ -1,0 +1,844 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveItemCreate">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select catalog_code
+	  	  ,weight
+		  ,old_item_code
+		  ,attr00_desc
+		  ,attr00_code
+		  ,attr01_desc
+		  ,attr01_code
+		  ,attr02_desc
+		  ,attr02_code
+		  ,attr03_desc
+		  ,attr03_code
+		  ,attr04_desc
+		  ,attr04_code
+		  ,attr05_desc
+		  ,attr05_code
+		  ,attr06_desc
+		  ,attr06_code
+		  ,attr07_desc
+		  ,attr07_code
+		  ,attr08_desc
+		  ,attr08_code
+		  ,attr09_desc
+		  ,attr09_code
+		  ,attr10_desc
+		  ,attr10_code
+		  ,attr11_desc
+		  ,attr11_code
+		  ,attr12_desc
+		  ,attr12_code
+		  ,attr13_desc
+		  ,attr13_code
+		  ,attr14_desc
+		  ,attr14_code
+		  ,attr15_desc
+		  ,attr15_code
+		  ,add_attr01_desc
+	      ,add_attr02_desc
+	      ,add_attr03_desc
+	      ,add_attr04_desc
+	      ,add_attr05_desc
+	      ,add_attr06_desc
+	      ,add_attr07_desc
+	      ,add_attr08_desc
+	      ,add_attr09_desc
+		  ,confirm_flag
+		  ,disable_flag
+		  ,excel_upload_flag
+		  ,cast(t1.rowid as char(18))  as item_rowid 
+	  from stx_dis_sd_item_list t1
+	 where 1=1
+	 <if test="catalog_code != null and catalog_code !='' ">
+	   and t1.catalog_code   = #{catalog_code}	
+	 </if>
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt 
+	  from stx_dis_sd_item_list t1
+	 where 1=1
+	 <if test="catalog_code != null and catalog_code !='' ">
+	   and t1.catalog_code   = #{catalog_code}	
+	 </if>
+  	</select>
+  	
+  	
+  	<select id="selectItemCreateCheckList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select nvl(max(decode(cb.attribute_code,'01','Y')),'N') as v_attr01
+	      ,nvl(max(decode(cb.attribute_code,'02','Y')),'N') as v_attr02
+	      ,nvl(max(decode(cb.attribute_code,'03','Y')),'N') as v_attr03
+	      ,nvl(max(decode(cb.attribute_code,'04','Y')),'N') as v_attr04
+	      ,nvl(max(decode(cb.attribute_code,'05','Y')),'N') as v_attr05
+	      ,nvl(max(decode(cb.attribute_code,'06','Y')),'N') as v_attr06
+	      ,nvl(max(decode(cb.attribute_code,'07','Y')),'N') as v_attr07
+	      ,nvl(max(decode(cb.attribute_code,'08','Y')),'N') as v_attr08
+	      ,nvl(max(decode(cb.attribute_code,'09','Y')),'N') as v_attr09
+	      ,nvl(max(decode(cb.attribute_code,'10','Y')),'N') as v_attr10
+	      ,nvl(max(decode(cb.attribute_code,'11','Y')),'N') as v_attr11
+	      ,nvl(max(decode(cb.attribute_code,'12','Y')),'N') as v_attr12
+	      ,nvl(max(decode(cb.attribute_code,'13','Y')),'N') as v_attr13
+	      ,nvl(max(decode(cb.attribute_code,'14','Y')),'N') as v_attr14
+	      ,nvl(max(decode(cb.attribute_code,'15','Y')),'N') as v_attr15
+	  from stx_dis_sd_catalog_attribute cb
+	 where cb.attribute_type = 'ITEM'
+	   and cb.catalog_code   = #{catalog_code}				
+  	</select>
+  	
+  	<select id="selectItemCreateExistCheck2" parameterType="java.util.Map" resultType="string" >
+	select 'Y' as exist_yn
+	  from stx_dis_item it
+	 where it.item_catalog     = #{catalog_code}	
+	   and nvl(it.attr1,'##')  = nvl(#{attr01_desc},'##')
+	   and nvl(it.attr2,'##')  = nvl(#{attr02_desc},'##')
+	   and nvl(it.attr3,'##')  = nvl(#{attr03_desc},'##')
+	   and nvl(it.attr4,'##')  = nvl(#{attr04_desc},'##')
+	   and nvl(it.attr5,'##')  = nvl(#{attr05_desc},'##')
+	   and nvl(it.attr6,'##')  = nvl(#{attr06_desc},'##')
+	   and nvl(it.attr7,'##')  = nvl(#{attr07_desc},'##')
+	   and nvl(it.attr8,'##')  = nvl(#{attr08_desc},'##')
+	   and nvl(it.attr9,'##')  = nvl(#{attr09_desc},'##')
+	   and nvl(it.attr10,'##') = nvl(#{attr10_desc},'##')
+	   and nvl(it.attr11,'##') = nvl(#{attr11_desc},'##')
+	   and nvl(it.attr12,'##') = nvl(#{attr12_desc},'##')
+	   and nvl(it.attr13,'##') = nvl(#{attr13_desc},'##')
+	   and nvl(it.attr14,'##') = nvl(#{attr14_desc},'##')
+	   and nvl(it.attr15,'##') = nvl(#{attr15_desc},'##')
+  	</select>
+  	
+  	<select id="selectItemCreateExistCheck" parameterType="java.util.Map" resultType="string" >
+	select 'Y' as exist_yn
+	  from stx_dis_sd_item_create ic
+	 where ic.catalog_code     = #{catalog_code}	
+	   and nvl(ic.attr01,'##') = nvl(#{attr01_desc},'##')
+	   and nvl(ic.attr02,'##') = nvl(#{attr02_desc},'##')
+	   and nvl(ic.attr03,'##') = nvl(#{attr03_desc},'##')
+	   and nvl(ic.attr04,'##') = nvl(#{attr04_desc},'##')
+	   and nvl(ic.attr05,'##') = nvl(#{attr05_desc},'##')
+	   and nvl(ic.attr06,'##') = nvl(#{attr06_desc},'##')
+	   and nvl(ic.attr07,'##') = nvl(#{attr07_desc},'##')
+	   and nvl(ic.attr08,'##') = nvl(#{attr08_desc},'##')
+	   and nvl(ic.attr09,'##') = nvl(#{attr09_desc},'##')
+	   and nvl(ic.attr10,'##') = nvl(#{attr10_desc},'##')
+	   and nvl(ic.attr11,'##') = nvl(#{attr11_desc},'##')
+	   and nvl(ic.attr12,'##') = nvl(#{attr12_desc},'##')
+	   and nvl(ic.attr13,'##') = nvl(#{attr13_desc},'##')
+	   and nvl(ic.attr14,'##') = nvl(#{attr14_desc},'##')
+	   and nvl(ic.attr15,'##') = nvl(#{attr15_desc},'##')
+  	</select>
+  	
+  	<select id="selectPartNumList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select part_number_name
+	      ,revision
+	      ,stxcipher
+	      ,stxcurrentnum
+	      ,stxmaxnum
+	      ,stxminnum 
+	  from stx_dis_part_number a
+	 where part_number_name = #{part_number_name}
+	 <if test="stxmaxnum != null and stxmaxnum !='' ">
+	   and stxmaxnum		= #{stxmaxnum}
+	 </if>
+	 
+	 <if test="stxminnum != null and stxminnum !='' ">
+	   and stxminnum		= #{stxminnum}	
+	 </if> 
+  	</select>
+  	
+  	<select id="selectPartNumCountList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select part_number_name
+	      ,revision
+	      ,stxcipher
+	      ,stxcurrentnum
+	      ,stxmaxnum
+	      ,stxminnum 
+	  from stx_dis_part_number a
+	 where part_number_name = #{part_number_name}
+  	</select>
+  	
+  	<select id="selectExistPartItem" parameterType="java.util.Map" resultType="int" >
+  	select count(item_oid) as cnt 
+	  from stx_dis_item
+	 where item_code = #{item_code}
+  	</select>
+  	
+ 	<select id="selectShipTypeFlag" parameterType="string" resultType="string" >
+  	select t1.shiptype_flag
+	  from stx_dis_sd_part_family t1
+	 where t1.part_family_code = #{sPartFamilyCode}
+  	</select>
+  	
+  	<insert id="insertPartNumberName" parameterType="java.util.Map" >
+  	insert into stx_dis_part_number
+     (
+       part_number_name
+      ,revision
+      ,stxcipher
+      ,stxcurrentnum
+      ,stxmaxnum
+      ,stxminnum    
+     ) 
+     values 
+     (
+       #{part_number_name}
+      ,#{revision}
+      ,#{stxcipher}
+      ,#{stxcurrentnum}
+      ,#{stxmaxnum}
+      ,#{stxminnum}  
+     )
+  	</insert>
+  	
+  	<update id="updatePartNumberName" parameterType="java.util.Map">
+  	 update stx_dis_part_number
+	    set stxcurrentnum    = #{stxcurrentnum}    
+	  where part_number_name = #{part_number_name}  
+	    and revision         = #{revision}
+	  <if test="stxmaxnum != null and stxmaxnum !='' ">
+	    and stxmaxnum		 = #{stxmaxnum}
+	  </if>
+	  <if test="stxminnum != null and stxminnum !='' ">
+	    and stxminnum		= #{stxminnum} 
+	  </if>
+  	</update>
+  	  		
+	<select id="selectItemReqCode" parameterType="java.util.Map" resultType="string" >
+	select stx_dis_sd_item_create_f(#{catalog_code}, #{v_item_code}, #{shiptype}) as item_req_code 
+      from dual  
+	</select>
+	
+	<select id="selectMainCode" parameterType="java.util.Map" resultType="string" >
+	select stx_dis_main_code_f() as main_code 
+      from dual  
+	</select>
+  	
+  	<insert id="insertItemCode" parameterType="java.util.Map" >
+  	insert into stx_dis_item
+       (
+         item_oid
+        ,main_code
+        ,item_code
+        ,item_catalog
+        ,item_category
+        ,item_desc
+        ,item_desc_detail
+        ,item_weight
+        
+        ,attr1
+        ,attr2
+        ,attr3
+        ,attr4
+        ,attr5
+        
+        ,attr6
+        ,attr7
+        ,attr8
+        ,attr9
+        ,attr10
+        
+        ,attr11
+        ,attr12
+        ,attr13
+        ,attr14
+        ,attr15
+        
+        ,cable_length
+		,cable_type
+		,cable_outdia
+		,can_size
+		,stxsvr
+		,thinner_code
+		,stx_standard
+		,paint_code
+        
+        ,item_material1
+        ,item_material2
+        ,item_material3
+        ,item_material4
+        ,item_material5
+        
+        ,paint_code1
+        ,paint_code2
+        
+        ,code_type
+        ,uom
+        ,ship_pattern
+        ,item_oldcode
+               
+        ,user_id
+        ,user_name
+        ,create_date
+        ,last_updated_by
+        ,last_update_date
+       ) values
+       (
+        stx_dis_item_oid_f()
+       ,#{main_code} 
+       ,#{item_code}
+       ,#{catalog_code}
+       ,#{category_code}
+       ,#{item_desc}
+       ,null
+       ,#{weight}
+       
+       ,#{attr01_desc}
+       ,#{attr02_desc}
+       ,#{attr03_desc}
+       ,#{attr04_desc}
+       ,#{attr05_desc}
+       
+       ,#{attr06_desc}
+       ,#{attr07_desc}
+       ,#{attr08_desc}
+       ,#{attr09_desc}
+       ,#{attr10_desc}
+       
+       ,#{attr11_desc}
+       ,#{attr12_desc}
+       ,#{attr13_desc}
+       ,#{attr14_desc}
+       ,#{attr15_desc}
+       
+       ,#{cable_length}
+	   ,#{cable_type}
+	   ,#{cable_outdia}
+	   ,#{can_size}
+	   ,#{stxsvr}
+	   ,#{thinner_code}
+	   ,#{stx_standard}
+	   ,#{paint_code}
+       
+       ,null
+       ,null
+       ,null
+       ,null
+       ,null
+       
+       ,null
+       ,null
+       
+       ,null
+       ,#{uom}
+       ,#{shiptype}
+       ,null
+      
+       ,#{loginid}
+       ,( SELECT x.user_name FROM stx_com_insa_user@stxerp x WHERE x.emp_no = #{loginid} )
+       ,sysdate
+       ,#{loginid}
+       ,sysdate
+       )
+  	</insert>
+  	
+  		
+	<select id="selectExistCatalogItemUpload" parameterType="java.util.Map" resultType="string">
+	select 'Y' as exist_yn
+      from stx_dis_sd_item_list_up
+     where catalog_code		   = #{catalog_code}
+       and rownum              = 1
+	</select>
+	
+	<delete id="deleteCatalogItemListUp" parameterType="java.util.Map">
+	delete from stx_dis_sd_item_list_up
+	      where catalog_code   = #{catalog_code} 
+	</delete>
+	
+	<delete id="deleteCatalogItemList" parameterType="java.util.Map">
+	delete from stx_dis_sd_item_list
+	      where catalog_code   	  = #{catalog_code}
+	        and excel_upload_flag = 'Y' 
+	        and confirm_flag	  = 'N'
+	        and disable_flag	  = 'N'
+	</delete>
+	
+	<update id="updateItemConfirm" parameterType="java.util.Map">
+	update stx_dis_sd_item_list
+	   set confirm_flag		  = 'Y'
+	 where rowid			  = #{item_rowid}
+	</update>
+	
+	<delete id="deleteCatalogConfirmItemList" parameterType="java.util.Map">
+	delete from stx_dis_sd_item_list
+	      where catalog_code   	  = #{catalog_code}
+	        and confirm_flag	  = 'Y'
+	        and disable_flag	  = 'N'
+	</delete>
+	
+	<insert id="insertCatalogItemListUpload" parameterType="java.util.Map">
+     insert into stx_dis_sd_item_list_up
+		    (catalog_code
+		    ,weight
+		    ,old_item_code
+		    ,attr01_desc
+		    ,attr02_desc
+		    ,attr03_desc
+		    ,attr04_desc
+		    ,attr05_desc
+		    ,attr06_desc
+		    ,attr07_desc
+		    ,attr08_desc
+		    ,attr09_desc
+		    ,attr10_desc
+		    ,attr11_desc
+		    ,attr12_desc
+		    ,attr13_desc
+		    ,attr14_desc
+		    ,attr15_desc
+		    ,add_attr01_desc
+		    ,add_attr02_desc
+		    ,add_attr03_desc
+		    ,add_attr04_desc
+		    ,add_attr05_desc
+		    ,add_attr06_desc
+		    ,add_attr07_desc
+		    ,add_attr08_desc
+		    ,add_attr09_desc
+		    ,confirm_flag
+		    ,disable_flag
+		    ,excel_upload_flag
+		    ,created_by
+		    ,creation_date
+		    ,last_updated_by
+		    ,last_update_date)
+		  VALUES
+		    (upper( #{catalog_code} )
+		    ,#{weight}
+		    ,null
+		    ,upper( #{attr01} )
+		    ,upper( #{attr02} )
+		    ,upper(	#{attr03} )
+		    ,upper(	#{attr04} )
+		    ,upper(	#{attr05} )
+		    ,upper(	#{attr06} )
+		    ,upper(	#{attr07} )
+		    ,upper(	#{attr08} )
+		    ,upper(	#{attr09} )
+		    ,upper(	#{attr10} )
+		    ,upper(	#{attr11} )
+		    ,upper(	#{attr12} )
+		    ,upper(	#{attr13} )
+		    ,upper(	#{attr14} )
+		    ,upper(	#{attr15} )
+		    ,upper( #{add_attr01} )
+		    ,upper( #{add_attr02} )
+		    ,upper( #{add_attr03} )
+		    ,upper( #{add_attr04} )
+		    ,upper( #{add_attr05} )
+		    ,upper( #{add_attr06} )
+		    ,upper( #{add_attr07} )
+		    ,upper( #{add_attr08} )
+		    ,upper( #{add_attr09} )
+		    ,'N'
+		    ,'N'
+		    ,'Y'
+		    ,#{loginid}
+		    ,sysdate
+		    ,#{loginid}
+		    ,sysdate)
+	</insert>
+	
+	<select id="procedureItemCheck" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	 {	call stx_dis_sd_item_check_proc(
+					#{p_err_msg,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				  ,	#{p_err_code, jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				  , #{p_catalog_code}
+			 	)
+	 }
+  	</select>
+  	
+  	<select id="procedureItemWeightCheck" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	 {	call stx_dis_item_weight_check_proc(
+					#{p_err_msg,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				  ,	#{p_err_code, jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				  , #{p_catalog_code}
+			 	)
+	 }
+  	</select>
+  	
+  	<select id="procedureItemUpload" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	 {	call stx_dis_sd_item_upload_proc(
+					#{p_err_msg,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				  ,	#{p_err_code, jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				  , #{p_catalog_code}
+			 	)
+	 }
+  	</select>
+  	
+  	<insert id="insertCatalogItemList" parameterType="java.util.Map">
+     insert into stx_dis_sd_item_list
+		(catalog_code
+		,weight
+		,old_item_code
+		,attr00_desc
+		,attr00_code
+		,attr01_desc
+		,attr01_code
+		,attr02_desc
+		,attr02_code
+		,attr03_desc
+		,attr03_code
+		,attr04_desc
+		,attr04_code
+		,attr05_desc
+		,attr05_code
+		,attr06_desc
+		,attr06_code
+		,attr07_desc
+		,attr07_code
+		,attr08_desc
+		,attr08_code
+		,attr09_desc
+		,attr09_code
+		,attr10_desc
+		,attr10_code
+		,attr11_desc
+		,attr11_code
+		,attr12_desc
+		,attr12_code
+		,attr13_desc
+		,attr13_code
+		,attr14_desc
+		,attr14_code
+		,attr15_desc
+		,attr15_code
+		,add_attr01_desc
+	    ,add_attr02_desc
+	    ,add_attr03_desc
+	    ,add_attr04_desc
+	    ,add_attr05_desc
+	    ,add_attr06_desc
+	    ,add_attr07_desc
+	    ,add_attr08_desc
+	    ,add_attr09_desc
+		,confirm_flag
+		,disable_flag
+		,excel_upload_flag
+		,created_by
+		,creation_date
+		,last_updated_by
+		,last_update_date)
+	values
+		(#{catalog_code}
+		,#{weight}
+		,null
+		,#{attr00_desc}
+		,#{attr00_code}
+		,#{attr01_desc}
+		,#{attr01_code}
+		,#{attr02_desc}
+		,#{attr02_code}
+		,#{attr03_desc}
+		,#{attr03_code}
+		,#{attr04_desc}
+		,#{attr04_code}
+		,#{attr05_desc}
+		,#{attr05_code}
+		,#{attr06_desc}
+		,#{attr06_code}
+		,#{attr07_desc}
+		,#{attr07_code}
+		,#{attr08_desc}
+		,#{attr08_code}
+		,#{attr09_desc}
+		,#{attr09_code}
+		,#{attr10_desc}
+		,#{attr10_code}
+		,#{attr11_desc}
+		,#{attr11_code}
+		,#{attr12_desc}
+		,#{attr12_code}
+		,#{attr13_desc}
+		,#{attr13_code}
+		,#{attr14_desc}
+		,#{attr14_code}
+		,#{attr15_desc}
+		,#{attr15_code}
+		,#{add_attr01_desc}
+	    ,#{add_attr02_desc}
+	    ,#{add_attr03_desc}
+	    ,#{add_attr04_desc}
+	    ,#{add_attr05_desc}
+	    ,#{add_attr06_desc}
+	    ,#{add_attr07_desc}
+	    ,#{add_attr08_desc}
+	    ,#{add_attr09_desc}
+		,'N'
+		,'N'
+		,'N'
+		,-1
+		,sysdate
+		,-1
+		,sysdate)
+	</insert>
+	
+	<insert id="insertCatalogItemCreate" parameterType="java.util.Map">
+     insert into stx_dis_sd_item_create
+		(item_req_code
+		,item_req_desc
+		,item_code
+		,catalog_code
+		,inv_category
+		,uom_code
+		,shiptype
+		,weight
+		,old_item_code
+		,confirm_flag
+		,disable_flag
+		,plm_create_flag
+		,plm_create_date
+		,attr01
+		,attr02
+		,attr03
+		,attr04
+		,attr05
+		,attr06
+		,attr07
+		,attr08
+		,attr09
+		,attr10
+		,attr11
+		,attr12
+		,attr13
+		,attr14
+		,attr15
+		,cable_length
+		,cable_type
+		,cable_outdia
+		,can_size
+		,stxsvr
+		,thinner_code
+		,stx_standard
+		,paint_code
+		,created_by
+		,creation_date
+		,last_updated_by
+		,last_update_date)
+	values
+		(#{item_req_code}
+		,#{item_desc}
+		,#{item_code}
+		,#{catalog_code}
+		,#{category_code}
+		,#{uom}
+		,#{shiptype}
+		,#{weight}
+		,null
+		,'N'
+		,'N'
+		,'N'
+		,null
+		,#{attr01_desc}
+		,#{attr02_desc}
+		,#{attr03_desc}
+		,#{attr04_desc}
+		,#{attr05_desc}
+		,#{attr06_desc}
+		,#{attr07_desc}
+		,#{attr08_desc}
+		,#{attr09_desc}
+		,#{attr10_desc}
+		,#{attr11_desc}
+		,#{attr12_desc}
+		,#{attr13_desc}
+		,#{attr14_desc}
+		,#{attr15_desc}
+		,#{cable_length}
+		,#{cable_type}
+		,#{cable_outdia}
+		,#{can_size}
+		,#{stxsvr}
+		,#{thinner_code}
+		,#{stx_standard}
+		,#{paint_code}
+		,#{loginid}
+		,sysdate
+		,#{loginid}
+		,sysdate)
+	</insert>
+	
+	
+	<select id="selectExcelDownLoad" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select  cb.catalog_code  												  									 as catalog_code
+	       ,'WEIGHT'         												  									 as weight
+	       ,'OLD_ITEM_CODE'  												  									 as old_item_code
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '01', cb.attribute_name))),null) as attr01
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '02', cb.attribute_name))),null) as attr02
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '03', cb.attribute_name))),null) as attr03
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '04', cb.attribute_name))),null) as attr04
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '05', cb.attribute_name))),null) as attr05
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '06', cb.attribute_name))),null) as attr06
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '07', cb.attribute_name))),null) as attr07
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '08', cb.attribute_name))),null) as attr08
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '09', cb.attribute_name))),null) as attr09
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '10', cb.attribute_name))),null) as attr10
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '11', cb.attribute_name))),null) as attr11
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '12', cb.attribute_name))),null) as attr12
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '13', cb.attribute_name))),null) as attr13
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '14', cb.attribute_name))),null) as attr14
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '15', cb.attribute_name))),null) as attr15
+	              
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '01', cb.attribute_name))),null) as add_attr01
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '02', cb.attribute_name))),null) as add_attr02
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '03', cb.attribute_name))),null) as add_attr03
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '04', cb.attribute_name))),null) as add_attr04
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '05', cb.attribute_name))),null) as add_attr05
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '06', cb.attribute_name))),null) as add_attr06
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '07', cb.attribute_name))),null) as add_attr07
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '08', cb.attribute_name))),null) as add_attr08
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '09', cb.attribute_name))),null) as add_attr09
+	  from stx_dis_sd_catalog_attribute cb
+	 where cb.attribute_type = 'ITEM'
+	 <if test="catalog_code != null and catalog_code !='' ">
+	   and cb.catalog_code   = #{catalog_code}	
+	 </if>
+	 group by cb.catalog_code
+  	</select>
+  	  	
+  	<select id="selectPartFamilyCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.part_family_code
+	      ,t2.category_code1
+	      ,t2.category_code2
+	      ,t2.category_code3
+	  from stx_dis_sd_catalog  t1
+	  	  ,stx_dis_sd_category t2
+	 where t1.catalog_code  = #{catalog_code}
+	   and t2.type_code     = '01'
+	   and t1.category_id	= t2.category_id
+	   and rownum           = 1 
+  	</select>
+  	
+  	<select id="selectItemRuleDesc" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select item_rule_desc
+	  from stx_dis_sd_item_rule 
+	 where part_family_code = #{part_family_code}
+	   and category_type    = #{category_code1}
+	 order by item_rule_no
+  	</select>
+  	
+  	<select id="procedureErpInterface" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	 {	call stx_dis_erp_interface.send_item2erp(
+					#{p_return_code,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				  ,	#{p_msg, 		  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				 
+				  , #{p_org_code}
+			 	  ,	#{p_org_name}
+				  ,	#{p_item_number}
+				  , #{p_revision}	
+				  , #{p_uom}	
+			 	
+			 	  , #{p_description}
+			 	  ,	#{p_unit_weight}
+				  ,	#{p_fixed_lot_multiplier}
+				  , #{p_template_name}	
+				  , #{p_attribute_category}
+				  
+				  , #{p_attribute1}
+			 	  ,	#{p_attribute2}
+				  ,	#{p_attribute3}
+				  , #{p_attribute4}	
+				  , #{p_attribute5}
+				  
+				  , #{p_attribute6}
+			 	  ,	#{p_attribute7}
+				  ,	#{p_attribute8}
+				  , #{p_attribute9}	
+				  , #{p_attribute10}
+				  
+				  , #{p_attribute11}
+			 	  ,	#{p_attribute12}
+				  ,	#{p_attribute13}
+				  , #{p_attribute14}	
+				  , #{p_attribute15}
+				  
+				  , #{p_segment2}
+			 	  ,	#{p_segment3}
+				  ,	#{p_segment4}
+				  , #{p_segment5}	
+				  , #{p_segment6}
+				  
+				  , #{p_segment7}
+			 	  ,	#{p_segment8}
+				  ,	#{p_segment9}
+				  , #{p_segment10}	
+				  , #{p_segment11}
+				  
+				  , #{p_segment12}
+			 	  ,	#{p_segment13}
+				  ,	#{p_segment14}
+				  , #{p_segment15}	
+				  , #{p_segment16}
+				  
+				  , #{p_segment17}
+			 	  ,	#{p_segment18}
+				  , #{p_segment19}	
+				  , #{p_segment20}	
+			 	)
+	 }
+  	</select>
+  	
+  	<select id="insertItemCodeCreate" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+  	{ call stx_dis_item_pkg.stx_dis_main_proc( p_catalog_code      => #{p_catalog_code,jdbcType=VARCHAR},
+                                               p_ship_type         => #{p_ship_type,jdbcType=VARCHAR},
+                                               p_weight            => #{p_weight,jdbcType=VARCHAR},
+                                               p_loginid           => #{p_loginid,jdbcType=VARCHAR},
+                                               p_old_item_code     => #{p_old_item_code,jdbcType=VARCHAR},
+                                               p_attr00_code       => #{p_attr00_code,jdbcType=VARCHAR},
+                                               p_attr00_desc       => #{p_attr00_desc,jdbcType=VARCHAR},
+                                               p_attr01_code       => #{p_attr01_code,jdbcType=VARCHAR},
+                                               p_attr01_desc       => #{p_attr01_desc,jdbcType=VARCHAR},
+                                               p_attr02_code       => #{p_attr02_code,jdbcType=VARCHAR},
+                                               p_attr02_desc       => #{p_attr02_desc,jdbcType=VARCHAR},
+                                               p_attr03_code       => #{p_attr03_code,jdbcType=VARCHAR},
+                                               p_attr03_desc       => #{p_attr03_desc,jdbcType=VARCHAR},
+                                               p_attr04_code       => #{p_attr04_code,jdbcType=VARCHAR},
+                                               p_attr04_desc       => #{p_attr04_desc,jdbcType=VARCHAR},
+                                               p_attr05_code       => #{p_attr05_code,jdbcType=VARCHAR},
+                                               p_attr05_desc       => #{p_attr05_desc,jdbcType=VARCHAR},
+                                               p_attr06_code       => #{p_attr06_code,jdbcType=VARCHAR},
+                                               p_attr06_desc       => #{p_attr06_desc,jdbcType=VARCHAR},
+                                               p_attr07_code       => #{p_attr07_code,jdbcType=VARCHAR},
+                                               p_attr07_desc       => #{p_attr07_desc,jdbcType=VARCHAR},
+                                               p_attr08_code       => #{p_attr08_code,jdbcType=VARCHAR},
+                                               p_attr08_desc       => #{p_attr08_desc,jdbcType=VARCHAR},
+                                               p_attr09_code       => #{p_attr09_code,jdbcType=VARCHAR},
+                                               p_attr09_desc       => #{p_attr09_desc,jdbcType=VARCHAR},
+                                               p_attr10_code       => #{p_attr10_code,jdbcType=VARCHAR},
+                                               p_attr10_desc       => #{p_attr10_desc,jdbcType=VARCHAR},
+                                               p_attr11_code       => #{p_attr11_code,jdbcType=VARCHAR},
+                                               p_attr11_desc       => #{p_attr11_desc,jdbcType=VARCHAR},
+                                               p_attr12_code       => #{p_attr12_code,jdbcType=VARCHAR},
+                                               p_attr12_desc       => #{p_attr12_desc,jdbcType=VARCHAR},
+                                               p_attr13_code       => #{p_attr13_code,jdbcType=VARCHAR},
+                                               p_attr13_desc       => #{p_attr13_desc,jdbcType=VARCHAR},
+                                               p_attr14_code       => #{p_attr14_code,jdbcType=VARCHAR},
+                                               p_attr14_desc       => #{p_attr14_desc,jdbcType=VARCHAR},
+                                               p_attr15_code       => #{p_attr15_code,jdbcType=VARCHAR},
+                                               p_attr15_desc       => #{p_attr15_desc,jdbcType=VARCHAR},
+                                               p_paint_code1       => #{p_paint_code1,jdbcType=VARCHAR},
+                                               p_paint_code2       => #{p_paint_code2,jdbcType=VARCHAR},
+                                               p_add_attr01_desc   => #{p_add_attr01_desc,jdbcType=VARCHAR},
+                                               p_add_attr02_desc   => #{p_add_attr02_desc,jdbcType=VARCHAR},
+                                               p_add_attr03_desc   => #{p_add_attr03_desc,jdbcType=VARCHAR},
+                                               p_add_attr04_desc   => #{p_add_attr04_desc,jdbcType=VARCHAR},
+                                               p_add_attr05_desc   => #{p_add_attr05_desc,jdbcType=VARCHAR},
+                                               p_add_attr06_desc   => #{p_add_attr06_desc,jdbcType=VARCHAR},
+                                               p_add_attr07_desc   => #{p_add_attr07_desc,jdbcType=VARCHAR},
+                                               p_add_attr08_desc   => #{p_add_attr08_desc,jdbcType=VARCHAR},
+                                               p_add_attr09_desc   => #{p_add_attr09_desc,jdbcType=VARCHAR},
+                                               p_excel_upload_flag => #{p_excel_upload_flag,jdbcType=VARCHAR},
+                                               p_attr_list         => #{p_attr_list,jdbcType=VARCHAR},
+                                               p_err_msg           => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                               p_err_code          => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                               p_item_code         => #{p_item_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT} )
+	}
+  	</select>
+  	
+</mapper>

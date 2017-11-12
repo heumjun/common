@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="itemAttributeExcelImport">
+
+  	
+  	<delete id="deleteItemAttributeUpdateList" parameterType="java.util.Map">
+		DELETE
+		  FROM stx_plmerp_item_update x
+		 WHERE x.item = #{item,jdbcType=VARCHAR}
+		   AND to_char( x.upload_date, 'yyyy-mm-dd' ) = to_char( SYSDATE, 'yyyy-mm-dd' )
+  	</delete>
+  	
+  	<insert id="insertItemAttributeUpdateList" parameterType="java.util.Map">
+		INSERT
+		  INTO stx_plmerp_item_update
+		(
+		       item
+		     , item_desc
+		     , weight
+		     , attr0
+		     , attr1
+		     , attr2
+		     , attr3
+		     , attr4
+		     , attr5
+		     , attr6
+		     , attr7
+		     , attr8
+		     , attr9
+		     , attr10
+		     , attr11
+		     , attr12
+		     , attr13
+		     , attr14
+		     , cable_outdia
+		     , can_size
+		     , stxsvr
+		     , thinner_code
+		     , paint_code
+		     , cable_type
+		     , cable_length
+		     , stxstandard
+		     , tbc_paint_code
+		     , plmflag
+		     , erpflag
+		     , upload_date
+		)
+		VALUES
+		(
+		       #{item,jdbcType=VARCHAR}
+		     , #{item_desc,jdbcType=VARCHAR}
+		     , #{weight,jdbcType=VARCHAR}
+		     , #{attr0,jdbcType=VARCHAR}
+		     , #{attr1,jdbcType=VARCHAR}
+		     , #{attr2,jdbcType=VARCHAR}
+		     , #{attr3,jdbcType=VARCHAR}
+		     , #{attr4,jdbcType=VARCHAR}
+		     , #{attr5,jdbcType=VARCHAR}
+		     , #{attr6,jdbcType=VARCHAR}
+		     , #{attr7,jdbcType=VARCHAR}
+		     , #{attr8,jdbcType=VARCHAR}
+		     , #{attr9,jdbcType=VARCHAR}
+		     , #{attr10,jdbcType=VARCHAR}
+		     , #{attr11,jdbcType=VARCHAR}
+		     , #{attr12,jdbcType=VARCHAR}
+		     , #{attr13,jdbcType=VARCHAR}
+		     , #{attr14,jdbcType=VARCHAR}
+		     , #{cable_outdia,jdbcType=VARCHAR}
+		     , #{can_size,jdbcType=VARCHAR}
+		     , #{stxsvr,jdbcType=VARCHAR}
+		     , #{thinner_code,jdbcType=VARCHAR}
+		     , #{paint_code,jdbcType=VARCHAR}
+		     , #{cable_type,jdbcType=VARCHAR}
+		     , #{cable_length,jdbcType=VARCHAR}
+		     , #{stxstandard,jdbcType=VARCHAR}
+		     , #{tbc_paint_code,jdbcType=VARCHAR}
+		     , #{plmflag,jdbcType=VARCHAR}
+		     , #{erpflag,jdbcType=VARCHAR}
+		     , SYSDATE
+		)
+  	</insert>
+  	
+  	<insert id="insertItemAttributeUpdateHistoryList" parameterType="java.util.Map">
+		INSERT
+		  INTO stx_plmerp_item_update_history
+		(
+		       item
+		     , item_desc
+		     , weight
+		     , attr0
+		     , attr1
+		     , attr2
+		     , attr3
+		     , attr4
+		     , attr5
+		     , attr6
+		     , attr7
+		     , attr8
+		     , attr9
+		     , attr10
+		     , attr11
+		     , attr12
+		     , attr13
+		     , attr14
+		     , cable_outdia
+		     , can_size
+		     , stxsvr
+		     , thinner_code
+		     , paint_code
+		     , cable_type
+		     , cable_length
+		     , stxstandard
+		     , tbc_paint_code
+		     , plmflag
+		     , erpflag
+		     , upload_date
+		     , login_id
+		)
+        SELECT 
+		       item
+		     , item_desc
+		     , weight
+		     , attr0
+		     , attr1
+		     , attr2
+		     , attr3
+		     , attr4
+		     , attr5
+		     , attr6
+		     , attr7
+		     , attr8
+		     , attr9
+		     , attr10
+		     , attr11
+		     , attr12
+		     , attr13
+		     , attr14
+		     , cable_outdia
+		     , can_size
+		     , stxsvr
+		     , thinner_code
+		     , paint_code
+		     , cable_type
+		     , cable_length
+		     , stxstandard
+		     , tbc_paint_code
+		     , plmflag
+		     , erpflag
+		     , upload_date
+             , #{p_login_id}
+		  FROM stx_plmerp_item_update x
+		 WHERE x.item = #{item,jdbcType=VARCHAR}
+		   AND to_char( x.upload_date, 'yyyy-mm-dd' ) = to_char( SYSDATE, 'yyyy-mm-dd' )
+  	</insert>  	
+</mapper>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsCommonMain">
+
+    <select id="dbMasterSendEmail" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+		{call STX_EMS_MAILING@STXERP (
+			    #{p_itemcode,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_flag,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_action,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_from,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_to,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_from_name,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_to_name,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+	
+			    #{errbuf,		jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    #{retcode,		jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+		  )}    	
+    </select> 
+
+    <select id="sendEmail" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+		{call STX_EMS_PURCHASING_MAILING@STXERP (
+			    #{p_emspurno,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_master,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_dwg_no,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_reason,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_flag,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_action,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_from,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_to,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_from_dept,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			    #{p_from_name,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+	
+			    #{errbuf,		jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			    #{retcode,		jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+		  )}    	
+    </select> 
+
+	<select id="getSelectBoxDeptList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT A.DEPT_CODE AS SB_VALUE,
+		       A.DEPT_CODE || ' : ' || A.DEPT_NAME AS SB_NAME,
+		       CASE
+		         WHEN A.DEPT_CODE = #{sb_type} THEN
+		          'selected="selected"'
+		         ELSE
+		          ''
+		       END AS SB_SELECTED
+		  FROM STX_COM_INSA_DEPT@STXERP A
+		 WHERE DEPT_CODE IN
+		       (SELECT C.DEPTCODE
+		          FROM DCC_DEPTCODE@STXDP C
+		         WHERE C.DWGDEPTCODE IN
+		               (SELECT DWG_DEPT_CODE FROM PLM_VENDOR_DWG_PR_INFO@STXDP))
+		   AND A.USE_YN = 'Y'
+		 ORDER BY DEPT_CODE
+  	</select>
+  	
+	<select id="getUserInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT U.USER_NAME
+		      ,U.EP_MAIL
+		      ,D.DEPT_NAME
+		  FROM STX_COM_INSA_USER@STXERP U
+		      ,STX_COM_INSA_DEPT@STXERP D
+		 WHERE 1=1
+		   AND U.DEPT_CODE = D.DEPT_CODE
+		   AND EMP_NO = #{loginId}
+  	</select>  	
+  	
+  		<select id="getPurNo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT EMS_PUR_NO 
+		  FROM STX_EMS_PURCHASING@STXERP SEP 
+		 WHERE 1=1 
+		<if test="!p_master.equalsIgnoreCase('')">
+		    AND MASTER = #{p_master}
+		</if>	
+		<if test="!p_dwg_no.equalsIgnoreCase('')">
+		    AND SEP.DWG_NO IN ( 
+		    <foreach collection="dwgNoArray" item="item" separator=",">
+		    #{item}
+		    </foreach>
+		    )
+		</if>
+		<if test="!p_state.equalsIgnoreCase('')">
+		    AND SEP.STATUS IN ( 
+		    <foreach collection="stateArray" item="item" separator=",">
+		    #{item}
+		    </foreach>
+		    )
+		</if>    
+  	</select>  	
+  	
+  	<select id="getBuyer" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DISTINCT SEDM.BUYER, EP_MAIL || '@onestx.com' AS EP_MAIL
+		  FROM STX_EMS_PURCHASING@STXERP SEP 
+		     , STX_EMS_DB_MASTER@STXERP  SEDM 
+		     , STX_COM_INSA_USER@STXERP  SCIU 
+		 WHERE SEP.ITEM_CODE = SEDM.ITEM_CODE 
+		   AND SEDM.BUYER = SCIU.EMP_NO 
+		<if test="!p_master.equalsIgnoreCase('')">
+		    AND MASTER = #{p_master}
+		</if>	
+		<if test="!p_dwg_no.equalsIgnoreCase('')">
+		    AND DWG_NO = #{p_dwg_no}
+		</if>	
+		<if test="!p_item_code.equalsIgnoreCase('')">
+		    AND SEP.ITEM_CODE = #{p_item_code}
+		</if>	
+		<if test="!p_pur_no.equalsIgnoreCase('')">
+		    AND SEP.EMS_PUR_NO IN ( 
+		    <foreach collection="purNoArray" item="item" separator=",">
+		    #{item}
+		    </foreach>
+		    )
+		</if>
+  	</select> 
+
+</mapper>

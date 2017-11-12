@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoBlockStageCodeList">
+  <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 <if test='group_code =="1"'>
+	     select t1.*
+  	   from (
+		 	select distinct
+			       'BLOCK'       as gbn
+			      ,null          as team_count 
+			      ,t2.block_code as code 
+			      ,'N'           as auto_flag
+			  from stx_dis_pis_prgroup_block    t2
+			 where t2.project_no = #{p_project_no}
+			   and t2.revision   = #{p_revision}
+			   and t2.in_ex_gbn  = '사내'
+			union all
+					select 'OUTFITTING'   as gbn
+				  ,sds.ATTRIBUTE1 as team_count
+				  ,sds.sd_code as code 
+				  ,'Y'         as auto_flag
+				from stx_dis_sd_code sds
+				where 1=1
+				  and sds.sd_type = 'PAINT_TEAM'
+				  and sds.attribute2 = 'OUTFITTING'
+				  and sds.attribute1 ='1'
+				
+		  ) t1  
+	order by t1.gbn, t1.code 
+	 </if>
+	 <if test='group_code =="2"'>
+	 select t1.*
+  	   from (
+		 	select distinct
+			       'BLOCK'       as gbn
+			      ,null          as team_count 
+			      ,t2.block_code as code
+			      ,'N'           as auto_flag
+			  from stx_dis_pis_prgroup_block    t2
+			 where t2.project_no = #{p_project_no}
+			   and t2.revision   = #{p_revision}
+			   and t2.in_ex_gbn  = '사외'
+		  ) t1  
+	order by t1.gbn, t1.code
+	 </if>
+	 <if test='group_code =="3"'>
+	 select t1.*
+  	   from (
+		 	select distinct
+			       'BLOCK'       as gbn
+			       ,null         as team_count 
+			       ,block_code   as code
+			       ,'Y'           as auto_flag
+			  from stx_dis_pis_block t1
+			 where project_no  = #{project_no}
+			   and revision    = #{revision}
+			   and block_code  like '9' || '%'
+			union all
+			select distinct
+			       'PE'          as gbn  
+			       ,null         as team_count
+			       ,pe_code      as code
+			       ,'Y'          as auto_flag
+			  from stx_dis_pis_pe t1
+			 where project_no  = #{project_no}
+			   and revision    = #{revision}
+			   and pe_code  like '9' || '%'
+			union all
+						select 'OUTFITTING'   as gbn
+					  ,sds.ATTRIBUTE1 as team_count
+					  ,sds.sd_code as code 
+					  ,'Y'          as auto_flag
+					from stx_dis_sd_code sds
+					where 1=1
+					and sds.sd_type = 'PAINT_TEAM'
+					  and sds.attribute2 = 'OUTFITTING'
+					  and sds.attribute1 ='8'
+					  
+		  ) t1  
+	order by t1.gbn, t1.code 
+	 </if>
+	 <if test='group_code =="4"'>
+	 select t1.*
+  	   from (
+		 	select distinct
+			       'HULL'        as gbn
+			       ,null         as team_count 
+			       ,zone_code    as code
+			       ,'Y'          as auto_flag
+			  from stx_dis_pis_zone t1
+			 where project_no  = #{project_no}
+			   and revision    = #{revision}
+			union all
+			select distinct
+			       'QUAY'        as gbn
+			       ,null         as team_count 
+			       ,quay    as code
+			       ,'Y'          as auto_flag
+			  from stx_dis_pis_zone t1
+			 where project_no  = #{project_no}
+			   and revision    = #{revision}
+			   and quay is not null
+			union all
+			select distinct
+			       'PE'          as gbn  
+			       ,null         as team_count
+			       ,pe_code      as code
+			       ,'Y'          as auto_flag
+			  from stx_dis_pis_pe t1
+			 where project_no  = #{project_no}
+			   and revision    = #{revision}
+			   and pe_code  not like '9' || '%'
+			union all
+						select 'OUTFITTING'   as gbn
+					  ,sds.ATTRIBUTE1 as team_count
+					  ,sds.sd_code as code 
+					 ,'Y'          as auto_flag
+					from stx_dis_sd_code sds
+					where 1=1
+					and sds.sd_type = 'PAINT_TEAM'
+					  and sds.attribute2 = 'OUTFITTING'
+					  and sds.attribute1 in ('2','3','4','5','6','7') 
+					
+			union all
+					select 'COSMETIC'   as gbn
+					  ,sds.ATTRIBUTE1 as team_count
+					  ,sds.sd_code as code 
+					 ,'Y'          as auto_flag
+					from stx_dis_sd_code sds
+					where 1=1
+					and sds.sd_type = 'PAINT_TEAM'
+					  and sds.attribute2 = 'COSMETIC'
+					  and sds.attribute1 in ('1','2','3','4','5','6','7')       
+		  ) t1  
+	order by t1.gbn, t1.code 
+	 </if>
+ 	</select>
+</mapper>  	

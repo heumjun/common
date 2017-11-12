@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectPaintEco">
+
+	<select id="selectPaintEco" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	  SELECT ALL_ECO_NO
+	    FROM 
+	       (SELECT ALL_ECO_NO 
+	          FROM STX_DIS_PAINT_BOM_IF_HEAD SDPBIH
+	         WHERE SDPBIH.PROJECT_NO       = #{project_no}
+	           AND SDPBIH.REVISION         = #{revision}    
+	           AND SDPBIH.PAINT_STAGE_TYPE = #{stage_type}
+	         ORDER BY PAINT_HEAD_ID DESC
+	        ) AA
+	    WHERE ROWNUM = 1	   
+	</select>
+
+</mapper>

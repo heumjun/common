@@ -1,0 +1,38 @@
+<body style='font-size:9pt; font-family:돋움;' >
+	<H4>
+	#if ($conContent == "Required")
+	이 메일은 STX 조선해양에서 도면 요청 시 발송하는 통보 메일입니다.
+	#elseif ($conContent == "Approve")
+	이 메일은 STX조선해양에서 도면 승인 완료 시 발송하는 통보 메일입니다.
+	#elseif ($conContent == "Return")
+	이 메일은 STX 조선해양에서 도면 반려 시 발송하는 통보 메일입니다.
+	#end
+	</H4>
+	<br/><br/>
+	<table cellpadding='3' cellspacing='0' border='1' style='width:100%; font-size:9pt'>
+		<tr style='background-color:#FFFF00'>
+			<td>호선</td>
+			<td>도면번호</td>
+			<td>Description</td>
+			<td>Rev</td>
+			<td>요청자</td>
+			<td>DATE</td>
+			#if ($conContent == "Approve")
+			<td>ECO NO</td>
+			#end
+		</tr>
+		#foreach( $data in $contentList )
+		<tr>
+			<td>$data.shp_no</td>
+			<td>$data.dwg_no</td>
+			<td>$data.description</td>
+			<td>$data.dwg_rev</td>
+			<td>$data.user_name</td>
+			<td>$data.req_date</td>
+			#if ($conContent == "Approve")
+			<td>$data.req_seq</td>
+			#end
+		</tr>
+		#end
+	</table>
+</body>

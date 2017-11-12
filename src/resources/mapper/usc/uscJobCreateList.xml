@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="uscJobCreateList">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.usc_job_create_search_proc(
+					 #{p_master_project_no}
+				   , #{p_chk_series}
+				   , '%'
+				   , #{p_block_no}
+				   , #{p_str_flag}
+				   , #{p_usc_job_type}
+				   , #{p_eco_no}
+				   , #{p_status}
+				   , #{p_bk_code}
+				   , #{p_act_code}
+				   , #{p_job_code}
+				   , #{p_dept_code}
+				   , #{p_emp_no}
+				   , #{p_is_eco}
+				   , #{curPageNo}
+				   , #{pageSize}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{vcursor, mode=OUT, jdbcType=CURSOR, javaType=ResultSet	, resultMap=uscActivityStdList.procResultMap})
+			}
+	</select> 	    
+	
+	<select id="jobCreateAddCheck" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.job_create_add_chek(
+					#{project_no}
+				   , #{p_block_no}
+				   , #{p_block_str_flag}
+				   , #{p_str_flag}
+				   , #{p_usc_job_type}
+				   , #{p_act_catalog}
+				   , #{p_job_catalog}
+				   , #{o_act_code, mode=OUT, javaType=String, jdbcType=VARCHAR}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_flag, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   )
+			}
+	</select>
+	
+	<select id="jobCreateMoveCheck" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.job_create_move_chek(
+					#{project_no}
+				   , #{p_blockNo}
+				   , #{p_block_str_flag}
+				   , #{p_strFlag}
+				   , #{p_usc_job_type}
+				   , #{p_actCode}
+				   , #{p_job_catalog}
+				   , #{p_job_code}
+				   , #{o_act_code, mode=OUT, javaType=String, jdbcType=VARCHAR}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   )
+			}
+	</select>
+	
+	<select id="uscJobCreateEconoCreate" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.job_create_econo_create_proc(
+					#{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{vreturn, mode=OUT, javaType=String, jdbcType=VARCHAR})
+			}
+	</select>
+</mapper>  	

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="paintSelectEcoAddStateList">
+
+  	<select id="paintSelectEcoAddStateList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT ENG_CHANGE_ORDER_CODE AS ECO_NO
+		      ,ERP_TRANS_YN          AS ECO_STATE
+		 FROM STX_DIS_ENG_CHANGE_ORDER
+		WHERE ENG_CHANGE_ORDER_CODE = trim(#{eco_main_name,jdbcType=VARCHAR})
+		  AND STATES_CODE != 'RELEASE'                           
+
+  	</select>
+
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoItemBomHistory">  	
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select a.revision_no
+	      ,a.process_action
+	      ,to_char(a.last_update_date, 'YYYY-MM-DD') as last_update_date
+	      ,a.last_updated_by
+	      ,'' as last_update_by_name
+	      ,a.catalog_code
+	      ,a.attribute_type
+	      ,a.attribute_code
+	      ,a.attribute_name
+	      ,a.attribute_data_type
+	      ,a.attribute_data_min
+	      ,a.attribute_data_max
+	      ,a.assy_attribute_code
+	      ,a.value_code
+	      ,a.item_make_value
+	      ,a.assy_value_code
+	      ,a.enable_flag
+	      ,a.item_rowid
+	      ,a.item_value_rowid
+	      ,a.item_value_de_rowid
+	  from stx_dis_sd_catalog_attr_his a
+	 where 1=1
+	   and a.catalog_code = #{p_catalog_code}
+	 <if test="p_attribute_type != null and p_attribute_type !='' ">
+	   and attribute_type = #{p_attribute_type}
+     </if>
+     
+     <if test="p_attribute_code != null and p_attribute_code !='' ">
+	   and attribute_code like #{p_attribute_code} || '%'
+     </if>
+     
+	</select>
+ 	
+</mapper>

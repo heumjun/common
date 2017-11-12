@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgApprove">
+  	<select id="selectDwgRequestList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  	select * 
+  	  from stx_dis_dwg_trans_detail
+  	 where req_seq = #{req_seq}
+  	</select>
+  	<select id="getDwgInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		 SELECT t1.*
+		      , t2.description 
+		   FROM STX_DWG_DW302TBL@stxerp t1 
+		      , stx_dwg_category_masters@stxerp t2 
+		  WHERE 1                       = 1 
+		    AND SUBSTR(t1.dwg_no, 1, 5) = t2.dwg_no_concat 
+		    AND dwg_seq_id              = #{req_dwg_seq_id} 
+  	</select>
+  	<update id = "updateDwgReturn" parameterType="java.util.Map">
+  	update STX_DWG_DW302TBL@stxerp
+	   set trans_plm = 'R'
+	 where 1=1
+	   and dwg_seq_id = #{dwg_seq_id}
+  	</update>
+  	<update id="updateDwgReturnTransDetail" parameterType="java.util.Map">
+  		 UPDATE stx_dis_dwg_trans_detail 
+		    SET dwg_mail_send_seq = #{dwgMailSendSeq}
+		  WHERE req_seq           = #{req_seq}
+  	</update>
+  	<update id="updateDwgReturnTrans" parameterType="java.util.Map">
+	 UPDATE stx_dis_dwg_trans 
+	    SET req_state         = 'R'
+	      , dwg_mail_send_seq = #{dwgMailSendSeq} 
+	      , res_sabun         = #{res_sabun} 
+	      , res_date          = SYSDATE 
+	      , mail_check        = 'N' 
+	      , erp_trans         = 'N' 
+	      , last_updated_by   = #{res_sabun} 
+	      , last_update_date  = SYSDATE 
+	  WHERE req_seq           = #{req_seq} 
+  	</update>
+  	<update id="updateEcoReceiverNull" parameterType = "String">
+  		update	stx_dwg_eco_receiver@stxerp
+  		   set 	eco_no = ''
+  		 where	1=1
+  		   and	master_project_no	=	#{shp_no}
+  		   and 	dwg_no				=	#{dwg_no}
+  		   and	rev_no				=	#{dwg_rev}
+  	
+  	</update>
+  	
+  	
+  	<select id = "selectDWG_Approve_302List" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  	select 
+           DDT.trans_plm
+           ,DDT.shp_no
+              ,DDT.dwg_no
+             ,sdcm.description as text_des
+              ,DDT.dwg_sq
+              ,DDT.dwg_rev
+              ,DDT.pri_set
+           ,DDT.trans_plm
+           ,CIU.user_name
+           ,DDT.emp_no
+           ,CIU.dept_name
+           ,to_char(DDT.inp_date,'YYYY-MM-DD HH24:mm') as inp_date
+           ,DDT.file_name
+           ,DDT.pcs_no
+           ,DDT.form_type
+           ,DDT.form_name
+           ,DDT.paint_code
+           ,DDT.dwg_seq_id
+      from
+            STX_DWG_DW302TBL@stxerp   DDT
+            ,STX_COM_INSA_USER@stxerp  CIU
+            ,stx_dwg_category_masters@stxerp sdcm
+     where  1=1
+       and  DDT.emp_no = CIU.emp_no(+)
+       and  substr(ddt.dwg_no,1,5) = sdcm.dwg_no_concat 
+       and  DDT.dwg_seq_id = #{req_dwg_seq_id}
+  	 order by  DDT.dwg_no, DDT.dwg_sq, DDT.dwg_rev
+  	</select>
+  	
+  	<insert id="insertSTX_DWG_DW303TBL_PLM" parameterType="java.util.Map">
+  	INSERT INTO STX_DWG_DW303TBL_PLM@stxerp
+      (
+        DOC_GB       
+       ,ACTION
+       ,PRO_NO
+       ,DOC_CATEGORY
+       ,ECO_NO
+       ,DWG_TYPE
+       ,DWG_NO
+       ,DWG_RV              
+       ,DWG_DSC          
+       ,DWG_URL        
+       ,ORG_ID
+       ,ITM_NO
+       ,ITM_RV
+       ,SHT_NO
+       ,FINISH_IF
+       ,PRI_SET
+       ,PRN_DT
+       ,INP_DT
+       ,INP_OWNER
+       ,IF_ERP_ST
+       ,IF_ERP_DT
+       ,IF_LEGACY_ST
+       ,IF_LEGACY_DT
+      )
+    VALUES
+      (
+        'C'
+        ,'INSERT'
+        ,#{SHP_NO}
+        ,''
+        ,#{REQ_SEQ}
+        ,5
+        ,#{dwg_no}
+        ,#{dwg_rev}
+        ,#{text_des}
+        ,#{dwg_url}
+        ,0
+        ,'-1'
+        ,0
+        ,#{file_name}
+        ,'F'
+        ,#{pri_set}
+        ,sysdate
+        ,SYSDATE
+        ,'User Agent'
+        ,0
+        ,''
+        ,0
+        ,''
+	  )
+  	</insert>
+  	<update id = "updateSTX_DWG_DW302TBL" parameterType="java.util.Map">
+  	update STX_DWG_DW302TBL@stxerp
+	   set trans_plm = 'Y'
+	 where 1=1
+	   and dwg_seq_id = #{req_dwg_seq_id}
+  	</update>
+  	<update id="updateSTX_DIS_DWG_TRANS" parameterType="java.util.Map">
+	 UPDATE stx_dis_dwg_trans 
+	    SET req_state         = 'Y'
+	      , dwg_mail_send_seq = #{dwgMailSendSeq}
+	      , res_sabun         = #{res_sabun}
+	      , res_date          = SYSDATE 
+	      , mail_check        = 'Y' 
+	      , erp_trans         = 'Y' 
+	      , last_updated_by   = #{res_sabun} 
+	      , last_update_date  = SYSDATE 
+	  WHERE req_seq           = #{req_seq} 
+        
+  	</update>
+</mapper>

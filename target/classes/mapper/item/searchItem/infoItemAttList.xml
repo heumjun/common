@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoItemAttList">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select 0 as oder,'weight' AS ATTRIBUTE_CODE
+                  ,''       AS ATTRIBUTE_DESC   
+                  ,'Weight(kg)' AS ATTRIBUTE_NAME
+                  ,pf.weight_flag  AS attr_req_flg
+                  ,'' AS attr_data_type
+                  ,NULL AS attr_data_min
+                  ,NULL AS attr_data_max
+                  ,'N' AS data_list_flag
+                  ,'' AS attr_data_type_desc
+                  ,TO_CHAR(item.item_weight, 'FM99999990.0') AS ATTRIBUTE_VALUE
+             from stx_dis_sd_catalog     ca
+                      ,stx_dis_sd_part_family pf
+                      ,STX_DIS_ITEM item
+             where ca.part_family_code = pf.part_family_code(+)
+             and ca.catalog_code     = #{catalog_code}
+             and pf.enable_flag      = 'Y'
+             and item.ITEM_CATALOG(+) = ca.CATALOG_CODE
+             and item.ITEM_CODE(+) = #{item_code}
+                                                                                      
+		UNION ALL        
+
+	SELECT  DECODE(A.ATTRIBUTE_TYPE,'ADDITEM',2,1) as oder,  A.ATTRIBUTE_CODE AS ATTRIBUTE_CODE
+          ,B.SD_DESC       AS ATTRIBUTE_DESC   
+          ,DECODE(A.ATTRIBUTE_TYPE,'ADDITEM','부가속성-'||A.ATTRIBUTE_NAME, A.ATTRIBUTE_NAME) AS ATTRIBUTE_NAME
+          ,A.ATTRIBUTE_REQUIRED_FLAG AS attr_req_flg
+          ,A.ATTRIBUTE_DATA_TYPE AS attr_data_type
+          ,A.ATTRIBUTE_DATA_MIN AS attr_data_min
+          ,A.ATTRIBUTE_DATA_MAX AS attr_data_max
+          ,(select decode(count(*),0,'N','Y') from stx_dis_sd_catalog_attr_value cav where cav.attribute_type(+) = A.attribute_type
+             and cav.catalog_code(+)   = A.catalog_code 
+             and cav.attribute_code(+) = A.attribute_code) as data_list_flag
+          ,(select sd_desc as sd_desc
+			from stx_dis_sd_code
+			where enable_flag = 'Y'
+			  and sd_code = A.ATTRIBUTE_DATA_TYPE
+			  and sd_type = 'CATALOG_DATA_TYPE') AS attr_data_type_desc
+          ,DECODE(A.ATTRIBUTE_TYPE,'ITEM', DECODE(A.ATTRIBUTE_CODE,'01',X.ATTR1
+                                  ,'02',X.ATTR2
+                                  ,'03',X.ATTR3
+                                  ,'04',X.ATTR4
+                                  ,'05',X.ATTR5
+                                  ,'06',X.ATTR6
+                                  ,'07',X.ATTR7
+                                  ,'08',X.ATTR8
+                                  ,'09',X.ATTR9
+                                  ,'10',X.ATTR10
+                                  ,'11',X.ATTR11
+                                  ,'12',X.ATTR12
+                                  ,'13',X.ATTR13
+                                  ,'14',X.ATTR14
+                                  ,'15',X.ATTR15), 'ADDITEM', DECODE(A.ATTRIBUTE_CODE, '07',X.CABLE_LENGTH
+                                                                                      ,'06',X.CABLE_TYPE
+                                                                                      ,'01',X.CABLE_OUTDIA
+                                                                                      ,'02',X.CAN_SIZE
+                                                                                      ,'03',X.STXSVR
+                                                                                      ,'04',X.THINNER_CODE
+                                                                                      ,'05',X.PAINT_CODE)) AS ATTRIBUTE_VALUE
+		 FROM STX_DIS_SD_CATALOG_ATTRIBUTE A
+		      ,STX_DIS_SD_CODE              B
+		      ,STX_DIS_ITEM                 X
+		         
+			WHERE A.ATTRIBUTE_TYPE  in ('ADDITEM','ITEM')
+			AND   X.ITEM_CATALOG(+) = A.CATALOG_CODE
+			AND   X.ITEM_CODE(+) = #{item_code}
+		    AND   B.SD_CODE = A.ATTRIBUTE_CODE
+		    AND   B.SD_TYPE = 'CATALOG_ATTRIBUTE_CODE'
+		    AND   B.ATTRIBUTE1 = 'ITEM'
+		    AND   B.ENABLE_FLAG = 'Y'
+		 	AND A.CATALOG_CODE    = #{catalog_code}
+		    AND A.ENABLE_FLAG = 'Y'
+		 ORDER BY oder, ATTRIBUTE_CODE 
+	</select>
+</mapper>

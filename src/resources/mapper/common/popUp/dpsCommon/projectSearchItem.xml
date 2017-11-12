@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="projectSearchItem">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  		<choose>
+  			<when test="darlian_check == true">
+  				SELECT PROJECT_NO AS PROJECTNO,
+                       'ALL' AS STATE,
+                       '0' AS S_NO
+				FROM   Z_DALIAN_PROJECT_TO111231
+  			</when>
+  			<otherwise>
+	  			SELECT A.PROJECTNO,
+				       A.STATE,
+				       (SELECT B.DWGSERIESSERIALNO
+				        FROM   LPM_NEWPROJECT B
+				        WHERE  B.CASENO='1'
+				        and    B.PROJECTNO = A.PROJECTNO) AS S_NO
+				FROM   PLM_SEARCHABLE_PROJECT A
+				WHERE  1 = 1
+				AND    A.CATEGORY = #{category}
+				AND    A.STATE &lt;&gt; 'CLOSED'
+				ORDER BY PROJECTNO
+  			</otherwise>
+  		</choose>
+  	</select>
+</mapper>

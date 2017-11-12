@@ -1,0 +1,1343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="commonSelectBox">
+	<!--
+	관리자들이 사용하는 부서 코드 리스트 
+	-->
+  	<select id="getManagerDeptList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT AC.DWGDEPTCODE AS SB_VALUE 
+		     , AC.DWGDEPTNM AS SB_NAME 
+		     , CASE WHEN AC.DWGDEPTCODE = #{p_dept_code} THEN 'selected=\"selected\"' 
+		            ELSE '' 
+		        END AS SB_SELECTED 
+		 -- FROM DCC_DWGDEPTCODE@STXDP AC
+		  FROM STX_DIS_DWGDEPTCODE AC
+		 WHERE AC.USERYN      = 'Y' 
+		 ORDER BY AC.DWGDEPTNM 
+  	</select>
+  	
+	<!--
+	설계도면부서에 해당하는 인사부서 리스트. 
+	-->
+  	<select id="getDwgDeptRelInsaDeptList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT A.DEPT_CODE AS SB_VALUE
+		      ,A.DEPT_CODE || ' : ' || A.DEPT_NAME AS SB_NAME
+		      ,CASE WHEN A.DEPT_CODE = #{p_dept_code} THEN 'selected=\"selected\"' 
+		            ELSE '' 
+		       END AS SB_SELECTED 
+		  FROM STX_COM_INSA_DEPT@STXERP A
+		 WHERE A.USE_YN      = 'Y'
+		   AND A.DEPT_CODE IN (SELECT C.DEPTCODE
+		                         FROM DCC_DEPTCODE@STXDP C
+		                             ,DCC_DWGDEPTCODE@STXDP D
+		                        WHERE C.DWGDEPTCODE = D.DWGDEPTCODE
+		                          AND D.COUNTYN='Y')
+		 ORDER BY A.DEPT_CODE 
+  	</select>  	
+  	
+  	<select id="getDwgNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT 
+		       SUBSTR(PA.ACTIVITYCODE, 0, 8) AS SB_VALUE
+		     , SUBSTR(PA.ACTIVITYCODE, 0, 8) AS SB_NAME
+		     , CASE WHEN SUBSTR(PA.ACTIVITYCODE, 0, 8) = #{p_dwg_no, jdbcType=VARCHAR} THEN 'selected=\"selected\"' 
+		            ELSE '' 
+		        END AS SB_SELECTED 
+		  FROM DPM_ACTIVITY@STXDP PA 
+		     , LPM_NEWPROJECT@STXDP LN 
+		     , ( SELECT STX_DIS_GET_MASTER_F(#{p_master_no, jdbcType=VARCHAR}) AS MASTER_SHIP FROM DUAL ) A
+		 WHERE 1=1 
+ 		   AND PA.DWGDEPTCODE        = #{p_dept_code, jdbcType=VARCHAR}
+<!-- 		   AND PA.DWGDEPTCODE        = '000036' -->
+		   AND PA.PROJECTNO          = LN.PROJECTNO 
+		   AND PA.WORKTYPE           = 'DW' 
+		   AND LN.CASENO             = '1' 
+		   AND LN.CASENO             = PA.CASENO
+		   AND LN.DWGSERIESPROJECTNO   = A.MASTER_SHIP
+		   AND EXISTS
+		       (SELECT 1
+		          FROM STX_DWG_CATEGORY_MASTERS@STXERP SDCM
+		         WHERE SDCM.DWG_NO_CONCAT = SUBSTR(PA.ACTIVITYCODE, 1,5)
+		           AND SDCM.TBC_CATALOG_NO IS NOT NULL
+		        )
+		 ORDER BY SB_VALUE ASC  
+	</select>
+	
+	<select id="getBlockNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDBLV.BLOCK_NO  AS SB_VALUE
+		      ,SDBLV.BLOCK_NO  AS SB_NAME
+		  FROM STX_DIS_BOM_LIST_V SDBLV
+		      ,STX_DIS_PROJECT    SDP
+		 WHERE SDBLV.PROJECT_NO           = SDP.PROJECT_NO
+		   AND SDP.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		GROUP BY SDBLV.BLOCK_NO
+		        ,SDBLV.BLOCK_NO
+		ORDER BY 1 
+	</select>
+	
+	<select id="getStrFlagList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT CASE WHEN TEMP.B IS NOT NULL THEN TEMP.B
+	            ELSE SDBLV.STR_FLAG END AS SB_VALUE
+	      ,CASE WHEN TEMP.B IS NOT NULL THEN TEMP.B
+	            ELSE SDBLV.STR_FLAG END AS SB_NAME
+	  FROM STX_DIS_BOM_LIST_V SDBLV
+	      ,STX_DIS_PROJECT    SDP
+	      ,(SELECT 'IN' AS A
+                  ,'IN' AS B
+              FROM DUAL
+            UNION ALL
+            SELECT 'IN' AS A
+	              ,'IG' AS B
+	          FROM DUAL
+	        UNION ALL
+	        SELECT 'IN' AS A
+	              ,'IM' AS B
+	          FROM DUAL) TEMP
+	 WHERE SDP.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+	 <if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+	   AND SDBLV.PROJECT_NO           = SDP.PROJECT_NO
+	   AND SDBLV.BLOCK_NO             = #{p_block_no, jdbcType=VARCHAR}
+	 </if>
+	   AND SDBLV.STR_FLAG             = TEMP.A(+)
+	GROUP BY SDBLV.STR_FLAG, TEMP.B
+	ORDER BY 1   
+<!-- 		SELECT SDBLV.STR_FLAG  AS SB_VALUE -->
+<!-- 		      ,SDBLV.STR_FLAG  AS SB_NAME -->
+<!-- 		  FROM STX_DIS_BOM_LIST_V SDBLV -->
+<!-- 		      ,STX_DIS_PROJECT    SDP -->
+<!-- 		 WHERE SDP.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR} -->
+<!-- 		 <if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'> -->
+<!-- 		   AND SDBLV.PROJECT_NO           = SDP.PROJECT_NO -->
+<!-- 		   AND SDBLV.BLOCK_NO             = #{p_block_no, jdbcType=VARCHAR} -->
+<!-- 		 </if> -->
+<!-- 		GROUP BY SDBLV.STR_FLAG  -->
+<!-- 		ORDER BY 1     -->
+	</select>
+	
+	<!-- pending move에서 사용 -->
+	<select id="getPendingUscJobTypeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT ' '    AS SB_VALUE
+			  ,'선택'  AS SB_NAME
+		  FROM DUAL
+	 	WHERE 1 <![CDATA[ < ]]> ( SELECT COUNT(*) 
+	 							    FROM STX_DIS_ITEM    SDI
+	                           		    ,STX_DIS_USC_BOM SDUB
+								   WHERE SDUB.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                         							   FROM STX_DIS_PROJECT A 
+		                                               	      WHERE A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR})
+		                             AND SDUB.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}
+		                             AND SDUB.WORK_YN    = 'Y'
+		                             AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+		                             AND SDUB.ITEM_CODE  = SDI.ITEM_CODE  
+		                        )                     	   
+		UNION ALL
+		SELECT DISTINCT 
+		       SDUB.USC_JOB_TYPE                         AS SB_NAME
+	          ,SDUB.USC_JOB_TYPE                         AS SB_VALUE
+		  FROM STX_DIS_ITEM    SDI
+	          ,STX_DIS_USC_BOM SDUB
+		 WHERE SDUB.PROJECT_NO IN (SELECT A.PROJECT_NO 
+	 							   FROM STX_DIS_PROJECT A 
+	                       	      WHERE A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR})
+	     AND SDUB.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}
+	     AND SDUB.WORK_YN    = 'Y'
+	     AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+	     AND SDUB.ITEM_CODE  = SDI.ITEM_CODE
+	</select>
+	
+	<select id="getUscJobTypeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT '선택' AS SB_NAME
+		      ,'선택' AS SB_VALUE
+		FROM   DUAL
+		WHERE  1 <![CDATA[ < ]]> (SELECT COUNT(*)
+		            FROM   (SELECT AA.J_USC_JOB_TYPE                                         AS SB_VALUE
+		                    FROM   (SELECT DISTINCT 
+		                                   SDUB_J.AREA                   AS J_AREA
+		                                  ,SDUB_A.MOTHER_CATALOG         AS B_ITEM_CATALOG
+		                                  ,SDUB_B.STR_FLAG               AS B_STR_FLAG
+		                                  ,SDUB_A.ITEM_CATALOG           AS A_ITEM_CATALOG
+		                                  ,SDUB_J.ITEM_CATALOG           AS J_ITEM_CATALOG
+		                                  ,SDUB_J.STR_FLAG               AS J_STR_FLAG
+		                                  ,NVL(SDUB_J.USC_JOB_TYPE, '.') AS J_USC_JOB_TYPE
+		                                  ,#{p_master_no, jdbcType=VARCHAR} AS J_PROJECT_NO
+		                            FROM   (SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM    A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                            FROM   STX_DIS_PROJECT A 
+		                                                            WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                           )
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_J
+		                                  ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                            FROM   STX_DIS_PROJECT A 
+		                                                            WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                           )
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_A
+		                                  ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                            FROM   STX_DIS_PROJECT A 
+		                                                            WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                           )
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_B
+		                            WHERE  1=1
+		                            AND    SDUB_J.BLOCK_NO     = #{p_block_no, jdbcType=VARCHAR}
+		                            AND    SDUB_J.STR_FLAG     = #{p_str_flag, jdbcType=VARCHAR}
+		                            AND    SDUB_J.PROJECT_NO   = SDUB_A.PROJECT_NO
+		                            AND    SDUB_J.MOTHER_CODE  = SDUB_A.ITEM_CODE
+		                            AND    SDUB_A.PROJECT_NO   = SDUB_B.PROJECT_NO
+		                            AND    SDUB_A.MOTHER_CODE  = SDUB_B.ITEM_CODE
+		                            AND    EXISTS (
+		                                            SELECT 1
+		                                              FROM STX_DIS_SD_CODE SDSC_VALUE
+		                                             WHERE SDSC_VALUE.SD_TYPE     = 'JOB_CATALOG' || '_' || #{p_item_type_cd, jdbcType=VARCHAR} || '_' || #{p_str_flag, jdbcType=VARCHAR}
+		                                               AND SDSC_VALUE.ENABLE_FLAG = 'Y'
+		                                               AND (SDSC_VALUE.SD_CODE    = SDUB_J.USC_JOB_TYPE OR SDSC_VALUE.SD_CODE = SDUB_J.ITEM_CATALOG)
+		                                          )
+		                                          
+		                            AND    NOT EXISTS (
+		                                                 SELECT 1
+		                                                 FROM   STX_DIS_SD_CATALOG_VALUE SDV
+		                                                 WHERE  SDV.CATALOG_CODE = SDUB_J.ITEM_CATALOG
+		                                                 AND    SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		                                                 AND    SDV.VALUE_CODE   = '09'
+		                                                 AND    SDV.VALUE_NAME   = 'Y'
+		                                                 AND    SDV.ENABLE_FLAG  = 'Y'
+		                                                     
+		                                              )
+		                           UNION ALL
+		                           SELECT DISTINCT 
+		                                   SDUB_J.AREA                   AS J_AREA
+		                                  ,SDUB_A.MOTHER_CATALOG         AS B_ITEM_CATALOG
+		                                  ,SDUB_B.STR_FLAG               AS B_STR_FLAG
+		                                  ,SDUB_A.ITEM_CATALOG           AS A_ITEM_CATALOG
+		                                  ,SDUB_J.ITEM_CATALOG           AS J_ITEM_CATALOG
+		                                  ,SDUB_J.STR_FLAG               AS J_STR_FLAG
+		                                  ,NVL(SDUB_J.USC_JOB_TYPE, '.') AS J_USC_JOB_TYPE
+		                                  ,#{p_master_no, jdbcType=VARCHAR} AS J_PROJECT_NO
+		                            FROM   (SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM    A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                            FROM   STX_DIS_PROJECT A 
+		                                                            WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                           )
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_J
+		                                  ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                            FROM   STX_DIS_PROJECT A 
+		                                                            WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                           )
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_A
+		                                  ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                            FROM   STX_DIS_PROJECT A 
+		                                                            WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                           )
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                       AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                   AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_B
+		                            WHERE  1=1
+		                            AND    SDUB_J.BLOCK_NO     = #{p_block_no, jdbcType=VARCHAR}
+		                            AND    SDUB_J.STR_FLAG     = #{p_str_flag, jdbcType=VARCHAR}
+		                            AND    SDUB_J.PROJECT_NO   = SDUB_A.PROJECT_NO
+		                            AND    SDUB_J.MOTHER_CODE  = SDUB_A.ITEM_CODE
+		                            AND    SDUB_A.PROJECT_NO   = SDUB_B.PROJECT_NO
+		                            AND    SDUB_A.MOTHER_CODE  = SDUB_B.ITEM_CODE
+		                            AND    EXISTS (
+		                                                 SELECT 1
+		                                                 FROM   STX_DIS_SD_CATALOG_VALUE SDV
+		                                                 WHERE  SDV.CATALOG_CODE = SDUB_J.ITEM_CATALOG
+		                                                 AND    SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		                                                 AND    SDV.VALUE_CODE   = '09'
+		                                                 AND    SDV.VALUE_NAME   = 'Y'
+		                                                 AND    SDV.ENABLE_FLAG  = 'Y'
+		                                                 
+		                                              )              
+		                           ) AA
+		                          ,(SELECT DISTINCT
+		                                   SDAJ.AREA                   AS AREA
+		                                  ,SDAJ.BLOCK_CATALOG          AS BLOCK_CATALOG
+		                                  ,SDAJ.BLOCK_STR_FLAG         AS BLOCK_STR_FLAG
+		                                  ,SDAJ.ACTIVITY_CATALOG       AS ACTIVITY_CATALOG
+		                                  ,SDAJ.JOB_CATALOG            AS JOB_CATALOG
+		                                  ,SDAJ.STR_FLAG               AS STR_FLAG
+		                                  ,NVL(SDAJ.USC_JOB_TYPE, '.') AS USC_JOB_TYPE
+		                                  ,SDAJ.DESCRIPTION            AS JOB_DESCRIPTION
+		                                  ,DP.REPRESENTATIVE_PRO_NUM   AS PROJECT_NO
+		                            FROM   STX_DIS_ACTIVITY_STANDARD SDAJ
+		                                  ,STX_DIS_MODEL DM
+                                          ,STX_DIS_PROJECT DP
+                                    WHERE  SDAJ.MODEL_TYPE = DM.MODEL_TYPE
+                                    AND    DM.MODEL_NO = DP.MODEL_NO
+                                    AND    DP.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                           ) BB
+		                    WHERE  AA.J_AREA         = BB.AREA(+)
+		                    AND    AA.B_ITEM_CATALOG = BB.BLOCK_CATALOG(+)
+		                    AND    AA.B_STR_FLAG     = BB.BLOCK_STR_FLAG(+)
+		                    AND    AA.A_ITEM_CATALOG = BB.ACTIVITY_CATALOG(+)
+		                    AND    AA.J_ITEM_CATALOG = BB.JOB_CATALOG(+)
+		                    AND    AA.J_STR_FLAG     = BB.STR_FLAG(+)
+		                    AND    AA.J_USC_JOB_TYPE = BB.USC_JOB_TYPE(+)
+		                    AND    AA.J_PROJECT_NO   = BB.PROJECT_NO(+)        
+		                  )
+		        )
+		UNION ALL
+		SELECT SB_NAME
+		      ,SB_VALUE
+		FROM   (
+		          SELECT CASE WHEN BB.JOB_DESCRIPTION IS NOT NULL 
+		                      THEN AA.J_USC_JOB_TYPE || ' : ' || BB.JOB_DESCRIPTION  
+		                      ELSE AA.J_USC_JOB_TYPE || ' : (Not Description)' END AS SB_NAME
+		                ,AA.J_USC_JOB_TYPE                                         AS SB_VALUE
+		          FROM   (SELECT DISTINCT 
+		                         SDUB_J.AREA                   AS J_AREA
+		                        ,SDUB_A.MOTHER_CATALOG         AS B_ITEM_CATALOG
+		                        ,SDUB_B.STR_FLAG               AS B_STR_FLAG
+		                        ,SDUB_A.ITEM_CATALOG           AS A_ITEM_CATALOG
+		                        ,SDUB_J.ITEM_CATALOG           AS J_ITEM_CATALOG
+		                        ,SDUB_J.STR_FLAG               AS J_STR_FLAG
+		                        ,NVL(SDUB_J.USC_JOB_TYPE, '.') AS J_USC_JOB_TYPE
+		                        ,#{p_master_no, jdbcType=VARCHAR} AS J_PROJECT_NO
+		                  FROM   (SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM    A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                  FROM   STX_DIS_PROJECT A 
+		                                                  WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                 )
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                              AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_J
+		                        ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                  FROM   STX_DIS_PROJECT A 
+		                                                  WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                 )
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                              AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_A
+		                        ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                  FROM   STX_DIS_PROJECT A 
+		                                                  WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                 )
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                              AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_B
+		                  WHERE  1=1
+		                  AND    SDUB_J.BLOCK_NO     = #{p_block_no, jdbcType=VARCHAR}
+		                  AND    SDUB_J.STR_FLAG     = #{p_str_flag, jdbcType=VARCHAR}
+		                  AND    SDUB_J.PROJECT_NO   = SDUB_A.PROJECT_NO
+		                  AND    SDUB_J.MOTHER_CODE  = SDUB_A.ITEM_CODE
+		                  AND    SDUB_A.PROJECT_NO   = SDUB_B.PROJECT_NO
+		                  AND    SDUB_A.MOTHER_CODE  = SDUB_B.ITEM_CODE
+		                  AND    EXISTS (
+		                                  SELECT 1
+		                                    FROM STX_DIS_SD_CODE SDSC_VALUE
+		                                   WHERE SDSC_VALUE.SD_TYPE     = 'JOB_CATALOG' || '_' || #{p_item_type_cd, jdbcType=VARCHAR} || '_' || #{p_str_flag, jdbcType=VARCHAR}
+		                                     AND SDSC_VALUE.ENABLE_FLAG = 'Y'
+		                                     AND (SDSC_VALUE.SD_CODE    = SDUB_J.USC_JOB_TYPE OR SDSC_VALUE.SD_CODE = SDUB_J.ITEM_CATALOG)
+		                                )
+		                                
+		                  AND    NOT EXISTS (
+		                                       SELECT 1
+		                                       FROM   STX_DIS_SD_CATALOG_VALUE SDV
+		                                       WHERE  SDV.CATALOG_CODE = SDUB_J.ITEM_CATALOG
+		                                       AND    SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		                                       AND    SDV.VALUE_CODE   = '09'
+		                                       AND    SDV.VALUE_NAME   = 'Y'
+		                                       AND    SDV.ENABLE_FLAG  = 'Y'
+		                                           
+		                                    )
+		                  
+		                 UNION ALL
+		                 SELECT DISTINCT 
+		                         SDUB_J.AREA                   AS J_AREA
+		                        ,SDUB_A.MOTHER_CATALOG         AS B_ITEM_CATALOG
+		                        ,SDUB_B.STR_FLAG               AS B_STR_FLAG
+		                        ,SDUB_A.ITEM_CATALOG           AS A_ITEM_CATALOG
+		                        ,SDUB_J.ITEM_CATALOG           AS J_ITEM_CATALOG
+		                        ,SDUB_J.STR_FLAG               AS J_STR_FLAG
+		                        ,NVL(SDUB_J.USC_JOB_TYPE, '.') AS J_USC_JOB_TYPE
+		                        ,#{p_master_no, jdbcType=VARCHAR} AS J_PROJECT_NO
+		                  FROM   (SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM    A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                  FROM   STX_DIS_PROJECT A 
+		                                                  WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                 )
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                              AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_J
+		                        ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                  FROM   STX_DIS_PROJECT A 
+		                                                  WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                 )
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                              AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_A
+		                        ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO IN (SELECT A.PROJECT_NO 
+		                                                  FROM   STX_DIS_PROJECT A 
+		                                                  WHERE  A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                                                 )
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                             AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_B
+		                  WHERE  1=1
+		                  AND    SDUB_J.BLOCK_NO     = #{p_block_no, jdbcType=VARCHAR}
+		                  AND    SDUB_J.STR_FLAG     = #{p_str_flag, jdbcType=VARCHAR}
+		                  AND    SDUB_J.PROJECT_NO   = SDUB_A.PROJECT_NO
+		                  AND    SDUB_J.MOTHER_CODE  = SDUB_A.ITEM_CODE
+		                  AND    SDUB_A.PROJECT_NO   = SDUB_B.PROJECT_NO
+		                  AND    SDUB_A.MOTHER_CODE  = SDUB_B.ITEM_CODE
+		                  AND    EXISTS (
+		                                       SELECT 1
+		                                       FROM   STX_DIS_SD_CATALOG_VALUE SDV
+		                                       WHERE  SDV.CATALOG_CODE = SDUB_J.ITEM_CATALOG
+		                                       AND    SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		                                       AND    SDV.VALUE_CODE   = '09'
+		                                       AND    SDV.VALUE_NAME   = 'Y'
+		                                       AND    SDV.ENABLE_FLAG  = 'Y'
+		                                       
+		                                    )              
+		                 ) AA
+		                ,(SELECT DISTINCT
+		                         SDAJ.AREA                   AS AREA
+		                        ,SDAJ.BLOCK_CATALOG          AS BLOCK_CATALOG
+		                        ,SDAJ.BLOCK_STR_FLAG         AS BLOCK_STR_FLAG
+		                        ,SDAJ.ACTIVITY_CATALOG       AS ACTIVITY_CATALOG
+		                        ,SDAJ.JOB_CATALOG            AS JOB_CATALOG
+		                        ,SDAJ.STR_FLAG               AS STR_FLAG
+		                        ,NVL(SDAJ.USC_JOB_TYPE, '.') AS USC_JOB_TYPE
+		                        ,SDAJ.DESCRIPTION            AS JOB_DESCRIPTION
+		                        ,DP.REPRESENTATIVE_PRO_NUM   AS PROJECT_NO
+		                  FROM   STX_DIS_ACTIVITY_STANDARD SDAJ
+		                        ,STX_DIS_MODEL DM
+                                ,STX_DIS_PROJECT DP
+                          WHERE  SDAJ.MODEL_TYPE = DM.MODEL_TYPE
+                          AND    DM.MODEL_NO = DP.MODEL_NO
+                          AND    DP.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                 ) BB
+		          WHERE  AA.J_AREA         = BB.AREA(+)
+		          AND    AA.B_ITEM_CATALOG = BB.BLOCK_CATALOG(+)
+		          AND    AA.B_STR_FLAG     = BB.BLOCK_STR_FLAG(+)
+		          AND    AA.A_ITEM_CATALOG = BB.ACTIVITY_CATALOG(+)
+		          AND    AA.J_ITEM_CATALOG = BB.JOB_CATALOG(+)
+		          AND    AA.J_STR_FLAG     = BB.STR_FLAG(+)
+		          AND    AA.J_USC_JOB_TYPE = BB.USC_JOB_TYPE(+)
+		          AND    AA.J_PROJECT_NO   = BB.PROJECT_NO(+)
+		          ORDER BY AA.J_ITEM_CATALOG
+		       )
+	</select>
+	
+	<select id="getStageUscJobTypeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT '선택' AS SB_NAME
+		      ,'선택' AS SB_VALUE
+		FROM   DUAL
+		WHERE  1 <![CDATA[ < ]]> (SELECT COUNT(*)
+		            FROM   (SELECT AA.J_USC_JOB_TYPE                                         AS SB_VALUE
+		                    FROM   (SELECT DISTINCT 
+		                                   SDUB_J.AREA                   AS J_AREA
+		                                  ,SDUB_A.MOTHER_CATALOG         AS B_ITEM_CATALOG
+		                                  ,SDUB_B.STR_FLAG               AS B_STR_FLAG
+		                                  ,SDUB_A.ITEM_CATALOG           AS A_ITEM_CATALOG
+		                                  ,SDUB_J.ITEM_CATALOG           AS J_ITEM_CATALOG
+		                                  ,SDUB_J.STR_FLAG               AS J_STR_FLAG
+		                                  ,NVL(SDUB_J.USC_JOB_TYPE, '.') AS J_USC_JOB_TYPE
+		                                  ,#{p_master_no, jdbcType=VARCHAR} AS J_PROJECT_NO
+		                            FROM   (SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM    A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_J
+		                                  ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_A
+		                                  ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_B
+		                            WHERE  1=1
+		                            AND    SDUB_J.BLOCK_NO     = #{p_block_no, jdbcType=VARCHAR}
+		                            AND    SDUB_J.STR_FLAG     = #{p_str_flag, jdbcType=VARCHAR}
+		                            AND    SDUB_J.PROJECT_NO   = SDUB_A.PROJECT_NO
+		                            AND    SDUB_J.MOTHER_CODE  = SDUB_A.ITEM_CODE
+		                            AND    SDUB_A.PROJECT_NO   = SDUB_B.PROJECT_NO
+		                            AND    SDUB_A.MOTHER_CODE  = SDUB_B.ITEM_CODE
+		                            AND    EXISTS (
+		                                            SELECT 1
+		                                              FROM STX_DIS_SD_CODE SDSC_VALUE
+		                                             WHERE SDSC_VALUE.SD_TYPE     = 'JOB_CATALOG' || '_' || #{p_item_type_cd, jdbcType=VARCHAR} || '_' || #{p_str_flag, jdbcType=VARCHAR}
+		                                               AND SDSC_VALUE.ENABLE_FLAG = 'Y'
+		                                               AND (SDSC_VALUE.SD_CODE    = SDUB_J.USC_JOB_TYPE OR SDSC_VALUE.SD_CODE = SDUB_J.ITEM_CATALOG)
+		                                          )
+		                            AND    NOT EXISTS (
+		                                                 SELECT 1
+		                                                 FROM   STX_DIS_SD_CATALOG_VALUE SDV
+		                                                 WHERE  SDV.CATALOG_CODE = SDUB_J.ITEM_CATALOG
+		                                                 AND    SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		                                                 AND    SDV.VALUE_CODE   = '09'
+		                                                 AND    SDV.VALUE_NAME   = 'Y'
+		                                                 AND    SDV.ENABLE_FLAG  = 'Y'
+		                                                     
+		                                              )
+		                           UNION ALL
+		                           SELECT DISTINCT 
+		                                   SDUB_J.AREA                   AS J_AREA
+		                                  ,SDUB_A.MOTHER_CATALOG         AS B_ITEM_CATALOG
+		                                  ,SDUB_B.STR_FLAG               AS B_STR_FLAG
+		                                  ,SDUB_A.ITEM_CATALOG           AS A_ITEM_CATALOG
+		                                  ,SDUB_J.ITEM_CATALOG           AS J_ITEM_CATALOG
+		                                  ,SDUB_J.STR_FLAG               AS J_STR_FLAG
+		                                  ,NVL(SDUB_J.USC_JOB_TYPE, '.') AS J_USC_JOB_TYPE
+		                                  ,#{p_master_no, jdbcType=VARCHAR} AS J_PROJECT_NO
+		                            FROM   (SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM    A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_J
+		                                  ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                        AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                    AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_A
+		                                  ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                                    FROM   STX_DIS_USC_BOM A
+		                                    WHERE  1=1
+		                                    AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                                    AND    NOT EXISTS (
+		                                                        SELECT 1
+		                                                        FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                                        WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                                       AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                                        AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                                        AND    DUBW.STATE_FLAG = 'D'
+		                                                        AND    DUBW.ECO_NO IS NOT NULL
+		                                                      )
+		                                   AND    A.ITEM_CATALOG != 'VPT'
+		                                   ) SDUB_B
+		                            WHERE  1=1
+		                            AND    SDUB_J.BLOCK_NO     = #{p_block_no, jdbcType=VARCHAR}
+		                            AND    SDUB_J.STR_FLAG     = #{p_str_flag, jdbcType=VARCHAR}
+		                            AND    SDUB_J.PROJECT_NO   = SDUB_A.PROJECT_NO
+		                            AND    SDUB_J.MOTHER_CODE  = SDUB_A.ITEM_CODE
+		                            AND    SDUB_A.PROJECT_NO   = SDUB_B.PROJECT_NO
+		                            AND    SDUB_A.MOTHER_CODE  = SDUB_B.ITEM_CODE
+		                            AND    EXISTS (
+		                                                 SELECT 1
+		                                                 FROM   STX_DIS_SD_CATALOG_VALUE SDV
+		                                                 WHERE  SDV.CATALOG_CODE = SDUB_J.ITEM_CATALOG
+		                                                 AND    SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		                                                 AND    SDV.VALUE_CODE   = '09'
+		                                                 AND    SDV.VALUE_NAME   = 'Y'
+		                                                 AND    SDV.ENABLE_FLAG  = 'Y'
+		                                              )                           
+		                           ) AA
+		                          ,(SELECT DISTINCT
+		                                   SDAJ.AREA                   AS AREA
+		                                  ,SDAJ.BLOCK_CATALOG          AS BLOCK_CATALOG
+		                                  ,SDAJ.BLOCK_STR_FLAG         AS BLOCK_STR_FLAG
+		                                  ,SDAJ.ACTIVITY_CATALOG       AS ACTIVITY_CATALOG
+		                                  ,SDAJ.JOB_CATALOG            AS JOB_CATALOG
+		                                  ,SDAJ.STR_FLAG               AS STR_FLAG
+		                                  ,NVL(SDAJ.USC_JOB_TYPE, '.') AS USC_JOB_TYPE
+		                                  ,SDAJ.DESCRIPTION            AS JOB_DESCRIPTION
+		                                  ,DP.REPRESENTATIVE_PRO_NUM   AS PROJECT_NO
+		                            FROM   STX_DIS_ACTIVITY_STANDARD SDAJ
+		                                  ,STX_DIS_MODEL DM
+                                          ,STX_DIS_PROJECT DP
+                                    WHERE  SDAJ.MODEL_TYPE = DM.MODEL_TYPE
+                                    AND    DM.MODEL_NO = DP.MODEL_NO
+                                    AND    DP.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                           ) BB
+		                    WHERE  AA.J_AREA         = BB.AREA(+)
+		                    AND    AA.B_ITEM_CATALOG = BB.BLOCK_CATALOG(+)
+		                    AND    AA.B_STR_FLAG     = BB.BLOCK_STR_FLAG(+)
+		                    AND    AA.A_ITEM_CATALOG = BB.ACTIVITY_CATALOG(+)
+		                    AND    AA.J_ITEM_CATALOG = BB.JOB_CATALOG(+)
+		                    AND    AA.J_STR_FLAG     = BB.STR_FLAG(+)
+		                    AND    AA.J_USC_JOB_TYPE = BB.USC_JOB_TYPE(+)
+		                    AND    AA.J_PROJECT_NO   = BB.PROJECT_NO(+)        
+		                            
+		                  )
+		        )
+		UNION ALL
+		SELECT SB_NAME
+		      ,SB_VALUE
+		FROM   (
+		          SELECT CASE WHEN BB.JOB_DESCRIPTION IS NOT NULL 
+		                      THEN AA.J_USC_JOB_TYPE || ' : ' || BB.JOB_DESCRIPTION  
+		                      ELSE AA.J_USC_JOB_TYPE || ' : (Not Description)' END AS SB_NAME
+		                ,AA.J_USC_JOB_TYPE                                         AS SB_VALUE
+		          FROM   (SELECT DISTINCT 
+		                         SDUB_J.AREA                   AS J_AREA
+		                        ,SDUB_A.MOTHER_CATALOG         AS B_ITEM_CATALOG
+		                        ,SDUB_B.STR_FLAG               AS B_STR_FLAG
+		                        ,SDUB_A.ITEM_CATALOG           AS A_ITEM_CATALOG
+		                        ,SDUB_J.ITEM_CATALOG           AS J_ITEM_CATALOG
+		                        ,SDUB_J.STR_FLAG               AS J_STR_FLAG
+		                        ,NVL(SDUB_J.USC_JOB_TYPE, '.') AS J_USC_JOB_TYPE
+		                        ,#{p_master_no, jdbcType=VARCHAR} AS J_PROJECT_NO
+		                  FROM   (SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM    A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                              AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_J
+		                        ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                              AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_A
+		                        ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+		                          FROM   STX_DIS_USC_BOM A
+		                          WHERE  1=1
+		                          AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+		                          AND    NOT EXISTS (
+		                                              SELECT 1
+		                                              FROM   STX_DIS_USC_BOM_WORK DUBW
+		                                              WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+		                                              AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+		                                              AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+		                                              AND    DUBW.STATE_FLAG = 'D'
+		                                              AND    DUBW.ECO_NO IS NOT NULL
+		                                            )
+		                          AND    A.ITEM_CATALOG != 'VPT'
+		                         ) SDUB_B
+		                  WHERE  1=1
+		                  AND    SDUB_J.BLOCK_NO     = #{p_block_no, jdbcType=VARCHAR}
+		                  AND    SDUB_J.STR_FLAG     = #{p_str_flag, jdbcType=VARCHAR}
+		                  AND    SDUB_J.PROJECT_NO   = SDUB_A.PROJECT_NO
+		                  AND    SDUB_J.MOTHER_CODE  = SDUB_A.ITEM_CODE
+		                  AND    SDUB_A.PROJECT_NO   = SDUB_B.PROJECT_NO
+		                  AND    SDUB_A.MOTHER_CODE  = SDUB_B.ITEM_CODE
+		                  AND    EXISTS (
+		                                  SELECT 1
+		                                    FROM STX_DIS_SD_CODE SDSC_VALUE
+		                                   WHERE SDSC_VALUE.SD_TYPE     = 'JOB_CATALOG' || '_' || #{p_item_type_cd, jdbcType=VARCHAR} || '_' || #{p_str_flag, jdbcType=VARCHAR}
+		                                     AND SDSC_VALUE.ENABLE_FLAG = 'Y'
+		                                     AND (SDSC_VALUE.SD_CODE    = SDUB_J.USC_JOB_TYPE OR SDSC_VALUE.SD_CODE = SDUB_J.ITEM_CATALOG)
+		                                )
+                          AND    NOT EXISTS (
+                                               SELECT 1
+                                               FROM   STX_DIS_SD_CATALOG_VALUE SDV
+                                               WHERE  SDV.CATALOG_CODE = SDUB_J.ITEM_CATALOG
+                                               AND    SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+                                               AND    SDV.VALUE_CODE   = '09'
+                                               AND    SDV.VALUE_NAME   = 'Y'
+                                               AND    SDV.ENABLE_FLAG  = 'Y'
+                                            )
+                         UNION ALL
+                         SELECT DISTINCT 
+                                 SDUB_J.AREA                   AS J_AREA
+                                ,SDUB_A.MOTHER_CATALOG         AS B_ITEM_CATALOG
+                                ,SDUB_B.STR_FLAG               AS B_STR_FLAG
+                                ,SDUB_A.ITEM_CATALOG           AS A_ITEM_CATALOG
+                                ,SDUB_J.ITEM_CATALOG           AS J_ITEM_CATALOG
+                                ,SDUB_J.STR_FLAG               AS J_STR_FLAG
+                                ,NVL(SDUB_J.USC_JOB_TYPE, '.') AS J_USC_JOB_TYPE
+                                ,#{p_master_no, jdbcType=VARCHAR} AS J_PROJECT_NO
+                          FROM   (SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+                                  FROM   STX_DIS_USC_BOM    A
+                                  WHERE  1=1
+                                  AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+                                  AND    NOT EXISTS (
+                                                      SELECT 1
+                                                      FROM   STX_DIS_USC_BOM_WORK DUBW
+                                                      WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+                                                      AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+                                                      AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+                                                      AND    DUBW.STATE_FLAG = 'D'
+                                                      AND    DUBW.ECO_NO IS NOT NULL
+                                                    )
+                                  AND    A.ITEM_CATALOG != 'VPT'
+                                 ) SDUB_J
+                                ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+                                  FROM   STX_DIS_USC_BOM A
+                                  WHERE  1=1
+                                  AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+                                  AND    NOT EXISTS (
+                                                      SELECT 1
+                                                      FROM   STX_DIS_USC_BOM_WORK DUBW
+                                                      WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+                                                      AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+                                                      AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+                                                      AND    DUBW.STATE_FLAG = 'D'
+                                                      AND    DUBW.ECO_NO IS NOT NULL
+                                                    )
+                                  AND    A.ITEM_CATALOG != 'VPT'
+                                 ) SDUB_A
+                                ,(SELECT PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, USC_JOB_TYPE, MOTHER_CATALOG, ITEM_CATALOG, ITEM_CODE, MOTHER_CODE 
+                                  FROM   STX_DIS_USC_BOM A
+                                  WHERE  1=1
+                                  AND    A.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+                                  AND    NOT EXISTS (
+                                                      SELECT 1
+                                                      FROM   STX_DIS_USC_BOM_WORK DUBW
+                                                      WHERE  DUBW.PROJECT_NO = A.PROJECT_NO
+                                                     AND    DUBW.MOTHER_CODE = A.MOTHER_CODE
+                                                      AND    DUBW.ITEM_CODE   = A.ITEM_CODE
+                                                      AND    DUBW.STATE_FLAG = 'D'
+                                                      AND    DUBW.ECO_NO IS NOT NULL
+                                                    )
+                                 AND    A.ITEM_CATALOG != 'VPT'
+                                 ) SDUB_B
+                          WHERE  1=1
+                          AND    SDUB_J.BLOCK_NO     = #{p_block_no, jdbcType=VARCHAR}
+                          AND    SDUB_J.STR_FLAG     = #{p_str_flag, jdbcType=VARCHAR}
+                          AND    SDUB_J.PROJECT_NO   = SDUB_A.PROJECT_NO
+                          AND    SDUB_J.MOTHER_CODE  = SDUB_A.ITEM_CODE
+                          AND    SDUB_A.PROJECT_NO   = SDUB_B.PROJECT_NO
+                          AND    SDUB_A.MOTHER_CODE  = SDUB_B.ITEM_CODE
+                          AND    EXISTS (
+                                               SELECT 1
+                                               FROM   STX_DIS_SD_CATALOG_VALUE SDV
+                                               WHERE  SDV.CATALOG_CODE = SDUB_J.ITEM_CATALOG
+                                               AND    SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+                                               AND    SDV.VALUE_CODE   = '09'
+                                               AND    SDV.VALUE_NAME   = 'Y'
+                                               AND    SDV.ENABLE_FLAG  = 'Y'
+                                            )           
+		                 ) AA
+		                ,(SELECT DISTINCT
+		                         SDAJ.AREA                   AS AREA
+		                        ,SDAJ.BLOCK_CATALOG          AS BLOCK_CATALOG
+		                        ,SDAJ.BLOCK_STR_FLAG         AS BLOCK_STR_FLAG
+		                        ,SDAJ.ACTIVITY_CATALOG       AS ACTIVITY_CATALOG
+		                        ,SDAJ.JOB_CATALOG            AS JOB_CATALOG
+		                        ,SDAJ.STR_FLAG               AS STR_FLAG
+		                        ,NVL(SDAJ.USC_JOB_TYPE, '.') AS USC_JOB_TYPE
+		                        ,SDAJ.DESCRIPTION            AS JOB_DESCRIPTION
+		                        ,DP.REPRESENTATIVE_PRO_NUM   AS PROJECT_NO
+		                  FROM   STX_DIS_ACTIVITY_STANDARD SDAJ
+		                        ,STX_DIS_MODEL DM
+                                ,STX_DIS_PROJECT DP
+                          WHERE  SDAJ.MODEL_TYPE = DM.MODEL_TYPE
+                          AND    DM.MODEL_NO = DP.MODEL_NO
+                          AND    DP.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR}
+		                 ) BB
+		          WHERE  AA.J_AREA         = BB.AREA(+)
+		          AND    AA.B_ITEM_CATALOG = BB.BLOCK_CATALOG(+)
+		          AND    AA.B_STR_FLAG     = BB.BLOCK_STR_FLAG(+)
+		          AND    AA.A_ITEM_CATALOG = BB.ACTIVITY_CATALOG(+)
+		          AND    AA.J_ITEM_CATALOG = BB.JOB_CATALOG(+)
+		          AND    AA.J_STR_FLAG     = BB.STR_FLAG(+)
+		          AND    AA.J_USC_JOB_TYPE = BB.USC_JOB_TYPE(+)
+		          AND    AA.J_PROJECT_NO   = BB.PROJECT_NO(+)
+		          ORDER BY AA.J_ITEM_CATALOG
+		       )
+	</select>
+	
+	<select id="getJobList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT '선택'  AS SB_NAME
+          ,' '     AS SB_VALUE
+          ,' '     AS JOB_CATALOG
+          ,' '     AS ATTR
+	  FROM DUAL
+	 WHERE 1  <![CDATA[ < ]]> (	SELECT COUNT(*)
+								  FROM STX_DIS_ITEM    SDI
+								      ,STX_DIS_USC_BOM SDUB
+								 WHERE SDUB.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+								   AND SDUB.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}  
+								   AND SDUB.WORK_YN    = 'Y'
+								   AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+								   AND SDUB.ITEM_CODE  = SDI.ITEM_CODE
+								   AND SDI.ITEM_CATEGORY IN ( SELECT SDSC_VALUE.SD_CODE
+								                               FROM STX_DIS_SD_CODE SDSC 
+								                                   ,STX_DIS_SD_CODE SDSC_VALUE
+								                              WHERE SDSC.SD_TYPE          = 'JOB_CATALOG'
+								                                AND SDSC.ATTRIBUTE1       = #{p_item_type_cd, jdbcType=VARCHAR}
+								                                AND SDSC.ATTRIBUTE1       NOT IN ('GE','EQ')
+								                                AND SDSC_VALUE.SD_TYPE    = SDSC.SD_TYPE || '_' || SDSC.ATTRIBUTE1 || '_' || #{p_str_flag, jdbcType=VARCHAR}
+								                             UNION ALL
+								                              SELECT SDSC_VALUE.SD_CODE
+								                               FROM STX_DIS_SD_CODE SDSC 
+								                                   ,STX_DIS_SD_CODE SDSC_VALUE
+								                              WHERE SDSC.SD_TYPE          = 'JOB_CATALOG'
+								                                AND SDSC.ATTRIBUTE1       = #{p_item_type_cd, jdbcType=VARCHAR}
+								                                AND SDSC.ATTRIBUTE1       NOT IN ('GE','EQ')
+								                                AND SDSC_VALUE.SD_TYPE    = SDSC.SD_TYPE || '_' || SDSC.ATTRIBUTE1 || '_' || 'BASE'
+								                                AND NOT EXISTS
+								                                    (SELECT 1
+								                                       FROM STX_DIS_SD_CODE SDSC_VALUE1
+								                                      WHERE SDSC_VALUE1.SD_TYPE    = SDSC.SD_TYPE || '_' || SDSC.ATTRIBUTE1 || '_' || #{p_str_flag, jdbcType=VARCHAR}
+								                                     )
+								                              UNION ALL 
+								                              SELECT DISTINCT STI2.ITEM_CATEGORY 
+								                                FROM STX_DIS_ITEM  STI2 
+								                               WHERE ('GE' = #{p_item_type_cd, jdbcType=VARCHAR} OR 'EQ' = #{p_item_type_cd, jdbcType=VARCHAR}) 
+								                                 AND STI2.ITEM_CODE = SDUB.ITEM_CODE
+								                              )   
+								 )
+	UNION ALL
+	SELECT SDUB.ITEM_CODE || ' : ' || SDI.ITEM_DESC  AS SB_NAME
+          ,SDUB.ITEM_CODE                            AS SB_VALUE
+          ,SDUB.ITEM_CATALOG                         AS JOB_CATALOG 
+       	  ,SDUB.USC_JOB_TYPE                         AS ATTR
+	  FROM STX_DIS_ITEM    SDI
+	      ,STX_DIS_USC_BOM SDUB
+	 WHERE SDUB.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+	   AND SDUB.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}  
+	   AND SDUB.WORK_YN    = 'Y'
+	   AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+	   AND SDUB.ITEM_CODE  = SDI.ITEM_CODE
+	   AND SDI.ITEM_CATEGORY IN ( SELECT SDSC_VALUE.SD_CODE
+	                               FROM STX_DIS_SD_CODE SDSC 
+	                                   ,STX_DIS_SD_CODE SDSC_VALUE
+	                              WHERE SDSC.SD_TYPE          = 'JOB_CATALOG'
+	                                AND SDSC.ATTRIBUTE1       = #{p_item_type_cd, jdbcType=VARCHAR}
+	                                AND SDSC.ATTRIBUTE1       NOT IN ('GE','EQ')
+	                                AND SDSC_VALUE.SD_TYPE    = SDSC.SD_TYPE || '_' || SDSC.ATTRIBUTE1 || '_' || #{p_str_flag, jdbcType=VARCHAR}
+	                             UNION ALL
+	                              SELECT SDSC_VALUE.SD_CODE
+	                               FROM STX_DIS_SD_CODE SDSC 
+	                                   ,STX_DIS_SD_CODE SDSC_VALUE
+	                              WHERE SDSC.SD_TYPE          = 'JOB_CATALOG'
+	                                AND SDSC.ATTRIBUTE1       = #{p_item_type_cd, jdbcType=VARCHAR}
+	                                AND SDSC.ATTRIBUTE1       NOT IN ('GE','EQ')
+	                                AND SDSC_VALUE.SD_TYPE    = SDSC.SD_TYPE || '_' || SDSC.ATTRIBUTE1 || '_' || 'BASE'
+	                                AND NOT EXISTS
+	                                    (SELECT 1
+	                                       FROM STX_DIS_SD_CODE SDSC_VALUE1
+	                                      WHERE SDSC_VALUE1.SD_TYPE    = SDSC.SD_TYPE || '_' || SDSC.ATTRIBUTE1 || '_' || #{p_str_flag, jdbcType=VARCHAR}
+	                                     )
+	                              UNION ALL 
+	                              SELECT DISTINCT STI2.ITEM_CATEGORY 
+	                                FROM STX_DIS_ITEM  STI2 
+	                               WHERE ('GE' = #{p_item_type_cd, jdbcType=VARCHAR} OR 'EQ' = #{p_item_type_cd, jdbcType=VARCHAR}) 
+	                                 AND STI2.ITEM_CODE = SDUB.ITEM_CODE
+	                              )   
+	</select>
+	
+	<select id="getMotherList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT ' ' AS SB_VALUE
+			 , '선택' AS SB_NAME
+		FROM DUAL
+		<![CDATA[
+      	WHERE 1    <   ( SELECT COUNT(*)
+      	]]>
+                    	FROM (
+                    			SELECT DISTINCT
+                    			       SDSH.ITEM_CODE AS SB_VALUE
+								     , SDSH.ITEM_CODE AS SB_NAME
+								  FROM STX_DIS_PENDING  SDP
+								      ,STX_DIS_SSC_HEAD_WORK SDSH
+								      ,STX_DIS_SD_CATALOG_VALUE SDV 
+								 WHERE SDP.PROJECT_NO = SDSH.PROJECT_NO
+								   AND SDP.MOTHER_CODE = SDSH.MOTHER_CODE
+								   AND SDP.PROJECT_NO IN (SELECT B.PROJECT_NO
+		                                                    FROM STX_DIS_PROJECT A
+		                                                        ,STX_DIS_PROJECT B
+		                                                   WHERE A.REPRESENTATIVE_PRO_NUM = B.REPRESENTATIVE_PRO_NUM
+		                                                     AND A.PROJECT_NO = #{p_project_no})
+								   AND SDP.DWG_NO = #{p_dwg_no}
+								   AND SDP.BLOCK_NO = #{p_block_no}
+								   AND SDP.STR_FLAG = #{p_str_flag}
+								   AND SDP.USC_JOB_TYPE = #{p_usc_job_type}
+								<if test='p_stage_no != null and !p_stage_no.equalsIgnoreCase("")'>
+			   					   AND SDP.STAGE_NO = #{p_stage_no}
+								</if>
+		                           AND SDV.CATALOG_CODE = SDSH.ITEM_CATALOG
+		                           AND SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		                           AND SDV.VALUE_CODE   = '10'
+		                           AND SDV.VALUE_NAME   = 'Y'
+		                           AND SDV.ENABLE_FLAG  = 'Y'
+								 UNION
+								SELECT DISTINCT
+								       SDSH.ITEM_CODE AS SB_VALUE
+								     , SDSH.ITEM_CODE AS SB_NAME
+								  FROM STX_DIS_PENDING       SDP
+								      ,STX_DIS_SSC_HEAD SDSH
+								      ,STX_DIS_SD_CATALOG_VALUE SDV 
+								 WHERE SDP.PROJECT_NO IN (SELECT B.PROJECT_NO
+		                                                    FROM STX_DIS_PROJECT A
+		                                                        ,STX_DIS_PROJECT B
+		                                                   WHERE A.REPRESENTATIVE_PRO_NUM = B.REPRESENTATIVE_PRO_NUM
+		                                                     AND A.PROJECT_NO = #{p_project_no})
+								   AND SDP.MOTHER_CODE = SDSH.MOTHER_CODE
+								   AND NOT EXISTS (SELECT 1
+								                     FROM STX_DIS_SSC_HEAD_WORK SDSH
+								                    WHERE SDP.PROJECT_NO = SDSH.PROJECT_NO
+								                      AND SDP.MOTHER_CODE = SDSH.MOTHER_CODE)
+								   AND SDP.PROJECT_NO = #{p_project_no}
+								   AND SDP.DWG_NO = #{p_dwg_no}
+								   AND SDP.BLOCK_NO = #{p_block_no}
+								   AND SDP.STR_FLAG = #{p_str_flag}
+								   AND SDP.USC_JOB_TYPE = #{p_usc_job_type}
+								<if test='p_stage_no != null and !p_stage_no.equalsIgnoreCase("")'>
+			   					   AND SDP.STAGE_NO = #{p_stage_no}
+								</if>
+		                           AND SDV.CATALOG_CODE = SDSH.ITEM_CATALOG
+		                           AND SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		                           AND SDV.VALUE_CODE   = '10'
+		                           AND SDV.VALUE_NAME   = 'Y'
+		                           AND SDV.ENABLE_FLAG  = 'Y'
+							)
+					)                    	
+            UNION ALL        	
+			SELECT DISTINCT
+			       SDSH.ITEM_CODE AS SB_VALUE
+			     , SDSH.ITEM_CODE AS SB_NAME
+			  FROM STX_DIS_PENDING  SDP
+			      ,STX_DIS_SSC_HEAD_WORK SDSH
+			      ,STX_DIS_SD_CATALOG_VALUE SDV 
+			 WHERE SDP.PROJECT_NO = SDSH.PROJECT_NO
+			   AND SDP.MOTHER_CODE = SDSH.MOTHER_CODE
+			   AND SDP.PROJECT_NO IN (SELECT B.PROJECT_NO
+		                                FROM STX_DIS_PROJECT A
+		                                    ,STX_DIS_PROJECT B
+		                               WHERE A.REPRESENTATIVE_PRO_NUM = B.REPRESENTATIVE_PRO_NUM
+		                                 AND A.PROJECT_NO = #{p_project_no})
+			   AND SDP.DWG_NO = #{p_dwg_no}
+			   AND SDP.BLOCK_NO = #{p_block_no}
+			   AND SDP.STR_FLAG = #{p_str_flag}
+			   AND SDP.USC_JOB_TYPE = #{p_usc_job_type}
+			<if test='p_stage_no != null and !p_stage_no.equalsIgnoreCase("")'>
+			   AND SDP.STAGE_NO = #{p_stage_no}
+			</if>
+		       AND SDV.CATALOG_CODE = SDSH.ITEM_CATALOG
+		       AND SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		       AND SDV.VALUE_CODE   = '10'
+		       AND SDV.VALUE_NAME   = 'Y'
+		       AND SDV.ENABLE_FLAG  = 'Y'
+			 UNION
+			SELECT DISTINCT
+			       SDSH.ITEM_CODE AS SB_VALUE
+			     , SDSH.ITEM_CODE AS SB_NAME
+			  FROM STX_DIS_PENDING       SDP
+			      ,STX_DIS_SSC_HEAD SDSH
+			      ,STX_DIS_SD_CATALOG_VALUE SDV 
+			 WHERE SDP.PROJECT_NO = SDSH.PROJECT_NO
+			   AND SDP.MOTHER_CODE = SDSH.MOTHER_CODE
+			   AND NOT EXISTS (SELECT 1
+			                     FROM STX_DIS_SSC_HEAD_WORK SDSH
+			                    WHERE SDP.PROJECT_NO = SDSH.PROJECT_NO
+			                      AND SDP.MOTHER_CODE = SDSH.MOTHER_CODE)
+			   AND SDP.PROJECT_NO IN (SELECT B.PROJECT_NO
+		                                FROM STX_DIS_PROJECT A
+		                                    ,STX_DIS_PROJECT B
+		                               WHERE A.REPRESENTATIVE_PRO_NUM = B.REPRESENTATIVE_PRO_NUM
+		                                 AND A.PROJECT_NO = #{p_project_no})
+			   AND SDP.DWG_NO = #{p_dwg_no}
+			   AND SDP.BLOCK_NO = #{p_block_no}
+			   AND SDP.STR_FLAG = #{p_str_flag}
+			   AND SDP.USC_JOB_TYPE = #{p_usc_job_type}
+			<if test='p_stage_no != null and !p_stage_no.equalsIgnoreCase("")'>
+			   AND SDP.STAGE_NO = #{p_stage_no}
+			</if>
+		       AND SDV.CATALOG_CODE = SDSH.ITEM_CATALOG
+		       AND SDV.VALUE_TYPE   = 'CATALOG_DESIGN'
+		       AND SDV.VALUE_CODE   = '10'
+		       AND SDV.VALUE_NAME   = 'Y'
+		       AND SDV.ENABLE_FLAG  = 'Y'
+	</select>
+	
+	<select id="getPendingStr" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDSC.SD_CODE  AS SB_NAME
+		      ,SDSC.SD_CODE  AS SB_VALUE
+		  FROM STX_DIS_SD_CODE SDSC
+		 WHERE SDSC.SD_TYPE     = 'STR'
+		   AND SDSC.ENABLE_FLAG = 'Y'
+		ORDER BY 1
+	</select>
+	
+	<select id="getManagerUser" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SCID.USER_NAME AS SB_NAME
+				, SCID.EMP_NO AS SB_VALUE
+				, CASE WHEN SCID.EMP_NO = #{p_user_id, jdbcType=VARCHAR} THEN 'selected=\"selected\"'
+				 ELSE ''
+				 END AS SB_SELECTED
+		FROM DCC_DEPTCODE@STXDP DDC
+		INNER JOIN DCC_DWGDEPTCODE@STXDP DDDC ON DDC.DWGDEPTCODE = DDDC.DWGDEPTCODE
+		INNER JOIN STX_COM_INSA_USER@STXERP SCID ON DDC.DEPTCODE = SCID.DEPT_CODE
+		WHERE DDDC.USERYN = 'Y'
+		AND DDDC.DWGDEPTCODE = #{p_dept_code, jdbcType=VARCHAR}
+		AND SCID.DEL_DATE IS NULL
+		ORDER BY SCID.USER_NAME
+	</select>
+	
+	<select id="getJobStr" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDSC.SD_CODE AS SB_NAME
+		  	,SDSC.SD_CODE AS SB_VALUE
+		FROM STX_DIS_SD_CODE SDSC
+		WHERE SDSC.SD_TYPE = 'STR'
+  	</select>
+
+	<select id="getSupplyChartJoinDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT x.sd_code AS sb_value
+	     , x.sd_desc AS sb_name
+		 FROM stx_dis_sd_code x
+		 WHERE x.sd_type = #{sd_type}
+		 AND x.enable_flag = 'Y'
+		 ORDER BY x.order_by
+	</select> 
+	
+	
+	<select id="getCommonSscType" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SD_CODE AS SB_VALUE 
+		     , SD_DESC AS SB_NAME       
+		     , CASE WHEN SD_CODE = #{p_temp_item_type_cd, jdbcType=VARCHAR} THEN 'selected=\"selected\"' 
+		            ELSE '' 
+		        END AS SB_SELECTED 
+		FROM STX_DIS_SD_CODE 
+		WHERE SD_TYPE = 'ITEM_TYPE_CD' 
+		ORDER BY ORDER_BY
+  	</select>
+  	
+  	
+  	<select id="getStageBlockNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDBLV.BLOCK_NO  AS SB_VALUE
+		      ,SDBLV.BLOCK_NO  AS SB_NAME
+		  FROM STX_DIS_BOM_LIST_V SDBLV
+		 WHERE SDBLV.PROJECT_NO           = #{p_master_no, jdbcType=VARCHAR} 
+		GROUP BY SDBLV.BLOCK_NO, SDBLV.BLOCK_NO
+		ORDER BY 1 
+	</select>
+	
+	<select id="getStageStrFlagList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDBLV.STR_FLAG AS SB_VALUE
+		      , SDBLV.STR_FLAG AS SB_NAME
+		  FROM STX_DIS_BOM_LIST_V SDBLV
+		      ,STX_DIS_PROJECT    SDP
+	   WHERE SDBLV.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+	     AND SDBLV.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}
+	  GROUP BY SDBLV.STR_FLAG
+	  ORDER BY 1
+	</select>
+	
+	<select id="getStageJobList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT '선택' AS SB_NAME
+          ,' '    AS SB_VALUE
+          ,' '    AS JOB_CATALOG 
+       	  ,' '    AS ATTR
+	  FROM DUAL
+	 WHERE 1  <![CDATA[ < ]]> (	SELECT COUNT(*)
+							      FROM (
+							            SELECT DISTINCT
+							                   SDUB.ITEM_CODE 							
+							                  ,SDUB.ITEM_CODE                          
+							                  ,SDUB.ITEM_CATALOG                       
+							       	          ,SDUB.USC_JOB_TYPE                        
+							              FROM STX_DIS_USC_BOM SDUB
+							             WHERE SDUB.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+							               AND SDUB.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}
+							               AND SDUB.WORK_YN    = 'Y'
+							               AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+							               AND SDUB.USC_JOB_TYPE LIKE '%' || #{p_usc_job_type, jdbcType=VARCHAR} || '%' 
+							               AND EXISTS
+							                  (SELECT 1
+							                     FROM STX_DIS_SD_CODE SDSC_VALUE
+							                    WHERE SDSC_VALUE.SD_TYPE     = 'JOB_CATALOG' || '_' || #{p_item_type_cd, jdbcType=VARCHAR} || '_' || #{p_str_flag, jdbcType=VARCHAR}
+							                      AND SDSC_VALUE.ENABLE_FLAG = 'Y'
+							                      AND SDSC_VALUE.SD_CODE     = SDUB.ITEM_CATALOG 
+							                  )
+							           ) AA
+	                          )
+	UNION ALL
+	SELECT AA.SB_NAME 	   AS SB_NAME
+          ,AA.SB_VALUE     AS SB_VALUE
+          ,AA.JOB_CATALOG  AS JOB_CATALOG 
+       	  ,AA.ATTR         AS ATTR
+      FROM (
+            SELECT DISTINCT
+                   SDUB.ITEM_CODE 		AS SB_NAME					
+                  ,SDUB.ITEM_CODE       AS SB_VALUE                    
+                  ,SDUB.ITEM_CATALOG    AS JOB_CATALOG                  
+       	          ,SDUB.USC_JOB_TYPE    AS ATTR                 
+              FROM STX_DIS_USC_BOM SDUB
+             WHERE SDUB.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+               AND SDUB.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}
+               AND SDUB.WORK_YN    = 'Y'
+               AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+               AND SDUB.USC_JOB_TYPE LIKE '%' || #{p_usc_job_type, jdbcType=VARCHAR} || '%'
+               AND EXISTS
+                  (SELECT 1
+                     FROM STX_DIS_SD_CODE SDSC_VALUE
+                    WHERE SDSC_VALUE.SD_TYPE     = 'JOB_CATALOG' || '_' || #{p_item_type_cd, jdbcType=VARCHAR} || '_' || #{p_str_flag, jdbcType=VARCHAR}
+                      AND SDSC_VALUE.ENABLE_FLAG = 'Y'
+                      AND SDSC_VALUE.SD_CODE     = SDUB.ITEM_CATALOG 
+                  )
+           ) AA
+	</select>
+	
+	<select id="getPendingJobList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT '선택'  AS SB_NAME
+		          ,' '     AS SB_VALUE
+		          ,' '     AS ATTR 
+			  FROM DUAL
+			 WHERE 1  <![CDATA[ < ]]> (	SELECT COUNT(*)
+										  FROM STX_DIS_ITEM    SDI
+										      ,STX_DIS_USC_BOM SDUB
+										 WHERE SDUB.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+										   AND SDUB.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}  
+										   AND SDUB.WORK_YN    = 'Y'
+										   AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+										   <if test='p_usc_job_type != null and !p_usc_job_type.equalsIgnoreCase("")'>
+										   AND SDUB.USC_JOB_TYPE = #{p_usc_job_type, jdbcType=VARCHAR}
+										   </if>
+										   AND SDUB.ITEM_CODE  = SDI.ITEM_CODE
+										 )
+			UNION ALL
+			SELECT SDUB.ITEM_CODE || ' : ' || SDI.ITEM_DESC  AS SB_NAME
+		          ,SDUB.ITEM_CODE                            AS SB_VALUE
+		          ,SDUB.ITEM_CATALOG                         AS ATTR 
+			  FROM STX_DIS_ITEM    SDI
+			      ,STX_DIS_USC_BOM SDUB
+			 WHERE SDUB.PROJECT_NO = #{p_master_no, jdbcType=VARCHAR}
+			   AND SDUB.BLOCK_NO   = #{p_block_no, jdbcType=VARCHAR}  
+			   AND SDUB.WORK_YN    = 'Y'
+			   AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+			   <if test='p_usc_job_type != null and !p_usc_job_type.equalsIgnoreCase("")'>
+			   AND SDUB.USC_JOB_TYPE = #{p_usc_job_type, jdbcType=VARCHAR}
+			   </if>
+			   AND SDUB.ITEM_CODE  = SDI.ITEM_CODE
+	</select>
+	
+	<select id="getPendingDwgList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT 
+		       SUBSTR(PA.ACTIVITYCODE, 0, 8) AS SB_VALUE
+		     , SUBSTR(PA.ACTIVITYCODE, 0, 8) AS SB_NAME
+		  FROM DPM_ACTIVITY@STXDP PA 
+		     , LPM_NEWPROJECT@STXDP LN 
+		     , ( SELECT STX_DIS_GET_MASTER_F(#{p_master_no, jdbcType=VARCHAR}) AS MASTER_SHIP FROM DUAL ) A
+		 WHERE 1=1 
+ 		   AND PA.DWGDEPTCODE        = #{p_dept_code, jdbcType=VARCHAR}
+		   AND PA.PROJECTNO          = LN.PROJECTNO 
+		   AND PA.WORKTYPE           = 'DW' 
+		   AND LN.CASENO             = '1' 
+		   AND LN.CASENO             = PA.CASENO
+		   AND LN.DWGSERIESPROJECTNO   = A.MASTER_SHIP
+		   AND EXISTS
+		       (SELECT 1
+		          FROM STX_DWG_CATEGORY_MASTERS@STXERP SDCM
+		         WHERE SDCM.DWG_NO_CONCAT = SUBSTR(PA.ACTIVITYCODE, 1,5)
+		           AND SDCM.TBC_CATALOG_NO IS NOT NULL
+		        )
+		 ORDER BY SB_VALUE ASC  
+	</select>	
+	
+	<!--
+	COMMENT 발신문서 화면에서 승인자 선택 쿼리 
+	-->
+  	<select id="getCommentConfirmUserList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DU.EMP_NO                          AS SB_VALUE
+		      ,DU.NAME || '(' || DU.EMP_NO || ')' AS SB_NAME
+		      ,CASE WHEN DU.EMP_NO = #{confirm_user} THEN 'selected=\"selected\"' 
+				        ELSE '' 
+				   END                                AS SB_SELECTED 
+		  FROM STX_DIS_USER DU 
+		      ,STX_COM_INSA_USER@STXERP X 
+		      ,STX_DIS_DEPTCODE DD 
+		      ,STX_DIS_DWGDEPTCODE DW
+		 WHERE DU.DEPT_CODE = DD.DEPTCODE 
+		   AND DD.DWGDEPTCODE = DW.DWGDEPTCODE 
+		   AND (DU.AUTHOR_CODE LIKE '%0%' OR DU.AUTHOR_CODE LIKE '%4%' OR DU.AUTHOR_CODE LIKE '%1%')
+		   AND DU.USE_YN = 'Y' 
+		   AND DU.EMP_NO = X.EMP_NO 
+		   AND X.DEL_DATE IS NULL 
+		   AND X.EMP_KIND_CD IN ( '01', '02', '04' ) /* 01 임원 02 연봉직 03 일반직 04 전문직 05 계약직 07 파견직 */ 
+		   AND DW.DWGDEPTCODE = #{p_dept_code}
+  	</select>
+	
+</mapper>

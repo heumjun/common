@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="commentSend">
+
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+		<result column="FILENAME"	 	property="FILENAME" />
+		<result column="BLOBDATA" 		property="BLOBDATA"  javaType="[B" jdbcType="BLOB" />
+	</resultMap>
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_SELECT_PROC(
+			  P_CHK_SERIES			=> #{p_chk_series}
+			, P_REF_NO				=> #{p_ref_no}
+			, P_DWG_NO				=> #{p_dwg_no}
+			, P_SEND_TYPE			=> #{p_send_type}
+			, P_SUBJECT 		    => #{p_subject}
+			, P_REQUEST_DEPT_CODE   => #{p_dept_code}
+			, P_CURPAGENO			=> #{curPageNo}
+			, P_PAGESIZE 		    => #{pageSize}
+			, p_error_code 			=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, p_error_msg 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, p_refer 				=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=commentReceipt.procResultMap, mode=OUT}
+		)}
+	</select>
+	
+	<select id="getFormName" parameterType="java.util.Map" resultType="String">
+		SELECT SDP.DOC_PROJECT_NO || '-' || DD.UPPERDWGDEPTCODE2 || '-' || CASE WHEN #{p_dwg_no} IS NULL THEN 'B' ELSE 'A' END
+		  FROM dcc_dwgdeptcode@STXDP DD
+		      ,STX_DIS_PROJECT       SDP
+		  WHERE SDP.PROJECT_NO =  #{p_project_no}
+		   AND DD.dwgdeptcode = #{p_dept_code}
+	</select>
+	
+	<select id="save"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_SAVE_PROC(
+			  P_PROJECT_NO			=> #{p_project_no}
+			, P_REF_NO				=> #{p_ref_no}
+			, P_DWG_NO				=> #{p_dwg_no}
+			, P_SEND_TYPE			=> #{p_send_type}
+			, P_OC_TYPE             => #{p_oc_type}
+			, P_SUBJECT 		    => #{p_subject}
+			, P_VIEW_FLAG           => #{p_view_flag}
+			, P_USER_ID             => #{p_user_id}
+			, P_DEPT_CODE           => #{p_dwg_dept_code}
+			, P_REQUEST_USER_ID     => #{p_request_user_id}
+			, P_SEND_ID             => #{p_send_id,         jdbcType = VARCHAR, javaType = java.lang.String, mode = INOUT}
+			, P_OPER                => #{p_oper}
+			, P_ERROR_CODE 			=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, P_ERROR_MSG 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	
+	<select id="dwgNoList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_DWG_SELECT_PROC(
+			  P_SEND_ID			    => #{p_send_id}
+			, p_error_code 			=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, p_error_msg 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, p_refer 				=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=commentReceipt.procResultMap, mode=OUT}
+		)}
+	</select>
+	
+	<select id="gridDwgNo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SUBSTR(PA.ACTIVITYCODE, 1, 8) AS VALUE
+		      ,SUBSTR(PA.ACTIVITYCODE, 1, 8) AS TEXT 
+		      ,PA.DWGTITLE                   AS DWG_DESC 
+		  FROM PLM_ACTIVITY@STXDP PA 
+		 WHERE PA.PROJECTNO = #{p_project_no, jdbcType=VARCHAR}
+		   AND PA.DWGDEPTCODE = #{p_dept_code, jdbcType=VARCHAR}
+		   AND PA.WORKTYPE = CASE WHEN #{p_send_type, jdbcType=VARCHAR} = 'C' THEN 'CL' ELSE 'OW' END 
+	<if test='p_send_type == "C"'>
+		   AND SUBSTR(PA.ACTIVITYCODE, 1, 1) != 'V'
+	</if>
+		GROUP BY SUBSTR(PA.ACTIVITYCODE, 1, 8),PA.DWGTITLE 
+		ORDER BY 1,2
+	</select>
+	
+	<select id="gridDwgNoAppSubmit" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DW.OW_PLAN_S                                                                          AS OW_PLAN_S
+		      ,DW.OW_PLAN_F                                                                          AS OW_PLAN_F
+		      ,DW.OW_ACT_S                                                                           AS OW_ACT_S
+		      ,DW.OW_ACT_F                                                                           AS OW_ACT_F
+		      ,DW.CL_PLAN_S                                                                          AS CL_PLAN_S
+		      ,DW.CL_PLAN_F                                                                          AS CL_PLAN_F
+		      ,DW.CL_ACT_S                                                                           AS CL_ACT_S
+		      ,DW.CL_ACT_F                                                                           AS CL_ACT_F
+		  FROM(   
+		        SELECT DW.ACTIVITYCODE
+		              ,DW.DEPTCODE
+		              ,SUBSTR(DW.OW_LIST, 1, INSTR(DW.OW_LIST, '@',1,1)-1)                                                         AS OW_PLAN_S
+		              ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,1)+1, INSTR(DW.OW_LIST,'@',1,2) - (INSTR(DW.OW_LIST,'@',1,1)+1))  AS OW_PLAN_F
+		              ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,2)+1, INSTR(DW.OW_LIST,'@',1,3) - (INSTR(DW.OW_LIST,'@',1,2)+1))  AS OW_ACT_S
+		              ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,3)+1, INSTR(DW.OW_LIST,'@',1,4) - (INSTR(DW.OW_LIST,'@',1,3)+1))  AS OW_ACT_F
+		              ,SUBSTR(DW.CL_LIST, 1, INSTR(DW.CL_LIST, '@',1,1)-1)                                                         AS CL_PLAN_S
+		              ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,1)+1, INSTR(DW.CL_LIST,'@',1,2) - (INSTR(DW.CL_LIST,'@',1,1)+1))  AS CL_PLAN_F
+		              ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,2)+1, INSTR(DW.CL_LIST,'@',1,3) - (INSTR(DW.CL_LIST,'@',1,2)+1))  AS CL_ACT_S
+		              ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,3)+1, INSTR(DW.CL_LIST,'@',1,4) - (INSTR(DW.CL_LIST,'@',1,3)+1))  AS CL_ACT_F
+		          FROM ( 
+		                 SELECT 
+		                      DW.ACTIVITYCODE                                             AS ACTIVITYCODE
+		                      ,DEPT.DWGDEPTCODE                                            AS DEPTCODE
+		                      ,(SELECT TO_CHAR(A.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                               TO_CHAR(A.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                               TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                               TO_CHAR(A.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' || 
+		                               A.DWGCATEGORY                              || '@' ||
+		                               A.ATTRIBUTE4                               || '@' ||
+		                               A.ATTRIBUTE5       
+		                          FROM PLM_ACTIVITY A
+		                         WHERE A.WORKTYPE = 'OW' 
+		                           AND A.PROJECTNO = DW.PROJECTNO
+		                           AND A.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'OW'  
+		                       )   OW_LIST
+		                      ,(SELECT TO_CHAR(B.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                               TO_CHAR(B.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                               TO_CHAR(B.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                               TO_CHAR(B.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' ||  
+		                               B.DWGCATEGORY      || '@' ||
+		                               B.ATTRIBUTE4       || '@' ||
+		                               B.ATTRIBUTE5
+		                         FROM PLM_ACTIVITY B
+		                        WHERE B.WORKTYPE     = 'CL'
+		                          AND B.PROJECTNO    = DW.PROJECTNO
+		                          AND B.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'CL'   
+		                       )   CL_LIST
+		                  FROM PLM_ACTIVITY    DW
+		                      ,DCC_DWGDEPTCODE DEPT  
+		                      ,(SELECT STATE
+		                       FROM   PLM_SEARCHABLE_PROJECT
+		                       WHERE  CATEGORY  = 'PROGRESS'
+		                       AND    PROJECTNO = #{p_project_no, jdbcType=VARCHAR}
+		                       ) PP
+		                  WHERE  DW.PROJECTNO   = #{p_project_no, jdbcType=VARCHAR}
+		                  AND    DW.WORKTYPE    = 'DW' 
+		                  AND    DW.DWGDEPTCODE = DEPT.DWGDEPTCODE(+)
+		            ) DW 
+		        ) DW
+		        WHERE 1=1
+		          AND SUBSTR(DW.ACTIVITYCODE, 1, 8) LIKE #{p_dwg_no, jdbcType=VARCHAR}    
+		   ORDER BY DW.DEPTCODE, DW.ACTIVITYCODE
+	</select>
+	
+	<select id="gridDwgNoDesc" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PA.DWGTITLE                   AS DWG_DESC 
+		  FROM PLM_ACTIVITY@STXDP PA 
+		 WHERE PA.PROJECTNO = #{p_project_no, jdbcType=VARCHAR}
+		   AND PA.DWGDEPTCODE = #{p_dept_code, jdbcType=VARCHAR}
+		   AND PA.WORKTYPE = CASE WHEN #{p_send_type, jdbcType=VARCHAR} = 'C' THEN 'CL' ELSE 'OW' END 
+		   AND SUBSTR(PA.ACTIVITYCODE, 1, 8) = #{p_dwg_no, jdbcType=VARCHAR}
+		   AND ROWNUM = 1
+	</select>
+	
+	<select id="dwgNoSave"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_DWG_SAVE_PROC(
+		      P_SEND_ID             => #{p_send_id}
+		    , P_DWG_NO				=> #{p_dwg_no}
+		    , P_DWG_REV				=> #{p_dwg_rev}
+		    , P_USER_ID             => #{p_user_id}
+		    , P_DEPT_CODE           => #{p_dept_code}
+		    , P_APP_SUBMIT			=> #{p_app_submit}
+		    , P_APP_RECEIVE			=> #{p_app_receive}
+		    , P_OPER                => #{p_oper}
+			, P_ERROR_CODE 			=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, P_ERROR_MSG 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	
+	<select id="attachList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_DOC_SELECT_PROC(
+			  P_SEND_ID		     	=> #{send_id}
+			, p_error_code 			=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, p_error_msg 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, p_refer 				=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=commentReceipt.procResultMap, mode=OUT}
+		)}
+	</select>
+	
+	<select id="fileView" parameterType="java.util.Map" resultMap="fileMaps">
+		SELECT A.DOCUMENT_NAME AS FILENAME 
+		      ,A.DOCUMENT_DATA AS BLOBDATA
+		  FROM STX_DIS_COMMENT_DOC A
+		 WHERE A.DOCUMENT_ID = #{p_document_id, jdbcType=VARCHAR}           
+	</select>
+	
+	<update id="fileDelete" parameterType="java.util.Map">
+		DELETE STX_DIS_COMMENT_DOC A
+		 WHERE A.DOCUMENT_ID = #{p_document_id, jdbcType=VARCHAR}
+  	</update>
+	
+	<select id="commentSendAttachSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ CALL STX_DIS_COMMENT_PKG.SEND_DOC_SAVE_PROC ( 
+		          P_OPER               => #{p_oper,				jdbcType=VARCHAR,	mode=IN}
+		         ,P_SEND_ID            => #{p_send_id,			jdbcType=VARCHAR,	mode=IN}
+		         ,P_DOCUMENT_NAME      => #{p_document_name,	jdbcType=VARCHAR,	mode=IN}
+		         ,P_DOCUMENT_DATA      => #{p_document_data,	jdbcType=VARCHAR,	mode=IN}		      
+		         ,P_USER_ID            => #{p_user_id,			jdbcType=VARCHAR,	mode=IN}
+		         ,P_DOCUMENT_ID        => #{p_document_id,		jdbcType=VARCHAR,	mode=IN}
+		         ,P_ERROR_CODE         => #{p_err_code,			jdbcType=VARCHAR,	mode=OUT}
+		         ,P_ERROR_MSG          => #{p_err_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}       
+	</select>
+	
+	<select id="headInsert"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_REQUEST_HEAD_INSERT_PROC(
+			  P_CONFIRM_USER_ID	    => #{p_confirm_user_id}
+			, P_USER_ID				=> #{p_user_id}
+			, P_MAIL_ID 			=> #{p_mail_id,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, P_ERROR_CODE 			=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, P_ERROR_MSG 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	
+	<select id="listInsert"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_REQUEST_LIST_INSERT_PROC(
+			  P_MAIL_ID	            => #{p_mail_id}
+			, P_LIST_ID             => #{p_send_id}
+			, P_USER_ID				=> #{p_user_id}
+			, P_ERROR_CODE 			=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, P_ERROR_MSG 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	
+	<select id="requestMail"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_REQUEST_PROC(
+			  P_MAIL_ID	            => #{p_mail_id}
+			, P_USER_ID				=> #{p_user_id}
+			, P_ERROR_CODE 			=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, P_ERROR_MSG 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+
+	<select id="gridProject" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.PROJECT_NO AS TEXT
+		      ,A.PROJECT_NO AS VALUE
+		  FROM STX_DIS_PROJECT A  
+		 WHERE A.REPRESENTATIVE_PRO_NUM = ( SELECT REPRESENTATIVE_PRO_NUM 
+			                                  FROM STX_DIS_PROJECT
+											 WHERE PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}) 
+		   AND LENGTH(A.PROJECT_NO) = 5
+		 ORDER BY PROJECT_NO ASC
+	</select>
+	
+	<select id="gridOcType" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT LN.OWNERABBR AS TEXT
+		      ,LN.OWNERABBR AS VALUE
+		  FROM LPM_NEWPROJECT@STXDP LN
+		WHERE LN.PROJECTNO = #{p_project_no, jdbcType=VARCHAR}
+		   AND LN.CASENO    = '1'
+		   AND ROWNUM       = 1
+	</select>
+	
+	<select id="gridReqUser" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT B.USER_NAME || '(' || B.EMP_NO || ')' AS TEXT
+		      ,B.USER_NAME || '(' || B.EMP_NO || ')' AS VALUE
+		  FROM DCC_DEPTCODE@STXDP       A   
+		      ,STX_COM_INSA_USER@STXERP B
+		 WHERE A.DEPTCODE = B.DEPT_CODE
+		   AND B.DEL_DATE IS NULL
+		   AND A.DWGDEPTCODE = #{p_dept_code, jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

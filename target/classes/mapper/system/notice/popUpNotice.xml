@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpNotice">
+	<select id="select" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT A.SEQ
+		     , A.SUBJECT
+		     , A.CONTENTS
+		     , A.READ_COUNT
+		     , A.CREATE_BY
+		     , B.NAME AS CREATE_BY_NAME
+		     , TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD') AS CREATE_DATE
+             , A.MODIFY_BY
+             , TO_CHAR(A.MODIFY_DATE, 'YYYY-MM-DD') AS MODIFY_DATE
+             , A.NOTIFY_YN
+             , A.FILENAME
+             , A.FILECONTENTTYPE
+		  FROM STX_DIS_NOTICE A
+		     , STX_DIS_USER B
+		 WHERE A.CREATE_BY = B.EMP_NO
+		   AND A.SEQ = #{seq}
+  	</select>
+</mapper>

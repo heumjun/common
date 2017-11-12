@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoDwgNoSearch">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT CASENO
+		     , PROJECTNO
+		     , SUBSTR(ACTIVITYCODE, 0, 8) AS ACTIVITYCODE
+		     , DWGCATEGORY
+		     , DWGDEPTCODE
+		     , DWGTYPE
+		     , DWGMAINPROCESS
+		     , DWGSUBPROCESS
+		     , DWGBLOCK
+		     , WORKTYPE
+		     , DWGTITLE
+		     , DWGZONE
+		     , STDMH
+		     , FOLLOWMH
+		     , PLANOUTSOURCINGYN
+		     , OUTSOURCINGYN
+		     , OUTSOURCING1
+		     , OUTSOURCING2
+		     , SABUN
+		     , REFEVENT
+		     , REFDATE
+		     , LAG
+		     , PLANDURATION
+		     , ABSDURATION
+		     , PLANSTARTDATE
+		     , PLANFINISHDATE
+		     , PLANMH
+		     , PLANSTDMH
+		     , PLANFOLLOWMH
+		     , ACTUALSTARTDATE
+		     , ACTUALFINISHDATE
+		     , ACTUALDURATION
+		     , ACTUALMH
+		     , ACTUALSTDMH
+		     , ACTUALFOLLOWMH
+		     , ACTUALMH_OUT
+		     , ACTUALSTDMH_OUT
+		     , ACTUALFOLLOWMH_OUT
+		     , ACTUALPROGRESS
+		     , LOCATION
+		     , SCHEDULEYN
+		     , FOLLOWHMADDYN
+		     , REFEVENT2
+		     , ATTRIBUTE1
+		     , ATTRIBUTE2
+		     , ATTRIBUTE3
+		     , ATTRIBUTE4
+		     , ATTRIBUTE5
+		     , CREATEDATE
+		     , CREATEBY
+		     , UPDATEDATE
+		     , UPDATEBY
+		     , STDSCHDATE
+		  FROM DPM_ACTIVITY@STXDP
+		 WHERE CASENO = '1'
+		   AND PROJECTNO = #{project_no}
+		   AND SUBSTR(ACTIVITYCODE, -2) = 'DW'
+		   AND ACTIVITYCODE LIKE '%'||#{p_activitycode}||'%'
+	</select>
+</mapper>

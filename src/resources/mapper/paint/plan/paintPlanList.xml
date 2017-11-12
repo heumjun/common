@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="paintPlanList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					select a.project_no
+					      ,a.revision
+					      ,a.description
+					      ,a.state
+					      ,(case a.state when 'D' then 'Release'
+					                              else 'Preliminary'
+					       end) as state_desc  
+					      ,STX_DIS_SHORT_EMP_NAME_F(CREATED_BY) as CREATE_BY
+					  from stx_dis_pis_plan a
+					 where a.project_no like #{txt_project_no} || '%'
+					 order by a.project_no, revision 
+	   				) t1
+         	) t2
+  	  where page = #{curPageNo}   				  
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+       from stx_dis_pis_plan a
+	  where a.project_no like #{txt_project_no} || '%'
+  	</select>
+
+</mapper>

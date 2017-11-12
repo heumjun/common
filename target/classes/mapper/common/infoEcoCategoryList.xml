@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoEcoCategoryList">  	
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT SDSC_TYPE.SD_CODE           AS STATES_TYPE
+       ,SDSC_TYPE.SD_DESC           AS STATES_DESCRIPTION
+       <if test="statesCode != null and statesCode !='' ">
+       ,NVL(SDEB.ENABLE_FLAG, 'N')  AS ENABLE_FLAG
+       ,NVL(SDEB.ENABLE_FLAG, 'N')  AS ENABLE_FLAG_CHANGED
+       </if>
+       ,SDSC.SD_CODE                AS STATES_CODE
+       ,SDSC.SD_DESC                AS STATES_VAR1 
+       ,SDSC.ATTRIBUTE2             AS ECO_AUTH_Y
+   FROM STX_DIS_SD_CODE        SDSC
+   		<if test="statesCode != null and statesCode !='' ">
+       ,STX_DIS_ECR_BASED      SDEB
+         </if>
+       ,STX_DIS_SD_CODE        SDSC_TYPE 
+  WHERE 1=1
+  	<if test="statesCode != null and statesCode !='' ">
+    AND SDSC.SD_CODE              = SDEB.SUB_STATES_CODE<if test="ecoFlag == null or ecoFlag =='' ">(+)</if>
+    </if>
+    AND SDSC.SD_TYPE              = 'CAUSE'
+    AND SDSC.ATTRIBUTE1           = SDSC_TYPE.SD_CODE
+    AND SDSC_TYPE.SD_TYPE         = 'CAUSE_TYPE' 
+    <if test="statesCode != null and statesCode !='' ">
+		 AND SDEB.MAIN_STATES_CODE<if test="ecoFlag == null or ecoFlag =='' ">(+)</if>  = #{statesCode,jdbcType=VARCHAR}
+	</if>
+	
+   
+ ORDER BY SDSC.SD_CODE
+  	</select>
+</mapper>

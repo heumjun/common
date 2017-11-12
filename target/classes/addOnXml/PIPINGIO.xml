@@ -1,0 +1,947 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SQL>
+	<template>
+	<![CDATA[
+	]]>
+	</template>
+	
+	<selectUserDept>
+	<![CDATA[
+		SELECT DD.DWGDEPTCODE
+		  FROM CCC_SAWON    T
+		      ,DCC_DEPTCODE DD
+		 WHERE T.EMPLOYEE_NUM = #USER#
+		   AND DD.DEPTCODE = T.DEPT_CODE
+	]]>
+	</selectUserDept>
+	
+	<insertSTX_PIPING_IO_ACT_DB>
+		<![CDATA[
+		INSERT INTO STX_PIPING_IO_ACT_DB
+			select 
+			STX_PIPING_IO_ACT_SQ.NEXTVAL
+			,#DWGDEPTCODE#                  
+			,#SHIPTYPE#                  
+			,#AREA#
+			,#SYSTEM#
+			,#ITEM#
+			,#DETAILS#
+			,#CONDERATIONS#
+			,#DESIGN_BASIS#
+			,#ACTIVITY#
+			,#OUTPUT#
+			,#EVENT#
+			,#STATUS#
+			,#OWNER#
+			,#APP0#
+			,#APP1#
+			,#APP2#
+			,#MAX_APP#
+			,''
+			,SYSDATE
+			,SYSDATE
+			,#CREATED_BY#
+			,#UPDATED_BY#
+			,#FACTOR#
+			,#IMPORTANCE#
+			from dual
+     		]]>
+	</insertSTX_PIPING_IO_ACT_DB>
+	
+	<selectSTX_PIPING_IO_ACT_DB>
+		<![CDATA[
+	SELECT 
+	   SPIAD.PIPING_IO_ID
+	  ,SPIAD.DWGDEPTCODE
+	  ,SPIAD.SHIPTYPE
+	  ,SPIAD.AREA
+	  ,SPIAD.SYSTEM
+	  ,SPIAD.ITEM
+	  ,SPIAD.DETAILS
+	  ,SPIAD.CONDERATIONS
+	  ,SPIAD.DESIGN_BASIS
+	  ,SPIAD.ACTIVITY
+	  ,SPIAD.OUTPUT
+	  ,SPIAD.EVENT
+	  ,SPIAD.FACTOR
+	  ,SPIAD.IMPORTANCE
+	  ,SPIAD.APP0
+	  ,SPIAD.APP1
+	  ,SPIAD.APP2
+	  ,SPIAD.MAX_APP
+      ,S_OWNER.NAME OWNER_NM
+      ,S_APP0.NAME APP0_NM
+      ,S_APP1.NAME APP1_NM
+      ,(SELECT COUNT(*) FROM STX_PIPING_IO_FILE SPIF WHERE SPIF.PROJECT = 'DB' AND PIPING_IO_ID = SPIAD.PIPING_IO_ID) CNT_FILE
+      ,CASE WHEN SPIAD.STATUS > 0 THEN 
+	   (SELECT MAX(TO_CHAR(SPIAA.APPROVED_DATE,'YYYY-MM-DD'))
+          FROM STX_PIPING_IO_ACT_APP SPIAA
+         WHERE SPIAA.PROJECT = 'DB'
+           AND SPIAA.PIPING_IO_ID = SPIAD.PIPING_IO_ID
+           AND SPIAA.CURRENT_STATUS = 0) ELSE '' END APPROVED_DATE0
+      ,CASE WHEN SPIAD.STATUS > 1 THEN 
+	   (SELECT MAX(TO_CHAR(SPIAA.APPROVED_DATE,'YYYY-MM-DD'))
+          FROM STX_PIPING_IO_ACT_APP SPIAA
+         WHERE SPIAA.PROJECT = 'DB'
+           AND SPIAA.PIPING_IO_ID = SPIAD.PIPING_IO_ID
+           AND SPIAA.CURRENT_STATUS = 1) ELSE '' END APPROVED_DATE1
+      ,CASE WHEN SPIAD.STATUS = 0 AND SPIAD.STATUS <= SPIAD.MAX_APP THEN '상신요청' ELSE '' END APPROVED_REQUIRED0
+      ,CASE WHEN SPIAD.STATUS = 1 AND SPIAD.STATUS <= SPIAD.MAX_APP THEN '결재요청' ELSE '' END APPROVED_REQUIRED1
+      ,SPIAD.IMPORTANCE IMPORTANCE
+  FROM STX_PIPING_IO_ACT_DB             SPIAD
+      ,CCC_SAWON@STXDP.STXSHIP.CO.KR S_OWNER
+      ,CCC_SAWON@STXDP.STXSHIP.CO.KR S_APP0
+      ,CCC_SAWON@STXDP.STXSHIP.CO.KR S_APP1
+ WHERE SPIAD.OWNER = S_OWNER.EMPLOYEE_NUM(+)
+   AND SPIAD.APP0 = S_APP0.EMPLOYEE_NUM(+)
+   AND SPIAD.APP1 = S_APP1.EMPLOYEE_NUM(+)
+   		]]>
+   	<notempty name="SHIPTYPE">
+   AND SPIAD.SHIPTYPE = #SHIPTYPE#
+    </notempty>
+    <notempty name="DWGDEPTCODE">
+   AND SPIAD.DWGDEPTCODE = #DWGDEPTCODE#
+    </notempty>
+    <notempty name="AREA">
+   AND SPIAD.AREA = #AREA#
+    </notempty>
+    <notempty name="SYSTEM">
+   AND SPIAD.SYSTEM = #SYSTEM#
+    </notempty>
+    <notempty name="ITEM">
+   AND SPIAD.ITEM = #ITEM#
+    </notempty>
+    <notempty name="OUTPUT">
+   AND SPIAD.OUTPUT = #OUTPUT#
+    </notempty>
+    <notempty name="ACTIVITY">
+   AND SPIAD.ACTIVITY LIKE #ACTIVITY# || '%'
+    </notempty>
+   	<notempty name="SORT_DEFAULT">
+    ORDER BY SPIAD.AREA, SPIAD.SYSTEM ,SPIAD.ITEM, SPIAD.ACTIVITY
+    </notempty>
+    <notempty name="SORT_SHIPTYPE">
+    ORDER BY SPIAD.SHIPTYPE
+    </notempty>
+    <notempty name="SORT_AREA">
+    ORDER BY SPIAD.AREA
+    </notempty>
+    <notempty name="SORT_SYSTEM">
+    ORDER BY SPIAD.SYSTEM
+    </notempty>
+    <notempty name="SORT_ITEM">
+    ORDER BY SPIAD.ITEM
+    </notempty>
+    <notempty name="SORT_DETAILS">
+    ORDER BY SPIAD.DETAILS
+    </notempty>
+    <notempty name="SORT_CONDERATIONS">
+    ORDER BY SPIAD.CONDERATIONS
+    </notempty>
+    <notempty name="SORT_OUTPUT">
+    ORDER BY SPIAD.OUTPUT
+    </notempty>
+    <notempty name="SORT_DESIGN_BASIS">
+    ORDER BY SPIAD.DESIGN_BASIS
+    </notempty>
+    <notempty name="SORT_ACTIVITY">
+    ORDER BY SPIAD.ACTIVITY
+    </notempty>
+    <notempty name="SORT_EVENT">
+    ORDER BY SPIAD.EVENT
+    </notempty>
+    <notempty name="SORT_STATUS">
+    ORDER BY SPIAD.STATUS
+    </notempty>
+	</selectSTX_PIPING_IO_ACT_DB>
+	
+	<checkSaveSTX_PIPING_IO>
+		<![CDATA[
+  SELECT CASE
+           WHEN SPIA.STATUS != 0 THEN
+            '상신이전상태에서만 수정이가능합니다.(' || #PROJECT# || ',' || #PIPING_IO_ID# || ')'
+           ELSE
+            '해당 DATA의 승인요청자만 수정이가능합니다.(' || #PROJECT# || ',' ||
+            #PIPING_IO_ID# || ')'
+         END MSG
+    FROM STX_PIPING_IO_ACT SPIA
+   WHERE SPIA.PROJECT = #PROJECT#
+     AND SPIA.PIPING_IO_ID = #PIPING_IO_ID#
+     AND (SPIA.STATUS != 0 OR SPIA.OWNER != #USER#)
+  UNION ALL
+  SELECT CASE
+           WHEN SPIAD.STATUS != 0 THEN
+            '상신이전상태에서만 수정이가능합니다.(' || #PROJECT# || ',' || #PIPING_IO_ID# || ')'
+           ELSE
+            '해당 DATA의 승인요청자만 수정이가능합니다.(' || #PROJECT# || ',' ||
+            #PIPING_IO_ID# || ')'
+         END MSG
+  
+    FROM STX_PIPING_IO_ACT_DB SPIAD
+   WHERE SPIAD.PIPING_IO_ID = #PIPING_IO_ID#
+   	 AND 'DB' = #PROJECT#
+     AND (SPIAD.STATUS != 0 OR SPIAD.OWNER != #USER#)
+     		]]>
+	</checkSaveSTX_PIPING_IO>
+	
+	<saveSTX_PIPING_IO_ACT_DB>
+		<![CDATA[
+		UPDATE STX_PIPING_IO_ACT_DB
+		SET ACTIVITY 	= #ACTIVITY#
+		,SHIPTYPE 		= #SHIPTYPE#
+		,AREA 			= #AREA#
+		,SYSTEM 		= #SYSTEM#
+		,ITEM 			= #ITEM#
+		,DETAILS 		= #DETAILS#
+		,CONDERATIONS 	= #CONDERATIONS#
+		,OUTPUT 		= #OUTPUT#
+		,DESIGN_BASIS 	= #DESIGN_BASIS#
+		,EVENT 			= #EVENT#
+		,UPDATED_BY 	= #USER#
+		,UPDATED_DATE 	= SYSDATE
+		,OWNER 			= #USER#
+		,APP0 			= #APP0#
+		,APP1 			= #APP1#
+		,FACTOR 		= #FACTOR#
+		,IMPORTANCE 	= #IMPORTANCE#
+		WHERE PIPING_IO_ID = #PIPING_IO_ID#
+     		]]>
+	</saveSTX_PIPING_IO_ACT_DB>
+	
+	<saveSTX_PIPING_IO_ACT>
+		<![CDATA[
+		UPDATE STX_PIPING_IO_ACT
+		SET APP0 			= #APP0#
+		,DESCRIPTION 			= #DESCRIPTION#
+		,ACTION_DATE 	= TO_DATE(#ACTION_DATE#,'YYYY-MM-DD')
+		,DUE_DATE 	= TO_DATE(#DUE_DATE#,'YYYY-MM-DD')
+		,UPDATED_BY 	= #USER#
+		,UPDATED_DATE 	= SYSDATE
+		WHERE PIPING_IO_ID = #PIPING_IO_ID#
+		AND PROJECT = #PROJECT#
+     		]]>
+	</saveSTX_PIPING_IO_ACT>
+	
+	<selectSTX_PIPING_IO_ACT_APP>
+		<![CDATA[
+SELECT T.*,REQ.NAME REQUESTER_NM
+  FROM (SELECT SPIA.PROJECT
+              ,SPIA.PIPING_IO_ID
+              ,'' SHIPTYPE
+              ,SPIA.AREA
+              ,SPIA.SYSTEM
+              ,SPIA.DWGDEPTCODE
+              ,SPIA.ITEM
+              ,SPIA.OUTPUT
+              ,SPIA.CONDERATIONS
+              ,SPIA.DESIGN_BASIS
+              ,SPIA.DETAILS
+              ,SPIA.ACTIVITY
+              ,TO_CHAR(DUE_DATE,'YYYY-MM-DD') DUE_DATE
+              ,TO_CHAR(ACTION_DATE,'YYYY-MM-DD') ACTION_DATE
+              ,SPIA.DESCRIPTION
+              ,DWG.DWGDEPTNM
+              ,'<TABLE><TR><TD>PROJECT: ' || SPIA.PROJECT ||
+               '</TD><TD>AREA: ' || SPIA.AREA || '</TD></TR>' ||
+               '<TR><TD>SYSTEM: ' || SPIA.SYSTEM || '</TD><TD>ITEM: ' ||
+               SPIA.ITEM || '</TD></TR>' || '<TR><TD>CONDERATIONS: ' ||
+               SPIA.CONDERATIONS || '</TD><TD>DESIGN BASIS: ' ||
+               SPIA.DESIGN_BASIS || '</TD></TR>' || '<TR><TD>OUTPUT: ' ||
+               SPIA.OUTPUT || '</TD></TR></TABLE>' APP_SPEC
+              ,CASE
+                 WHEN SPIA.STATUS = 0 THEN
+                  SPIA.OWNER
+                 WHEN SPIA.STATUS = 1 THEN
+                  SPIA.OWNER
+                 WHEN SPIA.STATUS = 2 THEN
+                  SPIA.APP1
+                 ELSE
+                  SPIA.APP2
+               END REQUESTER
+              ,(SELECT COUNT(*)
+                  FROM STX_PIPING_IO_FILE SPIF
+                 WHERE SPIF.PROJECT = SPIA.PROJECT
+                   AND PIPING_IO_ID = SPIA.PIPING_IO_ID) CNT_FILE
+          FROM STX_PIPING_IO_ACT                   SPIA
+              ,DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR DWG
+         WHERE SPIA.DWGDEPTCODE = DWG.DWGDEPTCODE(+)
+           AND SPIA.APP0 IS NOT NULL
+           AND SPIA.STATUS != 0
+           AND ((SPIA.STATUS = 0 AND SPIA.OWNER = #USER#) OR
+               (SPIA.STATUS = 1 AND SPIA.APP0 = #USER#) OR
+               (SPIA.STATUS = 2 AND SPIA.APP1 = #USER#) OR
+               (SPIA.STATUS = 3 AND SPIA.APP2 = #USER#))) T
+         ,CCC_SAWON@STXDP.STXSHIP.CO.KR REQ
+         WHERE 1=1
+         AND T.REQUESTER = REQ.EMPLOYEE_NUM(+)
+   		]]>
+   		<notempty name="REQUESTER_NM">
+	   	AND REQ.NAME LIKE #REQUESTER_NM# || '%'
+	    </notempty>
+	    <notempty name="SHIPTYPE">
+	   	AND T.SHIPTYPE = #SHIPTYPE#
+	    </notempty>
+	    <notempty name="AREA">
+	   	AND T.AREA = #AREA#
+	    </notempty>
+	    <notempty name="ITEM">
+	   	AND T.ITEM = #ITEM#
+	    </notempty>
+	    <notempty name="SYSTEM">
+	   	AND T.SYSTEM = #SYSTEM#
+	    </notempty>
+	    <notempty name="OUTPUT">
+	   	AND T.OUTPUT = #OUTPUT#
+	    </notempty>
+	    <notempty name="ACTIVITY">
+	   	AND T.ACTIVITY LIKE #ACTIVITY# || '%'
+	    </notempty>
+	    <notempty name="DWGDEPTCODE">
+	   	AND T.DWGDEPTCODE = #DWGDEPTCODE#
+	    </notempty>
+	    <notempty name="PROJECT">
+	   	AND T.PROJECT = #PROJECT#
+	    </notempty>
+	    <notempty name="SORT">
+    	ORDER BY T.PROJECT, T.AREA, T.SYSTEM, T.ITEM, T.ACTIVITY
+	    </notempty>
+	</selectSTX_PIPING_IO_ACT_APP>
+	
+	<selectSTX_PIPING_IO_ACT_DB_APP>
+		<![CDATA[
+SELECT T.*,REQ.NAME REQUESTER_NM
+  FROM (SELECT 'DB' PROJECT
+              ,SPIAD.PIPING_IO_ID
+              ,SPIAD.SHIPTYPE
+              ,SPIAD.AREA
+              ,SPIAD.SYSTEM
+              ,SPIAD.DWGDEPTCODE
+              ,SPIAD.ITEM
+              ,SPIAD.OUTPUT
+              ,SPIAD.CONDERATIONS
+              ,SPIAD.DESIGN_BASIS
+              ,SPIAD.DETAILS
+              ,SPIAD.ACTIVITY
+              ,SPIAD.EVENT
+              ,SPIAD.FACTOR
+              ,DWG.DWGDEPTNM
+              ,'<TABLE><TR><TD>SHIPTYPE: ' || SPIAD.SHIPTYPE ||
+               '</TD><TD>AREA: ' || SPIAD.AREA || '</TD></TR>' ||
+               '<TR><TD>SYSTEM: ' || SPIAD.SYSTEM || '</TD><TD>ITEM: ' ||
+               SPIAD.ITEM || '</TD></TR>' || '<TR><TD>CONDERATIONS: ' ||
+               SPIAD.CONDERATIONS || '</TD><TD>DESIGN BASIS: ' ||
+               SPIAD.DESIGN_BASIS || '</TD></TR>' || '<TR><TD>OUTPUT: ' ||
+               SPIAD.OUTPUT || '</TD></TR></TABLE>' APP_SPEC
+              ,CASE
+                 WHEN SPIAD.STATUS = 0 THEN
+                  SPIAD.OWNER
+                 ELSE
+                  SPIAD.OWNER
+               END REQUESTER
+              ,(SELECT COUNT(*)
+                  FROM STX_PIPING_IO_FILE SPIF
+                 WHERE SPIF.PROJECT = 'DB'
+                   AND PIPING_IO_ID = SPIAD.PIPING_IO_ID) CNT_FILE
+          FROM STX_PIPING_IO_ACT_DB                SPIAD
+              ,DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR DWG
+         WHERE SPIAD.DWGDEPTCODE = DWG.DWGDEPTCODE(+)
+           AND SPIAD.STATUS != 0
+           AND ((SPIAD.STATUS = 0 AND SPIAD.OWNER = #USER#) OR
+               (SPIAD.STATUS = 1 AND SPIAD.APP0 = #USER#))
+        UNION ALL
+        SELECT SPIA.PROJECT
+              ,SPIA.PIPING_IO_ID
+              ,'' SHIPTYPE
+              ,SPIA.AREA
+              ,SPIA.SYSTEM
+              ,SPIA.DWGDEPTCODE
+              ,SPIA.ITEM
+              ,SPIA.OUTPUT
+              ,SPIA.CONDERATIONS
+              ,SPIA.DESIGN_BASIS
+              ,SPIA.DETAILS
+              ,SPIA.ACTIVITY
+              ,''
+              ,0
+              ,DWG.DWGDEPTNM
+              ,'<TABLE><TR><TD>PROJECT: ' || SPIA.PROJECT ||
+               '</TD><TD>AREA: ' || SPIA.AREA || '</TD></TR>' ||
+               '<TR><TD>SYSTEM: ' || SPIA.SYSTEM || '</TD><TD>ITEM: ' ||
+               SPIA.ITEM || '</TD></TR>' || '<TR><TD>CONDERATIONS: ' ||
+               SPIA.CONDERATIONS || '</TD><TD>DESIGN BASIS: ' ||
+               SPIA.DESIGN_BASIS || '</TD></TR>' || '<TR><TD>OUTPUT: ' ||
+               SPIA.OUTPUT || '</TD></TR></TABLE>' APP_SPEC
+              ,CASE
+                 WHEN SPIA.STATUS = 0 THEN
+                  SPIA.OWNER
+                 WHEN SPIA.STATUS = 1 THEN
+                  SPIA.OWNER
+                 WHEN SPIA.STATUS = 2 THEN
+                  SPIA.APP1
+                 ELSE
+                  SPIA.APP2
+               END REQUESTER
+              ,(SELECT COUNT(*)
+                  FROM STX_PIPING_IO_FILE SPIF
+                 WHERE SPIF.PROJECT = SPIA.PROJECT
+                   AND PIPING_IO_ID = SPIA.PIPING_IO_ID) CNT_FILE
+          FROM STX_PIPING_IO_ACT                   SPIA
+              ,DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR DWG
+         WHERE SPIA.DWGDEPTCODE = DWG.DWGDEPTCODE(+)
+           AND SPIA.APP0 IS NOT NULL
+           AND SPIA.STATUS != 0
+           AND ((SPIA.STATUS = 0 AND SPIA.OWNER = #USER#) OR
+               (SPIA.STATUS = 1 AND SPIA.APP0 = #USER#) OR
+               (SPIA.STATUS = 2 AND SPIA.APP1 = #USER#) OR
+               (SPIA.STATUS = 3 AND SPIA.APP2 = #USER#))) T
+         ,CCC_SAWON@STXDP.STXSHIP.CO.KR REQ
+         WHERE 1=1
+         AND T.REQUESTER = REQ.EMPLOYEE_NUM(+)
+   		]]>
+   		<notempty name="REQUESTER_NM">
+	   	AND REQ.NAME LIKE #REQUESTER_NM# || '%'
+	    </notempty>
+	    <notempty name="SHIPTYPE">
+	   	AND T.SHIPTYPE = #SHIPTYPE#
+	    </notempty>
+	    <notempty name="AREA">
+	   	AND T.AREA = #AREA#
+	    </notempty>
+	    <notempty name="ITEM">
+	   	AND T.ITEM = #ITEM#
+	    </notempty>
+	    <notempty name="SYSTEM">
+	   	AND T.SYSTEM = #SYSTEM#
+	    </notempty>
+	    <notempty name="OUTPUT">
+	   	AND T.OUTPUT = #OUTPUT#
+	    </notempty>
+	    <notempty name="ACTIVITY">
+	   	AND T.ACTIVITY LIKE #ACTIVITY# || '%'
+	    </notempty>
+	    <notempty name="DWGDEPTCODE">
+	   	AND T.DWGDEPTCODE = #DWGDEPTCODE#
+	    </notempty>
+	    <notempty name="PROJECT">
+	   	AND T.PROJECT = #PROJECT#
+	    </notempty>
+	    <notempty name="SORT">
+    	ORDER BY T.PROJECT, T.AREA, T.SYSTEM, T.ITEM, T.ACTIVITY
+	    </notempty>
+	</selectSTX_PIPING_IO_ACT_DB_APP>
+	
+	<selectSTX_PIPING_IO_ACT>
+		<![CDATA[
+	SELECT SPIA.PIPING_IO_ID
+		,SPIA.PROJECT
+		,SPIA.DWGDEPTCODE
+		,SPIA.AREA
+		,SPIA.SYSTEM
+		,SPIA.ITEM
+		,SPIA.DETAILS
+		,SPIA.CONDERATIONS
+		,SPIA.DESIGN_BASIS
+		,SPIA.ACTIVITY
+		,SPIA.OUTPUT
+		,SPIA.EVENT
+		,SPIA.STATUS
+		,SPIA.OWNER
+		,SPIA.APP0
+		,SPIA.APP1
+		,SPIA.APP2
+		,SPIA.MAX_APP
+		,SPIA.DESCRIPTION
+      ,S_OWNER.NAME OWNER_NM
+      ,S_APP0.NAME APP0_NM
+      ,S_APP1.NAME APP1_NM
+      ,S_APP2.NAME APP2_NM
+      ,TO_CHAR(DUE_DATE,'YYYY-MM-DD') DUE_DATE
+      ,TO_CHAR(ACTION_DATE,'YYYY-MM-DD') ACTION_DATE
+      ,CASE WHEN SPIA.STATUS > 0 THEN 
+	   (SELECT MAX(TO_CHAR(SPIAA.APPROVED_DATE,'YYYY-MM-DD'))
+          FROM STX_PIPING_IO_ACT_APP SPIAA
+         WHERE SPIAA.PROJECT = SPIA.PROJECT
+           AND SPIAA.PROJECT = SPIA.PROJECT
+           AND SPIAA.CURRENT_STATUS = 0) ELSE '' END APPROVED_DATE0
+      ,CASE WHEN SPIA.STATUS > 1 THEN 
+	   (SELECT MAX(TO_CHAR(SPIAA.APPROVED_DATE,'YYYY-MM-DD'))
+          FROM STX_PIPING_IO_ACT_APP SPIAA
+         WHERE SPIAA.PROJECT = SPIA.PROJECT
+           AND SPIAA.PROJECT = SPIA.PROJECT
+           AND SPIAA.CURRENT_STATUS = 1) ELSE '' END APPROVED_DATE1
+      ,CASE WHEN SPIA.STATUS > 2 THEN 
+   	   (SELECT MAX(TO_CHAR(SPIAA.APPROVED_DATE,'YYYY-MM-DD'))
+          FROM STX_PIPING_IO_ACT_APP SPIAA
+         WHERE SPIAA.PROJECT = SPIA.PROJECT
+           AND SPIAA.PROJECT = SPIA.PROJECT
+           AND SPIAA.CURRENT_STATUS = 2) ELSE '' END APPROVED_DATE2
+   	  ,CASE WHEN SPIA.STATUS > 3 THEN 
+   	   (SELECT MAX(TO_CHAR(SPIAA.APPROVED_DATE,'YYYY-MM-DD'))
+          FROM STX_PIPING_IO_ACT_APP SPIAA
+         WHERE SPIAA.PROJECT = SPIA.PROJECT
+           AND SPIAA.PROJECT = SPIA.PROJECT
+           AND SPIAA.CURRENT_STATUS = 3) ELSE '' END APPROVED_DATE3
+      ,CASE WHEN SPIA.STATUS = 0 AND SPIA.STATUS <= SPIA.MAX_APP THEN '상신요청' ELSE '' END APPROVED_REQUIRED0
+      ,CASE WHEN SPIA.STATUS = 1 AND SPIA.STATUS <= SPIA.MAX_APP THEN '결재요청' ELSE '' END APPROVED_REQUIRED1
+      ,CASE WHEN SPIA.STATUS = 2 AND SPIA.STATUS <= SPIA.MAX_APP THEN '결재요청' ELSE '' END APPROVED_REQUIRED2
+      ,CASE WHEN SPIA.STATUS = 3 AND SPIA.STATUS <= SPIA.MAX_APP THEN '결재요청' ELSE '' END APPROVED_REQUIRED3
+      ,DEPT.DWGDEPTNM
+      ,(SELECT COUNT(*)
+            FROM STX_PIPING_IO_FILE SPIF
+           WHERE SPIF.PROJECT = 'DB'
+             AND PIPING_IO_ID = SPIA.PIPING_IO_ID) CNT_FILE
+  FROM STX_PIPING_IO_ACT             SPIA
+      ,CCC_SAWON@STXDP.STXSHIP.CO.KR S_OWNER
+      ,CCC_SAWON@STXDP.STXSHIP.CO.KR S_APP0
+      ,CCC_SAWON@STXDP.STXSHIP.CO.KR S_APP1
+      ,CCC_SAWON@STXDP.STXSHIP.CO.KR S_APP2
+      ,DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR DEPT
+      ,(SELECT * FROM LPM_NEWPROJECT@STXDP.STXSHIP.CO.KR LNP1 WHERE LNP1.CASENO = '1')  LNP
+ WHERE SPIA.OWNER = S_OWNER.EMPLOYEE_NUM(+)
+   AND SPIA.APP0 = S_APP0.EMPLOYEE_NUM(+)
+   AND SPIA.APP1 = S_APP1.EMPLOYEE_NUM(+)
+   AND SPIA.APP2 = S_APP2.EMPLOYEE_NUM(+)
+   AND SPIA.PROJECT = LNP.PROJECTNO(+)
+   AND SPIA.DWGDEPTCODE = DEPT.DWGDEPTCODE
+  -- AND #USER# IN (SPIA.OWNER,SPIA.APP0,SPIA.APP1,SPIA.APP2)
+   		]]>
+   	<notempty name="PROJECT">
+   AND SPIA.PROJECT = #PROJECT# 
+    </notempty>
+    <notempty name="DWGDEPTCODE">
+   AND SPIA.DWGDEPTCODE = #DWGDEPTCODE#
+    </notempty>
+    <notempty name="OUTPUT">
+   AND SPIA.OUTPUT = #OUTPUT#
+    </notempty>
+    <notempty name="AREA">
+   AND SPIA.AREA = #AREA#
+    </notempty>
+    <notempty name="ITEM">
+   AND SPIA.ITEM = #ITEM# 
+    </notempty>
+    <notempty name="SYSTEM">
+   AND SPIA.SYSTEM = #SYSTEM# 
+    </notempty>
+    <notempty name="ACTIVITY">
+   AND SPIA.ACTIVITY LIKE #ACTIVITY# || '%'
+    </notempty>
+    <notempty name="DESCRIPTION">
+   AND SPIA.DESCRIPTION LIKE #DESCRIPTION# || '%'
+    </notempty>
+   	<notempty name="SORT_DEFAULT">
+    ORDER BY SPIA.PROJECT, SPIA.AREA
+    </notempty>
+    <notempty name="SORT_PROJECT">
+    ORDER BY SPIA.PROJECT
+    </notempty>
+    <notempty name="SORT_AREA">
+    ORDER BY SPIA.AREA
+    </notempty>
+    <notempty name="SORT_SYSTEM">
+    ORDER BY SPIA.SYSTEM
+    </notempty>
+    <notempty name="SORT_ITEM">
+    ORDER BY SPIA.ITEM
+    </notempty>
+    <notempty name="SORT_DETAILS">
+    ORDER BY SPIA.DETAILS
+    </notempty>
+    <notempty name="SORT_CONDERATIONS">
+    ORDER BY SPIA.CONDERATIONS
+    </notempty>
+    <notempty name="SORT_OUTPUT">
+    ORDER BY SPIA.OUTPUT
+    </notempty>
+    <notempty name="SORT_DESIGN_BASIS">
+    ORDER BY SPIA.DESIGN_BASIS
+    </notempty>
+    <notempty name="SORT_ACTIVITY">
+    ORDER BY SPIA.ACTIVITY
+    </notempty>
+    <notempty name="SORT_DUE_DATE">
+    ORDER BY DUE_DATE
+    </notempty>
+    <notempty name="SORT_STATUS">
+    ORDER BY STATUS
+    </notempty>
+    <notempty name="SORT_DESCRIPTION">
+    ORDER BY DESCRIPTION
+    </notempty>
+	</selectSTX_PIPING_IO_ACT>
+	
+	<insertProjectSTX_PIPING_IO_ACT>
+		<![CDATA[
+ INSERT INTO STX_PIPING_IO_ACT
+   SELECT SPIAD.PIPING_IO_ID
+         ,#PROJECT#
+         ,SPIAD.DWGDEPTCODE
+         ,SPIAD.AREA
+         ,SPIAD.SYSTEM
+         ,SPIAD.ITEM
+         ,SPIAD.DETAILS
+         ,SPIAD.CONDERATIONS
+         ,SPIAD.DESIGN_BASIS
+         ,SPIAD.ACTIVITY
+         ,SPIAD.OUTPUT
+         ,SPIAD.EVENT
+         ,0
+         ,#OWNER#
+         ,''
+         ,CASE WHEN SPIAD.IMPORTANCE IN('H','M') THEN
+           (SELECT CS_P.EMPLOYEE_NUM EMP
+			  FROM CCC_SAWON@stxdp.stxship.co.kr          CS_P
+			      ,CCC_SAWON@stxdp.stxship.co.kr          CS
+			 WHERE CS_P.DEPT_CODE = CS.DEPT_CODE
+			   AND CS_P.JOB = '파트장'
+			   AND CS_P.TERMINATION_DATE IS NULL
+			   AND CS.EMPLOYEE_NUM = #OWNER#
+			   AND ROWNUM = 1) ELSE '' END
+	     , CASE WHEN SPIAD.IMPORTANCE IN('H') THEN
+           (SELECT CS_T.EMPLOYEE_NUM EMP
+			  FROM STX_COM_INSA_DEPT@stxerp.stxship.co.kr PART
+			      ,CCC_SAWON@stxdp.stxship.co.kr          CS_T
+			      ,CCC_SAWON@stxdp.stxship.co.kr          CS
+			 WHERE CS_T.DEPT_CODE = PART.TEAM_CODE
+			   AND CS_T.JOB = '팀장'
+			   AND CS_T.TERMINATION_DATE IS NULL
+			   AND CS.DEPT_CODE = PART.DEPT_CODE
+			   AND CS.EMPLOYEE_NUM = #OWNER#) ELSE '' END
+		   , DECODE(SPIAD.IMPORTANCE,'H',3,'M',2,'L',1,'')
+		   , ''
+		   ,SYSDATE
+		   ,SYSDATE
+		   , #OWNER#
+		   , #OWNER#
+		   ,DECODE(SPIAD.EVENT,'SC',LNP.SC+TO_NUMBER(SPIAD.FACTOR)*7,'KL',LNP.KL+TO_NUMBER(SPIAD.FACTOR)*7,'LC',LNP.LC+TO_NUMBER(SPIAD.FACTOR)*7,'DL',LNP.DL+TO_NUMBER(SPIAD.FACTOR)*7,'DS',LNP.DWGSC+TO_NUMBER(SPIAD.FACTOR)*7,'') DUE_DATE
+		   ,''
+		   ,#DESCRIPTION# 
+		   FROM STX_PIPING_IO_ACT_DB  SPIAD
+		   ,(SELECT *
+			  FROM (SELECT T.*
+			              ,ROWNUM RN
+			          FROM LPM_NEWPROJECT@STXDP.STXSHIP.CO.KR T
+			         WHERE T.CASENO = '1'
+			           AND T.PROJECTNO = #PROJECT#)
+			 WHERE RN = 1 ) LNP
+            WHERE SPIAD.PIPING_IO_ID = #PIPING_IO_ID#
+     		]]>
+	</insertProjectSTX_PIPING_IO_ACT>
+	
+	<checkApproverSTX_PIPING_IO_ACT>
+		<![CDATA[
+		select SPIA.ACTIVITY,SPIA.STATUS,TO_CHAR(SPIA.DUE_DATE,'YYYY-MM-DD') AS DUE_DATE,TO_CHAR(SPIA.ACTION_DATE,'YYYY-MM-DD') AS ACTION_DATE
+		  from STX_PIPING_IO_ACT SPIA
+		 WHERE SPIA.PROJECT = #PROJECT#
+		   AND SPIA.APP0 IS NOT NULL
+		   AND SPIA.PIPING_IO_ID = #PIPING_IO_ID#
+		   AND ((SPIA.STATUS = 0 AND SPIA.OWNER = #USER#) OR
+		       (SPIA.STATUS = 1 AND SPIA.APP0 = #USER#) OR
+		       (SPIA.STATUS = 2 AND SPIA.APP1 = #USER#) OR
+		       (SPIA.STATUS = 3 AND SPIA.APP2 = #USER#))
+		UNION ALL
+		select SPIAD.ACTIVITY,SPIAD.STATUS,''  AS DUE_DATE,'' AS ACTION_DATE
+		  from STX_PIPING_IO_ACT_DB SPIAD
+		 WHERE SPIAD.PIPING_IO_ID = #PIPING_IO_ID#
+		   AND #PROJECT# = 'DB'
+		   AND ((SPIAD.STATUS = 0 AND SPIAD.OWNER = #USER#) OR
+		       (SPIAD.STATUS = 1 AND SPIAD.APP0 = #USER#))
+     		]]>
+	</checkApproverSTX_PIPING_IO_ACT>
+
+	<insertSTX_PIPING_IO_ACT_APP>
+		<![CDATA[
+  INSERT INTO STX_PIPING_IO_ACT_APP
+    SELECT T.PIPING_IO_ID
+          ,T.PROJECT
+          ,CASE
+             WHEN T.SEQ IS NULL THEN
+              0
+             ELSE
+              T.SEQ + 1
+           END
+          ,T.CURRENT_STATUS
+          ,T.NEXT_STATUS
+          ,T.APPROVED_TYPE
+          ,T.APPROVED_DATE
+          ,T.APPROVED_BY
+      FROM (SELECT #PIPING_IO_ID# PIPING_IO_ID
+                  ,#PROJECT# PROJECT
+                  ,(SELECT MAX(SPIAA.SEQUENCE)
+                      FROM STX_PIPING_IO_ACT_APP SPIAA
+                     WHERE SPIAA.PIPING_IO_ID = SPIA.PIPING_IO_ID
+                       AND SPIAA.PROJECT = SPIA.PROJECT) SEQ
+                  ,SPIA.STATUS CURRENT_STATUS
+                  ,CASE
+                     WHEN #APPROVED_TYPE# = 'APPROVE' THEN
+                      SPIA.STATUS + 1
+                     ELSE
+                      0
+                   END NEXT_STATUS
+                  ,#APPROVED_TYPE# APPROVED_TYPE
+                  ,SYSDATE APPROVED_DATE
+                  ,#USER# APPROVED_BY
+              FROM STX_PIPING_IO_ACT SPIA
+             WHERE SPIA.PIPING_IO_ID = #PIPING_IO_ID#
+               AND SPIA.PROJECT = #PROJECT#
+            UNION ALL
+            SELECT #PIPING_IO_ID# PIPING_IO_ID
+                  ,#PROJECT# PROJECT
+                  ,(SELECT MAX(SPIAA.SEQUENCE)
+                      FROM STX_PIPING_IO_ACT_APP SPIAA
+                     WHERE SPIAA.PIPING_IO_ID = SPIAD.PIPING_IO_ID
+                       AND SPIAA.PROJECT = #PROJECT#) SEQ
+                  ,SPIAD.STATUS CURRENT_STATUS
+                  ,CASE
+                     WHEN #APPROVED_TYPE# = 'APPROVE' THEN
+                      SPIAD.STATUS + 1
+                     ELSE
+                      0
+                   END NEXT_STATUS
+                  ,#APPROVED_TYPE# APPROVED_TYPE
+                  ,SYSDATE APPROVED_DATE
+                  ,#USER# APPROVED_BY
+              FROM STX_PIPING_IO_ACT_DB SPIAD
+             WHERE SPIAD.PIPING_IO_ID = #PIPING_IO_ID#
+               AND 'DB' = #PROJECT#
+             ) T
+     		]]>
+	</insertSTX_PIPING_IO_ACT_APP>
+	
+	<approveSTX_PIPING_IO_ACT>
+		<![CDATA[
+	UPDATE STX_PIPING_IO_ACT
+	   SET UPDATED_DATE = SYSDATE
+	      ,STATUS       = (SELECT SPIAA.NEXT_STATUS
+	                         FROM STX_PIPING_IO_ACT_APP SPIAA
+	                        WHERE SPIAA.SEQUENCE =
+	                              (SELECT MAX(T.SEQUENCE)
+	                                 FROM STX_PIPING_IO_ACT_APP T
+	                                WHERE T.PROJECT = #PROJECT#
+	                                  AND T.PIPING_IO_ID = #PIPING_IO_ID#)
+	                             AND SPIAA.PROJECT = #PROJECT# AND SPIAA.PIPING_IO_ID = #PIPING_IO_ID#)
+	WHERE PROJECT = #PROJECT# AND PIPING_IO_ID = #PIPING_IO_ID#
+     		]]>
+	</approveSTX_PIPING_IO_ACT>
+	
+	<approveSTX_PIPING_IO_ACT_DB>
+		<![CDATA[
+	UPDATE STX_PIPING_IO_ACT_DB
+	   SET UPDATED_DATE = SYSDATE
+	      ,STATUS       = (SELECT SPIAA.NEXT_STATUS
+	                         FROM STX_PIPING_IO_ACT_APP SPIAA
+	                        WHERE SPIAA.SEQUENCE =
+	                              (SELECT MAX(T.SEQUENCE)
+	                                 FROM STX_PIPING_IO_ACT_APP T
+	                                WHERE T.PROJECT = #PROJECT#
+	                                  AND T.PIPING_IO_ID = #PIPING_IO_ID#)
+	                             AND SPIAA.PROJECT = #PROJECT# AND SPIAA.PIPING_IO_ID = #PIPING_IO_ID#)
+	WHERE PIPING_IO_ID = #PIPING_IO_ID#
+     		]]>
+	</approveSTX_PIPING_IO_ACT_DB>
+
+	<selectSTX_PIPING_IO_FILE>
+		<![CDATA[
+	SELECT SPIF.PROJECT
+      ,SPIF.PIPING_IO_ID
+      ,SPIF.FILEID
+      ,SPIF.FILENAME
+      ,TO_CHAR(SPIF.CREATED_DATE
+              ,'YYYY-MM-DD') CREATED_DATE
+      ,SPIF.CREATED_BY
+      ,CS.NAME CREATED_NAME
+  FROM STX_PIPING_IO_FILE            SPIF
+      ,CCC_SAWON@STXDP.STXSHIP.CO.KR CS
+ WHERE SPIF.PROJECT = #PROJECT#
+   AND SPIF.PIPING_IO_ID = #PIPING_IO_ID#
+   AND SPIF.CREATED_BY = CS.EMPLOYEE_NUM
+   		]]>
+	</selectSTX_PIPING_IO_FILE>
+	
+	<insertSTX_PIPING_IO_FILE>
+		<![CDATA[
+		INSERT INTO STX_PIPING_IO_FILE
+			select 
+			#PROJECT#                  
+			,#PIPING_IO_ID#                  
+			,STX_PIPING_IO_FILE_SQ.NEXTVAL
+			,''
+			,#FILENAME#
+			,SYSDATE
+			,#CREATED_BY#
+			from dual
+     		]]>
+	</insertSTX_PIPING_IO_FILE>
+	
+	<selectCHECKApplyProject>
+		<![CDATA[
+        SELECT CASE
+                 WHEN SPID.STATUS < SPID.MAX_APP THEN
+                  '파트장 승인 완료후 진행 가능합니다.(' || SPID.PIPING_IO_ID || ')'
+                 WHEN SPID.DWGDEPTCODE != #DWGDEPTCODE# THEN
+                  '타 부서의 DATA를 호선 적용할수없습니다..(' || SPID.PIPING_IO_ID || ')'
+                 WHEN #PROJECT# IN
+                      (SELECT SPIA.PROJECT
+                         FROM STX_PIPING_IO_ACT SPIA
+                        WHERE SPIA.PIPING_IO_ID = #PIPING_IO_ID#) THEN
+                  #PROJECT# || '에 이미 적용되어  있습니다.(' || SPID.PIPING_IO_ID || ')'
+               END ERR_MSG
+          FROM STX_PIPING_IO_ACT_DB SPID
+         WHERE (SPID.STATUS != 2 OR SPID.DWGDEPTCODE != #DWGDEPTCODE# OR
+               (#PROJECT# IN
+               (SELECT SPIA.PROJECT
+                    FROM STX_PIPING_IO_ACT SPIA
+                   WHERE SPIA.PIPING_IO_ID = #PIPING_IO_ID#)))
+           AND SPID.PIPING_IO_ID = #PIPING_IO_ID#
+
+     		]]>
+	</selectCHECKApplyProject>
+	
+	<selectPIPINGIODBSHIPTYPE>
+		<![CDATA[
+		SELECT SHIPTYPE VALUE,SHIPTYPE DISPLAY FROM 
+		(SELECT DISTINCT SPIAD.SHIPTYPE SHIPTYPE FROM STX_PIPING_IO_ACT_DB SPIAD)
+		ORDER BY SHIPTYPE
+     		]]>
+	</selectPIPINGIODBSHIPTYPE>
+	
+	<selectPIPINGIODBAREA>
+		<![CDATA[
+		SELECT AREA VALUE,AREA DISPLAY FROM 
+		(SELECT DISTINCT SPIAD.AREA AREA FROM STX_PIPING_IO_ACT_DB SPIAD)
+		ORDER BY AREA
+     		]]>
+	</selectPIPINGIODBAREA>
+	
+	<selectPIPINGIODBOUTPUT>
+		<![CDATA[
+		SELECT OUTPUT VALUE,OUTPUT DISPLAY FROM 
+		(SELECT DISTINCT SPIAD.OUTPUT FROM STX_PIPING_IO_ACT_DB SPIAD)
+		ORDER BY OUTPUT
+     		]]>
+	</selectPIPINGIODBOUTPUT>
+	
+	<selectPIPINGIODBITEM>
+		<![CDATA[
+		SELECT ITEM VALUE,ITEM DISPLAY FROM 
+		(SELECT DISTINCT SPIAD.ITEM FROM STX_PIPING_IO_ACT_DB SPIAD)
+		ORDER BY ITEM
+     		]]>
+	</selectPIPINGIODBITEM>
+	
+	<selectPIPINGIODBSYSTEM>
+		<![CDATA[
+		SELECT SYSTEM VALUE,SYSTEM DISPLAY FROM 
+		(SELECT DISTINCT SPIAD.SYSTEM FROM STX_PIPING_IO_ACT_DB SPIAD)
+		ORDER BY SYSTEM
+     		]]>
+	</selectPIPINGIODBSYSTEM>
+	
+	<selectPIPINGIODBDept>
+		<![CDATA[
+		SELECT DWGDEPTCODE AS VALUE
+				,DWGDEPTNM   AS DISPLAY
+		FROM DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR
+		WHERE
+		DWGDEPTCODE IN(SELECT DISTINCT SPIAD.DWGDEPTCODE FROM STX_PIPING_IO_ACT_DB SPIAD)
+     		]]>
+	</selectPIPINGIODBDept>
+	
+	<selectPIPINGIODept>
+		<![CDATA[
+		SELECT DWGDEPTCODE AS VALUE
+				,DWGDEPTNM   AS DISPLAY
+		FROM DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR
+		WHERE
+		DWGDEPTCODE IN(SELECT DISTINCT SPIA.DWGDEPTCODE FROM STX_PIPING_IO_ACT SPIA)
+		ORDER BY DWGDEPTNM
+     		]]>
+	</selectPIPINGIODept>
+	
+	<selectPIPINGIOPROJECT>
+		<![CDATA[
+		SELECT PROJECT VALUE,PROJECT DISPLAY FROM 
+		(SELECT DISTINCT SPIA.PROJECT PROJECT FROM STX_PIPING_IO_ACT SPIA)
+		ORDER BY PROJECT
+     		]]>
+	</selectPIPINGIOPROJECT>
+	
+	<selectPIPINGIOAREA>
+		<![CDATA[
+		SELECT AREA VALUE,AREA DISPLAY FROM 
+		(SELECT DISTINCT SPIA.AREA AREA FROM STX_PIPING_IO_ACT SPIA)
+		ORDER BY AREA
+     		]]>
+	</selectPIPINGIOAREA>
+	
+	<selectPIPINGIOOUTPUT>
+		<![CDATA[
+		SELECT OUTPUT VALUE,OUTPUT DISPLAY FROM 
+		(SELECT DISTINCT SPIA.OUTPUT FROM STX_PIPING_IO_ACT SPIA)
+		ORDER BY OUTPUT
+     		]]>
+	</selectPIPINGIOOUTPUT>
+	
+	<selectPIPINGIOSYSTEM>
+		<![CDATA[
+		SELECT SYSTEM VALUE,SYSTEM DISPLAY FROM 
+		(SELECT DISTINCT SPIA.SYSTEM FROM STX_PIPING_IO_ACT SPIA)
+		ORDER BY SYSTEM
+     		]]>
+	</selectPIPINGIOSYSTEM>
+	
+	<selectPIPINGIOITEM>
+		<![CDATA[
+		SELECT ITEM VALUE,ITEM DISPLAY FROM 
+		(SELECT DISTINCT SPIA.ITEM FROM STX_PIPING_IO_ACT SPIA)
+		ORDER BY ITEM
+     		]]>
+	</selectPIPINGIOITEM>
+	
+	<insertSTX_PIPING_IO_IMPORTANT>
+		<![CDATA[
+		INSERT INTO STX_PIPING_IO_IMPORTANT
+			select 
+			#IMPORTANT#                  
+			,sysdate
+			,#USER#
+			from dual
+			WHERE
+			 #IMPORTANT# NOT IN(SELECT PIPING_IO_ID FROM STX_PIPING_IO_IMPORTANT WHERE PIPING_IO_ID = #IMPORTANT#)
+     		]]>
+	</insertSTX_PIPING_IO_IMPORTANT>
+	
+	<deleteSTX_PIPING_IO_IMPORTANT>
+		<![CDATA[
+		DELETE STX_PIPING_IO_IMPORTANT
+		WHERE 1=1 
+		AND PIPING_IO_ID = #PIPING_IO_ID#
+     		]]>
+	</deleteSTX_PIPING_IO_IMPORTANT>
+	
+	<checkWithDrawSTX_PIPING_IO_ACT>
+		<![CDATA[
+	select CASE
+	         WHEN SPIA.STATUS = 0 THEN
+	          '진행중인 결재가 아닙니다.((' || #PROJECT# || ',' || #PIPING_IO_ID# || ')'
+	         ELSE
+	          '승인요청자만이 회수가능합니다.((' || #PROJECT# || ',' || #PIPING_IO_ID# || ')'
+	       END MSG
+	  from STX_PIPING_IO_ACT SPIA
+	 WHERE SPIA.PROJECT = #PROJECT#
+	   AND SPIA.PIPING_IO_ID = #PIPING_IO_ID#
+	   AND ((SPIA.STATUS = 0) OR (SPIA.STATUS != 0 AND SPIA.OWNER != #USER#))
+	UNION ALL
+	select CASE
+	         WHEN SPIAD.STATUS = 0 THEN
+	          '진행중인 결재가 아닙니다.((' || #PROJECT# || ',' || #PIPING_IO_ID# || ')'
+	         ELSE
+	          '승인요청자만이 회수가능합니다.((' || #PROJECT# || ',' || #PIPING_IO_ID# || ')'
+	       END MSG
+	  from STX_PIPING_IO_ACT_DB SPIAD
+	 WHERE SPIAD.PIPING_IO_ID = #PIPING_IO_ID#
+	   AND #PROJECT# = 'DB'
+	   AND ((SPIAD.STATUS = 0) OR (SPIAD.STATUS != 0 AND SPIAD.OWNER != #USER#))
+     		]]>
+	</checkWithDrawSTX_PIPING_IO_ACT>
+</SQL>		     

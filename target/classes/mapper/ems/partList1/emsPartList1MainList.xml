@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsPartList1MainList">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PARTLIST_PKG.ems_partlist_main_list(
+					 #{p_chk_series}
+				   , #{p_dwg_no}
+				   , #{p_maker}
+				   , #{p_maker_no}
+				   , #{p_m_desc}
+				   , #{p_status}				   
+				   , #{p_item_code}
+				   , #{p_block_no}
+				   , #{p_stage}
+				   , #{p_str_flag}
+				   , #{p_job_type}
+				   , #{p_bom}
+				   , #{p_mother_code}
+				   , #{p_job_code}
+				   , #{curPageNo}
+				   , #{pageSize}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{vcursor, mode=OUT, jdbcType=CURSOR, javaType=ResultSet	, resultMap=uscActivityStdList.procResultMap})
+		}
+  	</select>
+  	
+</mapper>

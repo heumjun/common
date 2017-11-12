@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpApprovalHolidayCheckViewMainGrid">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		 SELECT TO_CHAR(A.WORK_DAY, 'YYYY-MM-DD') as WORK_DAY,
+		       A.EMPLOYEE_NO,
+		       (SELECT C.POSITION
+		        FROM   CCC_SAWON C
+		        WHERE  C.EMPLOYEE_NUM = A.EMPLOYEE_NO) AS POSITION,
+		       (SELECT C.NAME
+		        FROM   CCC_SAWON C
+		        WHERE  C.EMPLOYEE_NUM = A.EMPLOYEE_NO) AS NAME
+		FROM   PLM_DESIGN_MH A,
+		       CCC_CALENDAR B
+		WHERE  1 = 1
+		AND    A.WORK_DAY = B.WORKINGDAY
+		AND    B.ISWORKDAY = 'N'
+		AND    A.DEPT_CODE = #{dept_code}
+		AND    A.WORK_DAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		GROUP BY A.WORK_DAY, A.EMPLOYEE_NO
+		ORDER BY WORK_DAY ASC                                                                                                
+	</select>
+</mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveNdtPcsMgnt">
+	<update id="update" parameterType="java.util.HashMap">
+		update stx_pipe_pcs_list@stxerp
+	   set ndt_pcs_flag        =  #{ndt_pcs_flag}    
+	      ,ndt_pcs_update_date       =  sysdate     
+	      ,ndt_pcs_updated_by   =  #{loginId}               
+	 where PROJECT_NO      =  #{project_no}  
+	   and PIPE_STAGE		 =  #{pipe_stage}  
+	   and JOB_ITEM_ID 		 =  #{job_item_id}
+	   and PCS_ITEM_ID 		 =  #{pcs_item_id}  
+	</update>
+</mapper>

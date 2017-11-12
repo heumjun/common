@@ -1,0 +1,1195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Main">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 SELECT  'SPPORT' 	as d_dwg_no
+	        ,'sangbok'  as d_dept_name
+	  		,'SN1049'   as d_master_ship
+	  		,'SN2043'   as d_project_no
+	   FROM DUAL
+  	</select>
+  	
+  	<select id="getSeqNextVal" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select ${seq_Name}.nextval${db_Name} from dual 
+	</select>
+  	
+  	<select id="selectMainCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT stx_dis_main_code.nextval as main_code
+	  FROM DUAL
+  	</select>
+  	
+	<select id="cousePopupList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT SDSM.STATES_CODE
+	      ,SDSM.STATES_TYPE
+	      ,SDSM.STATES_DESCRIPTION
+	      ,SDSM.STATES_NAME
+	  FROM STX_DIS_STATES_MGNT SDSM
+	 WHERE SDSM.STATES_MAIN_CATEGORY = 'CAUSE'
+	 ORDER BY SDSM.STATES_TYPE
+	         ,SDSM.NO
+  	</select>
+  	<!-- infoecoAddEcrRinkPopupList 로 이관 -->
+  	<!-- <select id="ecoAddEcrRinkPopupList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	      SELECT x.main_code ,
+		       x.main_name ,
+		       y.eng_change_related_project ,
+		       y.eng_change_description ,
+		       stx_dis_rp_emp_name_f( x.main_code ) related_person_emp_name ,
+		       stx_dis_rp_emp_no_f( x.main_code ) related_person_emp_no ,
+		       (SELECT x.states_var1
+			       FROM    stx_dis_states_mgnt x
+			       WHERE   x.states_main_category = 'ECRBASED'
+			       AND     x.states_code          = y.eng_change_based_on
+		       )
+		       AS eng_change_based_on ,
+		       STX_DIS_SHORT_EMP_NAME_F( y.user_code ) AS user_code ,
+		       y.user_code evaluator_emp_no ,
+		       stx_dis_short_emp_name_f( stx_dis_de_emp_no_f( x.main_code ) ) design_engineer ,
+		       stx_dis_de_emp_no_f( x.main_code ) design_engineer_emp_no ,
+		       x.states_desc ,
+		       x.states_code ,
+		       stx_dis_short_emp_name_f( x.locker_by ) locker_by_name ,
+		       x.locker_by ,
+		       stx_dis_short_emp_name_f( x.created_by ) created_by_name ,
+		       x.created_by,
+		       (SELECT eng_change_based_on
+			       FROM    stx_dis_eng_change_req g ,
+			               stx_dis_states_mgnt p
+			       WHERE   g.eng_change_based_on  = p.states_code
+			       AND     p.states_main_category = 'ECRBASED'
+			       AND     g.eng_change_req_code  = x.main_code
+		       )
+		       stx_dis_eng_change_req
+		FROM   stx_dis_main x ,
+		       stx_dis_eng_change_req y
+		WHERE  x.main_code  = y.eng_change_req_code
+		AND    x.main_type  = 'ECR'
+		AND    x.states_desc='Plan ECO'
+		<if test="main_name != null and main_name !='' ">
+			and x.main_name like '%'||#{main_name}||'%'  ecr,eco,item의 이름으로 검색
+		</if>
+		<if test="created_by != null and created_by !='' ">
+			and x.created_by = #{created_by}  작성자 이름으로 검색
+		</if>
+		<if test="user_group != null and user_group !='' ">
+			AND x.user_group = #{user_group}
+		</if>
+		<if test="main_code != null and main_code !='' ">
+		 and eng_change_based_on = (
+                SELECT p.states_code
+               FROM    stx_dis_eng_change_req g ,
+                       stx_dis_states_mgnt p
+               WHERE   g.eng_change_based_on  = p.states_code
+               AND     p.states_main_category = 'ECRBASED'
+               AND     g.eng_change_req_code  = (select max(TOID) from stx_dis_eng_rel where main_code=#{main_code} and eng_type='ECR')
+               )
+         </if>   
+         <if test="created_date_start != null and created_date_start !='' ">  작성 날자로 검색 
+			<![CDATA[
+				and x.created_date >= TO_DATE(#{created_date_start},'YYYY-MM-DD') 
+			]]>
+		</if>
+		<if test="created_date_end != null and created_date_end !='' ">  작성 날자로 검색 
+			<![CDATA[
+				and x.created_date <= TO_DATE(#{created_date_end},'YYYY-MM-DD') + 1
+			]]>
+		</if>   
+		) where 1=1
+		<if test="eco_cause != null and eco_cause !='' ">  원인코드가 있을때 
+				and stx_dis_eng_change_req in (SELECT main_states_code  FROM stx_dis_ecr_based WHERE sub_states_code=#{eco_cause} )
+		</if>   
+  	</select> -->
+
+	<select id="selectHistoryList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT *
+	  FROM (SELECT TO_CHAR( INSERT_DATE, 'yyyy-mm-dd hh24:mi:ss' ) AS INSERT_DATE
+	              ,STX_DIS_SHORT_EMP_NAME_F(INSERT_EMPNO) AS INSERT_EMPNO
+	              ,ACTION_TYPE
+	              ,ECO_NAME                  AS MAIN_NAME
+	              ,RELATED_ECR               AS ECO_ATTR1
+	              ,TYPE                      AS ECO_ATTR2
+	              ,ECO_CAUSE                 AS ECO_ATTR3
+	              ,DESIGN_ENGINEER           AS ECO_ATTR4
+	              ,MANUFACTURING_ENGINEER    AS ECO_ATTR5
+	              ,STATES_CODE               AS ECO_ATTR6
+	              ,PROJECT                   AS ECO_ATTR7
+	              ,ECO_DESCRIPTION           AS ECO_ATTR8
+	              ,NULL                      AS ECO_ATTR9
+	              ,NULL                      AS ECR_ATTR1
+	              ,NULL                      AS ECR_ATTR2
+	              ,NULL                      AS ECR_ATTR3
+	              ,NULL                      AS ECR_ATTR4
+	              ,NULL                      AS ECR_ATTR5
+	              ,NULL                      AS ECR_ATTR6
+	              ,NULL                      AS ECR_ATTR7
+	              ,NULL                      AS ECR_ATTR8
+	              ,NULL                      AS ECR_ATTR9
+	              ,'ECO'                     AS MAIN_TYPE
+	          FROM STX_DIS_ENG_CHANGE_ORDER_HIS
+	         UNION ALL
+	        SELECT TO_CHAR( INSERT_DATE, 'yyyy-mm-dd hh24:mi:ss' ) AS INSERT_DATE
+	              ,STX_DIS_SHORT_EMP_NAME_F(INSERT_EMPNO) AS INSERT_EMPNO
+	              ,ACTION_TYPE
+	              ,ECR_NAME                  AS MAIN_NAME
+	              ,NULL                      AS ECO_ATTR1
+	              ,NULL                      AS ECO_ATTR2
+	              ,NULL                      AS ECO_ATTR3
+	              ,NULL                      AS ECO_ATTR4
+	              ,NULL                      AS ECO_ATTR5
+	              ,NULL                      AS ECO_ATTR6
+	              ,NULL                      AS ECO_ATTR7
+	              ,NULL                      AS ECO_ATTR8
+	              ,NULL                      AS ECO_ATTR9
+	              ,STATES_DESC               AS ECR_ATTR1
+	              ,RELATED_PROJECT           AS ECR_ATTR2
+	              ,ENG_CHANGE_DESCRITPION    AS ECR_ATTR3
+	              ,ENG_RELATED_PERSON        AS ECR_ATTR4
+	              ,ENG_CHANGE_BASED_ON       AS ECR_ATTR5
+	              ,USER_CODE                 AS ECR_ATTR6
+	              ,DESIGN_ENGINEER           AS ECR_ATTR7
+	              ,LOCKER_BY                 AS ECR_ATTR8
+	              ,CREATED_BY                AS ECR_ATTR9
+	              ,'ECR'                     AS MAIN_TYPE
+	          FROM STX_DIS_ENG_CHANGE_REQ_HIS
+	       ) HIS_LIST
+	 WHERE HIS_LIST.MAIN_TYPE = #{p_main_type}
+	   AND HIS_LIST.MAIN_NAME = #{p_main_name}
+	 ORDER BY HIS_LIST.INSERT_DATE
+	</select>
+  	<!-- infoEmpNoList.xml로 이관 -->
+  	<!-- <select id="empNoPopupList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT t2.*
+		  FROM ( SELECT t1.* 
+		              , FLOOR( ( rownum - 1 ) / #{pageSize} + 1 ) AS page
+		           FROM ( SELECT x.emp_no
+		                       , x.user_name
+		                       , x.position_name
+		                       , x.dept_name
+		                       , x.dept_code
+		                    FROM stx_com_insa_user@stxerp x
+		                        ,STX_DIS_USER SDU
+		                   WHERE X.EMP_NO = SDU.EMP_NO
+		                     AND SDU.USE_YN = 'Y'
+		                     AND x.del_date IS NULL
+		                     AND x.emp_kind_cd IN ( '01', '02', '04' ) /* 01 임원 02 연봉직 03 일반직 04 전문직 05 계약직 07 파견직 */
+		<if test=' sel_condition.equalsIgnoreCase("empno") and txt_condition !=null '>
+		                     AND x.emp_no LIKE UPPER( #{txt_condition} ) || '%'
+		                   ORDER BY x.emp_no
+		</if>
+		<if test=' sel_condition.equalsIgnoreCase("empname") and txt_condition !=null '>
+		                     AND x.user_name LIKE #{txt_condition} || '%'
+		                   ORDER BY x.user_name
+		</if>
+		<if test=' sel_condition.equalsIgnoreCase("deptname") and txt_condition !=null '>
+		                     AND x.dept_name LIKE #{txt_condition} || '%'
+		                   ORDER BY x.dept_name
+		</if>
+		                ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+  	</select> -->
+  	
+  	<!-- <select id="empNoPopupListTotalCount" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) cnt
+		  FROM stx_com_insa_user@stxerp x
+		      ,STX_DIS_USER SDU
+		 WHERE X.EMP_NO = SDU.EMP_NO
+		   AND SDU.USE_YN = 'Y'
+		   AND x.del_date IS NULL
+		   AND x.emp_kind_cd IN ( '01', '02', '04' ) /* 01 임원 02 연봉직 03 일반직 04 전문직 05 계약직 07 파견직 */
+		<if test=' sel_condition.equalsIgnoreCase("empno") and txt_condition !=null '>
+           AND x.emp_no LIKE UPPER( #{txt_condition} ) || '%'
+		</if>
+		<if test=' sel_condition.equalsIgnoreCase("empname") and txt_condition !=null '>
+           AND x.user_name LIKE #{txt_condition} || '%'
+		</if>
+		<if test=' sel_condition.equalsIgnoreCase("deptname") and txt_condition !=null '>
+		   AND x.dept_name LIKE #{txt_condition} || '%'
+		</if>
+  	</select> -->
+  	<!-- infoSearchCreateByList 이관 -->
+  	<!-- <select id="createByEmpNoPopupList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT t2.*
+		  FROM ( SELECT t1.* 
+		              , FLOOR( ( rownum - 1 ) / #{pageSize} + 1 ) AS page
+		           FROM ( SELECT x.emp_no
+		                       , x.user_name
+		                       , x.dept_code
+		                       , x.dept_name
+		                    FROM stx_com_insa_user@stxerp x
+		                        ,STX_DIS_USER SDU
+		                   WHERE X.EMP_NO = SDU.EMP_NO
+		                     AND SDU.USE_YN = 'Y'
+		                     AND x.del_date IS NULL
+		                     AND x.emp_kind_cd IN ( '01', '02', '04' )
+		                     AND EXISTS ( SELECT 1
+		                                    FROM stx_dis_main p
+		                                   WHERE p.created_by = x.emp_no
+		<if test="created_date_start != null and created_date_start !='' ">  작성 날자로 검색 
+		<![CDATA[
+		                                     AND p.created_date >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' )
+		]]>
+		</if>		
+		<if test="created_date_end != null and created_date_end !='' ">  작성 날자로 검색 
+		<![CDATA[
+		                                     AND p.created_date <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1 
+		]]>
+		</if>
+		                                )
+		<if test=" sel_condition == 'empno' and txt_condition !='' ">
+		                     AND x.emp_no LIKE UPPER( #{txt_condition} ) || '%'
+		</if>
+		<if test=" sel_condition == 'empname' and txt_condition !='' ">
+		                     AND x.user_name LIKE #{txt_condition} || '%'
+		</if>
+		<if test=" sel_condition == 'empno' ">
+		                    ORDER BY x.emp_no
+		</if>
+		<if test=" sel_condition == 'empname' ">
+		                    ORDER BY x.user_name
+		</if>
+		                ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+  	</select>
+  	
+  	<select id="createByEmpNoPopupListTotalCount" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*)
+		  FROM stx_com_insa_user@stxerp x
+		      ,STX_DIS_USER SDU
+		 WHERE X.EMP_NO = SDU.EMP_NO
+		   AND SDU.USE_YN = 'Y'
+		   AND x.del_date IS NULL
+		   AND x.emp_kind_cd IN ( '01', '02', '04' )
+		   AND EXISTS ( SELECT 1
+		                  FROM stx_dis_main p
+		                 WHERE p.created_by = x.emp_no
+		<if test="created_date_start != null and created_date_start !='' ">  작성 날자로 검색 
+		<![CDATA[
+		                   AND p.created_date >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' )
+		]]>
+		</if>		
+		<if test="created_date_end != null and created_date_end !='' ">  작성 날자로 검색 
+		<![CDATA[
+		                   AND p.created_date <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1 
+		]]>
+		</if>
+		              )
+		<if test=" sel_condition == 'empno' and txt_condition !='' ">
+		   AND x.emp_no LIKE UPPER( #{txt_condition} ) || '%'
+		</if>
+		<if test=" sel_condition == 'empname' and txt_condition !='' ">
+		   AND x.user_name LIKE #{txt_condition} || '%'
+		</if>
+  	</select> -->
+  	
+  	<select id="statesReqList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		 select x.emp_no
+              , x.user_name
+              , x.position_name
+              , x.dept_name
+              , x.dept_code 
+		from STX_DIS_STATEREQ s
+		     ,stx_com_insa_user@stxerp x
+		WHERE x.del_date IS NULL
+		 AND x.emp_kind_cd IN ( '01', '02', '04' ) 
+		 and s.emp_no = x.emp_no
+		and main_code = #{main_code} 
+		and state_type=#{inoti,jdbcType=VARCHAR}
+  	</select>
+  	
+  	<!-- 부서 팝업 -->
+  	<!-- <select id="groupPopupList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT t2.*
+		  FROM ( SELECT t1.* 
+		              , FLOOR( ( rownum - 1 ) / #{pageSize} + 1 ) AS page
+		           FROM ( SELECT DISTINCT x.dept_code
+		                       , x.dept_name
+		                    FROM stx_com_insa_user@stxerp x
+		                   WHERE x.del_date IS NULL
+		                     AND x.emp_kind_cd IN ( '01', '02', '04' )
+		                     AND EXISTS ( SELECT 1
+		                                    FROM stx_dis_main p
+		                                   WHERE p.created_by = x.emp_no
+		<if test="created_date_start != null and created_date_start !='' ">  작성 날자로 검색 
+		<![CDATA[
+		                                     AND p.created_date >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+		]]>
+		</if>    
+		<if test="created_date_end != null and created_date_end !='' ">  작성 날자로 검색 
+		<![CDATA[
+		                                     AND p.created_date <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+		]]>
+		</if>
+		                                )
+		<if test=" sel_condition == 'dept_code' and txt_condition !='' ">
+		                     AND x.dept_code LIKE UPPER( #{txt_condition} ) || '%'
+		</if>
+		<if test=" sel_condition == 'dept_name' and txt_condition !='' ">
+		                     AND x.dept_name LIKE #{txt_condition} || '%'
+		</if>
+		<if test=" sel_condition == 'dept_code' ">
+		                   ORDER by x.dept_code
+		</if>
+		<if test=" sel_condition == 'dept_name' ">
+		                   ORDER BY x.dept_name
+		</if>
+		                ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+  	</select>
+  	
+    <select id="groupPopupListTotalCount" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*)
+		  FROM ( SELECT DISTINCT x.dept_code
+		              , x.dept_name
+		           FROM stx_com_insa_user@stxerp x
+		               ,STX_DIS_USER SDU
+		          WHERE X.EMP_NO = SDU.EMP_NO
+		            AND SDU.USE_YN = 'Y'
+		            AND x.del_date IS NULL
+		            AND x.emp_kind_cd IN ( '01', '02', '04' )
+		            AND EXISTS ( SELECT 1
+		                           FROM stx_dis_main p
+		                          WHERE p.created_by = x.emp_no
+		<if test="created_date_start != null and created_date_start !='' ">  작성 날자로 검색 
+		<![CDATA[
+		                            AND p.created_date >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+		]]>
+		</if>    
+		<if test="created_date_end != null and created_date_end !='' ">  작성 날자로 검색 
+		<![CDATA[
+		                            AND p.created_date <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+		]]>
+		</if>
+		                       )
+		<if test=" sel_condition == 'dept_code' and txt_condition !='' ">
+		            AND x.dept_code LIKE UPPER( #{txt_condition} ) || '%'
+		</if>
+		<if test=" sel_condition == 'dept_name' and txt_condition !='' ">
+		            AND x.dept_name LIKE #{txt_condition} || '%'
+		</if>
+		       )
+    </select> -->
+  	
+  	<!-- 원인코드  정보 조회 -->
+  	<!-- 수정되어 이관 infoEcoCategoryList.xml-->
+  	<!-- <select id="ecrEcoCodeMappingList" parameterType="com.stxdis.model.mainBean" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT X.STATES_TYPE
+	      ,X.STATES_DESCRIPTION
+	      ,NVL(Y.ENABLE_FLAG, 'N') ENABLE_FLAG
+	      ,X.STATES_CODE
+	      ,X.STATES_VAR1
+	      ,X.STATES_NAME
+	  FROM STX_DIS_STATES_MGNT X
+	      ,STX_DIS_ECR_BASED   Y
+	 WHERE X.STATES_CODE          = Y.SUB_STATES_CODE(+)
+	   AND X.STATES_MAIN_CATEGORY = 'CAUSE'
+	   AND X.STATES_NAME          IS NOT NULL
+	   AND Y.MAIN_STATES_CODE(+)  = #{statesCode,jdbcType=VARCHAR}
+	 ORDER BY X.STATES_TYPE
+	         ,X.NO
+  	</select> -->
+  	
+	<!-- 메인에 저장 -->
+  	<!-- <insert id="insertMain" parameterType="com.stxdis.model.mainBean">
+		 INSERT
+		   INTO STX_DIS_MAIN
+		        (
+		                main_code
+		              , main_name
+		              , revisions_no
+		              , created_date
+		              , modified_date
+		              , created_by
+		              , locker_by
+		              , states_code
+		              , states_desc
+		              , var1
+		              , var2
+		              , var3
+		              , var4
+		              , var5
+		              , var6
+		              , var7
+		              , var8
+		              , var9
+		              , previd
+		              , main_type
+		              , main_description
+		              , user_group
+		              , owner
+		              , pre_revisions_no
+		        )
+		        VALUES
+		        (
+		                #{main_code}
+		              , #{main_name}
+		              , #{revisions_no,jdbcType=VARCHAR}
+		              , SYSDATE
+		              , SYSDATE
+		              , #{created_by,jdbcType=VARCHAR}
+		              , #{locker_by,jdbcType=VARCHAR}
+		              , stx_dis_states_code_f( #{main_type}, #{states_desc} )
+		              , #{states_desc}
+		              , #{var1,jdbcType=VARCHAR}
+		              , #{var2,jdbcType=VARCHAR}
+		              , #{var3,jdbcType=VARCHAR}
+		              , #{var4,jdbcType=VARCHAR}
+		              , #{var5,jdbcType=VARCHAR}
+		              , #{var6,jdbcType=VARCHAR}
+		              , #{var7,jdbcType=VARCHAR}
+		              , #{var8,jdbcType=VARCHAR}
+		              , #{var9,jdbcType=VARCHAR}
+		              , #{previd,jdbcType=VARCHAR}
+		              , #{main_type}
+		              , #{main_description,jdbcType=VARCHAR}
+		              , ( SELECT dept_code
+		                    FROM stx_com_insa_user@stxerp a
+		                   WHERE emp_no = #{locker_by} )
+		              , #{owner,jdbcType=VARCHAR}
+		              , #{pre_revisions_no,jdbcType=VARCHAR}
+		        )
+	</insert> -->
+	
+  	<!--  결재자 추가 -->
+  	<!-- <insert id="insertStateReq" parameterType="com.stxdis.model.mainBean">
+	 insert into STX_DIS_STATEREQ 
+	 	( state_req_code,
+		  state_flag,
+		  no,
+		  actual_date,
+		  emp_no,
+		  main_code,
+		  state_type,
+		  referrers
+	 	)
+ 	 values
+ 	 	(
+		  stx_dis_main_code.nextval,
+		  'N',
+		  #{no},
+		  '',
+		  #{emp_no},
+		  #{main_code},
+		  #{states_type},
+		  #{referrers,jdbcType=VARCHAR}
+ 	 	)
+	</insert> -->
+	
+	<!--  결재자 삭제 -->
+	<!-- main에 연결된 ecr,eco 등 삭제 -->
+	<!-- <insert id="deleteStateReq" parameterType="com.stxdis.model.mainBean">
+		delete from STX_DIS_STATEREQ
+  		where  state_req_code = #{state_req_code}
+	</insert> -->
+	
+	<!-- <insert id="insertEngRel" parameterType="com.stxdis.model.mainBean">
+	 insert into STX_DIS_ENG_REL 
+	 	( eng_rel_code,
+	 	  main_code,
+		  no,
+		  toid,
+		  eng_type,
+		  created_by,
+		  creation_date
+	 	)
+ 	 values
+ 	 	(
+		  stx_dis_main_code.nextval,
+		  #{main_code_to},
+		  #{no},
+		  #{main_code},
+		  #{main_type},
+		  #{loginId,jdbcType=VARCHAR},
+		  sysdate
+ 	 	)
+	</insert> -->
+	
+	<!-- <insert id="insertEngRelPart" parameterType="com.stxdis.model.mainBean">
+		 insert into STX_DIS_ENG_REL 
+		 	( eng_rel_code,
+		 	  main_code,
+			  no,
+			  toid,
+			  eng_type,
+			  eng_sub_type,
+			  eng_small_type,
+			  created_by,
+			  creation_date
+		 	)
+	 	 values
+	 	 	(
+			  stx_dis_main_code.nextval,
+			  #{main_code_to},
+			  #{no},
+			  #{main_code},
+			  #{main_type},
+			  #{eng_sub_type},
+			  #{eng_small_type},
+			  #{loginId,jdbcType=VARCHAR},
+			  sysdate	
+	 	 	)
+	</insert> -->
+	
+	<!-- main에 연결된 ecr,eco 등 삭제 -->
+	<!-- <delete id="deleteEngRel" parameterType="com.stxdis.model.mainBean">
+		delete from STX_DIS_ENG_REL
+  		where  eng_rel_code = #{eng_rel_code}
+	</delete> -->
+	
+	<!-- <select id="mailPromoteSendList" parameterType="com.stxdis.model.mainBean" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select 
+	        '' AS main_name,
+	        '' AS main_desc,
+	        (a.ep_mail||'@onestx.com') as ep_mail,
+	        '' as baseOn,
+	        s.state_type,
+	        s.notify_msg,
+	        to_char(s.no) no
+	    from stx_dis_statereq s ,STX_COM_INSA_USER@stxerp A
+	    where s.MAIN_CODE = #{main_code}
+	    and a.emp_no(+) = s.emp_no
+	    union all
+	    select m.main_name  as main_name,
+	       m.main_description as main_desc,
+	       (a.ep_mail||'@onestx.com') as ep_mail,
+	       (select listagg(x.STATES_VAR1, ','||CHR(10) ) WITHIN GROUP(ORDER BY x.STATES_VAR1)  
+	       from stx_dis_eng_change_req q, stx_dis_states_mgnt x
+	       where q.eng_change_based_on = x.states_code
+	       and m.main_code = q.eng_change_req_code) as baseOn,
+	       'ECR' as state_type,
+	       '' as notify_msg,
+	       '' as no
+	    from stx_dis_eng_rel r, stx_dis_main m,STX_COM_INSA_USER@stxerp A
+	    where r.main_code = #{main_code}
+	    and eng_type='ECR'
+	    and r.toid = m.main_code
+	    and a.emp_no(+) = m.created_by
+ 	</select> -->
+ 	
+ 	<select id="selectEcrPromoteSendList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	    SELECT x.main_type || ' No. : ' || x.main_name ecr_no
+	         , x.main_type || ' No. ' || x.main_name ecr_no_subject
+	         , x.main_name
+	         , 'ECR Based on : ' || ( SELECT t.states_var1
+	                                    FROM stx_dis_states_mgnt t
+	                                   WHERE t.states_code = z.eng_change_based_on
+	                                     AND t.states_main_category = 'ECRBASED' ) ECR_BASED_ON
+	         , 'Description : ' || CHR(10) || x.main_description description
+	         , 'Related Person : ' || CHR(10) || ( SELECT listagg( stx_dis_short_emp_name_f( p.emp_no ), CHR(10) ) WITHIN GROUP( ORDER BY p.no )
+	                                                 FROM stx_dis_statereq p
+	                                                WHERE p.referrers = 'Y'
+	                                                  AND p.main_code = x.main_code ) ECR_RELATED_PERSON
+ 	         , u.ep_mail || '@onestx.com' ep_mail
+	      FROM stx_dis_main x
+	         , stx_dis_statereq y
+	         , stx_dis_eng_change_req z
+	         , stx_com_insa_user@stxerp u
+	     WHERE x.main_code = y.main_code
+	       AND x.main_code = z.eng_change_req_code
+	       AND y.emp_no = u.emp_no
+		   AND x.main_code = #{main_code}
+		<if test=' states_desc.equalsIgnoreCase("Create") and promote.equalsIgnoreCase("promote") '>
+		   AND y.no = 1
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Evaluate") and promote.equalsIgnoreCase("promote") '>
+		   AND y.no = 2
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Review") and promote.equalsIgnoreCase("promote") '>
+		   AND y.no NOT IN ( 1, 2 )
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Evaluate") and promote.equalsIgnoreCase("demote") '>
+		   AND y.no = 0
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Review") and promote.equalsIgnoreCase("demote") '>
+		   AND y.no = 1
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Create") and promote.equalsIgnoreCase("cancel") '>
+		   AND y.no = 0
+		</if>
+ 	</select>
+ 	
+ 	<select id="selectEcrToEcoRelatedSendList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		WITH
+		  ta AS (
+		    SELECT x.main_type || ' No. : ' || x.main_name ecr_no
+		         , x.main_type || ' No. ' || x.main_name ecr_title
+		         , 'ECR Description : ' || x.main_description ecr_description
+		         , 'ECR Based on : ' || ( SELECT t.states_var1
+		                                    FROM stx_dis_states_mgnt t
+		                                   WHERE t.states_code = y.eng_change_based_on
+		                                     AND t.states_main_category = 'ECRBASED' ) ecr_based_on
+		         , ( SELECT nvl2( t.ep_mail, t.ep_mail || '@onestx.com', t.ep_mail ) ep_mail
+		               FROM stx_com_insa_user@stxerp t
+		              WHERE t.emp_no = x.created_by ) ep_mail
+		      FROM stx_dis_main x
+		         , stx_dis_eng_change_req y
+		     WHERE x.main_code = y.eng_change_req_code
+		       AND x.main_code = #{ecr_main_code}
+		        )
+		, tb AS (
+		    SELECT x.main_type || ' No. : ' || x.main_name eco_no
+		         , 'ECO 생성자 정보 : ' || stx_dis_short_emp_name_f( x.created_by ) created_by
+		         , 'ECO Description : ' || x.main_description eco_description
+		         , 'ECO Cause : ' || ( SELECT t.states_var1
+		                                       FROM stx_dis_states_mgnt t
+		                                      WHERE t.states_code = y.eng_change_order_cause
+		                                        AND t.states_main_category = 'CAUSE' ) eco_cause
+		      FROM stx_dis_main x
+		         , stx_dis_eng_change_order y
+		     WHERE x.main_code = y.eng_change_order_code
+		       AND x.main_code = #{eco_main_code}
+		        )
+		SELECT *
+		  FROM ta,tb
+ 	</select>
+ 
+ 
+ 	<select id="mailPromoteOwnerSendList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT x.ep_mail || '@onestx.com' sendOwnerMail
+		  FROM stx_com_insa_user@stxerp x
+		 WHERE x.loginId = #{emp_no}
+ 	</select>
+	
+	<select id="selectLifeCycle" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT x.main_code
+		     , x.main_name
+		     , y.eng_change_related_project
+		     , y.eng_change_description
+		     , stx_dis_rp_emp_name_f( x.main_code  ) related_person_emp_name
+		     , ( SELECT x.states_var1
+                 FROM stx_dis_states_mgnt x
+                WHERE x.states_code = y.eng_change_based_on ) eng_change_based_on
+             , stx_dis_short_emp_name_f( y.user_code ) user_code
+		     , stx_dis_short_emp_name_f( stx_dis_de_emp_no_f( x.main_code ) ) design_engineer
+		     , x.states_desc
+		     , stx_dis_short_emp_name_f( x.locker_by ) locker_by_name
+		     , stx_dis_short_emp_name_f( x.created_by ) created_by_name
+	      FROM stx_dis_main x
+	         , stx_dis_eng_change_req y
+	     WHERE x.main_code = y.eng_change_req_code
+     	 AND x.main_code = #{main_code,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectRelatedECOsTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT count(*) cnt
+		  FROM stx_dis_eng_rel x
+		     , stx_dis_main y
+		 WHERE x.main_code = y.main_code
+		   AND x.eng_type = 'ECR'
+		   AND x.toid = #{main_code,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectRelatedECOs" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT t2.*
+		  FROM ( SELECT t1.* 
+		              , FLOOR( ( ROWNUM - 1 ) / #{pageSize} + 1 ) AS page
+		           FROM ( 
+						SELECT y.main_name
+						     , y.states_desc
+						     , y.main_description
+						     , x.eng_rel_code
+						  FROM stx_dis_eng_rel x
+						     , stx_dis_main y
+						 WHERE x.main_code = y.main_code
+						   AND x.eng_type = 'ECR'
+						   AND x.toid = #{main_code,jdbcType=VARCHAR}
+						 ORDER BY y.main_name
+		                ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+	</select>
+	
+	<delete id="deleteRelatedECOs" parameterType="java.util.Map">
+		DELETE
+		  FROM stx_dis_eng_rel x
+		 WHERE x.eng_rel_code = #{eng_rel_code}
+	</delete>
+	<!-- infoIsAuthApprove 이관 -->
+	<!-- <select id="selectIsAuthApprove" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		WITH
+		  ta AS (
+		  SELECT x.locker_by
+		    FROM stx_dis_main x
+		   WHERE x.main_code = #{main_code,jdbcType=VARCHAR}
+		        )
+		, tb AS (
+      SELECT t.emp_no
+        FROM ( SELECT x.emp_no
+                 FROM stx_dis_statereq x
+                WHERE x.main_code = #{main_code,jdbcType=VARCHAR}
+                  AND x.state_flag = 'N'
+                  AND x.referrers = 'N'
+                ORDER BY x.no
+             ) t
+       WHERE ROWNUM = 1
+		        )
+		SELECT CASE WHEN a.locker_by = b.emp_no
+		            THEN CASE WHEN b.emp_no = #{loginId,jdbcType=VARCHAR}
+		                      THEN 'Y'
+		                      ELSE 'N'
+		                 END
+		            ELSE 'N' 
+		       END is_auth_approve
+		  FROM ta a
+		     , tb b
+	</select> -->
+	
+	<select id="selectRoute" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT ROWNUM seq
+		     , stx_dis_short_emp_name_f( x.emp_no ) user_name
+		  FROM stx_dis_statereq x
+		 WHERE x.referrers = 'Y'
+		   AND x.main_code = #{main_code,jdbcType=VARCHAR}
+	</select>
+	
+	<!--  ecr 라이프 사이클 -->
+	<select id="stxDisPromoteDemoteProc" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_ecr_pkg.stx_dis_promote_demote_proc(p_main_code   => #{p_main_code},
+                                                       p_main_type   => #{p_main_type},
+                                                       p_appr_type   => #{p_appr_type},
+                                                       p_notify_msg  => #{p_notify_msg},
+                                                       p_user_id     => #{p_user_id},
+                                                       p_states_code => #{p_states_code},
+                                                       p_no          => #{p_no},
+                                                       p_err_msg     => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       p_err_code    => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	
+	<!--  eco 라이프 사이클 -->
+	<!-- <select id="stxDisEcoPromoteDemoteProc" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_eco_pkg.eco_promote_demote_pro(p_main_code   => #{p_main_code,jdbcType=VARCHAR},
+                                                  p_eco_no      => #{p_eco_no,jdbcType=VARCHAR},
+                                                  p_appr_type   => #{p_appr_type,jdbcType=VARCHAR},
+                                                  p_notify_msg  => #{p_notify_msg,jdbcType=VARCHAR},
+                                                  p_user_id     => #{p_user_id,jdbcType=VARCHAR},
+                                                  p_states_code => #{p_states_code,jdbcType=VARCHAR},
+                                                  p_no          => #{p_no,jdbcType=VARCHAR},
+                                                  p_error_msg   => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                  p_error_code  => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	} 
+	</select>-->
+	
+	<!-- Design Engineer 레지스터에 저장 
+	saveEngineerRegister.xml로 이동-->
+	<!-- <insert id="insertEngineerRegister" parameterType="com.stxdis.model.mainBean">
+		MERGE INTO stx_dis_user_register a
+			USING( SELECT #{main_emp_no ,jdbcType=VARCHAR} main_emp_no
+			            , #{sub_emp_no ,jdbcType=VARCHAR} sub_emp_no
+		                , #{register_type ,jdbcType=VARCHAR} register_type
+		                , #{main_type ,jdbcType=VARCHAR} main_type
+	             FROM dual ) b
+	    ON ( a.main_emp_no = b.main_emp_no and a.register_type = b.register_type and a.main_type = b.main_type  )
+	    WHEN MATCHED THEN
+	      UPDATE set a.sub_emp_no = b.sub_emp_no
+	    WHEN NOT MATCHED THEN
+	      INSERT ( a.main_emp_no
+	             , a.sub_emp_no
+	             , a.register_type
+	             , a.main_type)
+	      VALUES ( b.main_emp_no
+	             , b.sub_emp_no
+	             , b.register_type
+	             , b.main_type)
+    </insert> -->
+    <!-- infoEmpNoRegister.xml로 이관 -->
+    <!-- <select id="empNoRegisterList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT y.sub_emp_no
+	     , y.user_name
+	     , y.register_type
+	     , y.main_type
+	     , x.dept_name
+	     , x.user_name AS user_nm
+	  FROM ( SELECT #{main_emp_no} sub_emp_no
+	              , stx_dis_short_emp_name_f( #{main_emp_no} ) user_name
+	              , 'RDE' register_type
+	              , 'ECO' main_type
+	           FROM dual
+	          UNION ALL
+	         SELECT x.sub_emp_no
+	              , stx_dis_short_emp_name_f( x.sub_emp_no ) user_name
+	              , x.register_type
+	              , x.main_type
+	           FROM stx_dis_user_register x
+	          WHERE x.main_type = #{main_type}
+	            AND x.main_emp_no = #{main_emp_no}
+	       ) y
+	       , stx_com_insa_user@stxerp x
+	 WHERE y.sub_emp_no = x.emp_no
+	   AND y.main_type = #{main_type}
+    </select>
+     -->
+    <select id="employeeListTotalCount" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT( * ) count
+		  FROM stx_com_insa_user@stxerp x
+    </select>
+    
+	<select id="ecrToEcoRelatedList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT t2.*
+		  FROM ( SELECT t1.* 
+		              , FLOOR( ( ROWNUM - 1 ) / #{pageSize} + 1 ) AS page
+		           FROM ( SELECT m.main_code
+		                       , m.main_name
+		                       , m.main_description
+		                       , m.revisions_no
+		                       , m.states_desc
+		                       , stx_dis_short_emp_name_f( m.created_by ) created_by
+		                       , y.eng_change_order_cause
+		                       , ( SELECT x.states_name
+						            FROM stx_dis_states_mgnt x
+						           WHERE x.states_main_category = 'CAUSE'
+						             AND x.states_code = y.eng_change_order_cause ) eng_change_order_cause_desc
+		                    FROM stx_dis_main m
+		                       , stx_dis_eng_change_order y
+		                   WHERE m.main_code = y.eng_change_order_code
+		                     AND M.main_type = 'ECO'
+		                     AND NOT EXISTS ( SELECT 1 
+		                                        FROM stx_dis_eng_rel t
+		                                       WHERE t.toid = m.main_code
+		                                         AND t.eng_type = 'ECR' )
+		<if test=" eco_name != null and eco_name !='' ">
+		                     AND m.main_name LIKE #{eco_name} || '%'
+		</if>
+		<if test=" emp_no != null and emp_no !='' ">
+		                     AND m.created_by = #{created_by}
+		</if>
+		<if test=" (eco_name == null or eco_name =='') and (emp_no == null or emp_no =='') and created_date_start != null and created_date_start !='' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		                     AND m.created_date >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+		]]>
+		</if>		
+		<if test=" (eco_name == null or eco_name =='') and (emp_no == null or emp_no =='') and created_date_end != null and created_date_end !='' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		                     AND m.created_date <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+		]]>
+		</if>
+		                   ORDER BY m.main_name DESC
+				            ) t1
+				   ) t2
+		 WHERE page = #{curPageNo}
+	</select>
+	
+	<select id="ecrToEcoRelatedListTotalCount"  parameterType="java.util.Map" resultType="String">
+		SELECT count(*) cnt
+		  FROM stx_dis_main m
+             , stx_dis_eng_change_order y
+		 WHERE m.main_code = y.eng_change_order_code
+           AND M.main_type = 'ECO'
+		   AND NOT EXISTS ( SELECT 1
+		                      FROM stx_dis_eng_rel t
+		                     WHERE t.toid = m.main_code
+		                       AND t.eng_type = 'ECR' )
+		<if test=" eco_name != null and eco_name !='' ">
+		   AND m.main_name LIKE #{eco_name} || '%'
+		</if>
+		<if test=" emp_no != null and emp_no !='' ">
+	       AND m.created_by = #{created_by}
+		</if>
+		<if test=" (eco_name == null or eco_name =='') and (emp_no == null or emp_no =='') and created_date_start != null and created_date_start !='' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		   AND m.created_date >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+		]]>
+		</if>		
+		<if test=" (eco_name == null or eco_name =='') and (emp_no == null or emp_no =='') and created_date_end != null and created_date_end !='' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		   AND m.created_date <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+		]]>
+		</if>
+	</select>
+	
+	<insert id="insertEcrToEcoRelated">
+		INSERT
+		  INTO stx_dis_eng_rel x
+		       ( x.eng_rel_code, x.main_code, x.no, x.toid, x.eng_type, x.created_by, x.creation_date )
+		       VALUES
+		       ( stx_dis_main_code.nextval, #{eco_main_code}, 0, #{ecr_main_code}, 'ECR', #{loginId}, SYSDATE )
+	</insert>
+	
+	<insert id="insertItemToEcoRelated">
+		INSERT
+		  INTO stx_dis_eng_rel x
+		       ( x.eng_rel_code, x.main_code, x.no, x.toid, x.eng_type, x.eng_sub_type, x.eng_small_type, x.created_by, x.creation_date )
+		       VALUES
+		       ( stx_dis_main_code.nextval, #{eco_main_code}, 0, #{item_main_code}, 'PART', 'PART', ( SELECT CASE WHEN x.states_desc = 'Cancel'
+		                                                                                                          THEN 'OPART'
+		                                                                                                          WHEN x.revisions_no = '00' AND x.states_desc != 'Cancel'
+		                                                                                                          THEN 'NPART'
+		                                                                                                          WHEN x.revisions_no != '00' AND x.states_desc != 'Cancel'
+		                                                                                                          THEN 'RPART'
+		                                                                                                     END eng_small_type
+		                                                                                                FROM stx_dis_main x
+		                                                                                               WHERE x.main_code = #{item_main_code} )
+		       , #{loginId}, SYSDATE )
+	</insert>
+	
+	<select id="selectEcoCauseList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT x.sub_states_code
+		  FROM stx_dis_ecr_based x
+		 WHERE EXISTS ( SELECT 1
+		                  FROM stx_dis_eng_change_req g
+		                     , stx_dis_states_mgnt p
+		                 WHERE g.eng_change_based_on = p.states_code
+		                   AND p.states_main_category = 'ECRBASED'
+		                   AND g.eng_change_req_code = #{main_code,jdbcType=VARCHAR}
+		                   AND x.main_states_code = p.states_code )
+	</select>
+	
+	<!-- 일주일 단위로 날짜계산 -->
+	<select id="selectWeekList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select 
+			  to_char(sysdate,'yyyy-MM-DD')    as created_date_end
+			, to_char(sysdate-7,'yyyy-MM-DD')  as created_date_start
+		from dual
+	</select>
+	
+	<!-- 오늘 기준 원하는 기간만큼 날짜계산 -->
+	<select id="selectAddDay" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select 
+				to_char(sysdate + nvl( #{add_day}, 0),'yyyy-MM-DD')  as add_date
+			,	to_char(sysdate + nvl( #{add_day}, 0),'yyyy-MM-DD')  as add_date_val
+		from dual
+	</select>
+	
+  	<!-- <select id="selectCatalogCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT t2.*
+		  FROM ( SELECT t1.* 
+		              , FLOOR( ( rownum - 1 ) / #{pageSize} + 1 ) AS page
+		           FROM ( 
+		                  SELECT x.catalog_code
+		                       , x.catalog_desc
+		                    FROM stx_dis_sd_catalog x
+		                   WHERE x.enable_flag = 'Y'
+		<if test='catalog_code != null and !catalog_code.equalsIgnoreCase("")'>
+		                     AND x.catalog_code LIKE #{catalog_code} || '%'
+		</if>
+		<if test='catalog_type.equalsIgnoreCase("OUT1")'>
+		                     AND x.activity_flag = 'Y'
+		</if>
+		<if test='catalog_type.equalsIgnoreCase("OUT2")'>
+		                     AND x.job_flag = 'Y'
+		</if>
+		<if test='catalog_type.equalsIgnoreCase("PD")'>
+		                     AND x.pd_flag = 'Y'
+		</if>
+		                   ORDER BY x.catalog_code
+		                ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectCatalogCodeListTotalCount" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) cnt
+		  FROM stx_dis_sd_catalog x
+		 WHERE x.enable_flag = 'Y'
+		<if test='catalog_code != null and !catalog_code.equalsIgnoreCase("")'>
+		   AND x.catalog_code LIKE #{catalog_code} || '%'
+		</if>
+		<if test='catalog_type.equalsIgnoreCase("OUT1")'>
+		   AND x.activity_flag = 'Y'
+		</if>
+		<if test='catalog_type.equalsIgnoreCase("OUT2")'>
+		   AND x.job_flag = 'Y'
+		</if>
+		<if test='catalog_type.equalsIgnoreCase("PD")'>
+		   AND x.pd_flag = 'Y'
+		</if>
+		 ORDER BY x.catalog_code
+  	</select> -->
+  	<!-- infoPaintCountCatalogCodeList -->
+	<!-- <select id="selectPaintCountCatalogCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT t2.*
+	  FROM (
+	        SELECT t1.* 
+	             , FLOOR( ( rownum - 1 ) / #{pageSize} + 1 ) AS page
+	          FROM ( 
+	                SELECT SDSC.CATALOG_CODE
+	                     , SDSC.CATALOG_DESC
+	                  FROM STX_DIS_SD_CATALOG SDSC
+	                 WHERE SDSC.CATALOG_CODE LIKE 'V1%'
+	                   AND SDSC.PAINT_USC_FLAG = 'Y'
+		<if test='catalog_code != null and !catalog_code.equalsIgnoreCase("")'>
+	                   AND SDSC.CATALOG_CODE LIKE #{catalog_code} || '%'
+		</if>
+	                   AND NOT EXISTS
+	                       (SELECT 1
+	                          FROM (
+	                                SELECT BOM.ITEM_CATALOG
+	                                  FROM (
+	                                        SELECT SDB.MOTHER_CODE
+	                                             , SDB.ITEM_CODE
+	                                             , SDB.ITEM_CATALOG
+	                                          FROM STX_DIS_BOM SDB
+	                                         WHERE NOT EXISTS
+	                                               (SELECT 1
+	                                                  FROM STX_DIS_BOM_WORK SDBW
+	                                                 WHERE SDB.Mother_Code = SDBW.MOTHER_CODE
+	                                                   AND sdb.item_code = sdbw.item_code
+	                                               )
+	                                           AND NOT EXISTS
+	                                               (SELECT 1
+	                                                  FROM STX_DIS_PAINT_BOM_TEMP SDPBT
+	                                                 WHERE sdb.mother_code = SDPBT.MOTHER_CODE
+	                                                   AND sdb.item_code = sdpbt.item_code
+	                                               )
+	                                         UNION ALL
+	                                        SELECT SDBW.MOTHER_CODE
+	                                             , SDBW.ITEM_CODE
+	                                             , SDBW.ITEM_CATALOG
+	                                          FROM STX_DIS_BOM_WORK SDBW
+	                                         UNION ALL
+	                                        SELECT SDPBT.MOTHER_CODE
+	                                             , SDPBT.ITEM_CODE
+	                                             , SDPBT.ITEM_CATALOG
+	                                          FROM STX_DIS_PAINT_BOM_TEMP SDPBT
+	                                       ) BOM
+	                                 START WITH BOM.MOTHER_CODE = #{p_mother_code}
+	                                 CONNECT BY PRIOR BOM.ITEM_CODE = BOM.MOTHER_CODE
+	                               ) BOM_LIST
+	                         WHERE BOM_LIST.ITEM_CATALOG = SDSC.CATALOG_CODE
+	                       )
+	                 ORDER BY SDSC.CATALOG_CODE
+	               ) t1
+	       ) t2
+	 WHERE page = #{curPageNo}
+  	</select> -->
+  	
+  	<!-- <select id="selectPaintCountCatalogCodeListTotalCount" parameterType="java.util.Map" resultType="String">
+	SELECT COUNT(1) AS cnt
+	  FROM STX_DIS_SD_CATALOG SDSC
+	 WHERE SDSC.CATALOG_CODE LIKE 'V1%'
+	   AND SDSC.PAINT_USC_FLAG = 'Y'
+		<if test='catalog_code != null and !catalog_code.equalsIgnoreCase("")'>
+	   AND SDSC.CATALOG_CODE LIKE #{catalog_code} || '%'
+		</if>
+	   AND NOT EXISTS
+	       (SELECT 1
+	          FROM (
+	                SELECT BOM.ITEM_CATALOG
+	                  FROM (
+	                        SELECT SDB.MOTHER_CODE
+	                             , SDB.ITEM_CODE
+	                             , SDB.ITEM_CATALOG
+	                          FROM STX_DIS_BOM SDB
+	                         WHERE NOT EXISTS
+	                               (SELECT 1
+	                                  FROM STX_DIS_BOM_WORK SDBW
+	                                 WHERE SDB.Mother_Code = SDBW.MOTHER_CODE
+	                                   AND sdb.item_code = sdbw.item_code
+	                               )
+	                           AND NOT EXISTS
+	                               (SELECT 1
+	                                  FROM STX_DIS_PAINT_BOM_TEMP SDPBT
+	                                 WHERE sdb.mother_code = SDPBT.MOTHER_CODE
+	                                   AND sdb.item_code = sdpbt.item_code
+	                               )
+	                         UNION ALL
+	                        SELECT SDBW.MOTHER_CODE
+	                             , SDBW.ITEM_CODE
+	                             , SDBW.ITEM_CATALOG
+	                          FROM STX_DIS_BOM_WORK SDBW
+	                         UNION ALL
+	                        SELECT SDPBT.MOTHER_CODE
+	                             , SDPBT.ITEM_CODE
+	                             , SDPBT.ITEM_CATALOG
+	                          FROM STX_DIS_PAINT_BOM_TEMP SDPBT
+	                       ) BOM
+	                 START WITH BOM.MOTHER_CODE = #{p_mother_code}
+	                 CONNECT BY PRIOR BOM.ITEM_CODE = BOM.MOTHER_CODE
+	               ) BOM_LIST
+	         WHERE BOM_LIST.ITEM_CATALOG = SDSC.CATALOG_CODE
+	       )
+  	</select> -->
+
+	<select id="selectUserInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT x.emp_no
+		     , x.user_name
+		     , x.dept_code
+		     , x.dept_name
+		  FROM stx_com_insa_user@stxerp x
+		 WHERE x.emp_no = #{loginId}
+	</select>
+	
+	<!-- <insert id="insertErrorLog" parameterType="java.util.Map">
+		INSERT
+		  INTO stx_dis_error_log x
+		       (
+		               x.error_log_id
+		             , x.execute_url
+		             , x.emp_no
+		             , x.error_date
+		             , x.error_msg
+		       )
+		       VALUES
+		       (
+		               stx_dis_error_log_id.nextval
+		             , #{execute_url}
+		             , #{loginId}
+		             , SYSDATE
+		             , #{error_msg}
+		       )
+	</insert> -->
+	
+	<!-- <select id="mainPopupList" parameterType="com.stxdis.model.mainBean" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select 
+			main_code,
+			main_name,
+			main_description,
+			revisions_no,
+			states_desc,
+			created_by,
+			to_char(created_date,'yyyymmdd') as created_date,
+			user_group 
+		from STX_DIS_MAIN 
+		WHERE
+		1=1 
+		<if test="main_type != null and main_type !='' ">
+		and main_type = #{main_type} ecr,eco,item 등의 값이 들어온다
+		</if>
+		<if test="main_name != null and main_name !='' ">
+			and main_name like '%'||#{main_name}||'%'  ecr,eco,item의 이름으로 검색
+		</if>
+		<if test="states_code != null and states_code !='' ">
+			and states_code = #{states_code}  상태코드로 검색
+		</if>
+		<if test="created_by != null and created_by !='' ">
+			and created_by= #{created_by}   작성자로 검색
+		</if>
+		<if test="created_date_start != null and created_date_start !='' ">  작성 날자로 검색 
+			<![CDATA[
+				and created_date >= TO_DATE(#{created_date_start},'YYYY-MM-DD') 
+			]]>
+		</if>
+		<if test="created_date_end != null and created_date_end !='' ">  작성 날자로 검색 
+			<![CDATA[
+				and created_date <= TO_DATE(#{created_date_end},'YYYY-MM-DD') 
+			]]>
+		</if>
+		<if test="sd_code_find != null and sd_code_find !='' ">  수정 날자로 검색
+			<![CDATA[
+				and modified_date >= TO_DATE(#{modified_date},'YYYY-MM-DD') 
+			]]>
+		</if>
+		<if test="modified_date != null and modified_date !='' ">  수정 날자로 검색
+			<![CDATA[
+				and modified_date <= TO_DATE(#{modified_date},'YYYY-MM-DD') 
+			]]>
+		</if>
+		<if test="revisions_no != null and revisions_no !='' ">
+			AND revisions_no = #{revisions_no}
+		</if>
+		<if test="last_revisions_frags != null and last_revisions_frags !='' ">
+			AND last_revisions_frags = 'Y'
+		</if>
+		<if test="user_group != null and user_group !='' ">
+			AND user_group = #{user_group}
+		</if>
+  	</select> -->	
+	
+</mapper>

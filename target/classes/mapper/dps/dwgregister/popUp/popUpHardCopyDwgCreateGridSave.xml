@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpHardCopyDwgCreateGridSave">
+	<select id="selectDeployNoPostFix" parameterType="java.util.Map" resultType="String">
+		SELECT NVL(TO_CHAR(TO_NUMBER(MAX(DEPLOY_NO_POSTFIX)) + 1, '00009'), '00001') AS MAXNO
+		FROM   PLM_HARDCOPY_DWG
+		WHERE  DEPLOY_NO_PREFIX = #{deployNoPrefix}
+	</select>
+	
+	<insert id="insert" parameterType="java.util.Map">
+		INSERT
+		INTO   PLM_HARDCOPY_DWG
+		VALUES ( #{inputGubun},
+		               #{deployNo},
+		               #{deployNoPrefix},
+		               #{deployNoPostfix},
+		               #{dept_code},
+		               #{loginId},
+		               TO_DATE(#{requestDate}, 'YYYY-MM-DD'),
+		               TO_DATE(#{deployDate}, 'YYYY-MM-DD'),
+		               #{project_no},
+		               #{deploy_rev},
+		               #{dwg_no},
+		               #{dwg_desc},
+		               #{reason_code},
+		               #{cause_depart_code},
+		               #{rev_timing},
+		               #{deploy_desc},
+		               NULL,
+		               NULL,
+		               SYSDATE,
+		               #{loginId},
+		               NULL,
+		               NULL,
+		               #{eco_no} )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE PLM_ACTIVITY
+		SET    ACTUALSTARTDATE = TRUNC(SYSDATE),
+		       ACTUALFINISHDATE = TRUNC(SYSDATE),
+		       ATTRIBUTE4 = 'HARD COPY',
+		       ATTRIBUTE5 = 'HARD COPY'
+		WHERE  PROJECTNO = #{project_no}
+		AND    ACTIVITYCODE = #{activity_code}
+		AND    ACTUALSTARTDATE IS NULL 
+	</update>
+</mapper>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoPaintJobEditList">
+  <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT BOM.LEVEL_NO                              AS LEVEL_NO
+	      ,SDI_MOTHER.ITEM_CATALOG                   AS MOTHER_CATALOG
+	      ,BOM.MOTHER_CODE                           AS MOTHER_CODE
+	      ,'+'                                       AS SUB_LEVEL_ADD_ROW
+	      ,BOM.FINDNUMBER                            AS FINDNUMBER
+	      ,BOM.ITEM_CATALOG                          AS ITEM_CATALOG
+	      ,'...'                                     AS ITEM_CATALOG_POPUP
+	      ,STX_DIS_LOWER_PAINT_COUNT_YN_F(BOM.ITEM_CATALOG) AS PAINT_COUNT_YN
+	      ,BOM.ITEM_CODE                             AS ITEM_CODE
+	      ,(SELECT SDI.ITEM_DESC
+	          FROM STX_DIS_ITEM SDI
+	         WHERE SDI.ITEM_CODE = BOM.ITEM_CODE)    AS ITEM_DESC
+	      ,NULL                                      AS ITEM_CREATE_ERROR
+	      ,NULL                                      AS BOM_CONNECT_ERROR    
+	      ,SDI_ITEM.ATTR1                            AS ITEM_ATTRIBUTE01
+	      ,SDI_ITEM.ATTR2                            AS ITEM_ATTRIBUTE02
+	      ,SDI_ITEM.ATTR3                            AS ITEM_ATTRIBUTE03
+	      ,SDI_ITEM.ATTR4                            AS ITEM_ATTRIBUTE04
+	      ,SDI_ITEM.ATTR5                            AS ITEM_ATTRIBUTE05
+	      ,SDI_ITEM.ATTR6                            AS ITEM_ATTRIBUTE06
+	      ,SDI_ITEM.ATTR7                            AS ITEM_ATTRIBUTE07
+	      ,SDI_ITEM.ATTR8                            AS ITEM_ATTRIBUTE08
+	      ,SDI_ITEM.ATTR9                            AS ITEM_ATTRIBUTE09
+	      ,SDI_ITEM.ATTR10                           AS ITEM_ATTRIBUTE10
+	      ,SDI_ITEM.ATTR11                           AS ITEM_ATTRIBUTE11
+	      ,SDI_ITEM.ATTR12                           AS ITEM_ATTRIBUTE12
+	      ,SDI_ITEM.ATTR13                           AS ITEM_ATTRIBUTE13
+	      ,SDI_ITEM.ATTR14                           AS ITEM_ATTRIBUTE14
+	      ,SDI_ITEM.ATTR15                           AS ITEM_ATTRIBUTE15 
+	      ,BOM.BOM10                                 AS BOM10
+	      ,BOM.BOM11                                 AS BOM11
+	      ,STX_DIS_SHORT_EMP_NAME_F(BOM.CREATE_BY )  AS CREATE_BY
+	      ,TO_CHAR( BOM.CREATE_DATE, 'YYYY-MM-DD' )  AS CREATE_DATE
+	      ,STX_DIS_SHORT_EMP_NAME_F( BOM.MODIFY_BY ) AS MODIFY_BY
+	      ,TO_CHAR( BOM.MODIFY_DATE, 'YYYY-MM-DD' )  AS MODIFY_DATE
+	      ,BOM.STATES                                AS STATES
+	      ,BOM.STATES_DESC                           AS STATES_DESC
+	      ,BOM.BOM_STATES                            AS BOM_STATES 
+	      ,NULL                                      AS WBS_SUB_MOTHER_ID
+	      ,ROWNUM*-1                                 AS WBS_SUB_ITEM_ID 
+	  FROM (
+	        SELECT TO_CHAR(LEVEL)      AS LEVEL_NO
+	              ,A.MOTHER_CODE       AS MOTHER_CODE
+	              ,A.FINDNUMBER        AS FINDNUMBER
+	              ,A.ITEM_CODE         AS ITEM_CODE
+	              ,A.ITEM_CATALOG      AS ITEM_CATALOG 
+	              ,A.CREATE_BY         AS CREATE_BY
+	              ,A.CREATE_DATE       AS CREATE_DATE
+	              ,A.MODIFY_BY         AS MODIFY_BY
+	              ,A.MODIFY_DATE       AS MODIFY_DATE
+	              ,A.STATES            AS STATES 
+	              ,CASE WHEN A.STATES = 'O' THEN NULL    
+	                    WHEN A.STATES = 'A' THEN '추가'
+	                    WHEN A.STATES = 'D' THEN '삭제'
+	               END                 AS STATES_DESC
+	              ,A.BOM_STATES        AS BOM_STATES
+	              ,A.BOM10             AS BOM10
+	              ,A.BOM11             AS BOM11 
+	          FROM (
+	                SELECT SDB.MOTHER_CODE   AS MOTHER_CODE 
+	                      ,SDB.FINDNUMBER    AS FINDNUMBER  
+	                      ,SDB.ITEM_CODE     AS ITEM_CODE   
+	                      ,SDB.ITEM_CATALOG  AS ITEM_CATALOG
+	                      ,SDB.CREATE_BY     AS CREATE_BY   
+	                      ,SDB.CREATE_DATE   AS CREATE_DATE 
+	                      ,SDB.MODIFY_BY     AS MODIFY_BY   
+	                      ,SDB.MODIFY_DATE   AS MODIFY_DATE 
+	                      ,'O'               AS STATES   
+	                      ,'Y'               AS BOM_STATES   
+	                      ,SDB.BOM10         AS BOM10
+	                      ,SDB.BOM11         AS BOM11
+	                  FROM STX_DIS_BOM SDB
+	                 WHERE NOT EXISTS
+	                       (SELECT 1
+	                          FROM STX_DIS_BOM_WORK SDBW_SUB
+	                         WHERE SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+	                           AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+	                       )
+	                   AND NOT EXISTS
+	                       (SELECT 1
+	                          FROM STX_DIS_PAINT_BOM_TEMP SDBT
+	                         WHERE SDB.MOTHER_CODE = SDBT.MOTHER_CODE
+	                           AND SDB.ITEM_CODE   = SDBT.ITEM_CODE
+	                       )
+	                UNION ALL
+	                SELECT SDBW.MOTHER_CODE  AS MOTHER_CODE 
+	                      ,SDBW.FINDNUMBER   AS FINDNUMBER  
+	                      ,SDBW.ITEM_CODE    AS ITEM_CODE   
+	                      ,SDBW.ITEM_CATALOG AS ITEM_CATALOG
+	                      ,SDBW.CREATE_BY    AS CREATE_BY   
+	                      ,SDBW.CREATE_DATE  AS CREATE_DATE 
+	                      ,SDBW.MODIFY_BY    AS MODIFY_BY   
+	                      ,SDBW.MODIFY_DATE  AS MODIFY_DATE 
+	                      ,SDBW.STATES       AS STATES            
+	                      ,'Y'               AS BOM_STATES     
+	                      ,SDBW.BOM10        AS BOM10
+	                      ,SDBW.BOM11        AS BOM11   
+	                  FROM STX_DIS_BOM_WORK SDBW
+	                UNION ALL
+	                SELECT SDBT.MOTHER_CODE  AS MOTHER_CODE
+	                      ,SDBT.FINDNUMBER   AS FINDNUMBER 
+	                      ,SDBT.ITEM_CODE    AS ITEM_CODE  
+	                      ,SDBT.ITEM_CATALOG AS ITEM_CATALOG
+	                      ,SDBT.CREATE_BY    AS CREATE_BY
+	                      ,SDBT.CREATE_DATE  AS CREATE_DATE 
+	                      ,SDBT.MODIFY_BY    AS MODIFY_BY
+	                      ,SDBT.MODIFY_DATE  AS MODIFY_DATE 
+	                      ,SDBT.STATES       AS STATES
+	                      ,SDBT.BOM_STATES   AS BOM_STATES     
+	                      ,SDBT.BOM10        AS BOM10
+	                      ,SDBT.BOM11        AS BOM11
+	                  FROM STX_DIS_PAINT_BOM_TEMP SDBT
+	                 WHERE SDBT.WBS_ITEM_CODE =  #{p_top_item}
+	                   AND SDBT.ITEM_CODE     IS NOT NULL
+	                   AND SDBT.MOTHER_CODE   IS NOT NULL
+	               ) A
+	          START WITH A.MOTHER_CODE     =  #{p_top_item}
+	          CONNECT BY PRIOR A.ITEM_CODE = A.MOTHER_CODE
+	       ) BOM
+	      ,STX_DIS_ITEM   SDI_MOTHER
+	      ,STX_DIS_ITEM   SDI_ITEM
+	 WHERE BOM.MOTHER_CODE = SDI_MOTHER.ITEM_CODE
+	   AND BOM.ITEM_CODE   = SDI_ITEM.ITEM_CODE
+	 UNION ALL
+	SELECT SDWBT.LEVEL_NO                              AS LEVEL_NO
+	      ,SDWBT.MOTHER_CATALOG                        AS MOTHER_CATALOG
+	      ,SDWBT.MOTHER_CODE                           AS MOTHER_CODE
+	      ,'+'                                         AS SUB_LEVEL_ADD_ROW
+	      ,NULL                                        AS FINDNUMBER
+	      ,SDWBT.ITEM_CATALOG                          AS ITEM_CATALOG
+	      ,'...'                                       AS ITEM_CATALOG_POPUP
+          ,STX_DIS_LOWER_PAINT_COUNT_YN_F(SDWBT.ITEM_CATALOG) AS PAINT_COUNT_YN
+	      ,SDWBT.ITEM_CODE                             AS ITEM_CODE
+	      ,(SELECT SDI.ITEM_DESC
+	          FROM STX_DIS_ITEM SDI
+	         WHERE SDI.ITEM_CODE = SDWBT.ITEM_CODE)    AS ITEM_DESC
+	      ,SDWBT.ITEM_CREATE_ERROR                     AS ITEM_CREATE_ERROR
+	      ,SDWBT.BOM_CONNECT_ERROR                     AS BOM_CONNECT_ERROR
+	      ,SDWBT.ATTRIBUTE01                           AS ITEM_ATTRIBUTE01
+	      ,SDWBT.ATTRIBUTE02                           AS ITEM_ATTRIBUTE02
+	      ,SDWBT.ATTRIBUTE03                           AS ITEM_ATTRIBUTE03
+	      ,SDWBT.ATTRIBUTE04                           AS ITEM_ATTRIBUTE04
+	      ,SDWBT.ATTRIBUTE05                           AS ITEM_ATTRIBUTE05
+	      ,SDWBT.ATTRIBUTE06                           AS ITEM_ATTRIBUTE06
+	      ,SDWBT.ATTRIBUTE07                           AS ITEM_ATTRIBUTE07
+	      ,SDWBT.ATTRIBUTE08                           AS ITEM_ATTRIBUTE08
+	      ,SDWBT.ATTRIBUTE09                           AS ITEM_ATTRIBUTE09
+	      ,SDWBT.ATTRIBUTE10                           AS ITEM_ATTRIBUTE10
+	      ,SDWBT.ATTRIBUTE11                           AS ITEM_ATTRIBUTE11
+	      ,SDWBT.ATTRIBUTE12                           AS ITEM_ATTRIBUTE12
+	      ,SDWBT.ATTRIBUTE13                           AS ITEM_ATTRIBUTE13
+	      ,SDWBT.ATTRIBUTE14                           AS ITEM_ATTRIBUTE14
+	      ,SDWBT.ATTRIBUTE15                           AS ITEM_ATTRIBUTE15 
+	      ,SDWBT.ATTRIBUTE01                           AS BOM10
+	      ,SDWBT.ATTRIBUTE02                           AS BOM11
+	      ,STX_DIS_SHORT_EMP_NAME_F(SDWBT.CREATE_BY )  AS CREATE_BY
+	      ,TO_CHAR( SDWBT.CREATE_DATE, 'YYYY-MM-DD' )  AS CREATE_DATE
+	      ,STX_DIS_SHORT_EMP_NAME_F( SDWBT.MODIFY_BY ) AS MODIFY_BY
+	      ,TO_CHAR( SDWBT.MODIFY_DATE, 'YYYY-MM-DD' )  AS MODIFY_DATE
+	      ,SDWBT.STATES                                AS STATES
+	      ,CASE WHEN SDWBT.STATES = 'O' THEN NULL    
+	            WHEN SDWBT.STATES = 'A' THEN '추가'
+	            WHEN SDWBT.STATES = 'D' THEN '삭제'
+	            WHEN SDWBT.STATES = 'C' THEN '수정'
+	       END                                         AS STATES_DESC
+	      ,'N'                                         AS BOM_STATES
+	      ,WBS_SUB_MOTHER_ID                           AS WBS_SUB_MOTHER_ID
+	      ,WBS_SUB_ITEM_ID                             AS WBS_SUB_ITEM_ID
+	  FROM STX_DIS_PAINT_BOM_TEMP SDWBT
+	 WHERE SDWBT.WBS_ITEM_CODE =  #{p_top_item}
+	   AND SDWBT.ITEM_CODE     IS NULL
+	</select>
+</mapper>  	

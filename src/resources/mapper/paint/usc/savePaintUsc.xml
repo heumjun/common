@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintUsc">
+  <select id="insertPaintWbsReCreate" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_dis_paint_pkg.paint_wbs_re_create(p_error_code  => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                 p_error_msg   => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                 p_mother_code => #{p_mother_code},
+                                                 p_item_code => #{p_item_code},
+                                                 p_login_id => #{p_login_id})
+	}
+	</select>
+	<select id="deletePaintUscJobItem" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_dis_paint_pkg.paint_usc_job_item_delete(p_error_code  => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       p_error_msg   => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       p_bom_states  => #{p_bom_states,jdbcType=VARCHAR},
+                                                       p_states      => #{p_states,jdbcType=VARCHAR},
+                                                       p_mother_code => #{p_mother_code,jdbcType=VARCHAR},
+                                                       p_item_code   => #{p_item_code,jdbcType=VARCHAR},
+                                                       p_login_id    => #{p_login_id,jdbcType=VARCHAR})
+	}
+	</select>
+	<select id="insertPaintUscJobItemAdd" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_dis_paint_pkg.paint_usc_job_item_add(p_error_code        => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                    p_error_msg         => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                    p_wbs_item_code     => #{p_wbs_item_code,jdbcType=VARCHAR},
+                                                    p_wbs_sub_item_id   => #{p_wbs_sub_item_id,jdbcType=VARCHAR},
+                                                    p_ship_type         => #{p_ship_type,jdbcType=VARCHAR},
+                                                    p_level_no          => #{p_level_no,jdbcType=VARCHAR},
+                                                    p_mother_catalog    => #{p_mother_catalog,jdbcType=VARCHAR},
+                                                    p_item_catalog      => #{p_item_catalog,jdbcType=VARCHAR},
+                                                    p_bom_states        => #{p_bom_states,jdbcType=VARCHAR},
+                                                    p_states            => #{p_states,jdbcType=VARCHAR},
+                                                    p_mother_code       => #{p_mother_code,jdbcType=VARCHAR},
+                                                    p_item_code         => #{p_item_code,jdbcType=VARCHAR},
+                                                    p_findnumber        => #{p_findnumber,jdbcType=VARCHAR},
+                                                    p_bom10             => #{p_bom10,jdbcType=VARCHAR},
+                                                    p_bom11             => #{p_bom11,jdbcType=VARCHAR},
+                                                    p_wbs_sub_mother_id => #{p_wbs_sub_mother_id,jdbcType=VARCHAR},
+                                                    p_login_id          => #{p_login_id,jdbcType=VARCHAR},
+                                                    p_item_desc         => #{p_item_desc,jdbcType=VARCHAR})
+	}
+	</select>
+	<select id="insertPaintUscJobMotherCheck" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_dis_paint_pkg.paint_usc_job_mother_check(p_error_code    => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                        p_error_msg     => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                        p_wbs_item_code => #{p_wbs_item_code,jdbcType=VARCHAR})
+	}
+	</select>
+	
+	<select id="savePaintUscBom" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_dis_paint_pkg.paint_usc_bom_add(p_wbs_item_code => #{p_wbs_item_code,jdbcType=VARCHAR},
+	                                           p_eco_no        => #{p_eco_no,jdbcType=VARCHAR},
+	                                           p_login_id      => #{p_login_id,jdbcType=VARCHAR},
+	                                           p_project_no    => #{p_project_no,jdbcType=VARCHAR},
+	                                           p_error_code    => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                               p_error_msg     => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	
+	<select id="savePaintWbsEcoAdd" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_dis_paint_pkg.paint_wbs_bom_eco_add(p_error_code  => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                   p_error_msg   => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                   p_mother_code => #{p_mother_code},
+                                                   p_item_code => #{p_item_code},
+                                                   p_eco_main_name => #{p_eco_main_name},
+                                                   p_login_id => #{p_login_id})
+	}
+	</select>
+</mapper>  	

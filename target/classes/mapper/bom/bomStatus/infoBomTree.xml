@@ -1,0 +1,998 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoBomTree">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		<choose>
+			<!-- <when test='p_project_no != ""  and n_level == ""'> -->
+			<when test='n_level == ""'>
+				WITH BOM_LIST AS ( SELECT SDB.PROJECT_NO    AS PROJECT_NO
+				                         ,SDB.MOTHER_CODE   AS MOTHER_CODE
+				                         ,SDB.ITEM_CODE     AS ITEM_CODE
+				                         ,SDI.ITEM_DESC     AS ITEM_DESC
+				                         ,SDI.UOM           AS UOM
+				                         ,'BOM'             AS STATE_FLAG
+				                         ,SDB.ITEM_CATALOG  AS ITEM_CATALOG
+				                         ,'USC'             AS BOM_TYPE
+				                         ,SDB.QTY           AS QTY
+				                         ,SDB.ECO_NO        AS ECO_NO
+				                         ,SDB.MODIFY_BY     AS CREATED_BY
+				                     FROM STX_DIS_USC_BOM  SDB
+				                         ,STX_DIS_ITEM     SDI                              
+				                     WHERE 1=1 
+				                       AND SDB.PROJECT_NO = #{p_project_no}
+				                       AND SDB.ITEM_CODE  = SDI.ITEM_CODE
+				                       AND SDB.ITEM_CATALOG != 'V72'
+				                       AND NOT EXISTS 
+				                            (SELECT 1
+				                               FROM STX_DIS_USC_BOM_WORK SDBW
+				                              WHERE SDBW.PROJECT_NO  = SDB.PROJECT_NO
+				                                AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+				                               AND SDBW.ITEM_CODE   = SDB.ITEM_CODE
+				                             )
+				                     UNION ALL
+				                     SELECT SDBW.PROJECT_NO    AS PROJECT_NO
+				                           ,SDBW.MOTHER_CODE   AS MOTHER_CODE
+				                           ,SDBW.ITEM_CODE     AS ITEM_CODE
+				                           ,SDI.ITEM_DESC      AS ITEM_DESC
+				                           ,SDI.UOM            AS UOM
+				                           ,SDBW.STATE_FLAG    AS STATE_FLAG
+				                           ,SDBW.ITEM_CATALOG  AS ITEM_CATALOG
+				                           ,'USC'              AS BOM_TYPE
+				                           ,SDBW.QTY           AS QTY
+				                           ,SDBW.ECO_NO        AS ECO_NO
+				                           ,SDBW.MODIFY_BY     AS CREATED_BY
+				                      FROM STX_DIS_USC_BOM_WORK     SDBW  
+				                          ,STX_DIS_ITEM             SDI 
+				                      WHERE 1=1
+				                        AND SDBW.PROJECT_NO = #{p_project_no}  
+				                        AND SDBW.ITEM_CODE  = SDI.ITEM_CODE
+										AND SDBW.ITEM_CATALOG != 'V72'
+										
+				                     UNION ALL
+				                     SELECT  DUB.PROJECT_NO    AS PROJECT_NO
+				                            ,DUB.ITEM_CODE     AS MOTHER_CODE
+				                            ,V.ITEM_CODE       AS ITEM_CODE
+				                            ,SDI.ITEM_DESC     AS ITEM_DESC
+				                            ,SDI.UOM           AS UOM
+				                            ,V.STATE_FLAG      AS STATE_FLAG
+				                            ,V.ITEM_CATALOG    AS ITEM_CATALOG
+				                            ,'USC'             AS BOM_TYPE
+				                            ,V.QTY             AS QTY
+				                            ,V.ECO_NO          AS ECO_NO
+				                            ,V.EMP_NO          AS CREATE_BY
+				                      FROM   STX_DIS_USC_BOM DUB
+				                            ,(
+				                                SELECT DUB1.ITEM_CODE
+				                                      ,DUB1.PROJECT_NO
+				                                      ,DUB1.UPPER_BLOCK AS BLOCK_NO
+				                                      ,DUB1.ITEM_CATALOG
+				                                      ,DUB1.QTY
+				                                      ,DUB1.MODIFY_BY AS EMP_NO
+				                                      ,DUB1.ECO_NO    AS ECO_NO
+				                                      ,'BOM'          AS STATE_FLAG
+				                                FROM   STX_DIS_USC_BOM DUB1
+				                                WHERE  DUB1.PROJECT_NO = #{p_project_no}
+				                                AND    DUB1.ITEM_CATALOG = 'V72'
+				                                AND NOT EXISTS
+				                                      (SELECT 1
+				                                         FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+				                                        WHERE DUB1.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+				                                          AND DUB1.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+				                                        )
+				                                UNION ALL
+				                                SELECT DUBW.ITEM_CODE
+				                                      ,DUBW.PROJECT_NO
+				                                      ,DUBW.UPPER_BLOCK AS BLOCK_NO
+				                                      ,DUBW.ITEM_CATALOG
+				                                      ,DUBW.QTY
+				                                      ,DUBW.MODIFY_BY AS EMP_NO
+				                                      ,DUBW.ECO_NO    AS ECO_NO
+				                                      ,DUBW.STATE_FLAG
+				                                FROM   STX_DIS_USC_BOM_WORK DUBW
+				                                WHERE  DUBW.PROJECT_NO = #{p_project_no}
+				                                AND    DUBW.ITEM_CATALOG = 'V72'
+				                             ) V
+				                            ,STX_DIS_ITEM SDI
+				                      WHERE  DUB.PROJECT_NO = V.PROJECT_NO
+				                      AND    DUB.BLOCK_NO = V.BLOCK_NO
+				                      AND    DUB.MOTHER_CATALOG = 'S00'
+				                      AND 	 DUB.ITEM_CATALOG IN ('OP0','OD0','OQ0')
+				                      AND    V.ITEM_CODE = SDI.ITEM_CODE
+														
+				                     UNION ALL
+				                     SELECT SDB.PROJECT_NO     AS PROJECT_NO
+				                           ,SDB.JOB_CD         AS MOTHER_CODE
+				                           ,SDB.MOTHER_CODE    AS ITEM_CODE 
+				                           ,SDI.ITEM_DESC      AS ITEM_DESC
+				                           ,SDI.UOM            AS UOM
+				                           ,'BOM'              AS STATES_FLAG
+				                           ,SDB.ITEM_CATALOG   AS ITEM_CATALOG
+				                           ,'PENDING'          AS BOM_TYPE
+				                           ,1                  AS QTY
+				                           ,SDB.ECO_NO         AS ECO_NO
+				                           ,SDB.MODIFY_BY      AS CREATED_BY
+				                      FROM STX_DIS_PENDING              SDB 
+				                          ,STX_DIS_ITEM             SDI 
+				                     WHERE 1=1
+				                       AND SDB.PROJECT_NO = #{p_project_no}
+				                       AND SDB.MOTHER_CODE  = SDI.ITEM_CODE
+				                       AND NOT EXISTS 
+				                            (SELECT 1
+				                               FROM STX_DIS_PENDING_WORK SDBW
+				                              WHERE SDBW.PROJECT_NO  = SDB.PROJECT_NO
+				                                AND SDBW.JOB_CD      = SDB.JOB_CD
+				                                AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+				                             )
+				                     UNION ALL
+				                     SELECT SDBW.PROJECT_NO     AS PROJECT_NO
+				                           ,SDBW.JOB_CD         AS MOTHER_CODE
+				                           ,SDBW.MOTHER_CODE    AS ITEM_CODE 
+				                           ,SDI.ITEM_DESC       AS ITEM_DESC
+				                           ,SDI.UOM             AS UOM
+				                           ,SDBW.STATE_FLAG     AS STATE_FLAG
+				                           ,SDBW.ITEM_CATALOG   AS ITEM_CATALOG
+				                           ,'PENDING'           AS BOM_TYPE
+				                           ,1                   AS QTY
+				                           ,SDBW.ECO_NO         AS ECO_NO
+				                           ,SDBW.MODIFY_BY      AS CREATED_BY
+				                       FROM STX_DIS_PENDING_WORK     SDBW 
+				                          ,STX_DIS_ITEM             SDI  
+				                      WHERE 1=1
+				                        AND SDBW.PROJECT_NO = #{p_project_no}  
+				                        AND SDBW.MOTHER_CODE  = SDI.ITEM_CODE
+				                     UNION ALL
+				                    SELECT SDSH.PROJECT_NO     AS PROJECT_NO
+				                          ,SDSH.MOTHER_CODE    AS MOTHER_CODE
+				                          ,SDSH.ITEM_CODE      AS ITEM_CODE
+				                          ,SDI.ITEM_DESC       AS ITEM_DESC
+				                          ,SDI.UOM             AS UOM
+				                          ,'BOM'               AS STATES_FLAG
+				                          ,SDSH.ITEM_CATALOG   AS ITEM_CATALOG
+				                          ,'SSC'               AS BOM_TYPE
+				                          ,SDSH.BOM_QTY        AS QTY
+				                          ,SDSH.ECO_NO         AS ECO_NO
+				                          ,SDSH.MODIFY_BY      AS CREATED_BY
+				                      FROM STX_DIS_SSC_HEAD              SDSH 
+				                          ,STX_DIS_ITEM             SDI 
+				                     WHERE 1=1
+				                       AND SDSH.PROJECT_NO = #{p_project_no}
+				                       AND SDSH.ITEM_CODE  = SDI.ITEM_CODE
+				                       AND NOT EXISTS 
+				                            (SELECT 1
+				                               FROM STX_DIS_SSC_HEAD_WORK SDSHW
+				                              WHERE SDSHW.SSC_SUB_ID = SDSH.SSC_SUB_ID
+				                             )
+				                     UNION ALL
+				                     SELECT SDSHW.PROJECT_NO     AS PROJECT_NO
+				                           ,SDSHW.MOTHER_CODE    AS MOTHER_CODE
+				                           ,SDSHW.ITEM_CODE      AS ITEM_CODE
+				                           ,SDI.ITEM_DESC        AS ITEM_DESC
+				                           ,SDI.UOM              AS UOM
+				                           ,SDSHW.STATE_FLAG     AS STATE_FLAG
+				                           ,SDSHW.ITEM_CATALOG   AS ITEM_CATALOG
+				                           ,'SSC'                AS BOM_TYPE
+				                           ,SDSHW.BOM_QTY        AS QTY
+				                           ,SDSHW.ECO_NO         AS ECO_NO
+				                           ,SDSHW.MODIFY_BY      AS CREATED_BY
+				                       FROM STX_DIS_SSC_HEAD_WORK     SDSHW
+				                          ,STX_DIS_ITEM             SDI 
+				                      WHERE 1=1
+				                        AND SDSHW.PROJECT_NO = #{p_project_no}  
+				                        AND SDSHW.ITEM_CODE  = SDI.ITEM_CODE
+				                     UNION ALL
+				                     SELECT SDR.PROJECT_NO       AS PROJECT_NO
+				                           ,SDR.MOTHER_CODE      AS MOTHER_CODE
+				                           ,SDR.ITEM_CODE        AS ITEM_CODE
+				                           ,SDI.ITEM_DESC        AS ITEM_DESC
+				                           ,SDI.UOM              AS UOM
+				                           ,'BOM'                AS STATE_FLAG
+				                           ,SDR.ITEM_CATALOG     AS ITEM_CATALOG
+				                           ,'BUYBUY'             AS BOM_TYPE
+				                           ,SDR.BOM_QTY          AS QTY
+				                           ,SDR.ECO_NO           AS ECO_NO
+				                           ,SDR.MODIFY_BY        AS CREATED_BY
+				                      FROM STX_DIS_RAWLEVEL              SDR 
+				                          ,STX_DIS_ITEM             SDI 
+				                     WHERE 1=1
+				                       AND SDR.PROJECT_NO = #{p_project_no}
+				                       AND SDR.ITEM_CODE  = SDI.ITEM_CODE
+				                       AND NOT EXISTS 
+				                            (SELECT 1
+				                               FROM STX_DIS_RAWLEVEL_WORK SDRW
+				                              WHERE SDRW.SSC_SUB_ID = SDR.SSC_SUB_ID
+				                             )
+				                     UNION ALL
+				                     SELECT SDRW.PROJECT_NO       AS PROJECT_NO
+				                           ,SDRW.MOTHER_CODE      AS MOTHER_CODE
+				                           ,SDRW.ITEM_CODE        AS ITEM_CODE
+				                           ,SDI.ITEM_DESC         AS ITEM_DESC
+				                           ,SDI.UOM               AS UOM
+				                           ,SDRW.STATE_FLAG       AS STATES_FLAG
+				                           ,SDRW.ITEM_CATALOG     AS ITEM_CATALOG
+				                           ,'BUYBUY'              AS BOM_TYPE
+				                           ,SDRW.BOM_QTY          AS QTY
+				                           ,SDRW.ECO_NO           AS ECO_NO
+				                           ,SDRW.MODIFY_BY        AS CREATED_BY
+				                       FROM STX_DIS_RAWLEVEL_WORK     SDRW  
+				                           ,STX_DIS_ITEM             SDI 
+				                      WHERE 1=1
+				                        AND SDRW.PROJECT_NO = #{p_project_no}
+				                        AND SDRW.ITEM_CODE  = SDI.ITEM_CODE
+				                       )
+				SELECT  0             AS LEV
+				      ,#{p_selectMotherCode}      AS MOTHER_CODE
+				      ,#{nodeid}        AS ITEM_CODE
+				      ,(SELECT DECODE(COUNT(MOTHER_CODE), 0 ,'true', COUNT(CASE WHEN STATE_FLAG IN ('A','D','C') THEN 1 END))  AS CNT
+				          FROM (            
+				                 SELECT SDB.MOTHER_CODE AS MOTHER_CODE
+				                       ,'BOM'           AS STATE_FLAG
+				                   FROM STX_DIS_USC_BOM              SDB 
+				                  WHERE 1=1 
+				                    AND SDB.PROJECT_NO = #{p_project_no}
+				                    AND NOT EXISTS 
+				                         (SELECT 1
+				                            FROM STX_DIS_USC_BOM_WORK SDBW
+				                           WHERE SDBW.PROJECT_NO  = SDB.PROJECT_NO
+				                             AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+				                            AND SDBW.ITEM_CODE   = SDB.ITEM_CODE
+				                          )
+				                  UNION ALL
+				                  SELECT SDBW.MOTHER_CODE   AS MOTHER_CODE
+				                        ,SDBW.STATE_FLAG    AS STATE_FLAG
+				                    FROM STX_DIS_USC_BOM_WORK     SDBW  
+				                   WHERE 1=1
+				                     AND SDBW.PROJECT_NO = #{p_project_no}  
+				                  UNION ALL
+				                  SELECT SDB.JOB_CD AS MOTHER_CODE
+				                       ,'BOM'           AS STATES_FLAG
+				                   FROM STX_DIS_PENDING              SDB 
+				                  WHERE 1=1
+				                    AND SDB.PROJECT_NO = #{p_project_no}
+				                    AND NOT EXISTS 
+				                         (SELECT 1
+				                            FROM STX_DIS_PENDING_WORK SDBW
+				                           WHERE SDBW.PROJECT_NO  = SDB.PROJECT_NO
+				                             AND SDBW.JOB_CD      = SDB.JOB_CD
+				                             AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+				                          )
+				                  UNION ALL
+				                  SELECT SDBW.JOB_CD        AS MOTHER_CODE
+				                        ,SDBW.STATE_FLAG    AS STATE_FLAG
+				                    FROM STX_DIS_PENDING_WORK     SDBW  
+				                   WHERE 1=1
+				                     AND SDBW.PROJECT_NO = #{p_project_no}  
+				                  UNION ALL
+				                 SELECT SDSH.MOTHER_CODE AS MOTHER_CODE
+				                       ,'BOM'           AS STATES_FLAG
+				                   FROM STX_DIS_SSC_HEAD              SDSH 
+				                  WHERE 1=1
+				                    AND SDSH.PROJECT_NO = #{p_project_no}
+				                    AND NOT EXISTS 
+				                         (SELECT 1
+				                            FROM STX_DIS_SSC_HEAD_WORK SDSHW
+				                           WHERE SDSHW.SSC_SUB_ID = SDSH.SSC_SUB_ID
+				                          )
+				                  UNION ALL
+				                  SELECT SDSHW.MOTHER_CODE   AS MOTHER_CODE
+				                        ,SDSHW.STATE_FLAG    AS STATE_FLAG
+				                    FROM STX_DIS_SSC_HEAD_WORK     SDSHW
+				                   WHERE 1=1
+				                     AND SDSHW.PROJECT_NO = #{p_project_no}  
+				                  UNION ALL
+				                  SELECT SDR.MOTHER_CODE AS MOTHER_CODE
+				                       ,'BOM'           AS STATE_FLAG
+				                   FROM STX_DIS_RAWLEVEL              SDR 
+				                  WHERE 1=1
+				                    AND SDR.PROJECT_NO = #{p_project_no}
+				                    AND NOT EXISTS 
+				                         (SELECT 1
+				                            FROM STX_DIS_RAWLEVEL_WORK SDRW
+				                           WHERE SDRW.SSC_SUB_ID = SDR.SSC_SUB_ID
+				                          )
+				                  UNION ALL
+				                  SELECT SDRW.MOTHER_CODE   AS MOTHER_CODE
+				                        ,SDRW.STATE_FLAG    AS STATES_FLAG
+				                    FROM STX_DIS_RAWLEVEL_WORK     SDRW  
+				                   WHERE 1=1
+				                     AND SDRW.PROJECT_NO = #{p_project_no}
+				             ) CNT 
+				        WHERE CNT.MOTHER_CODE  = #{nodeid}
+				        )         AS LEAF
+				       , 'false'                      AS FOLD
+				       , #{nodeid}                    AS SELECT_ID
+				       ,''			      AS PARENT_SELECT_ID	
+				       ,#{p_selectDescription}        AS ITEM_DESC
+				       ,#{p_selectStatesFlag}         AS STATES_FLAG_DESC
+				       ,#{p_selectBomType}            AS BOM_TYPE
+				       ,#{p_selectStatus}             AS ITEM_STATES_DESC
+				       ,#{p_selectCatalog}            AS ITEM_CATALOG
+				       ,#{p_selectQty}                AS QTY 
+				       ,#{p_selectUom}                AS UOM
+				       ,#{p_selectEcoNo}              AS ECO_NO
+				       ,#{p_selectEcoCreater}         AS CREATED_BY
+				  FROM DUAL
+				UNION ALL
+				SELECT AA.LEV
+				      ,AA.MOTHER_CODE
+				      ,AA.ITEM_CODE
+				      ,AA.LEAF           
+				      ,AA.FOLD
+				      ,CASE WHEN AA.LEV = 0 THEN AA.ITEM_CODE 
+				       ELSE AA.ITEM_CODE||'/'||AA.MOTHER_CODE 
+				       END             AS SELECT_ID
+              		  ,STX_DIS_BOM_TREE_F(AA.PARENT_CHECK,'/', AA.MOTHER_CODE) AS PARENT_SELECT_ID   
+				      ,AA.ITEM_DESC
+				      ,AA.STATES_FLAG_DESC 
+				      ,AA.BOM_TYPE
+				      ,AA.ITEM_STATES_DESC
+				      ,AA.ITEM_CATALOG
+				      ,TO_CHAR(AA.QTY) AS QTY 
+				      ,AA.UOM
+				      ,AA.ECO_NO
+				      ,AA.CREATED_BY 
+				  FROM (             
+				    SELECT LEVEL                         AS LEV
+				          ,BL.MOTHER_CODE                AS MOTHER_CODE
+				          ,BL.ITEM_CODE                  AS ITEM_CODE
+                  		  ,SYS_CONNECT_BY_PATH(BL.MOTHER_CODE,'/')   AS PARENT_CHECK
+				          ,(SELECT DECODE(COUNT(MOTHER_CODE), 0 ,'true', COUNT(CASE WHEN STATE_FLAG IN ('A','D','C') THEN 1 END))  AS CNT
+				             FROM (            
+				                    SELECT SDB.MOTHER_CODE AS MOTHER_CODE
+				                          ,'BOM'           AS STATE_FLAG 
+				                      FROM STX_DIS_USC_BOM              SDB 
+				                     WHERE 1=1 
+				                       AND SDB.PROJECT_NO = #{p_project_no}
+				                       AND NOT EXISTS 
+				                            (SELECT 1
+				                               FROM STX_DIS_USC_BOM_WORK SDBW
+				                              WHERE SDBW.PROJECT_NO  = SDB.PROJECT_NO
+				                                AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+				                               AND SDBW.ITEM_CODE   = SDB.ITEM_CODE
+				                             )
+				                     UNION ALL
+				                     SELECT SDBW.MOTHER_CODE   AS MOTHER_CODE
+				                           ,SDBW.STATE_FLAG    AS STATE_FLAG
+				                       FROM STX_DIS_USC_BOM_WORK     SDBW  
+				                      WHERE 1=1
+				                        AND SDBW.PROJECT_NO = #{p_project_no}  
+				                     UNION ALL
+				                     SELECT SDB.JOB_CD AS MOTHER_CODE
+				                          ,'BOM'           AS STATES_FLAG
+				                      FROM STX_DIS_PENDING              SDB 
+				                     WHERE 1=1
+				                       AND SDB.PROJECT_NO = #{p_project_no}
+				                       AND NOT EXISTS 
+				                            (SELECT 1
+				                               FROM STX_DIS_PENDING_WORK SDBW
+				                              WHERE SDBW.PROJECT_NO  = SDB.PROJECT_NO
+				                                AND SDBW.JOB_CD      = SDB.JOB_CD
+				                                AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+				                             )
+				                     UNION ALL
+				                     SELECT SDBW.JOB_CD        AS MOTHER_CODE
+				                           ,SDBW.STATE_FLAG    AS STATE_FLAG
+				                       FROM STX_DIS_PENDING_WORK     SDBW  
+				                      WHERE 1=1
+				                        AND SDBW.PROJECT_NO = #{p_project_no}  
+				                     UNION ALL
+				                    SELECT SDSH.MOTHER_CODE AS MOTHER_CODE
+				                          ,'BOM'           AS STATES_FLAG
+				                      FROM STX_DIS_SSC_HEAD              SDSH 
+				                     WHERE 1=1
+				                       AND SDSH.PROJECT_NO = #{p_project_no}
+				                       AND NOT EXISTS 
+				                            (SELECT 1
+				                               FROM STX_DIS_SSC_HEAD_WORK SDSHW
+				                              WHERE SDSHW.SSC_SUB_ID = SDSH.SSC_SUB_ID
+				                             )
+				                     UNION ALL
+				                     SELECT SDSHW.MOTHER_CODE   AS MOTHER_CODE
+				                           ,SDSHW.STATE_FLAG    AS STATE_FLAG
+				                       FROM STX_DIS_SSC_HEAD_WORK     SDSHW
+				                      WHERE 1=1
+				                        AND SDSHW.PROJECT_NO = #{p_project_no}  
+				                     UNION ALL
+				                     SELECT SDR.MOTHER_CODE AS MOTHER_CODE
+				                          ,'BOM'           AS STATE_FLAG
+				                      FROM STX_DIS_RAWLEVEL              SDR 
+				                     WHERE 1=1
+				                       AND SDR.PROJECT_NO = #{p_project_no}
+				                       AND NOT EXISTS 
+				                            (SELECT 1
+				                               FROM STX_DIS_RAWLEVEL_WORK SDRW
+				                              WHERE SDRW.SSC_SUB_ID = SDR.SSC_SUB_ID
+				                             )
+				                     UNION ALL
+				                     SELECT SDRW.MOTHER_CODE   AS MOTHER_CODE
+				                           ,SDRW.STATE_FLAG    AS STATES_FLAG
+				                       FROM STX_DIS_RAWLEVEL_WORK     SDRW  
+				                      WHERE 1=1
+				                        AND SDRW.PROJECT_NO = #{p_project_no}
+				                ) CNT 
+				           WHERE CNT.MOTHER_CODE  = BL.ITEM_CODE
+				             )         AS LEAF           
+				          ,'false'                       AS FOLD
+				          ,BL.ITEM_CODE                  AS SELECT_ID
+				          ,BL.ITEM_DESC                  AS ITEM_DESC
+				          ,DECODE(BL.STATE_FLAG, 'A', '추가', 'D', '삭제', 'C', '수정', BL.STATE_FLAG) AS STATES_FLAG_DESC 
+				          ,BL.BOM_TYPE                   AS BOM_TYPE
+				          ,NULL                          AS ITEM_STATES_DESC
+				          ,BL.ITEM_CATALOG               AS ITEM_CATALOG
+				          ,BL.QTY                        AS QTY 
+				          ,BL.UOM                        AS UOM
+				          ,BL.ECO_NO                     AS ECO_NO
+				          ,STX_DIS_SHORT_EMP_NAME_F(BL.CREATED_BY)     AS CREATED_BY  
+				      FROM BOM_LIST     BL 
+				     START WITH BL.MOTHER_CODE = #{nodeid}
+				    CONNECT BY PRIOR  BL.ITEM_CODE = BL.MOTHER_CODE
+				    ) AA
+			</when>
+			<otherwise>			
+			  SELECT AA.ITEM_CODE||'/'||AA.MOTHER_CODE                	AS SELECT_ID
+				      ,#{nodeid}                                        AS PARENT_SELECT_ID
+				      ,TO_NUMBER(#{n_level}) + 1                        AS LEV
+				      ,CASE WHEN SDSC.JOB_FLAG        = 'Y'   THEN 'PAINT_JOB'
+				            WHEN SDSC.PAINT_USC_FLAG  = 'Y'   THEN 'PAINT_USC'
+				       ELSE 'SSC' 
+				       END                                              AS BOM_TYPE
+				      ,AA.MOTHER_CODE                                   AS MOTHER_CODE  
+				      ,AA.ITEM_CODE                                     AS ITEM_CODE    
+				      ,AA.ITEM_CATALOG                                  AS ITEM_CATALOG 
+				      ,'...'                                            AS JOB_CATALOG_POPUP 
+				      ,AA.DWG_NO                                        AS DWG_NO
+				      ,'...'                                            AS DWG_NO_POPUP
+				      ,AA.ECO_NO                                        AS ECO_NO
+				      ,STX_DIS_SHORT_EMP_NAME_F(AA.EMP_NO)              AS EMP_NO       
+				      ,SDI.UOM                                          AS UOM                        
+				      ,SDI.ITEM_DESC                                    AS ITEM_DESC
+				      ,AA.QTY                                           AS QTY            
+				      ,AA.BOM1                                          AS BOM1          
+				      ,AA.BOM2                                          AS BOM2          
+				      ,AA.BOM3                                          AS BOM3          
+				      ,AA.BOM4                                          AS BOM4          
+				      ,AA.BOM5                                          AS BOM5          
+				      ,AA.BOM6                                          AS BOM6          
+				      ,AA.BOM7                                          AS BOM7          
+				      ,AA.BOM8                                          AS BOM8          
+				      ,AA.BOM9                                          AS BOM9          
+				      ,AA.BOM10                                         AS BOM10         
+				      ,AA.BOM11                                         AS BOM11         
+				      ,AA.BOM12                                         AS BOM12         
+				      ,AA.BOM13                                         AS BOM13         
+				      ,AA.BOM14                                         AS BOM14         
+				      ,AA.BOM15                                         AS BOM15         
+				      ,STX_DIS_SHORT_EMP_NAME_F(AA.CREATED_BY)          AS CREATED_BY
+				      ,AA.STATES_CODE                                   AS STATES_CODE  
+				      ,AA.STATES_DESC                                   AS STATES_DESC  
+				      ,AA.STATES_FLAG                                   AS STATES_FLAG  
+				      ,AA.STATES_FLAG_DESC||DECODE(AA.STATES_FLAG, 'A', '-추가', 'D', '-삭제', 'C', '-수정', '') 
+				                                                        AS STATES_FLAG_DESC
+				      ,'보기'                                           AS ITEM_ATTR
+				      ,'보기'                                           AS BOM_ATTR
+				      <!-- ,DECODE(AA.STATES_FLAG_DESC,'BOM','편집','보기')  AS BOM_ATTR -->
+				      ,'...'                                            AS HISTORY
+				      ,(SELECT DECODE(COUNT(MOTHER_CODE), 0 ,'true', COUNT(CASE WHEN STATE_FLAG IN ('A','D','C') THEN 1 END))  
+				                                                        AS CNT 
+				          FROM(            
+				                SELECT SDB.MOTHER_CODE  AS MOTHER_CODE   
+				                      ,'BOM'            AS STATE_FLAG
+				                  FROM STX_DIS_USC_BOM              SDB 
+				                 WHERE 1=1
+				                   AND SDB.PROJECT_NO    = #{p_project_no}
+				                   and NOT EXISTS 
+				                      (SELECT 1
+				                         FROM STX_DIS_USC_BOM_WORK SDBW
+				                        WHERE SDBW.PROJECT_NO  = SDB.PROJECT_NO
+				                          AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+				                          AND SDBW.ITEM_CODE   = SDB.ITEM_CODE
+				                       ) 
+				               UNION ALL
+				               SELECT SDBW.MOTHER_CODE     AS MOTHER_CODE
+				                     ,SDBW.STATE_FLAG      AS STATE_FLAG
+				                 FROM STX_DIS_USC_BOM_WORK         SDBW  
+				                WHERE 1=1
+				                  AND SDBW.PROJECT_NO    = #{p_project_no}
+				               UNION ALL
+				               SELECT SDP.JOB_CD           AS MOTHER_CODE 
+				                     ,NULL                 AS STATES_FLAG
+				                 FROM STX_DIS_PENDING          SDP 
+				                WHERE 1=1
+				                  AND SDP.PROJECT_NO    = #{p_project_no}
+				                  and NOT EXISTS 
+				                        (SELECT 1
+				                           FROM STX_DIS_PENDING_WORK SDPW
+				                          WHERE SDPW.PROJECT_NO  = SDP.PROJECT_NO
+				                            AND SDPW.JOB_CD      = SDP.JOB_CD
+				                            AND SDPW.MOTHER_CODE = SDP.MOTHER_CODE
+				                         )
+				               UNION ALL
+				               SELECT SDP.JOB_CD           AS MOTHER_CODE 
+				                     ,NULL                 AS STATES_FLAG
+				                 FROM STX_DIS_PENDING_WORK  SDP 
+				                WHERE 1=1
+				                  AND SDP.PROJECT_NO    = #{p_project_no}
+				               UNION ALL
+				               SELECT SDSH.MOTHER_CODE     AS MOTHER_CODE
+				                     ,NULL                 AS STATES_FLAG
+				                 FROM STX_DIS_SSC_HEAD         SDSH
+				                WHERE 1=1
+				                  AND SDSH.PROJECT_NO   = #{p_project_no}
+				                  AND NOT EXISTS 
+				                       (SELECT 1
+				                          FROM STX_DIS_SSC_HEAD_WORK SDSHW
+				                         WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+				                        )
+				              UNION ALL
+				              SELECT SDSH.MOTHER_CODE     AS MOTHER_CODE
+				                    ,SDSH.STATE_FLAG      AS STATES_FLAG
+				                FROM STX_DIS_SSC_HEAD_WORK   SDSH 
+				               WHERE 1=1
+				                 AND SDSH.PROJECT_NO   = #{p_project_no}
+				              UNION ALL
+				              SELECT SDSH.MOTHER_CODE     AS MOTHER_CODE
+				                    ,NULL                 AS STATES_FLAG
+				                FROM STX_DIS_RAWLEVEL        SDSH 
+				               WHERE 1=1
+				                 AND SDSH.PROJECT_NO   = #{p_project_no}
+				                 AND NOT EXISTS 
+				                       (SELECT 1
+				                          FROM STX_DIS_RAWLEVEL_WORK SDSHW
+				                         WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+				                        )
+				              UNION ALL
+				              SELECT SDSH.MOTHER_CODE     AS MOTHER_CODE
+				                    ,SDSH.STATE_FLAG      AS STATES_FLAG
+				                FROM STX_DIS_RAWLEVEL_WORK   SDSH 
+				               WHERE 1=1
+				                 AND SDSH.PROJECT_NO   = #{p_project_no}
+				          ) CNT
+				    WHERE CNT.MOTHER_CODE  = AA.ITEM_CODE)                 AS LEAF
+				       ,'false'                                                                                                                                                                    AS FOLD
+				       ,SDI.STATES_CODE                                               AS ITEM_STATES_CODE
+				       ,SDI.STATES_DESC                                               AS ITEM_STATES_DESC
+				   FROM (SELECT  SDB.MOTHER_CODE
+				               , SDB.ITEM_CODE
+				               , SDB.ITEM_CATALOG 
+				               , ''                 AS DWG_NO
+				               , SDB.ECO_NO
+				               , SDB.modify_by      AS EMP_NO
+				               , SDB.QTY 
+				               , SDB.BOM1
+				               , SDB.BOM2
+				               , SDB.BOM3
+				               , SDB.BOM4
+				               , SDB.BOM5
+				               , SDB.BOM6
+				               , SDB.BOM7
+				               , SDB.BOM8
+				               , SDB.BOM9
+				               , SDB.BOM10
+				               , SDB.BOM11
+				               , SDB.BOM12
+				               , SDB.BOM13
+				               , SDB.BOM14
+				               , SDB.BOM15
+				               , SDECO.DESIGN_ENGINEER    AS CREATED_BY
+				               , SDECO.STATES_CODE        AS STATES_CODE
+				               , SDSC.SD_DESC             AS STATES_DESC
+				               , 'BOM' AS STATES_FLAG
+				               , 'BOM' AS STATES_FLAG_DESC
+				           FROM STX_DIS_USC_BOM          SDB
+				               ,STX_DIS_ENG_CHANGE_ORDER SDECO
+				               ,STX_DIS_SD_CODE          SDSC 
+				          WHERE 1=1
+				            AND SDB.PROJECT_NO   = #{p_project_no}  
+				            AND SDB.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+				            AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+				            AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+				            AND SDB.ITEM_CATALOG != 'V72'
+				            AND NOT EXISTS 
+				                 (SELECT 1
+				                    FROM STX_DIS_USC_BOM_WORK SDBW
+				                   WHERE SDB.PROJECT_NO   = SDBW.PROJECT_NO
+				                     AND SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+				                     AND SDBW.ITEM_CODE   = SDB.ITEM_CODE
+				                  )
+				          UNION ALL
+				          SELECT SDBW.MOTHER_CODE
+				               , SDBW.ITEM_CODE
+				               , SDBW.ITEM_CATALOG 
+				               , ''                 AS DWG_NO
+				               , SDBW.ECO_NO
+				               , SDBW.modify_by AS EMP_NO
+				               , SDBW.QTY 
+				               , SDBW.BOM1
+				               , SDBW.BOM2
+				               , SDBW.BOM3
+				               , SDBW.BOM4
+				               , SDBW.BOM5
+				               , SDBW.BOM6
+				               , SDBW.BOM7
+				               , SDBW.BOM8
+				               , SDBW.BOM9
+				               , SDBW.BOM10
+				               , SDBW.BOM11
+				               , SDBW.BOM12
+				               , SDBW.BOM13
+				               , SDBW.BOM14
+				               , SDBW.BOM15
+				               , SDECO.CREATE_BY          AS CREATED_BY
+				               , SDECO.STATES_CODE        AS STATES_CODE
+				               , SDSC.SD_DESC             AS STATES_DESC
+				               , SDBW.STATE_FLAG         AS STATES_FLAG
+				               , 'BOM'                    AS STATES_FLAG_DESC
+				            FROM STX_DIS_USC_BOM_WORK     SDBW
+				                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+				                ,STX_DIS_SD_CODE          SDSC
+				           WHERE 1=1
+				             AND SDBW.PROJECT_NO   = #{p_project_no} 
+				             AND SDBW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+				             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+				             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+				             AND SDBW.ITEM_CATALOG != 'V72'
+				             
+				          UNION ALL
+					        SELECT DUB.ITEM_CODE     AS MOTHER_CODE
+					              ,V.ITEM_CODE       AS ITEM_CODE
+					              ,V.ITEM_CATALOG    AS ITEM_CATALOG
+					              ,''                AS DWG_NO
+					              ,V.ECO_NO          AS ECO_NO
+					              ,V.EMP_NO          AS EMP_NO
+					              ,V.QTY             AS QTY
+					              ,V.BOM1            AS BOM1  
+					              ,V.BOM2            AS BOM2  
+					              ,V.BOM3            AS BOM3  
+					              ,V.BOM4            AS BOM4  
+					              ,V.BOM5            AS BOM5  
+					              ,V.BOM6            AS BOM6  
+					              ,V.BOM7            AS BOM7  
+					              ,V.BOM8            AS BOM8  
+					              ,V.BOM9            AS BOM9  
+					              ,V.BOM10           AS BOM10 
+					              ,V.BOM11           AS BOM11 
+					              ,V.BOM12           AS BOM12 
+					              ,V.BOM13           AS BOM13 
+					              ,V.BOM14           AS BOM14 
+					              ,V.BOM15           AS BOM15 
+					              ,SDECO.CREATE_BY   AS CREATED_BY
+					              ,SDECO.STATES_CODE AS STATES_CODE
+					              ,SDSC.SD_DESC      AS STATES_DESC
+					              ,V.STATE_FLAG      AS STATES_FLAG
+					              ,'BOM'             AS STATES_FLAG_DESC
+					        FROM   STX_DIS_USC_BOM DUB
+					              ,(
+					                  SELECT DUB1.ITEM_CODE
+					                        ,DUB1.PROJECT_NO
+					                        ,DUB1.UPPER_BLOCK AS BLOCK_NO
+					                        ,DUB1.ITEM_CATALOG
+					                        ,DUB1.QTY
+					                        ,DUB1.MODIFY_BY AS EMP_NO
+					                        ,DUB1.ECO_NO    AS ECO_NO
+					                        ,DUB1.BOM1          AS BOM1  
+					                        ,DUB1.BOM2          AS BOM2  
+					                        ,DUB1.BOM3          AS BOM3  
+					                        ,DUB1.BOM4          AS BOM4  
+					                        ,DUB1.BOM5          AS BOM5  
+					                        ,DUB1.BOM6          AS BOM6  
+					                        ,DUB1.BOM7          AS BOM7  
+					                        ,DUB1.BOM8          AS BOM8  
+					                        ,DUB1.BOM9          AS BOM9  
+					                        ,DUB1.BOM10         AS BOM10 
+					                        ,DUB1.BOM11         AS BOM11 
+					                        ,DUB1.BOM12         AS BOM12 
+					                        ,DUB1.BOM13         AS BOM13 
+					                        ,DUB1.BOM14         AS BOM14 
+					                        ,DUB1.BOM15         AS BOM15
+					                        ,'BOM'              AS STATE_FLAG
+					                  FROM   STX_DIS_USC_BOM DUB1
+					                  WHERE  DUB1.PROJECT_NO = #{p_project_no}
+					                  AND    DUB1.ITEM_CATALOG = 'V72'
+					                  AND NOT EXISTS
+					                        (SELECT 1
+					                           FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+					                          WHERE DUB1.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+					                            AND DUB1.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+					                          )
+					                  UNION ALL
+					                  SELECT DUBW.ITEM_CODE
+					                        ,DUBW.PROJECT_NO
+					                        ,DUBW.UPPER_BLOCK AS BLOCK_NO
+					                        ,DUBW.ITEM_CATALOG
+					                        ,DUBW.QTY
+					                        ,DUBW.MODIFY_BY AS EMP_NO
+					                        ,DUBW.ECO_NO    AS ECO_NO
+					                        ,DUBW.BOM1          AS BOM1  
+					                        ,DUBW.BOM2          AS BOM2  
+					                        ,DUBW.BOM3          AS BOM3  
+					                        ,DUBW.BOM4          AS BOM4  
+					                        ,DUBW.BOM5          AS BOM5  
+					                        ,DUBW.BOM6          AS BOM6  
+					                        ,DUBW.BOM7          AS BOM7  
+					                        ,DUBW.BOM8          AS BOM8  
+					                        ,DUBW.BOM9          AS BOM9  
+					                        ,DUBW.BOM10         AS BOM10 
+					                        ,DUBW.BOM11         AS BOM11 
+					                        ,DUBW.BOM12         AS BOM12 
+					                        ,DUBW.BOM13         AS BOM13 
+					                        ,DUBW.BOM14         AS BOM14 
+					                        ,DUBW.BOM15         AS BOM15
+					                        ,DUBW.STATE_FLAG
+					                  FROM   STX_DIS_USC_BOM_WORK DUBW
+					                  WHERE  DUBW.PROJECT_NO = #{p_project_no}
+					                  AND    DUBW.ITEM_CATALOG = 'V72'
+					               ) V
+					              ,STX_DIS_ENG_CHANGE_ORDER SDECO
+					              ,STX_DIS_SD_CODE          SDSC
+					        WHERE  DUB.PROJECT_NO = V.PROJECT_NO
+					        AND    DUB.BLOCK_NO = V.BLOCK_NO
+					        AND    DUB.MOTHER_CATALOG = 'S00'
+					        AND    DUB.ITEM_CATALOG IN ('OP0','OD0','OQ0')
+					        AND    V.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+					        AND    SDECO.STATES_CODE = SDSC.SD_CODE(+)
+					        AND    SDSC.SD_TYPE(+)   = 'ECO_STATES'   
+				             
+				          UNION ALL
+				          SELECT SDP.JOB_CD AS MOTHER_CODE
+				               , SDP.MOTHER_CODE AS ITEM_CODE
+				               , SDP.ITEM_CATALOG 
+				               , SDP.DWG_NO
+				               , SDP.ECO_NO
+				               , SDP.modify_by AS EMP_NO
+				               , 1 AS QTY 
+				               , SDP.BLOCK_NO AS BOM1
+				               , SDP.STR_FLAG AS BOM2
+				               , SDP.STAGE_NO AS BOM3
+				               , NULL AS BOM4
+				               , NULL AS BOM5
+				               , NULL AS BOM6
+				               , NULL AS BOM7
+				               , NULL AS BOM8
+				               , NULL AS BOM9
+				               , NULL AS BOM10
+				               , NULL AS BOM11
+				               , NULL AS BOM12
+				               , NULL AS BOM13
+				               , NULL AS BOM14
+				               , NULL AS BOM15
+				               , SDECO.CREATE_BY           AS CREATED_BY
+				               , SDECO.STATES_CODE         AS STATES_CODE
+				               , SDSC.SD_DESC              AS STATES_DESC
+				               , ''                        AS STATES_FLAG
+				               , SDP.PROJECT_NO||'-'||'PD' AS STATES_FLAG_DESC
+				            FROM STX_DIS_PENDING          SDP
+				                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+				               , STX_DIS_SD_CODE          SDSC
+				           WHERE 1=1
+				             AND SDP.PROJECT_NO    = #{p_project_no}
+				             AND SDP.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+				             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+				             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+				             AND NOT EXISTS
+				                 (SELECT 1
+				                    FROM STX_DIS_PENDING_WORK SDPW
+				                   WHERE SDP.PROJECT_NO = SDPW.PROJECT_NO
+				                     AND SDP.JOB_CD     = SDPW.JOB_CD
+				                     AND SDP.MOTHER_CODE= SDPW.MOTHER_CODE
+				                 )
+				          UNION ALL
+				          SELECT SDP.JOB_CD AS MOTHER_CODE
+				               , SDP.MOTHER_CODE AS ITEM_CODE
+				               , SDP.ITEM_CATALOG 
+				               , SDP.DWG_NO
+				               , SDP.ECO_NO
+				               , SDP.MODIFY_BY AS EMP_NO
+				               , 1 AS QTY 
+				               , SDP.BLOCK_NO AS BOM1
+				               , SDP.STR_FLAG AS BOM2
+				               , SDP.STAGE_NO AS BOM3
+				               , NULL AS BOM4
+				               , NULL AS BOM5
+				               , NULL AS BOM6
+				               , NULL AS BOM7
+				               , NULL AS BOM8
+				               , NULL AS BOM9
+				               , NULL AS BOM10
+				               , NULL AS BOM11
+				               , NULL AS BOM12
+				               , NULL AS BOM13
+				               , NULL AS BOM14
+				               , NULL AS BOM15
+				               , SDECO.CREATE_BY           AS CREATED_BY
+				               , SDECO.STATES_CODE         AS STATES_CODE
+				               , SDSC.SD_DESC              AS STATES_DESC
+				               , ''                        AS STATES_FLAG
+				               , SDP.PROJECT_NO||'-'||'PD' AS STATES_FLAG_DESC
+				            FROM STX_DIS_PENDING_WORK          SDP
+				                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+				               , STX_DIS_SD_CODE          SDSC
+				           WHERE 1=1
+				             AND SDP.PROJECT_NO    = #{p_project_no}
+				             AND SDP.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+				             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+				             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+				          UNION ALL
+				          SELECT SDSH.MOTHER_CODE
+				               , SDSH.ITEM_CODE
+				               , SDI.ITEM_CATALOG 
+				               , SDSH.DWG_NO
+				               , SDSH.ECO_NO
+				               , SDSH.MODIFY_BY AS EMP_NO
+				               , SDSH.BOM_QTY AS QTY 
+				               , SDSH.BOM1
+				               , SDSH.BOM2
+				               , SDSH.BOM3
+				               , SDSH.BOM4
+				               , SDSH.BOM5
+				               , SDSH.BOM6
+				               , SDSH.BOM7
+				               , SDSH.BOM8
+				               , SDSH.BOM9
+				               , SDSH.BOM10
+				               , SDSH.BOM11
+				               , SDSH.BOM12
+				               , SDSH.BOM13
+				               , SDSH.BOM14
+				               , SDSH.BOM15
+				               , SDECO.CREATE_BY              AS CREATED_BY
+				              , SDECO.STATES_CODE            AS STATES_CODE
+				               , SDSC.SD_DESC                 AS STATES_DESC
+				               , ''                           AS STATES_FLAG
+				               , SDSH.PROJECT_NO||'-'||'SSC'  AS STATES_FLAG_DESC
+				            FROM STX_DIS_SSC_HEAD         SDSH
+				                ,STX_DIS_ITEM             SDI
+				                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+				                ,STX_DIS_SD_CODE          SDSC
+				           WHERE 1=1
+				             AND SDSH.PROJECT_NO   = #{p_project_no}
+				             AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+				             AND SDSH.ITEM_CODE    = SDI.ITEM_CODE(+)
+				             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+				             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+				             AND NOT EXISTS
+				                 (SELECT 1
+				                    FROM STX_DIS_SSC_HEAD_WORK SDSHW
+				                   WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+				                  )
+				          UNION ALL
+				          SELECT SDSH.MOTHER_CODE
+				               , SDSH.ITEM_CODE
+				               , SDI.ITEM_CATALOG 
+				               , SDSH.DWG_NO
+				               , SDSH.ECO_NO
+				               , SDSH.MODIFY_BY AS EMP_NO
+				               , SDSH.BOM_QTY AS QTY 
+				               , SDSH.BOM1
+				               , SDSH.BOM2
+				               , SDSH.BOM3
+				               , SDSH.BOM4
+				               , SDSH.BOM5
+				               , SDSH.BOM6
+				               , SDSH.BOM7
+				               , SDSH.BOM8
+				               , SDSH.BOM9
+				               , SDSH.BOM10
+				               , SDSH.BOM11
+				               , SDSH.BOM12
+				               , SDSH.BOM13
+				               , SDSH.BOM14
+				               , SDSH.BOM15
+				               , SDECO.CREATE_BY              AS CREATED_BY
+				               , SDECO.STATES_CODE            AS STATES_CODE
+				               , SDSC.SD_DESC                 AS STATES_DESC
+				               , SDSH.STATE_FLAG              AS STATES_FLAG
+				               , SDSH.PROJECT_NO||'-'||'SSC'  AS STATES_FLAG_DESC
+				            FROM STX_DIS_SSC_HEAD_WORK    SDSH
+				                ,STX_DIS_ITEM             SDI
+				                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+				                ,STX_DIS_SD_CODE          SDSC
+				           WHERE 1=1
+				             AND SDSH.PROJECT_NO   = #{p_project_no}
+				             AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+				             AND SDSH.ITEM_CODE    = SDI.ITEM_CODE(+)
+				             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+				             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+				          UNION ALL
+				          SELECT SDSH.MOTHER_CODE
+				               , SDSH.ITEM_CODE
+				               , SDI.ITEM_CATALOG 
+				               , ''                  AS DWG_NO
+				               , SDSH.ECO_NO
+				               , SDSH.CREATE_BY      AS EMP_NO
+				               , SDSH.BOM_QTY        AS QTY 
+				               , SDSH.BOM1
+				               , SDSH.BOM2
+				               , SDSH.BOM3
+				               , SDSH.BOM4
+				               , SDSH.BOM5
+				               , SDSH.BOM6
+				               , SDSH.BOM7
+				               , SDSH.BOM8
+				               , SDSH.BOM9
+				               , SDSH.BOM10
+				               , SDSH.BOM11
+				               , SDSH.BOM12
+				               , SDSH.BOM13
+				               , SDSH.BOM14
+				               , SDSH.BOM15
+				               , SDECO.CREATE_BY              AS CREATED_BY
+				               , SDECO.STATES_CODE            AS STATES_CODE
+				               , SDSC.SD_DESC                 AS STATES_DESC
+				               , ''                           AS STATES_FLAG
+				               , SDSH.PROJECT_NO||'-'||'SSC'  AS STATES_FLAG_DESC
+				            FROM STX_DIS_RAWLEVEL         SDSH
+				                ,STX_DIS_ITEM             SDI
+				                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+				                ,STX_DIS_SD_CODE          SDSC
+				           WHERE 1=1
+				             AND SDSH.PROJECT_NO   = #{p_project_no}
+				             AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+				             AND SDSH.ITEM_CODE    = SDI.ITEM_CODE(+)
+				             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+				             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+				             AND NOT EXISTS
+				                 (SELECT 1
+				                    FROM STX_DIS_RAWLEVEL_WORK SDSHW
+				                   WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+				                  )
+				          UNION ALL
+				          SELECT SDSH.MOTHER_CODE
+				               , SDSH.ITEM_CODE
+				               , SDI.ITEM_CATALOG 
+				               , ''                    AS DWG_NO
+				               , SDSH.ECO_NO
+				               , SDSH.CREATE_BY AS EMP_NO
+				               , SDSH.BOM_QTY AS QTY 
+				               , SDSH.BOM1
+				               , SDSH.BOM2
+				               , SDSH.BOM3
+				               , SDSH.BOM4
+				               , SDSH.BOM5
+				               , SDSH.BOM6
+				               , SDSH.BOM7
+				               , SDSH.BOM8
+				               , SDSH.BOM9
+				               , SDSH.BOM10
+				               , SDSH.BOM11
+				               , SDSH.BOM12
+				               , SDSH.BOM13
+				               , SDSH.BOM14
+				               , SDSH.BOM15
+				               , SDECO.CREATE_BY              AS CREATED_BY
+				               , SDECO.STATES_CODE            AS STATES_CODE
+				               , SDSC.SD_DESC                 AS STATES_DESC
+				               , SDSH.STATE_FLAG              AS STATES_FLAG
+				               , SDSH.PROJECT_NO||'-'||'SSC'  AS STATES_FLAG_DESC
+				            FROM STX_DIS_RAWLEVEL_WORK    SDSH
+				                ,STX_DIS_ITEM             SDI
+				                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+				                ,STX_DIS_SD_CODE          SDSC
+				           WHERE 1=1
+				             AND SDSH.PROJECT_NO   = #{p_project_no}
+				             AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+				             AND SDSH.ITEM_CODE    = SDI.ITEM_CODE(+)
+				             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+				             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'             
+				         )                  AA
+				       , STX_DIS_ITEM       SDI
+				       , STX_DIS_SD_CATALOG SDSC
+				       , STX_DIS_ITEM       SDI_ASSY
+				       , STX_DIS_SD_CATALOG SDSC_ASSY
+				   WHERE AA.ITEM_CODE            = SDI.ITEM_CODE(+)
+				     AND SDI.ITEM_CATALOG        = SDSC.CATALOG_CODE(+)
+				     AND AA.MOTHER_CODE         = SDI_ASSY.ITEM_CODE(+)
+				     AND SDI_ASSY.ITEM_CATALOG   = SDSC_ASSY.CATALOG_CODE(+)
+				     AND AA.MOTHER_CODE          = REGEXP_SUBSTR(#{nodeid},'[^/]+',1,1)
+				ORDER BY DECODE(AA.STATES_FLAG,'A','1','D','2','C','3', AA.MOTHER_CODE), AA.ITEM_CODE
+     <!-- <choose>
+     <when test='p_project_no == nodeid'>
+     AND AAA.LEV = TO_NUMBER(#{n_level})
+     </when>
+     <otherwise>
+     AND AAA.LEV = TO_NUMBER(#{n_level}) + 1
+     </otherwise>
+     </choose> -->     
+   </otherwise>
+  </choose>
+ </select>
+</mapper>

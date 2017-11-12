@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="wpsCommon">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+
+	<select id="wpsCodeTypeSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = 'M'
+		UNION ALL
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = 'ALL'
+		 ORDER BY SB_VALUE 
+  	</select>
+  	
+  	<select id="wpsCodeTypeSelectBoxGridList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = 'M'
+		UNION ALL
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = 'ALL'
+		 ORDER BY SB_VALUE 
+  	</select>
+  	
+  	<select id="wpsPlateTypeSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '01'
+  	</select>
+  	
+  	<select id="wpsProcessTypeSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '02'
+  	</select>
+  	
+  	<select id="wpsTypeSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '03'
+  	</select>
+
+
+	<select id="wpsProcessTypeSelectBoxGridList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '02'
+  	</select>
+  	
+  	<select id="wpsPlateTypeSelectBoxGridList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '01'
+  	</select>
+  	
+  	<select id="wpsTypeSelectBoxGridList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '03'
+  	</select>
+  	
+  	<select id="selectWpsServerInfoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDFSS.SETUP_NAME     AS CODE_TYPE
+		      ,SDFSS.SETUP_CODE     AS CODE_VALUE
+		  FROM STX_DWG_FTP_SERVER_SETUP@STXERP SDFSS
+		 WHERE SDFSS.SETUP_TYPE = 'WPSDWG'
+	</select>
+	
+	
+	
+	<select id="wpsApprovalClassTypeSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '07'
+  	</select>
+  	
+  	<select id="wpsPositionTypeSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '06'
+  	</select>
+  	
+  	<select id="wpsBaseMetalTypeSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME  AS SB_NAME
+		      ,SDWC.CODE_VALUE AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE = '05'
+  	</select>
+  	
+  	<select id="wpsChangeTypeSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDWC.CODE_NAME 	AS SB_NAME
+		      ,SDWC.CODE_VALUE 	AS SB_VALUE
+		  FROM STX_DWG_WPS_CODE SDWC
+		 WHERE SDWC.CODE_TYPE IN ('M')
+		   AND SDWC.CODE_VALUE IN ('07','05','06')
+  	</select>
+  	
+</mapper>

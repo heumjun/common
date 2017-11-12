@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpInputProjectSearchItem">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DECODE(DL_EFFECTIVE, NULL, 'Z'||PROJECTNO, 'N', 'Z'||PROJECTNO, PROJECTNO) AS PROJECTNO
+		FROM   (
+		        SELECT PROJECTNO,
+		               NVL(DL, SYSDATE + 1) AS DL,
+		               DECODE(SIGN(TRUNC(SYSDATE) - LAST_DAY(ADD_MONTHS(NVL(DL, SYSDATE + 1), 1))), 1, 'N', 0, 'N', -1, 'Y') AS DL_EFFECTIVE
+		        FROM   LPM_NEWPROJECT
+		        WHERE  CASENO='1'
+		        AND    PROJECTNO &lt;&gt; 'S0000'
+		        AND    DWGMHYN='Y'
+		        
+		        <!--2015-01-21 Kang seonjung : Model 정보는 제외 (한경훈 과장 요청) 
+		        UNION ALL
+		        SELECT MODEL_NO AS PROJECTNO, 
+		                SYSDATE AS DL,
+		                '' AS DL_EFFECTIVE
+		                FROM   STX_DT_MODEL@STXERP
+		        
+		        UNION ALL
+		        SELECT 'S000' AS PROJECT_NO,
+		               SYSDATE AS DL,
+		               '' AS DL_EFFECTIVE
+		               FROM DUAL -->
+		        
+		       )
+		       ORDER BY DL_EFFECTIVE ASC, PROJECTNO ASC
+  	</select>
+  	
+</mapper>

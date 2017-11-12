@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpApprovalInputRateViewMainGrid">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		 SELECT ROWNUM, AA.*                                                                                           
+			  FROM                                                                                                        
+			        (                                                                                                     
+			        WITH MAX_WTIME_TBL AS                                                                                 
+			             (                                                                                                
+			              SELECT DECODE(SUM(INSIDEWORKTIME), 0, 1, SUM(INSIDEWORKTIME)) AS MAX_WTIME                      
+			                FROM CCC_CALENDAR                                                                             
+			               WHERE WORKINGDAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')                             
+			                                    AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')                               
+			             )                                                                                                
+			        SELECT B.EMPLOYEE_NUM,                                                                                
+			               B.POSITION,                                                                                    
+			               B.NAME AS EMP_NAME,                                                                            
+			               NVL(SUM(A.NORMAL_TIME), 0) AS NORMAL_TIME,                                                     
+			               NVL(SUM(A.OVERTIME), 0) AS OVERTIME,                                                           
+			               NVL(SUM(A.SPECIAL_TIME), 0) AS SPECIAL_TIME,                                                   
+			               TRUNC(NVL(SUM(A.NORMAL_TIME), 0) / (SELECT MAX_WTIME FROM MAX_WTIME_TBL) * 100) AS INPUT_RATIO 
+			          FROM PLM_DESIGN_MH A,                                                                               
+			                CCC_SAWON B                                                                                   
+			         WHERE 1 = 1                                                                                          
+			           AND A.EMPLOYEE_NO(+) = B.EMPLOYEE_NUM                                                              
+			           AND B.TERMINATION_DATE IS NULL                                                                     
+			           AND B.INPUT_MAN_HOUR_ENABLED = 'Y'                                                                 
+			           AND B.DEPT_CODE = #{dept_code}                                                             
+			           AND A.WORK_DAY(+) BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')                                
+			                                 AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')                                  
+			         GROUP BY B.EMPLOYEE_NUM, B.POSITION, B.NAME                                                          
+			        ) AA                                                                                                  
+			 WHERE 1 = 1
+			 <if test="selectRate != 'all'">
+			 	AND AA.INPUT_RATIO &lt; 100
+			 </if>                                                                                                  
+	</select>
+</mapper>

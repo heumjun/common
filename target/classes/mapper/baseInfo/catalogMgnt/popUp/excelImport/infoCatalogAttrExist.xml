@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoCatalogAttrExist">  	
+  	<select id="selectExistCatalogAttrUpload" parameterType="java.util.Map" resultType="string">
+		select 'Y' as exist_yn
+		from stx_dis_sd_catalog_attr_upload
+		where catalog_code = #{catalog_code}
+		and rownum = 1
+	</select>
+ 	
+</mapper>

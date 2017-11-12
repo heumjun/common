@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpInvCategoryList">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select cg.category_id   as inv_category_id
+	      ,cg.category_code1||'.'||cg.category_code2||'.'||cg.category_code3 as inv_category_code
+	      ,cg.category_desc as inv_category_desc
+	  from stx_dis_sd_part_family pf
+	      ,stx_dis_sd_category    cg
+	 where pf.category_type    = cg.category_code1
+	   and cg.type_code        = '01'
+	   and pf.enable_flag      = 'Y'
+	   and cg.enable_flag      = 'Y'
+	   and pf.part_family_code like #{part_family_code} || '%'
+	   and cg.category_code1   like substr(#{cost_category_code},1,1) || '%'
+	   and cg.category_code2   like substr(#{cost_category_code},3,1) || '%'
+	   and cg.category_desc    like #{p_code_find} || '%'
+	 group by cg.category_id 
+	         ,cg.category_code1
+	         ,cg.category_code2
+	         ,cg.category_code3 
+	         ,cg.category_desc
+	 order by cg.category_code1, cg.category_code2, cg.category_code3
+  	</select>
+</mapper>

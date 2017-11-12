@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="categoryMgntList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT t2.*
+		  FROM ( SELECT t1.*
+		             , FLOOR( ( ROWNUM - 1) / #{pageSize} + 1 ) AS page
+		          FROM ( SELECT sssca.type_code type_code
+		                      , sssc.sd_desc type_desc
+		                      , '...' popup_type_code
+		                      , sssca.category_code1 category_code1
+		                      , '...' popup_category_code1
+		                      , sssca.category_code2 category_code2
+		                      , sssca.category_code3 category_code3
+		                      , sssca.category_desc category_desc
+		                      , sssca.category_etc category_etc
+		                      , sssca.attribute_id attribute_id
+		                      , sssca.attribute_code attribute_code
+		                      , '...' popup_attribute_id
+		                      , TO_CHAR(sssca.invalid_date, 'YYYY-MM-DD') invalid_date
+		                      , sssca.enable_flag enable_flag
+		                      , sssca.category_id category_id
+		                      , sssca.enable_flag enable_flag_changed
+		                   FROM stx_dis_sd_category sssca
+		                      , stx_dis_sd_code sssc
+		                  WHERE sssc.sd_type = 'CATEGORY_TYPE'
+		                    AND sssca.type_code = sssc.sd_code
+		<if test='type_code != null and !type_code.equalsIgnoreCase("")'>
+		                    AND sssca.type_code = #{type_code}
+		</if>
+		<if test='category_code1 != null and !category_code1.equalsIgnoreCase("")'>
+		                    AND sssca.category_code1 = #{category_code1}
+		</if>
+		<if test='category_code2 != null and !category_code2.equalsIgnoreCase("")'>
+		                    AND sssca.category_code2 = #{category_code2}
+		</if>
+		<if test='category_code3 != null and !category_code3.equalsIgnoreCase("") and !category_code3.equalsIgnoreCase("|")'>
+		                    AND sssca.category_code3 = #{category_code3}
+		</if>
+		<if test='category_desc != null and !category_desc.equalsIgnoreCase("")'>
+		                    AND sssca.category_desc LIKE '%' || #{category_desc} || '%'
+		</if>
+		                  ORDER BY sssca.type_code
+		                         , sssca.category_code1
+		                         , sssca.category_code2
+		                         , sssca.category_code3
+		               ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+	</select>
+  
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*) cnt
+		  FROM stx_dis_sd_category sssca
+		     , stx_dis_sd_code sssc
+		 WHERE sssc.sd_type = 'CATEGORY_TYPE'
+		   AND sssca.type_code = sssc.sd_code
+		<if test='type_code != null and !type_code.equalsIgnoreCase("")'>
+		   AND sssca.type_code = #{type_code}
+		</if>
+		<if test='category_code1 != null and !category_code1.equalsIgnoreCase("")'>
+		   AND sssca.category_code1 = #{category_code1}
+		</if>
+		<if test='category_code2 != null and !category_code2.equalsIgnoreCase("")'>
+		   AND sssca.category_code2 = #{category_code2}
+		</if>
+		<if test='category_code3 != null and !category_code3.equalsIgnoreCase("") and !category_code3.equalsIgnoreCase("|")'>
+		   AND sssca.category_code3 = #{category_code3}
+		</if>
+		<if test='category_desc != null and !category_desc.equalsIgnoreCase("")'>
+		   AND sssca.category_desc LIKE '%' || #{category_desc} || '%'
+		</if>
+	</select>
+	
+</mapper>

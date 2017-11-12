@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectDwgDeptList">
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int">
+  		select	count(*) as cnt
+		  from	stx_com_insa_dept@stxerp
+		 where  dept_name like '%' || #{p_deptName} || '%'
+		   and  use_yn='Y'
+		   and  cost_code is not null
+		   and  team_code is not null
+		   and  attribute2 in ('팀','파트/현장')
+		   and  attribute3 is not null
+      	   order by dept_code
+  	</select>
+  	
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		select t13.* 
+  		  from (
+        		select t12.*
+               		   ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+          		  from (
+                		select 	dept_code 
+                       		   ,dept_name
+                  		  from	stx_com_insa_dept@stxerp
+     					 where  dept_name like '%' || #{p_deptName} || '%'
+		   				   and  use_yn='Y'
+		   				   and  cost_code is not null
+		   				   and  team_code is not null
+		   				   and  attribute2 in ('팀','파트/현장')
+		   				   and  attribute3 is not null
+      	   				 order by dept_code
+          				)t12
+          		)t13
+          where page = #{curPageNo}
+  	</select>
+</mapper>

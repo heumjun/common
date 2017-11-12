@@ -1,0 +1,1031 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveCatalogMgnt">
+  
+	<delete id="deleteCatalogMgnt" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog
+          where catalog_code = #{catalog_code}     
+	</delete>
+	<insert id="insertCatalogValue" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_value
+       (
+        catalog_code
+       ,value_type
+       ,value_code
+       ,value_name
+       ,enable_flag
+       ,created_by
+       ,creation_date
+       )
+  	 values
+       (
+         #{catalog_code}
+        ,#{value_type}
+        ,#{value_code}
+        ,#{value_name}
+        ,#{enable_flag}
+        ,#{loginId}
+        ,SYSDATE
+       )
+	</insert>
+	<update id="updateCatalogValue" parameterType="java.util.Map">
+	 update stx_dis_sd_catalog_value
+	   set value_name        =  #{value_name}    
+	      ,enable_flag       =  #{enable_flag}     
+	      ,last_updated_by   =  #{loginId}               
+	      ,last_update_date  =  sysdate     
+	 where catalog_code      =  #{catalog_code}  
+	   and value_type		 =  #{value_type}  
+	   and value_code 		 =  #{value_code}  
+	</update>
+	<delete id="deleteCatalogValue" parameterType="java.util.Map">
+	 delete from stx_dis_sd_catalog_value
+           where catalog_code =  #{catalog_code}  
+             and value_type	  =  #{value_type}  
+	   		 and value_code   =  #{value_code}     
+	</delete>
+	<insert id="insertCatalogLength" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_length
+       (
+        catalog_code
+       ,catalog_length
+       ,enable_flag
+       ,created_by
+       ,creation_date
+       )
+  	 values
+       (
+         #{catalog_code}
+        ,#{catalog_length}
+        ,#{enable_flag}
+        ,#{loginId}
+        ,SYSDATE
+       )
+	</insert>
+	<update id="updateCatalogLength" parameterType="java.util.Map">
+	 update stx_dis_sd_catalog_length
+	   set catalog_length    =  #{catalog_length}    
+	      ,enable_flag       =  #{enable_flag}     
+	      ,last_updated_by   =  #{loginId}               
+	      ,last_update_date  =  sysdate     
+	 where catalog_code      =  #{catalog_code}  
+	   and catalog_length	 =  #{catalog_length}
+	</update>
+	<delete id="deleteCatalogLength" parameterType="java.util.Map">
+	 delete from stx_dis_sd_catalog_length
+           where catalog_code      =  #{catalog_code}  
+	   		 and catalog_length	 =  #{catalog_length}  
+	</delete>
+	<delete id="deleteItemAttributeBase" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attribute
+          where catalog_code      	=  #{item_catalog_code}  
+	        and attribute_type	 	=  #{item_attribute_type}  
+	        and attribute_code 	 	=  #{item_attribute_code}    
+	</delete>
+	<delete id="deleteItemValue" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attr_value
+          where catalog_code      	=  #{item_catalog_code}  
+		    and attribute_type	 	=  #{item_attribute_type}  
+		    and attribute_code 	 	=  #{item_attribute_code} 
+		    and value_code			=  #{org_value_code}
+		    and nvl(item_make_value,'@')  =  nvl(#{org_item_make_value},'@')
+	</delete>
+	<delete id="deleteTopItemValue" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attr_val_de
+          where catalog_code      	=  #{item_catalog_code}  
+		    and attribute_type	 	=  #{item_attribute_type}  
+		    and attribute_code 	 	=  #{item_attribute_code} 
+		    and value_code			=  #{item_value_code}
+		    and nvl(item_make_value,'@')     =  nvl(#{item_item_make_value},'@')
+		    and assy_value_code		=  #{org_assy_value_code}
+	</delete>
+	<insert id="insertBomAttributeBase" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_attribute
+        (
+         catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,attribute_required_flag
+        ,enable_flag
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,created_by
+	 	,creation_date
+	 	,last_updated_by			
+		,last_update_date 
+        )
+        values
+        (
+         #{bom_catalog_code}
+        ,#{bom_attribute_type}
+        ,#{bom_attribute_code}
+        ,#{bom_attribute_name}
+        ,#{bom_attribute_data_type}
+        ,#{bom_attribute_required_flag}
+        ,#{bom_enable_flag}
+        ,#{bom_assy_attribute_code}
+        ,#{bom_attribute_data_min}
+        ,#{bom_attribute_data_max}
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+        )
+	</insert>
+	<update id="updateBomAttributeBase" parameterType="java.util.Map">
+	 update stx_dis_sd_catalog_attribute
+	   set attribute_name       =  #{bom_attribute_name}    
+	      ,attribute_data_type  =  #{bom_attribute_data_type}
+	      ,assy_attribute_code	=  #{bom_assy_attribute_code}
+          ,attribute_data_min	=  #{bom_attribute_data_min}	
+          ,attribute_data_max   =  #{bom_attribute_data_max}	  
+	      ,last_updated_by   	=  #{loginId}               
+	      ,last_update_date  	=  sysdate     
+	 where catalog_code      	=  #{bom_catalog_code}  
+	   and attribute_type	 	=  #{bom_attribute_type}  
+	   and attribute_code 	 	=  #{bom_attribute_code}  
+	</update>
+	<delete id="deleteBomAttributeBase" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attribute
+          where catalog_code      	=  #{bom_catalog_code}  
+	        and attribute_type	 	=  #{bom_attribute_type}  
+	        and attribute_code 	 	=  #{bom_attribute_code}    
+	</delete>
+	<insert id="insertBomValue" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_attr_value
+       (
+         catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,value_code
+        ,item_make_value
+        ,enable_flag
+        ,created_by
+	 	,creation_date
+	 	,last_updated_by			
+		,last_update_date
+       )
+       values
+       (
+         #{bom_catalog_code}
+        ,#{bom_attribute_type}
+        ,#{bom_attribute_code}
+        ,#{bom_value_code}
+        ,#{bom_value_code}
+        ,'Y'
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+       )
+	</insert>
+	<delete id="deleteBomValue" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attr_value
+          where catalog_code      	=  #{bom_catalog_code}  
+		    and attribute_type	 	=  #{bom_attribute_type}  
+		    and attribute_code 	 	=  #{bom_attribute_code} 
+		    and value_code			=  #{org_value_code}
+		    
+	</delete>
+	<insert id="insertTopBomValue" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_attr_val_de
+       (
+         catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,value_code
+        ,item_make_value
+        ,assy_value_code
+        ,enable_flag
+        ,created_by
+	 	,creation_date
+	 	,last_updated_by			
+		,last_update_date 
+       )
+       values
+       (
+         #{bom_catalog_code}
+        ,#{bom_attribute_type}
+        ,#{bom_attribute_code}
+        ,#{bom_value_code}
+        ,#{bom_item_make_value}
+        ,#{bom_assy_value_code}
+        ,#{bom_enable_flag}
+        ,#{loginId}
+        ,sysdate
+        ,#{loginId}
+        ,sysdate
+       )
+	</insert>
+	<delete id="deleteTopBomValue" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attr_val_de
+          where catalog_code      	=  #{bom_catalog_code}  
+		    and attribute_type	 	=  #{bom_attribute_type}  
+		    and attribute_code 	 	=  #{bom_attribute_code} 
+		    and value_code			=  #{bom_value_code}
+		    and item_make_value     =  #{bom_item_make_value}
+		    and assy_value_code		=  #{org_assy_value_code}
+	</delete>
+	
+	<select id="selectExistCatalog" parameterType="java.util.Map" resultType="string">
+	select 'Y' as exist_yn
+      from stx_dis_sd_catalog
+     where catalog_code = #{catalog_code}
+	</select>
+	<select id="selectExistCatalogAttribute" parameterType="java.util.Map" resultType="string">
+	select 'Y' as exist_yn
+      from stx_dis_sd_catalog_attribute
+     where catalog_code   = #{catalog_code}
+       and attribute_type = #{attribute_type}
+       and attribute_code = #{attribute_code}
+	</select>
+	<select id="selectExistCatalogAttributeValue" parameterType="java.util.Map" resultType="java.util.Map">
+	select value_code
+	      ,item_make_value
+	  from    
+	      (select value_code
+	             ,item_make_value 
+	         from stx_dis_sd_catalog_attr_value
+	        where catalog_code     = #{catalog_code}
+       		  and attribute_type   = #{attribute_type}
+       		  and attribute_code   = #{attribute_code}
+	          and value_code       = #{value_code}
+	          and item_make_value  = #{item_make_value}
+	       <!-- union all
+	       select value_code
+	             ,item_make_value 
+	         from stx_dis_sd_catalog_attr_value
+	        where catalog_code     = #{catalog_code}
+       		  and attribute_type   = #{attribute_type}
+       		  and attribute_code   = #{attribute_code}
+	          and item_make_value  = #{item_make_value} -->
+	       ) 
+	 where rownum = 1
+	</select>
+	
+	<insert id="insertCatalogMgnt" parameterType="java.util.Map">
+	  insert into stx_dis_sd_catalog
+      (
+          catalog_code
+         ,catalog_desc
+         ,category_id
+         ,uom_code
+         ,part_family_code
+         ,enable_flag
+         ,wbs_flag
+         ,wbs_sub_flag
+         ,activity_flag
+         ,job_flag 
+         ,pd_flag
+         ,paint_flag
+         ,paint_usc_flag
+         ,invalid_date
+         ,created_by
+	 	 ,creation_date
+	 	 ,last_updated_by			
+		 ,last_update_date 
+      )
+      values
+      (
+          #{catalog_code}
+         ,#{catalog_desc}
+         ,#{category_id}
+         ,#{uom_code}
+         ,#{part_family_code}
+         ,#{enable_flag}
+         ,#{wbs_flag}
+         ,#{wbs_sub_flag}
+         ,#{activity_flag}
+         ,#{job_flag} 
+         ,#{pd_flag}
+         ,#{paint_flag}
+         ,#{paint_usc_flag}
+         ,decode( #{enable_flag}, 'N', to_date(to_char(sysdate,'YYYY-MM-DD'),'YYYY-MM-DD'), null)
+         ,#{loginId}
+         ,SYSDATE
+         ,#{loginId}
+         ,SYSDATE 
+      ) 
+	</insert>
+		
+	<select id="selectCatalogHisRevNo" parameterType="java.util.Map" resultType="string">
+	select nvl(max(revision_no),0)+1 as revision_no
+	  from stx_dis_sd_catalog_his
+	 where catalog_code = #{catalog_code}
+	</select>
+	
+	<insert id="insertCatalogHis" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_his
+      (      
+          revision_no
+         ,catalog_code
+         ,catalog_desc
+         ,category_id
+         ,uom_code
+         ,part_family_code
+         ,enable_flag
+         ,wbs_flag
+         ,wbs_sub_flag
+         ,activity_flag
+         ,job_flag 
+         ,pd_flag
+         ,paint_flag
+         ,paint_usc_flag
+         ,process_action
+         ,invalid_date
+         ,created_by
+         ,creation_date
+         ,last_updated_by            
+         ,last_update_date 
+      )
+      values
+      (
+          #{revision_no}
+         ,#{catalog_code}
+         ,#{catalog_desc}
+         ,#{category_id}
+         ,#{uom_code}
+         ,#{part_family_code}
+         ,#{enable_flag}
+         ,#{wbs_flag}
+         ,#{wbs_sub_flag}
+         ,#{activity_flag}
+         ,#{job_flag} 
+         ,#{pd_flag}
+         ,#{paint_flag}
+         ,#{paint_usc_flag}
+         ,'ADD'
+         ,decode( #{enable_flag}, 'N', to_date(to_char(sysdate,'YYYY-MM-DD'),'YYYY-MM-DD'), null)
+         ,#{loginId}
+         ,SYSDATE
+         ,#{loginId}
+         ,SYSDATE 
+      ) 
+	</insert>
+	
+	<select id="selectExistMtlItemCatalogGroupsB" parameterType="java.util.Map" resultType="string">
+	select 'Y' as exist_yn 
+	  from mtl_item_catalog_groups_b@stxerp
+	 where segment1 = #{catalog_code}
+	</select>
+	
+	<insert id="insertMtlItemCatalogGroupsB" parameterType="java.util.Map">
+	INSERT INTO MTL_ITEM_CATALOG_GROUPS_B@stxerp
+         ( 
+           ITEM_CATALOG_GROUP_ID      
+          ,LAST_UPDATE_DATE           
+          ,LAST_UPDATED_BY            
+          ,CREATION_DATE              
+          ,CREATED_BY                 
+          ,LAST_UPDATE_LOGIN
+          ,INACTIVE_DATE
+          ,SUMMARY_FLAG
+          ,ENABLED_FLAG
+          ,SEGMENT1  
+          ,ITEM_CREATION_ALLOWED_FLAG 
+          ,ITEM_NUM_GEN_METHOD        
+          ,ITEM_DESC_GEN_METHOD             
+          ,NEW_ITEM_REQUEST_REQD 
+         )
+        VALUES 
+        ( 
+           mtl_item_catalog_groups_b_s.nextval@stxerp
+          ,sysdate           
+          ,-1              
+          ,sysdate              
+          ,-1
+          ,-1 
+          ,decode( #{enable_flag}, 'N', to_date(to_char(sysdate,'YYYY-MM-DD'),'YYYY-MM-DD'), null)
+          ,'N' 
+          ,#{enable_flag} 
+          ,#{catalog_code}
+          ,'Y'     
+          ,'U'            
+          ,'U'                 
+          ,'N' 
+         )
+	</insert>
+	<insert id="insertMtlItemCatalogGroupsTL" parameterType="java.util.Map">
+	INSERT INTO MTL_ITEM_CATALOG_GROUPS_TL@stxerp
+	(  
+	   ITEM_CATALOG_GROUP_ID
+	  ,LANGUAGE             
+	  ,SOURCE_LANG          
+	  ,DESCRIPTION          
+	  ,CREATION_DATE        
+	  ,CREATED_BY           
+	  ,LAST_UPDATE_DATE     
+	  ,LAST_UPDATED_BY      
+	  ,LAST_UPDATE_LOGIN 
+	)
+	SELECT  ITEM_CATALOG_GROUP_ID
+	       ,LANGUAGE
+	       ,'KO'
+	       ,DESCRIPTION
+	       ,SYSDATE
+	       ,-1
+	       ,SYSDATE
+	       ,-1
+	       ,-1
+	  FROM (
+	        SELECT CGB.ITEM_CATALOG_GROUP_ID AS ITEM_CATALOG_GROUP_ID
+	              ,'KO'                      AS LANGUAGE
+	              ,SC.CATALOG_DESC           AS DESCRIPTION
+	          FROM STX_DIS_SD_CATALOG               SC
+	              ,MTL_ITEM_CATALOG_GROUPS_B@stxerp CGB
+	         WHERE SC.CATALOG_CODE = #{catalog_code}
+	           AND SC.CATALOG_CODE = CGB.SEGMENT1
+	         UNION ALL
+	        SELECT CGB.ITEM_CATALOG_GROUP_ID AS ITEM_CATALOG_GROUP_ID
+	              ,'US'                      AS LANGUAGE
+	              ,SC.CATALOG_DESC           AS DESCRIPTION
+	          FROM STX_DIS_SD_CATALOG               SC
+	              ,MTL_ITEM_CATALOG_GROUPS_B@stxerp CGB
+	         WHERE SC.CATALOG_CODE = #{catalog_code}
+	           AND SC.CATALOG_CODE = CGB.SEGMENT1    
+	        )
+	</insert>
+	
+	<select id="selectVCategory" parameterType="java.util.Map"  resultType="string">
+	select (case when length(a.catalog_code) in (4,6) 
+	             then substr(a.catalog_code,5,2) 
+	             else substr(a.catalog_code,5,1)
+	       end) as v_category
+	  from stx_dis_sd_catalog a
+	 where a.catalog_code = #{catalog_code}
+	   and rownum         = 1
+	</select>
+	
+	<select id="selectCategoryId" parameterType="java.util.Map"  resultType="java.util.Map">
+<!-- 	select gb.item_catalog_group_id -->
+<!-- 	      ,cb.category_id  -->
+<!-- 	  from mtl_categories_b@stxerp          cb, -->
+<!-- 	       mtl_item_catalog_groups_b@stxerp gb -->
+<!-- 	 where cb.segment1 = substr( #{catalog_code}, 1, 1)                       -->
+<!-- 	   and cb.segment2 = substr( #{catalog_code}, 3, 1) -->
+<!-- 	   and cb.segment3 = #{v_category} -->
+<!-- 	   and gb.segment1 = #{catalog_code}   -->
+		SELECT MICG.ITEM_CATALOG_GROUP_ID
+		      ,MC.CATEGORY_ID
+		FROM   STX_DIS_SD_CATALOG SDSC
+		      ,STX_DIS_SD_CATEGORY SDST
+		      ,MTL_ITEM_CATALOG_GROUPS_B@STXERP MICG
+		      ,MTL_CATEGORIES_B@STXERP MC
+		WHERE  SDSC.CATALOG_CODE = #{catalog_code}
+		AND    SDSC.CATALOG_CODE = MICG.SEGMENT1
+		AND    SDSC.CATEGORY_ID = SDST.CATEGORY_ID
+		AND    SDST.CATEGORY_CODE1 = MC.SEGMENT1
+		AND    SDST.CATEGORY_CODE2 = MC.SEGMENT2
+		AND    SDST.CATEGORY_CODE3 = MC.SEGMENT3
+	</select>
+	
+	<select id="selectExistCatalogCateRelation" parameterType="java.util.Map" resultType="string">
+	SELECT CASE WHEN EXIST_YN > 0 THEN 'Y' ELSE 'N' END AS EXIST_YN
+	FROM	(
+	select COUNT(*) as exist_yn
+      from stx_std_catalog_cate_relation@stxerp
+  	 where item_catalog_group_id = #{ITEM_CATALOG_GROUP_ID}
+  	 )
+  	      
+	</select>
+	
+	<insert id="insertCatalogCateRelation" parameterType="java.util.Map">
+	INSERT INTO STX_STD_CATALOG_CATE_RELATION@stxerp  
+        (ITEM_CATALOG_GROUP_ID
+        ,CATEGORY_ID          
+        ,UOM_CODE             
+        ,LAST_UPDATE_DATE     
+        ,LAST_UPDATED_BY      
+        ,CREATION_DATE        
+        ,CREATED_BY           
+        ,LAST_UPDATE_LOGIN )    
+	VALUES 
+	   ( #{ITEM_CATALOG_GROUP_ID}
+	    ,#{CATEGORY_ID}          
+	    ,#{uom_code}            
+	    ,SYSDATE     
+	    ,-1    
+	    ,SYSDATE        
+	    ,-1
+	    ,-1) 
+	</insert>
+	
+	<update id="updateCatalogMgnt" parameterType="java.util.Map">
+	 update stx_dis_sd_catalog
+	   set catalog_desc      =  #{catalog_desc}    
+	      ,category_id       =  #{category_id}     
+	      ,uom_code          =  #{uom_code}        
+	      ,part_family_code  =  #{part_family_code}
+	      ,invalid_date      =  decode( #{enable_flag}, 'N', to_date(to_char(sysdate,'YYYY-MM-DD'),'YYYY-MM-DD'), null)    
+	      ,enable_flag       =  #{enable_flag}     
+	      ,wbs_flag			 =  #{wbs_flag}
+	      ,wbs_sub_flag		 =  #{wbs_sub_flag}
+	      ,activity_flag     =  #{activity_flag}   
+	      ,job_flag          =  #{job_flag}   
+          ,pd_flag  		 =  #{pd_flag}  
+          ,paint_flag  		 =  #{paint_flag}
+          ,paint_usc_flag  	 =  #{paint_usc_flag}
+	      ,last_updated_by   =  #{loginId}
+	      ,last_update_date  =  sysdate     
+	 where catalog_code      =  #{catalog_code}   
+	</update>
+	
+	<select id="selectItemCatalogGroupId" parameterType="java.util.Map" resultType="string">
+	select gb.item_catalog_group_id
+   	  from mtl_item_catalog_groups_b@stxerp gb
+  	 where gb.segment1 = #{catalog_code}   
+	</select>
+	
+	<select id="selectCategoryId2" parameterType="java.util.Map" resultType="string">
+<!-- 	select cb.category_id  -->
+<!-- 	  from mtl_categories_b@stxerp          cb -->
+<!-- 	 where cb.segment1 = substr( #{catalog_code}, 1, 1)                       -->
+<!-- 	   and cb.segment2 = substr( #{catalog_code}, 3, 1) -->
+<!-- 	   and cb.segment3 = #{v_category}   -->
+		select mc.category_id
+		  from stx_dis_sd_category    sdsc
+		      ,mtl_categories_b@stxerp mc
+		 where sdsc.category_id    = #{category_id} 
+		   and sdsc.category_code1 = mc.segment1
+		   and sdsc.category_code2 = mc.segment2
+		   and sdsc.category_code3 = mc.segment3
+    </select>
+	
+	<select id="selectCatalogInfo" parameterType="java.util.Map" resultType="java.util.Map">
+	select catalog_desc
+	      ,category_id
+	      ,uom_code
+	      ,enable_flag 
+	  from stx_dis_sd_catalog
+	 where 1=1
+	   and catalog_code = #{catalog_code}
+	</select>
+	
+	<update id="updateMtlItemCatalogGroupsB" parameterType="java.util.Map">
+	UPDATE MTL_ITEM_CATALOG_GROUPS_B@stxerp
+       SET LAST_UPDATE_DATE  = SYSDATE         
+          ,LAST_UPDATED_BY   = -1       
+          ,LAST_UPDATE_LOGIN = -1
+          ,INACTIVE_DATE	 = #{invalid_date}
+          ,ENABLED_FLAG      = #{enable_flag}
+	 WHERE ITEM_CATALOG_GROUP_ID = #{v_item_catalog_group_id}
+	</update>
+	
+	<update id="updateMtlItemCatalogGroupsTL" parameterType="java.util.Map">
+	UPDATE MTL_ITEM_CATALOG_GROUPS_TL@stxerp
+	   SET DESCRIPTION 		 = #{catalog_desc}
+	      ,LAST_UPDATE_DATE  = SYSDATE         
+          ,LAST_UPDATED_BY   = -1       
+          ,LAST_UPDATE_LOGIN = -1
+	 WHERE ITEM_CATALOG_GROUP_ID = #{v_item_catalog_group_id}
+	</update>
+	
+	<update id="updateCatalogCateRelation" parameterType="java.util.Map">
+	UPDATE STX_STD_CATALOG_CATE_RELATION@stxerp 
+	   SET CATEGORY_ID       = #{v_category_id}          
+	      ,UOM_CODE			 = #{uom_code}
+	      ,LAST_UPDATE_DATE  = SYSDATE         
+          ,LAST_UPDATED_BY   = -1       
+          ,LAST_UPDATE_LOGIN = -1  
+	 WHERE ITEM_CATALOG_GROUP_ID = #{v_item_catalog_group_id}
+	</update>
+	
+	<select id="selectCatalogAttrHisRevNo" parameterType="java.util.Map" resultType="string">
+	select nvl(max(revision_no),0)+1 as revision_no
+	  from stx_dis_sd_catalog_attr_his
+	 where catalog_code = #{catalog_code}
+	</select>
+	
+	<insert id="insertItemAttributeBase" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_attribute
+        (
+         catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,attribute_required_flag
+        ,enable_flag
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,created_by
+	 	,creation_date
+	 	,last_updated_by			
+		,last_update_date 
+        )
+        values
+        (
+         #{item_catalog_code}
+        ,#{item_attribute_type}
+        ,#{item_attribute_code}
+        ,#{item_attribute_name}
+        ,#{item_attribute_data_type}
+        ,#{item_attribute_required_flag}
+        ,#{item_enable_flag}
+        ,#{item_assy_attribute_code}
+        ,#{item_attribute_data_min}
+        ,#{item_attribute_data_max}
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+        )
+	</insert>
+	
+	<select id="selectExistDescriptiveElements" parameterType="java.util.Map" resultType="string">
+	select 'Y' as exist_yn
+   	  from mtl_descriptive_elements@stxerp a
+     where a.item_catalog_group_id = #{v_item_catalog_group_id}
+       and a.element_name          = #{attribute_name}
+	</select>
+	
+	<insert id="insertDescriptiveElements" parameterType="java.util.Map">
+	INSERT INTO MTL_DESCRIPTIVE_ELEMENTS@stxerp 
+          (
+           ITEM_CATALOG_GROUP_ID 
+          ,ELEMENT_NAME          
+          ,LAST_UPDATE_DATE      
+          ,LAST_UPDATED_BY       
+          ,CREATION_DATE         
+          ,CREATED_BY            
+          ,LAST_UPDATE_LOGIN     
+          ,REQUIRED_ELEMENT_FLAG 
+          ,DEFAULT_ELEMENT_FLAG  
+          ,ELEMENT_SEQUENCE
+          ) 
+   		VALUES
+   		  (
+   		   #{v_item_catalog_group_id}
+          ,#{attribute_name}  
+          ,SYSDATE    
+          ,-1
+          ,SYSDATE
+          ,-1
+          ,-1
+	      ,'N' -- REQUIRED_ELEMENT_FLAG
+	      ,'Y' -- DEFAULT_ELEMENT_FLAG
+	      ,DECODE( #{attribute_code}, '10', #{attribute_code} ||'0', '11', #{attribute_code} ||'0', '12', #{attribute_code} ||'0', '13', #{attribute_code} ||'0', '14', #{attribute_code} ||'0', SUBSTR( #{attribute_code}, 2, 1) ||'0')
+          )				          
+    </insert>
+	
+	<insert id="insertCatalogAttributeHis" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_attr_his
+        (
+         revision_no
+        ,process_action
+        ,catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,value_code
+        ,item_make_value
+        ,assy_value_code
+        ,enable_flag
+        ,item_rowid
+        ,item_value_rowid
+        ,item_value_de_rowid
+        ,created_by
+        ,creation_date
+        ,last_updated_by            
+        ,last_update_date 
+        )
+        values
+        (
+         #{revision_no}
+        ,'ADD' 
+        ,#{catalog_code}
+        ,#{attribute_type}
+        ,#{attribute_code}
+        ,#{attribute_name}
+        ,#{attribute_data_type}
+        ,#{assy_attribute_code}
+        ,#{attribute_data_min}
+        ,#{attribute_data_max}
+        ,null
+        ,null
+        ,null
+        ,null
+        ,null
+        ,null
+        ,null
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+        )
+    </insert>
+        	
+    <update id="updateItemAttributeBase" parameterType="java.util.Map">
+	 update stx_dis_sd_catalog_attribute
+	   set attribute_name       =  #{item_attribute_name}    
+	      ,attribute_data_type  =  #{item_attribute_data_type}
+	      ,assy_attribute_code	=  #{item_assy_attribute_code}
+          ,attribute_data_min	=  #{item_attribute_data_min}	
+          ,attribute_data_max   =  #{item_attribute_data_max}	
+          ,attribute_required_flag = #{item_attribute_required_flag}
+	      ,last_updated_by   	=  #{loginId}               
+	      ,last_update_date  	=  sysdate     
+	 where catalog_code      	=  #{item_catalog_code}  
+	   and attribute_type	 	=  #{item_attribute_type}  
+	   and attribute_code 	 	=  #{item_attribute_code}  
+	</update>    	
+        	
+    <update id="updateDescriptiveElements" parameterType="java.util.Map">
+	UPDATE MTL_DESCRIPTIVE_ELEMENTS@stxerp
+	   SET ELEMENT_NAME 		 = #{attribute_name}
+	   	  ,LAST_UPDATE_DATE  	 = SYSDATE         
+          ,LAST_UPDATED_BY       = -1      
+          ,LAST_UPDATE_LOGIN     = -1   
+	 WHERE ITEM_CATALOG_GROUP_ID = #{v_item_catalog_group_id}
+	   AND ELEMENT_SEQUENCE      = DECODE( #{attribute_code}, '10', #{attribute_code} ||'0', '11', #{attribute_code} ||'0', '12', #{attribute_code} ||'0', '13', #{attribute_code} ||'0', '14', #{attribute_code} ||'0', SUBSTR( #{attribute_code}, 2, 1) ||'0')				          
+	</update>
+	
+	<insert id="insertCatalogAttributeValueHis" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_attr_his
+        (
+         revision_no
+        ,process_action
+        ,catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,value_code
+        ,item_make_value
+        ,assy_value_code
+        ,enable_flag
+        ,item_rowid
+        ,item_value_rowid
+        ,item_value_de_rowid
+        ,created_by
+        ,creation_date
+        ,last_updated_by            
+        ,last_update_date 
+        )
+        values
+        (
+         #{revision_no}
+        ,'ADD' 
+        ,#{catalog_code}
+        ,#{attribute_type}
+        ,#{attribute_code}
+        ,null
+        ,null
+        ,null
+        ,null
+        ,null
+        ,#{value_code}
+        ,#{catalog_code}
+        ,null
+        ,null
+        ,null
+        ,null
+        ,null
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+        )
+    </insert>
+	
+	<insert id="insertCatalogAttributeValueHis2" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_attr_his
+        (
+         revision_no
+        ,process_action
+        ,catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,value_code
+        ,item_make_value
+        ,assy_value_code
+        ,enable_flag
+        ,item_rowid
+        ,item_value_rowid
+        ,item_value_de_rowid
+        ,created_by
+        ,creation_date
+        ,last_updated_by            
+        ,last_update_date 
+        )
+        select  #{revision_no}
+               ,'CHANGE'
+               ,catalog_code
+               ,attribute_type
+               ,attribute_code
+               ,null
+               ,null
+               ,null
+               ,null
+               ,null
+               ,value_code
+               ,catalog_code
+               ,null
+               ,null
+               ,null
+               ,rowid
+               ,null
+               ,#{loginId}
+               ,SYSDATE
+               ,#{loginId}
+               ,SYSDATE
+          from stx_dis_sd_catalog_attr_value
+         where catalog_code      =  #{item_catalog_code}  
+		   and attribute_type	 =  #{item_attribute_type}  
+		   and attribute_code 	 =  #{item_attribute_code} 
+		   and value_code		 =  #{org_value_code}
+		   and item_make_value   =  #{org_item_make_value} 
+           and (nvl(value_code,'$') <![CDATA[<>]]> nvl( #{item_value_code}, '$') or
+                nvl(item_make_value,'$') <![CDATA[<>]]> nvl( #{item_item_make_value}, '$')) 
+    </insert>
+    
+    
+	
+    <insert id="insertItemValue" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_attr_value
+       (
+         catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,value_code
+        ,item_make_value
+        ,enable_flag
+        ,created_by
+	 	,creation_date
+	 	,last_updated_by			
+		,last_update_date
+       )
+       values
+       (
+         #{item_catalog_code}
+        ,#{item_attribute_type}
+        ,#{item_attribute_code}
+        ,#{item_value_code}
+        ,#{item_item_make_value}
+        ,'Y'
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+       )
+	</insert>
+    
+    <insert id="insertTopItemValue" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_attr_val_de
+       (
+         catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,value_code
+        ,item_make_value
+        ,assy_value_code
+        ,enable_flag
+        ,created_by
+	 	,creation_date
+	 	,last_updated_by			
+		,last_update_date 
+       )
+       values
+       (
+         #{item_catalog_code}
+        ,#{item_attribute_type}
+        ,#{item_attribute_code}
+        ,#{item_value_code}
+        ,#{item_item_make_value}
+        ,#{item_assy_value_code}
+        ,#{item_enable_flag}
+        ,#{loginId}
+        ,sysdate
+        ,#{loginId}
+        ,sysdate
+       )
+	</insert>
+	
+    <insert id="insertCatalogAttributeValueDeHis" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_attr_his
+        (
+         revision_no
+        ,process_action
+        ,catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,value_code
+        ,item_make_value
+        ,assy_value_code
+        ,enable_flag
+        ,item_rowid
+        ,item_value_rowid
+        ,item_value_de_rowid
+        ,created_by
+        ,creation_date
+        ,last_updated_by            
+        ,last_update_date 
+        )
+        values
+        (
+         #{revision_no}
+        ,'ADD' 
+        ,#{catalog_code}
+        ,#{attribute_type}
+        ,#{attribute_code}
+        ,null
+        ,null
+        ,null
+        ,null
+        ,null
+        ,#{value_code}
+        ,#{catalog_code}
+        ,#{assy_value_code}
+        ,#{enable_flag}
+        ,null
+        ,null
+        ,null
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+        )
+    </insert>
+    
+    <insert id="insertCatalogAttributeValueDeHis2" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_attr_his
+        (
+         revision_no
+        ,process_action
+        ,catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,value_code
+        ,item_make_value
+        ,assy_value_code
+        ,enable_flag
+        ,item_rowid
+        ,item_value_rowid
+        ,item_value_de_rowid
+        ,created_by
+        ,creation_date
+        ,last_updated_by            
+        ,last_update_date 
+        )
+        select  #{revision_no}
+               ,'CHANGE'
+               ,catalog_code
+               ,attribute_type
+               ,attribute_code
+               ,null
+               ,null
+               ,null
+               ,null
+               ,null
+               ,value_code
+               ,catalog_code
+               ,assy_value_code
+        	   ,enable_flag
+               ,null
+               ,null
+               ,rowid
+               ,#{loginId}
+               ,SYSDATE
+               ,#{loginId}
+               ,SYSDATE
+          from stx_dis_sd_catalog_attr_val_de
+         where catalog_code      	=  #{item_catalog_code}  
+		   and attribute_type	 	=  #{item_attribute_type}  
+		   and attribute_code 	 	=  #{item_attribute_code} 
+		   and value_code			=  #{item_value_code}
+		   and item_make_value      =  #{item_item_make_value}
+		   and assy_value_code		=  #{org_assy_value_code}
+           and (nvl(assy_value_code,'$') <![CDATA[<>]]> nvl( #{item_assy_value_code}, '$') or
+                nvl(enable_flag,'$') <![CDATA[<>]]> nvl( #{item_enable_flag}, '$')) 
+    </insert>
+</mapper>

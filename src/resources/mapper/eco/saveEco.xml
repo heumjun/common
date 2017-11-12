@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveEco">
+	<select id="stxDisEcoMasterInsertProc" statementType="CALLABLE" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	{ call stx_dis_eco_pkg.stx_dis_main_insert_proc(P_PERMANENT_TEMPORARY_FLAG => #{p_permanent_temporary_flag,jdbcType=VARCHAR},
+                                                    P_LOGINID                  => #{p_loginid,jdbcType=VARCHAR},
+                                                    P_MAIN_DESCRIPTION         => #{p_main_description,jdbcType=VARCHAR},
+                                                    P_ENG_CHANGE_ORDER_CODE    => #{p_eng_change_order_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                    P_ERROR_MSG                  => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                    P_ERROR_CODE                 => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	<select id="stxDisEcoDetailInsertProc" statementType="CALLABLE" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	{ call stx_dis_eco_pkg.stx_dis_eco_insert_proc(P_ENG_CHANGE_ORDER_CODE    => #{p_eng_change_order_code,jdbcType=VARCHAR},
+                                                   P_ENG_CHANGE_ORDER_DESC  => #{p_eng_change_order_desc,jdbcType=VARCHAR},
+                                                   P_PERMANENT_TEMPORARY_FLAG => #{p_permanent_temporary_flag,jdbcType=VARCHAR},
+                                                   P_ECO_CAUSE                => #{p_eco_cause,jdbcType=VARCHAR},
+                                                   P_DESIGN_ENGINEER          => #{p_design_engineer,jdbcType=VARCHAR},
+                                                   P_MANUFACTURING_ENGINEER   => #{p_manufacturing_engineer,jdbcType=VARCHAR},
+                                                   P_LOGINID                  => #{p_loginid,jdbcType=VARCHAR},
+                                                   P_ENG_CHANGE_REQ_CODE      => #{p_eng_change_req_code,jdbcType=VARCHAR},
+                                                   P_ERROR_MSG                  => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                   P_ERROR_CODE                 => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	<select id="updateEco" statementType="CALLABLE" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	{ call stx_dis_eco_pkg.stx_dis_eco_update_proc(P_PERMANENT_TEMPORARY_FLAG => #{p_permanent_temporary_flag,jdbcType=VARCHAR},
+                                                   P_ECO_CAUSE                => #{p_eco_cause,jdbcType=VARCHAR},
+                                                   P_DESIGN_ENGINEER          => #{p_design_engineer,jdbcType=VARCHAR},
+                                                   P_MANUFACTURING_ENGINEER   => #{p_manufacturing_engineer,jdbcType=VARCHAR},
+                                                   P_LOGINID                  => #{p_loginid,jdbcType=VARCHAR},
+                                                   P_MAIN_DESCRIPTION         => #{p_main_description,jdbcType=VARCHAR},
+                                                   P_ENG_CHANGE_REQ_CODE      => #{p_eng_change_req_code,jdbcType=VARCHAR},
+                                                   P_ENG_CHANGE_ORDER_CODE    => #{p_eng_change_order_code,jdbcType=VARCHAR},
+                                                   P_ERROR_MSG                  => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                   P_ERROR_CODE                 => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	<select id="insertEcoHistory" statementType="CALLABLE" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	{ call stx_dis_eco_pkg.insert_eco_history_proc(p_error_code             => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                   p_error_msg              => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                   p_insert_empno           => #{p_insert_empno,jdbcType=VARCHAR},
+                                                   p_action_type            => #{p_action_type,jdbcType=VARCHAR},
+                                                   p_eco_name               => #{p_eco_name,jdbcType=VARCHAR},
+                                                   p_related_ecr            => #{p_related_ecr,jdbcType=VARCHAR},
+                                                   p_type                   => #{p_type,jdbcType=VARCHAR},
+                                                   p_eco_cause              => #{p_eco_cause,jdbcType=VARCHAR},
+                                                   p_design_engineer        => #{p_design_engineer,jdbcType=VARCHAR},
+                                                   p_manufacturing_engineer => #{p_manufacturing_engineer,jdbcType=VARCHAR},
+                                                   p_states_code            => #{p_states_code,jdbcType=VARCHAR},
+                                                   p_eco_description        => #{p_eco_description,jdbcType=VARCHAR})
+	}
+	</select>
+	<update id="engineerRegisterUpdate" parameterType="java.util.Map">
+    	UPDATE STX_DIS_STATEREQ 
+		SET EMP_NO 		= #{p_manufacturing_engineer,jdbcType=VARCHAR}
+		WHERE MAIN_CODE = #{p_eng_change_order_code,jdbcType=VARCHAR}
+		AND NO = '1'
+    </update>
+</mapper>

@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="requiredDWG">
+  	<select id="getDwgMailSendSeq" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		select 	 to_char(STX_DIS_DWG_MAIL_SEND_SQ.nextval) as seq
+  		  from 	 dual
+  	</select>
+  	<select id="duplicationList" parameterType="java.util.Map" resultType="String">
+  		select nvl(max(trans_plm),'') as trans_plm
+  		  from stx_dwg_dw302tbl@stxerp 
+  		 where shp_no = #{shp_no} 
+  		   and dwg_no = #{dwg_no} 
+  		   and dwg_rev = #{dwg_rev}
+  	</select>
+  	<select id="getDwgTransSeq" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	  	select STX_FN_GET_DWG_ECONO() as eco_no
+  		  from dual
+  	</select>
+  	<select id="selectECO_RECEIVER" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		select	*
+  		  from	stx_dwg_eco_receiver@stxerp
+  		 where	1=1
+  		   and 	master_project_no	=	#{shp_no}
+  		   and	dwg_no				=	#{dwg_no}
+  		   and	rev_no				=	#{dwg_rev}
+  		   
+  	</select>
+  	<select id="selectDwgReturnInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		 SELECT 	  t1.trans_plm 
+      				, t1.shp_no 
+      				, t1.dwg_no 
+      				, t1.dwg_sq 
+      				, t1.dwg_rev 
+      				, t1.pri_set 
+				    , t1.trans_plm 
+				    , t1.emp_no 
+				    , TO_CHAR(t1.inp_date, 'yyyy-mm-dd hh24:mi') AS inp_date 
+				    , t1.file_name 
+				    , t1.pcs_no 
+				    , t1.form_type 
+				    , t1.form_name 
+				    , t1.paint_code 
+				    , t1.dwg_seq_id 
+   		FROM 		  stx_dwg_dw302tbl@stxerp t1 
+	   WHERE 		1=1
+      	 AND 		t1.shp_no        = #{shp_no} 
+	     AND 		t1.dwg_no        = #{dwg_no}
+		 AND 		t1.dwg_rev       = #{dwg_rev}
+		 AND 		t1.trans_plm     = 'R' 
+	ORDER BY 		t1.dwg_no, t1.dwg_sq, t1.dwg_rev 
+				        
+  	</select>
+  	<select id="dwgMailContentList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  		 SELECT t1.trans_plm 
+		      , t1.shp_no 
+		      , t1.dwg_no 
+		      , t1.dwg_sq 
+		      , t1.dwg_rev 
+		      , t1.pri_set 
+		      , t1.trans_plm 
+		      , t1.emp_no 
+		      , TO_CHAR(t1.inp_date, 'yyyy-mm-dd hh24:mi') AS inp_date 
+		      , t1.file_name 
+		      , t1.pcs_no 
+		      , t1.form_type 
+		      , t1.form_name 
+		      , t1.paint_code 
+		      , t1.dwg_seq_id 
+		   FROM stx_dwg_dw302tbl@stxerp t1 
+		  WHERE 1=1
+		    AND t1.shp_no        = #{shp_no} 
+		    AND t1.dwg_no        = #{dwg_no} 
+		    AND t1.dwg_rev       = #{dwg_rev} 
+		ORDER BY t1.dwg_no, t1.dwg_sq, t1.dwg_rev 
+  	</select>
+  	<update id="updateRequiredNull" parameterType = "String">
+  		update	stx_dwg_dw302tbl@stxerp
+  		   set	trans_plm = ''
+  		 where	1=1
+  		   and	dwg_seq_id = #{delDwg}
+  	
+  	</update>
+  	<update id="updateReceiverECO" parameterType="java.util.Map">
+  		update stx_dwg_eco_receiver@stxerp
+  		   set eco_no = #{dwgTransSeq}
+  		 where 1=1
+  		   and receiver_id = #{receiver_id}
+  	</update>
+  	<insert id="insertDwgTrans" parameterType="java.util.Map">
+  	 INSERT
+   				INTO STX_DIS_DWG_TRANS
+        	(
+                 REQ_SEQ 
+              , REQ_STATE 
+              , REQ_SABUN 
+              , REQ_DATE 
+              , REQ_DEPT 
+              , RES_SABUN 
+              , RES_DATE 
+              , MAIL_CHECK 
+              , ERP_TRANS 
+              , CREATED_BY 
+              , CREATION_DATE 
+              , LAST_UPDATED_BY 
+              , LAST_UPDATE_DATE 
+              , MAIL_RECEIVER 
+              , DWG_MAIL_SEND_SEQ 
+              , RECEIVER_ID 
+        	)
+         		VALUES
+        	(
+                #{dwgTransSeq}
+              , 'S'
+              , #{reqSabun}
+              , SYSDATE
+              , #{reqdept}
+              , #{resSabun}
+              , ''
+              , 'N'
+              , 'N'
+              , #{reqSabun}
+              , SYSDATE
+              , - 1
+              , ''
+              , #{mail_receiver}
+              , #{dwgMailSendSeq}
+              , #{receiver_id}
+        	)
+  	</insert>
+  	<insert id="insertDwgTransDetail" parameterType="java.util.HashMap">
+  		 INSERT
+   				INTO STX_DIS_DWG_TRANS_DETAIL
+        		(
+                	  REQ_SEQ 
+              		, REQ_DWG_SEQ_ID 
+              		, DWG_MAIL_SEND_SEQ 
+        		)
+         		VALUES
+        		(
+		              #{dwgTransSeq}
+              		, #{dwg_seq_id}
+              		, #{dwgMailSendSeq}
+        		)
+  	</insert>
+  	<update id = "updateRequiredDWG" parameterType="java.util.Map">
+  		update STX_DWG_DW302TBL@stxerp
+ 		   set trans_plm = 'S'
+ 		 where 1=1
+   		   and dwg_seq_id = #{dwg_seq_id}
+  	</update>
+  	<select id="select_grantor_epMail" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	select 
+			ep_mail
+	from 	
+			STX_COM_INSA_USER@stxerp
+	where	1=1
+	and     emp_no = #{grantor}
+  	</select>
+  	<select id="selectMailContent" parameterType="String" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		select 	 distinct
+           		 t3.shp_no
+          		,t3.dwg_no
+          		,t4.description
+          		,t7.user_name
+          		,t3.dwg_rev
+          		,to_char(t1.req_date,'yyyy-mm-dd hh24:mi') as req_date
+          		,to_char(t1.res_date,'yyyy-mm-dd hh24:mi') as res_date
+          		,t1.req_seq
+     	 from 	 stx_dis_dwg_trans         		 t1
+          		,stx_dis_dwg_trans_detail 		 t2
+          		,STX_DWG_DW302TBL@stxerp  		 t3
+          		,stx_dwg_category_masters@stxerp t4
+          		,stx_com_insa_user@stxerp        t7
+    	where 	t1.req_seq = t2.req_seq
+      	  and 	t2.req_dwg_seq_id = t3.dwg_seq_id
+      	  and 	substr(t3.dwg_no,1,5) = t4.dwg_no_concat
+      	  and 	t1.req_sabun = t7.emp_no
+      	  and 	t2.dwg_mail_send_seq = #{dwgMailSendSeq}
+  	</select>
+  	
+  	<delete id="dwgRevisionCancelItem" parameterType="java.util.Map">
+		DELETE
+		  FROM STX_DWG_DW302TBL_ITEM@STXERP A
+		 WHERE A.DWG_SEQ_ID IN (SELECT SDD.DWG_SEQ_ID
+		                          FROM STX_DWG_DW302TBL@STXERP SDD
+		                         WHERE SDD.SHP_NO  = #{h_ShipNo}
+		                           AND SDD.DWG_NO  = #{h_DwgNo}
+		                           AND SDD.DWG_REV = #{dwg_rev}
+		                           AND (NVL(SDD.TRANS_PLM,'N') = 'N' OR SDD.TRANS_PLM = 'R')
+		                        )
+  	</delete>
+
+  	<delete id="dwgRevisionCancelMarkno" parameterType="java.util.Map">
+		DELETE
+		  FROM STX_DWG_DW302TBL_MARKNO@STXERP A
+		 WHERE A.DWG_SEQ_ID IN (SELECT SDD.DWG_SEQ_ID
+		                          FROM STX_DWG_DW302TBL@STXERP SDD
+		                         WHERE SDD.SHP_NO  = #{h_ShipNo}
+		                           AND SDD.DWG_NO  = #{h_DwgNo}
+		                           AND SDD.DWG_REV = #{dwg_rev}
+		                           AND (NVL(SDD.TRANS_PLM,'N') = 'N' OR SDD.TRANS_PLM = 'R')
+		                        )
+  	</delete>  	
+  	
+  	<delete id="dwgRevisionCancelSymbol" parameterType="java.util.Map">
+		DELETE
+		  FROM STX_DWG_DW302TBL_SYMBOL@STXERP A
+		 WHERE A.DWG_SEQ_ID IN (SELECT SDD.DWG_SEQ_ID
+		                          FROM STX_DWG_DW302TBL@STXERP SDD
+		                         WHERE SDD.SHP_NO  = #{h_ShipNo}
+		                           AND SDD.DWG_NO  = #{h_DwgNo}
+		                           AND SDD.DWG_REV = #{dwg_rev}
+		                           AND (NVL(SDD.TRANS_PLM,'N') = 'N' OR SDD.TRANS_PLM = 'R')
+		                        )
+  	</delete>  	
+   	
+  	<delete id="dwgRevisionCancelMain" parameterType="java.util.Map">
+		DELETE
+		  FROM STX_DWG_DW302TBL@STXERP SDD
+		 WHERE SDD.SHP_NO  = #{h_ShipNo}
+		   AND SDD.DWG_NO  = #{h_DwgNo}
+		   AND SDD.DWG_REV = #{dwg_rev}
+		   AND (NVL(SDD.TRANS_PLM,'N') = 'N' OR SDD.TRANS_PLM = 'R')
+  	</delete>  	
+  	
+  	<select id="selectDpDpspFlag" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+ 		SELECT EMP_NO	
+		      ,USER_NAME  
+		  FROM STX_COM_INSA_USER@STXERP
+		 WHERE 1=1  
+		   AND DEPT_NAME LIKE '%특수선%'  
+		   AND EMP_NO = #{loginId}
+  	</select>
+  	
+  	<select id="selectDwgDeptCode" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.EMP_NO 
+		     , A.USER_NAME 
+		     , A.USER_ENG_NAME 
+		     , C.DWGDEPTNM 
+		     , A.DEPT_CODE  
+		     , B.DWGDEPTCODE 
+		     , CASE WHEN B.DEPTCODE LIKE '440%' OR B.DEPTCODE LIKE '202000' THEN 'M1'
+		            ELSE 'U1' 
+		       END AS GRCODE 
+		     , 'N' AS DP_GUBUN 
+		     , (SELECT BB.DWGDEPTCODE 
+		          FROM STX_COM_INSA_USER@STXERP AA 
+		              ,DCC_DEPTCODE@STXDPSP     BB 
+		              ,DCC_DWGDEPTCODE@STXDPSP  CC 
+		         WHERE AA.DEPT_CODE = BB.DEPTCODE  
+		           AND BB.DWGDEPTCODE = CC.DWGDEPTCODE  
+		           AND AA.EMP_NO = #{loginid}
+		           AND CC.USERYN  = 'Y' 
+		         ) AS TS_DWGDEPTCODE      
+		  FROM STX_COM_INSA_USER@STXERP A 
+		 LEFT JOIN DCC_DEPTCODE@STXDP B ON A.DEPT_CODE = B.DEPTCODE 
+		 LEFT JOIN DCC_DWGDEPTCODE@STXDP C ON B.DWGDEPTCODE = C.DWGDEPTCODE 
+		 WHERE A.EMP_NO = #{loginid}
+		   AND 'S' = #{p_deptGubun}           
+		UNION ALL  
+		SELECT A.EMP_NO 
+		     , A.USER_NAME 
+		     , A.USER_ENG_NAME 
+		     , C.DWGDEPTNM 
+		     , A.DEPT_CODE  
+		     , B.DWGDEPTCODE 
+		     , CASE WHEN B.DEPTCODE LIKE '568900' THEN 'M1'
+		            ELSE 'U1'
+		       END AS GRCODE
+		     , 'Y' AS DP_GUBUN 
+		     , ''  AS TS_DWGDEPTCODE 
+		  FROM STX_COM_INSA_USER@STXERP A 
+		 LEFT JOIN DCC_DEPTCODE@STXDPSP B ON A.DEPT_CODE = B.DEPTCODE 
+		 LEFT JOIN DCC_DWGDEPTCODE@STXDPSP C ON B.DWGDEPTCODE = C.DWGDEPTCODE 
+		 WHERE A.EMP_NO = #{loginid}
+		   AND C.DWGDEPTNM  LIKE '%특수%'
+		   AND 'N' = #{p_deptGubun}
+  	</select>
+  	
+</mapper>

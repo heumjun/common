@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveLoginUserInfo">
+  	
+  	<select id="selectLogin" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT A.*
+	     , B.*
+	  FROM (SELECT SCIU.EMP_NO AS USER_ID
+	             , SCIU.USER_NAME AS USER_NAME
+	             , SCIU.USER_ENG_NAME AS USER_ENG_NAME
+	             , SCIU.EP_MAIL || '@onestx.com' AS EP_MAIL
+	             , SCIU.DEPT_NAME AS INSA_DEPT_NAME
+	             , DDDC.DWGDEPTNM AS DWGDEPTNM
+	             , DDC.DWGDEPTCODE AS DWGDEPTCODE
+	             , CASE WHEN DDC.DEPTCODE LIKE '440%' OR DDC.DEPTCODE LIKE '202000' THEN 'M1'
+	                    ELSE 'U1'
+	               END AS GRCODE
+	             , 'N' AS DP_GUBUN
+	             , (SELECT BB.DWGDEPTCODE
+	                  FROM STX_COM_INSA_USER@STXERP AA
+	                     , DCC_DEPTCODE@STXDPSP BB
+	                     , DCC_DWGDEPTCODE@STXDPSP CC
+	                 WHERE AA.DEPT_CODE = BB.DEPTCODE
+	                   AND BB.DWGDEPTCODE = CC.DWGDEPTCODE
+	                   AND AA.EMP_NO = #{adminid}
+	                   AND CC.USERYN = 'Y' ) AS TS_DWGDEPTCODE
+	          FROM STX_COM_INSA_USER@STXERP SCIU
+	             , DCC_DEPTCODE@STXDP DDC
+	             , DCC_DWGDEPTCODE@STXDP DDDC
+	         WHERE SCIU.DEPT_CODE = DDC.DEPTCODE(+)
+	           AND DDC.DWGDEPTCODE = DDDC.DWGDEPTCODE(+)
+	           AND SCIU.EMP_NO = #{adminid}
+	           AND DDDC.USERYN = 'Y'
+	           AND 'S' = (SELECT NVL( (SELECT 'N'
+	                                     FROM STX_COM_INSA_USER@STXERP SCIU
+	                                    WHERE SCIU.EMP_NO = #{adminid}
+	                                      AND SCIU.DEPT_NAME LIKE '%특수선%' ), 'S' )
+	                        FROM DUAL )
+	         UNION ALL
+	        SELECT SCIU.EMP_NO AS USER_ID
+	             , SCIU.USER_NAME AS USER_NAME
+	             , SCIU.USER_ENG_NAME AS USER_ENG_NAME
+	             , SCIU.EP_MAIL || '@onestx.com' AS EP_MAIL
+	             , SCIU.DEPT_NAME AS INSA_DEPT_NAME
+	             , DDDC.DWGDEPTNM AS DWGDEPTNM
+	             , DDC.DWGDEPTCODE AS DWGDEPTCODE
+	             , CASE WHEN DDC.DEPTCODE LIKE '568900' THEN 'M1'
+	                    ELSE 'U1'
+	               END AS GRCODE
+	             , 'Y' AS DP_GUBUN
+	             , '' AS TS_DWGDEPTCODE
+	          FROM STX_COM_INSA_USER@STXERP SCIU
+	             , DCC_DEPTCODE@STXDPSP DDC
+	             , DCC_DWGDEPTCODE@STXDPSP DDDC
+	         WHERE SCIU.DEPT_CODE = DDC.DEPTCODE(+)
+	           AND DDC.DWGDEPTCODE = DDDC.DWGDEPTCODE(+)
+	           AND SCIU.EMP_NO = #{adminid}
+	           AND DDDC.USERYN = 'Y'
+	           AND DDDC.DWGDEPTNM LIKE '%특수%'
+	           AND 'N' = (SELECT NVL( (SELECT 'N'
+	                                     FROM STX_COM_INSA_USER@STXERP SCIU
+	                                    WHERE SCIU.EMP_NO = #{adminid}
+	                                      AND SCIU.DEPT_NAME LIKE '%특수선%' ), 'S' )
+	                        FROM DUAL)
+	         UNION ALL
+	        SELECT SCIU.EMP_NO AS USER_ID
+	             , SCIU.USER_NAME AS USER_NAME
+	             , SCIU.USER_ENG_NAME AS USER_ENG_NAME
+	             , SCIU.EP_MAIL || '@onestx.com' AS EP_MAIL
+	             , SCIU.DEPT_NAME AS INSA_DEPT_NAME
+	             , '' AS DWGDEPTNM
+	             , '' AS DWGDEPTCODE
+	             , 'M1' AS GRCODE
+	             , '' AS DP_GUBUN
+	             , '' AS TS_DWGDEPTCODE
+	          FROM STX_COM_INSA_USER@STXERP SCIU
+	         WHERE SCIU.EMP_NO = #{adminid}
+	           AND SCIU.DEPT_CODE in( '269916', '267000')
+	       ) A
+	     , (SELECT A.EMP_NO
+	             , STX_COM_EN_DECODE_PKG.DECRYPT@STXHR(A.PASSWORD) AS PASSWORD
+	             , A.AUTHOR_CODE
+	             , A.ECR_EVALUATOR
+	             , A.NAME
+	             , A.CREATE_BY
+	             , A.CREATE_DATE
+	             , A.MODIFY_BY
+	             , A.MODIFY_DATE
+	             , A.GROUP_ID
+	             , A.USE_YN
+	             , A.ECR_EVALUATOR_SITE
+	             , DECODE(B.EMP_NO, NULL, 'N', 'Y') AS ADMIN_YN 
+	              FROM STX_DIS_USER A, STX_DIS_ADMIN B
+	             WHERE A.EMP_NO = B.EMP_NO(+)
+                   AND A.EMP_NO = #{adminid}
+	               AND STX_COM_EN_DECODE_PKG.DECRYPT@STXHR(A.PASSWORD) = #{adminpw}
+	               AND A.USE_YN = 'Y'
+	       ) B
+	 WHERE A.USER_ID = B.EMP_NO
+  	</select>
+  	
+  	<update id="updateUserPw" parameterType="java.util.Map">
+		UPDATE STX_DIS_USER
+		   SET PASSWORD = STX_COM_EN_DECODE_PKG.ENCRYPT@STXHR(#{adminpw})
+		 WHERE EMP_NO = #{adminid}
+	</update>
+  	
+</mapper>

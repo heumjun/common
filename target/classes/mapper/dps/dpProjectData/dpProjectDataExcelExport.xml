@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpProjectDataExcelExport">  	
+  	<select id="list" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+    SELECT ROWNUM AS rn, 
+	       ORDER_BY,
+	       PROJECT_NO,
+	       TO_MH_IN,
+	       TO_MH_OUT,
+	       MH_DWG_SUM,
+	       MH_DWG_RATE,
+	       MH_DEDWG,
+	       MH_DEDWG_RATE,
+	       MH_DWG_TOT,
+	       MH_A1,
+	       MH_A2,
+	       MH_A3,
+	       MH_A4,
+	       MH_A5,
+	       MH_IN,
+	       MH_OUT,
+	       MH_CONDWG_TOT,
+	       MH_B1,
+	       MH_B2,
+	       MH_B3,
+	       MH_B4,
+	       MH_B5,
+	       MH_B6,
+	       MH_CONDEDWG_TOT,
+	       MH_CON_TOT,
+	       MH_C1,
+	       MH_C2,
+	       MH_C3,
+	       MH_DECON_TOT,
+	       MH_DECON_RATE,
+	       TOT_MH_2,
+	       PROJECT_MH_RATE,
+	       MH_D1,
+	       EMP_CNT,
+	       NORMAL_TIME,
+	       OVERTIME,
+	       SPECIAL_TIME
+	FROM(
+    SELECT ORDER_BY,
+		       PROJECT_NO,
+		       ROUND(MH_IN, 1) AS TO_MH_IN,
+		       ROUND(MH_OUT, 1) AS TO_MH_OUT,
+		       ROUND(MH_DWG_SUM, 1) AS MH_DWG_SUM,
+		       ROUND(MH_DWG_RATE, 1) AS MH_DWG_RATE,
+		       ROUND(MH_DEDWG, 1) AS MH_DEDWG,
+		       MH_DEDWG_RATE AS MH_DEDWG_RATE,
+		       ROUND(MH_DWG_TOT, 1) AS MH_DWG_TOT,
+		       ROUND(MH_A1, 1) AS MH_A1,
+		       ROUND(MH_A2, 1) AS MH_A2,
+		       ROUND(MH_A3, 1) AS MH_A3,
+		       ROUND(MH_A4, 1) AS MH_A4,
+		       ROUND(MH_A5, 1) AS MH_A5,
+		       ROUND(MH_IN, 1) AS MH_IN,
+		       ROUND(MH_OUT, 1) AS MH_OUT,
+		       ROUND(MH_CONDWG_TOT, 1) AS MH_CONDWG_TOT,
+		       ROUND(MH_B1, 1) AS MH_B1,
+		       ROUND(MH_B2, 1) AS MH_B2,
+		       ROUND(MH_B3, 1) AS MH_B3,
+		       ROUND(MH_B4, 1) AS MH_B4,
+		       ROUND(MH_B5, 1) AS MH_B5,
+		       ROUND(MH_B6, 1) AS MH_B6,
+		       ROUND(MH_CONDEDWG_TOT, 1) AS MH_CONDEDWG_TOT,
+		       ROUND(MH_CON_TOT, 1) AS MH_CON_TOT,
+		       ROUND(MH_C1, 1) AS MH_C1,
+		       ROUND(MH_C2, 1) AS MH_C2,
+		       ROUND(MH_C3, 1) AS MH_C3,
+		       ROUND(MH_DECON_TOT, 1) AS MH_DECON_TOT,
+		       ROUND(MH_DECON_RATE, 1) AS MH_DECON_RATE,
+		       ROUND(TOT_MH_2, 1) AS TOT_MH_2 ,
+		       ROUND((TOT_MH_2 / TOT_MH_1) * 100, 4) AS PROJECT_MH_RATE,
+		       ROUND(MH_D1, 1) AS MH_D1,
+		       CASE
+		         WHEN PROJECT_NO = '합계' THEN (SELECT F_GET_PROJECT_EMP_CNT(#{dateSelected_from}, #{dateSelected_to},
+		         <choose>
+		         	<when test="project_no_list != null and project_no_list.size > 0">
+		         		<foreach collection="project_no_list" item="item" separator="," open="'" close="'">${item}</foreach>
+		         	</when>
+		         	<otherwise>'%'</otherwise>
+		         </choose>, 
+		         <choose>
+		         	<when test="dept_code_list != null and dept_code_list.size > 0">
+		         		<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+		         	</when>
+		         	<otherwise>'%'</otherwise>
+		         </choose>, <choose><when test="designerList != null and designerList != ''">#{designerList}</when><otherwise>'%'</otherwise></choose>)
+		        FROM   DUAL)
+		         ELSE (SELECT F_GET_PROJECT_EMP_CNT(#{dateSelected_from}, #{dateSelected_to}, PROJECT_NO, 
+		         <choose>
+					<when test="dept_code_list != null and dept_code_list.size > 0">
+						<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+					</when>
+					<otherwise>'%'</otherwise>
+				</choose>, <choose><when test="designerList != null and designerList != ''">#{designerList}</when><otherwise>'%'</otherwise></choose>)
+		        FROM   DUAL)
+		       END AS EMP_CNT,
+		       ROUND(NORMAL_TIME, 1) AS NORMAL_TIME,
+		       ROUND(OVERTIME, 1) AS OVERTIME,
+		       ROUND(SPECIAL_TIME, 1) SPECIAL_TIME
+		FROM   (SELECT '1' AS ORDER_BY,
+		               '합계' AS PROJECT_NO,
+		               SUM(MH_IN) AS MH_IN ,
+		               SUM(MH_OUT) AS MH_OUT ,
+		               SUM(MH_IN) + SUM(MH_OUT) AS MH_DWG_SUM,
+		               ROUND((SUM(MH_IN) + SUM(MH_OUT))/(SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG)) * 100) AS MH_DWG_RATE ,
+		               SUM(MH_DEDWG) AS MH_DEDWG ,
+		               ROUND(SUM(MH_DEDWG)/(SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG)) * 100) AS MH_DEDWG_RATE ,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) AS MH_DWG_TOT ,
+		               SUM(MH_A1) AS MH_A1 ,
+		               SUM(MH_A2) AS MH_A2 ,
+		               SUM(MH_A3) AS MH_A3 ,
+		               SUM(MH_A4) AS MH_A4 ,
+		               SUM(MH_A5) AS MH_A5 ,
+		               SUM(MH_IN) + SUM(MH_OUT) AS MH_CONDWG_TOT ,
+		               SUM(MH_B1) AS MH_B1 ,
+		               SUM(MH_B2) AS MH_B2 ,
+		               SUM(MH_B3) AS MH_B3 ,
+		               SUM(MH_B4) AS MH_B4 ,
+		               SUM(MH_B5) AS MH_B5 ,
+		               SUM(MH_B6) AS MH_B6 ,
+		               SUM(MH_B1) + SUM(MH_B2) + SUM(MH_B3) + SUM(MH_B4) + SUM(MH_B5) + SUM(MH_B6) AS MH_CONDEDWG_TOT,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) AS MH_CON_TOT,
+		               SUM(MH_C1) AS MH_C1 ,
+		               SUM(MH_C2) AS MH_C2 ,
+		               SUM(MH_C3) AS MH_C3 ,
+		               SUM(MH_D1) AS MH_D1 ,
+		               SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3) AS MH_DECON_TOT,
+		                       CASE
+		                         WHEN (SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3)) &lt;= 0 THEN 0
+		                         ELSE ((SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3)) / (SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3))) * 100
+		                       END AS MH_DECON_RATE ,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3) AS TOT_MH ,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3) AS TOT_MH_1 ,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3) AS TOT_MH_2 ,
+		               SUM(NORMAL_TIME) AS NORMAL_TIME ,
+		               SUM(OVERTIME) AS OVERTIME ,
+		               SUM(SPECIAL_TIME) AS SPECIAL_TIME
+		        FROM   (SELECT PROJECT_NO ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 1) = 'A' THEN
+                                 CASE
+                                   WHEN OP_CODE &lt;&gt; 'A13' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 END
+                                 ELSE 0
+                               END AS MH_IN ,
+               				   0 AS MH_OUT ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 1) = 'B' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_DEDWG ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A1' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A1 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A2' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A2 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A3' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A3 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A4' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A4 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A5' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A5 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B1' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B1 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B2' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B2 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B3' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B3 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B4' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B4 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B5' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B5 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B6' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B6 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'C1' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_C1 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'C2' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_C2 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'C3' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_C3 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 1) = 'D' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_D1 ,
+		                       SUM(NORMAL_TIME) AS NORMAL_TIME ,
+		                       SUM(OVERTIME) AS OVERTIME ,
+		                       SUM(SPECIAL_TIME) AS SPECIAL_TIME
+		                FROM   (SELECT EMPLOYEE_NO ,
+		                               PROJECT_NO ,
+		                               OP_CODE ,
+		                               PLM_MH * MH_FACTOR AS PLM_MH ,
+		                               NORMAL_TIME * MH_FACTOR AS NORMAL_TIME ,
+		                               OVERTIME * MH_FACTOR AS OVERTIME ,
+		                               SPECIAL_TIME * MH_FACTOR AS SPECIAL_TIME
+		                        FROM   (SELECT EMPLOYEE_NO ,
+		                                       PROJECT_NO ,
+		                                       OP_CODE ,
+		                                       PLM_MH ,
+		                                       NORMAL_TIME ,
+		                                       OVERTIME ,
+		                                       SPECIAL_TIME ,
+                                               CASE
+                                                 WHEN CAREER_MONTHS IS NULL THEN 1
+                                                 ELSE (SELECT FACTOR_VALUE
+				                                        FROM   (SELECT CAREER_MONTH_FROM,
+				                                                       CAREER_MONTH_TO,
+				                                                       FACTOR_VALUE
+				                                                FROM   PLM_DESIGN_MH_FACTOR
+				                                                WHERE  1 = 1
+				                                                AND    CASE_NO = #{factorCaseList})
+				                                        WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+				                                        AND    NVL(CAREER_MONTH_TO, 9999) &gt;= CAREER_MONTHS )
+		                                       END AS MH_FACTOR
+		                                FROM   (SELECT DM.EMPLOYEE_NO ,
+		                                               DM.PROJECT_NO ,
+		                                               DM.OP_CODE ,
+		                                               SUM(DM.DIRECT_MH + DM.DIST_MH) AS PLM_MH ,
+		                                               SUM(DM.NORMAL_TIME) AS NORMAL_TIME ,
+		                                               SUM(DM.OVERTIME) AS OVERTIME ,
+		                                               SUM(DM.SPECIAL_TIME) AS SPECIAL_TIME ,
+		                                               ((TO_CHAR(DM.WORK_DAY, 'YYYY') - TO_CHAR(CS.DESIGN_APPLY_DATE, 'YYYY'))* 12 + (TO_CHAR(DM.WORK_DAY, 'MM') - TO_CHAR(CS.DESIGN_APPLY_DATE, 'MM'))) +
+                                                       CASE
+                                                         WHEN TO_CHAR(CS.DESIGN_APPLY_DATE, 'DD') &lt; = 15 THEN 1
+                                                         WHEN TO_CHAR(CS.DESIGN_APPLY_DATE, 'DD') &gt; 15 THEN 0
+                                                       END + NVL(ROUND(CS.BEFORE_ENTRANCE_CAREER * 12, 0), 0) AS CAREER_MONTHS
+		                                        FROM   PLM_DESIGN_MH_CLOSE DM ,
+		                                               CCC_SAWON CS
+		                                        WHERE  DM.EMPLOYEE_NO = CS.EMPLOYEE_NUM(+)
+		                                        AND    DM.WORK_DAY &gt;= TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')
+		                                        AND    DM.WORK_DAY &lt;= TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		                                        AND    DM.PROJECT_NO LIKE '%' ||#{projectList} || '%'
+		                                        AND    (<choose><when test="designerList != null and designerList != ''">#{designerList}</when><otherwise>'%'</otherwise></choose> = '%' OR     DM.EMPLOYEE_NO = <choose><when test="designerList != null and designerList != ''">#{designerList}</when><otherwise>'%'</otherwise></choose>)
+		                                        AND    (<choose>
+															<when test="dept_code_list != null and dept_code_list.size > 0">
+																<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+															</when>
+															<otherwise>'%'</otherwise>
+														</choose>= '%' OR     DM.DEPT_CODE IN 
+		                                        			    (SELECT SUBSTR(A.TXT, INSTR(A.TXT, ',', 1, LEVEL) + 1, INSTR(A.TXT, ',', 1, LEVEL + 1) - INSTR(A.TXT, ',', 1, LEVEL) - 1) AS DEPT_CODE
+		                                                         FROM   ( SELECT ','||<choose>
+																							<when test="dept_code_list != null and dept_code_list.size > 0">
+																								<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+																							</when>
+																							<otherwise>'%'</otherwise>
+																						</choose>||',' TXT FROM   DUAL) A CONNECT BY LEVEL &lt;= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, ',')) - 1)
+		                                               )
+		                                        	   GROUP BY DM.EMPLOYEE_NO, DM.PROJECT_NO, DM.OP_CODE, DM.WORK_DAY, CS.DESIGN_APPLY_DATE, CS.BEFORE_ENTRANCE_CAREER 
+		                                       ) 
+		                              	) 
+		                		)
+		                GROUP BY PROJECT_NO, OP_CODE
+		                UNION ALL
+						SELECT ORH.PROJECT_NO ,
+				               0 AS MH_IN ,
+				               SUM(OCA.COMPLETED_MAN_HOUR) AS MH_OUT ,
+				               0 AS MH_DEDWG ,
+				               0 AS MH_A1 ,
+				               0 AS MH_A2 ,
+				               0 AS MH_A3 ,
+				               0 AS MH_A4 ,
+				               0 AS MH_A5 ,
+				               0 AS MH_B1 ,
+				               0 AS MH_B2 ,
+				               0 AS MH_B3 ,
+				               0 AS MH_B4 ,
+				               0 AS MH_B5 ,
+				               0 AS MH_B6 ,
+				               0 AS MH_C1 ,
+				               0 AS MH_C2 ,
+				               0 AS MH_C3 ,
+				               0 AS MH_D1 ,
+				               0 AS NORMAL_TIME ,
+				               0 AS OVERTIME ,
+				               0 AS SPECIAL_TIME
+				         FROM   OUT_COMPLETED_AMOUNT OCA,
+				                OUT_CONTRACTS OC,
+				                OUT_REQUEST_HEADERS ORH,
+				                OUT_CODE_LINES OCL,
+				                DCC_DEPTCODE DEPT
+				         WHERE  ORH.REQUEST_DEPT = DEPT.DEPTCODE
+				         AND    OC.REQUEST_NUM = ORH.REQUEST_NUM
+				         AND    ORH.REQUEST_CODE = OCL.COMMON_CODE
+				         AND    OCL.INDEX_CODE = 'OUT21'
+				         AND    NVL(OCL.END_DATE, SYSDATE) &gt; TRUNC(SYSDATE)
+				         AND    OCL.CODE_VALUE = '도면비'
+				         AND    OCA.CONTRACT_NUM = OC.CONTRACT_NUM
+				         AND    ORH.REQUEST_DEPT NOT IN (SELECT DEPTCODE
+				                 FROM   DCC_DEPTCODE A ,
+				                        DCC_DWGDEPTCODE T
+				                 WHERE  A.DWGDEPTCODE = T.DWGDEPTCODE
+				                 AND    T.DWGDEPTCODE = '000049' )
+				         AND    ORH.PROJECT_NO LIKE '%' ||#{projectList} || '%'
+				         AND    OCA.COMPLETED_DATE &gt;= TO_DATE(TO_CHAR(TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD'), 'YYYYMM'), 'YYYYMM')
+				         AND    OCA.COMPLETED_DATE &lt;= LAST_DAY(TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD'))
+				         AND    (<choose>
+									<when test="dept_code_list != null and dept_code_list.size > 0">
+										<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+									</when>
+									<otherwise>'%'</otherwise>
+								</choose> = '%' OR     ORH.REQUEST_DEPT IN 
+				         				(SELECT SUBSTR(A.TXT, INSTR(A.TXT, ',', 1, LEVEL) + 1, INSTR(A.TXT, ',', 1, LEVEL + 1) - INSTR(A.TXT, ',', 1, LEVEL) - 1) AS DEPT_CODE
+				                         FROM   (SELECT ','||<choose>
+																<when test="dept_code_list != null and dept_code_list.size > 0">
+																	<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+																</when>
+																<otherwise>'%'</otherwise>
+															</choose>||',' TXT FROM   DUAL)A CONNECT BY LEVEL &lt;= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, ',')) - 1)
+				                )
+				         GROUP BY ORH.PROJECT_NO 
+				         )
+		        UNION ALL
+				SELECT '2' AS ORDER_BY,
+		               PROJECT_NO AS PROJECT_NO ,
+		               SUM(MH_IN) AS MH_IN ,
+		               SUM(MH_OUT) AS MH_OUT,
+		               SUM(MH_IN) + SUM(MH_OUT) AS MH_DWG_SUM,
+                       CASE
+                         WHEN (SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG)) &gt; 0 THEN ROUND((SUM(MH_IN) + SUM(MH_OUT))/(SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG)) * 100)
+                         ELSE 0
+                       END AS MH_DWG_RATE,
+		               SUM(MH_DEDWG) AS MH_DEDWG,
+                       CASE
+                         WHEN (SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG)) &gt; 0 THEN ROUND(SUM(MH_DEDWG)/(SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG)) * 100)
+                         ELSE 0
+                       END AS MH_DEDWG_RATE,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) AS MH_DWG_TOT,
+		               SUM(MH_A1) AS MH_A1,
+		               SUM(MH_A2) AS MH_A2,
+		               SUM(MH_A3) AS MH_A3,
+		               SUM(MH_A4) AS MH_A4,
+		               SUM(MH_A5) AS MH_A5,
+		               SUM(MH_IN) + SUM(MH_OUT) AS MH_CONDWG_TOT,
+		               SUM(MH_B1) AS MH_B1 ,
+		               SUM(MH_B2) AS MH_B2 ,
+		               SUM(MH_B3) AS MH_B3 ,
+		               SUM(MH_B4) AS MH_B4 ,
+		               SUM(MH_B5) AS MH_B5 ,
+		               SUM(MH_B6) AS MH_B6 ,
+		               SUM(MH_B1) + SUM(MH_B2) + SUM(MH_B3) + SUM(MH_B4) + SUM(MH_B5) + SUM(MH_B6) AS MH_CONDEDWG_TOT ,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) AS MH_CON_TOT,
+		               SUM(MH_C1) AS MH_C1 ,
+		               SUM(MH_C2) AS MH_C2 ,
+		               SUM(MH_C3) AS MH_C3 ,
+		               SUM(MH_D1) AS MH_D1 ,
+		               SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3) AS MH_DECON_TOT,
+                       CASE
+                         WHEN (SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3)) &lt;= 0 THEN 0
+                         ELSE ((SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3)) / (SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3))) * 100
+                       END AS MH_DECON_RATE ,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3) AS TOT_MH ,
+		               (SELECT F_GET_ALL_PROJECT_MH(#{factorCaseList}, #{dateSelected_from}, #{dateSelected_to}, 
+		               <choose>
+							<when test="dept_code_list != null and dept_code_list.size > 0">
+								<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+							</when>
+							<otherwise>'%'</otherwise>
+						</choose>, <choose><when test="designerList != null and designerList != ''">#{designerList}</when><otherwise>'%'</otherwise></choose>)
+		                FROM   DUAL) AS TOT_MH_1 ,
+		               SUM(MH_IN) + SUM(MH_OUT) + SUM(MH_DEDWG) + SUM(MH_C1) + SUM(MH_C2) + SUM(MH_C3) AS TOT_MH_2 ,
+		               SUM(NORMAL_TIME) AS NORMAL_TIME ,
+		               SUM(OVERTIME) AS OVERTIME ,
+		               SUM(SPECIAL_TIME) AS SPECIAL_TIME
+		        FROM   (SELECT PROJECT_NO ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 1) = 'A' THEN
+                                 CASE
+                                   WHEN OP_CODE &lt;&gt; 'A13' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 END
+                                 ELSE 0
+                               END AS MH_IN ,
+		                       0 AS MH_OUT ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 1) = 'B' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_DEDWG ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A1' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A1 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A2' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A2 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A3' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A3 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A4' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A4 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'A5' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_A5 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B1' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B1 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B2' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B2 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B3' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B3 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B4' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B4 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B5' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B5 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'B6' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_B6 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'C1' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_C1 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'C2' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_C2 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 2) = 'C3' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_C3 ,
+                               CASE
+                                 WHEN SUBSTR(OP_CODE, 1, 1) = 'D' THEN ROUND(NVL(SUM(PLM_MH), 0), 1)
+                                 ELSE 0
+                               END AS MH_D1 ,
+		                       SUM(NORMAL_TIME) AS NORMAL_TIME ,
+		                       SUM(OVERTIME) AS OVERTIME ,
+		                       SUM(SPECIAL_TIME) AS SPECIAL_TIME
+		                FROM   (SELECT EMPLOYEE_NO ,
+		                               PROJECT_NO ,
+		                               OP_CODE ,
+		                               PLM_MH * MH_FACTOR AS PLM_MH ,
+		                               NORMAL_TIME * MH_FACTOR AS NORMAL_TIME ,
+		                               OVERTIME * MH_FACTOR AS OVERTIME ,
+		                               SPECIAL_TIME * MH_FACTOR AS SPECIAL_TIME
+		                        FROM   (SELECT EMPLOYEE_NO ,
+		                                       PROJECT_NO ,
+		                                       OP_CODE ,
+		                                       PLM_MH ,
+		                                       NORMAL_TIME ,
+		                                       OVERTIME ,
+		                                       SPECIAL_TIME ,
+                                               CASE
+                                                 WHEN CAREER_MONTHS IS NULL THEN 1
+                                                ELSE (SELECT FACTOR_VALUE
+				                                        FROM   (SELECT CAREER_MONTH_FROM,
+				                                                       CAREER_MONTH_TO,
+				                                                       FACTOR_VALUE
+				                                                FROM   PLM_DESIGN_MH_FACTOR
+				                                                WHERE  1 = 1
+				                                                AND    CASE_NO = #{factorCaseList})
+		                                        		WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+		                                        		AND    NVL(CAREER_MONTH_TO, 9999) &gt;= CAREER_MONTHS )
+		                                       END AS MH_FACTOR
+		                                FROM   (SELECT DM.EMPLOYEE_NO ,
+		                                               DM.PROJECT_NO ,
+		                                               DM.OP_CODE ,
+		                                               SUM(DM.DIRECT_MH + DM.DIST_MH) AS PLM_MH ,
+		                                               SUM(DM.NORMAL_TIME) AS NORMAL_TIME ,
+		                                               SUM(DM.OVERTIME) AS OVERTIME ,
+		                                               SUM(DM.SPECIAL_TIME) AS SPECIAL_TIME ,
+		                                               ((TO_CHAR(DM.WORK_DAY, 'YYYY') - TO_CHAR(CS.DESIGN_APPLY_DATE, 'YYYY'))* 12 + (TO_CHAR(DM.WORK_DAY, 'MM') - TO_CHAR(CS.DESIGN_APPLY_DATE, 'MM'))) +
+                                                       CASE
+                                                         WHEN TO_CHAR(CS.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+                                                         WHEN TO_CHAR(CS.DESIGN_APPLY_DATE, 'DD') &gt; 15 THEN 0
+                                                       END + NVL(ROUND(CS.BEFORE_ENTRANCE_CAREER * 12, 0), 0) AS CAREER_MONTHS
+		                                        FROM   PLM_DESIGN_MH_CLOSE DM ,
+		                                               CCC_SAWON CS
+		                                        WHERE  DM.EMPLOYEE_NO = CS.EMPLOYEE_NUM(+)             
+		                                        AND    DM.WORK_DAY &gt;= TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')
+		                                        AND    DM.WORK_DAY &lt;= TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		                                        AND    DM.PROJECT_NO LIKE '%' ||#{projectList} || '%'
+		                                        AND    (<choose><when test="designerList != null and designerList != ''">#{designerList}</when><otherwise>'%'</otherwise></choose> = '%' OR     DM.EMPLOYEE_NO = <choose><when test="designerList != null and designerList != ''">#{designerList}</when><otherwise>'%'</otherwise></choose>)
+		                                        AND    (<choose>
+															<when test="dept_code_list != null and dept_code_list.size > 0">
+																<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+															</when>
+															<otherwise>'%'</otherwise>
+														</choose> = '%' OR     DM.DEPT_CODE IN 
+		                                        				(SELECT SUBSTR(A.TXT, INSTR(A.TXT, ',', 1, LEVEL) + 1, INSTR(A.TXT, ',', 1, LEVEL + 1) - INSTR(A.TXT, ',', 1, LEVEL) - 1) AS DEPT_CODE
+		                                                           FROM   (SELECT ','||<choose>
+																							<when test="dept_code_list != null and dept_code_list.size > 0">
+																								<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>
+																							</when>
+																							<otherwise>'%'</otherwise>
+																						</choose>||',' TXT FROM   DUAL)A CONNECT BY LEVEL &lt;= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, ',')) - 1)
+		                                               )
+		                                        GROUP BY DM.EMPLOYEE_NO, DM.PROJECT_NO, DM.OP_CODE, DM.WORK_DAY, CS.DESIGN_APPLY_DATE, CS.BEFORE_ENTRANCE_CAREER 
+		                                        ) 
+		                               	) 
+		                		)
+		                GROUP BY PROJECT_NO, OP_CODE
+		                UNION ALL
+						SELECT ORH.PROJECT_NO ,
+		                       0 AS MH_IN ,
+		                       SUM(OCA.COMPLETED_MAN_HOUR) AS MH_OUT ,
+		                       0 AS MH_DEDWG ,
+		                       0 AS MH_A1 ,
+		                       0 AS MH_A2 ,
+		                       0 AS MH_A3 ,
+		                       0 AS MH_A4 ,
+		                       0 AS MH_A5 ,
+		                       0 AS MH_B1 ,
+		                       0 AS MH_B2 ,
+		                       0 AS MH_B3 ,
+		                       0 AS MH_B4 ,
+		                       0 AS MH_B5 ,
+		                       0 AS MH_B6 ,
+		                       0 AS MH_C1 ,
+		                       0 AS MH_C2 ,
+		                       0 AS MH_C3 ,
+		                       0 AS MH_D1 ,
+		                       0 AS NORMAL_TIME ,
+		                       0 AS OVERTIME ,
+		                       0 AS SPECIAL_TIME
+		                FROM   OUT_COMPLETED_AMOUNT OCA,
+		                       OUT_CONTRACTS OC,
+		                       OUT_REQUEST_HEADERS ORH,
+		                       OUT_CODE_LINES OCL,
+		                       DCC_DEPTCODE DEPT
+		                WHERE  ORH.REQUEST_DEPT = DEPT.DEPTCODE
+		                AND    OC.REQUEST_NUM = ORH.REQUEST_NUM
+		                AND    ORH.REQUEST_CODE = OCL.COMMON_CODE
+		                AND    OCL.INDEX_CODE = 'OUT21'
+		                AND    NVL(OCL.END_DATE, SYSDATE) &gt; TRUNC(SYSDATE)
+		                AND    OCL.CODE_VALUE = '도면비'
+		                AND    OCA.CONTRACT_NUM = OC.CONTRACT_NUM
+		                AND    ORH.REQUEST_DEPT NOT IN (SELECT DEPTCODE
+		                        FROM   DCC_DEPTCODE A ,
+		                               DCC_DWGDEPTCODE T
+		                        WHERE  A.DWGDEPTCODE = T.DWGDEPTCODE
+		                        AND    T.DWGDEPTCODE = '000049' )
+		                AND    ORH.PROJECT_NO LIKE '%' ||#{projectList} || '%'
+		                AND    OCA.COMPLETED_DATE &gt;= TO_DATE(TO_CHAR(TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD'), 'YYYYMM'), 'YYYYMM')
+		                AND    OCA.COMPLETED_DATE &lt;= LAST_DAY(TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD'))
+		                AND    (<choose>
+									<when test="dept_code_list != null and dept_code_list.size > 0">
+										<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>'
+									</when>
+									<otherwise>'%'</otherwise>
+								</choose> = '%' OR     ORH.REQUEST_DEPT IN 
+			                		(SELECT SUBSTR(A.TXT, INSTR(A.TXT, ',', 1, LEVEL) + 1, INSTR(A.TXT, ',', 1, LEVEL + 1) - INSTR(A.TXT, ',', 1, LEVEL) - 1) AS DEPT_CODE
+			                         FROM   (SELECT ','||<choose>
+															<when test="dept_code_list != null and dept_code_list.size > 0">
+																'<foreach collection="dept_code_list" item="item" separator="," open="'" close="'">${item}</foreach>'
+															</when>
+															<otherwise>'%'</otherwise>
+														</choose>||',' TXT FROM   DUAL)A CONNECT BY LEVEL &lt;= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, ',')) - 1)
+		                       )
+		                GROUP BY ORH.PROJECT_NO 
+		                ) MH
+		   GROUP BY PROJECT_NO 
+		)
+		ORDER BY ORDER_BY, PROJECT_NO    
+	) 
+	</select>
+ 	
+</mapper>

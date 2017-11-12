@@ -1,0 +1,617 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SQL>
+	<template>
+	<![CDATA[
+	]]>
+	</template>
+	
+	<selectUserDept>
+	<![CDATA[
+		SELECT DD.DWGDEPTCODE
+		  FROM CCC_SAWON    T
+		      ,DCC_DEPTCODE DD
+		 WHERE T.EMPLOYEE_NUM = #EMPLOYEE_NUM#
+		   AND DD.DEPTCODE = T.DEPT_CODE
+	]]>
+	</selectUserDept>
+	
+	<selectActivityInfo>
+		<![CDATA[
+SELECT * FROM (
+	SELECT PAH.PROJECT_NO
+		  ,PAH.HEAD_DEPT_CODE
+	      ,DD.DWGDEPTNM
+	      ,PAH.ACTIVITY_CODE
+	      ,PAH.APPROVAL_STATUS
+	      ,PAH.ACTIVITY_DESCRIPTION
+	      ,PAH.REF_KEY_EVENT
+	      ,PAH.TIME_LAG_DAY
+	      ,TO_CHAR(PAH.DUE_DATE,'YYYY. MM. DD.') AS DUE_DATE
+	      ,TO_CHAR(PAH.DUE_DATE_ORIGIN,'YYYY. MM. DD.') AS DUE_DATE_ORIGIN
+	      ,PAH.FILE_ID
+	      ,PAH.A0_APPROVED_DATE
+	      ,PAH.A1_APPROVED_DATE
+	      ,PAH.A2_APPROVED_DATE
+	      ,PAH.A3_APPROVED_DATE
+	      ,PAH.A0_APPROVER
+	      ,(SELECT CS0.NAME
+	          FROM CCC_SAWON CS0
+	         WHERE CS0.EMPLOYEE_NUM = PAH.A0_APPROVER) AS A0_APPROVER_NM
+	      ,PAH.A1_APPROVER
+	      ,(SELECT CS1.NAME
+	          FROM CCC_SAWON CS1
+	         WHERE CS1.EMPLOYEE_NUM = PAH.A1_APPROVER) AS A1_APPROVER_NM
+	      ,PAH.A2_APPROVER
+	      ,(SELECT CS2.NAME
+	          FROM CCC_SAWON CS2
+	         WHERE CS2.EMPLOYEE_NUM = PAH.A2_APPROVER) AS A2_APPROVER_NM
+	      ,PAH.A3_APPROVER
+	      ,(SELECT CS3.NAME
+	          FROM CCC_SAWON CS3
+	         WHERE CS3.EMPLOYEE_NUM = PAH.A3_APPROVER) AS A3_APPROVER_NM
+	      ,(SELECT MAX(SAA.APPROVAL_SEQ) FROM PRO_ACTIVITY_APPROVAL SAA WHERE SAA.ACTIVITY_CODE = PAH.ACTIVITY_CODE) AS MAX_SEQ
+		  ,(SELECT COUNT(F.FILE_ID) FROM PRO_ACTIVITY_FILE F WHERE F.ACTIVITY_CODE = PAH.ACTIVITY_CODE AND F.PROJECT_NO = PAH.PROJECT_NO) FILE_COUNT
+	  FROM (SELECT T.*
+	              ,(SELECT A0.APPROVAL_EMPNO
+	                  FROM PRO_ACTIVITY_APPROVAL A0
+	                 WHERE A0.PROJECT_NO = T.PROJECT_NO
+	                   AND A0.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A0.APPROVAL_SEQ = 0) AS A0_APPROVER
+	              ,(SELECT A1.APPROVAL_EMPNO
+	                  FROM PRO_ACTIVITY_APPROVAL A1
+	                 WHERE A1.PROJECT_NO = T.PROJECT_NO
+	                   AND A1.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A1.APPROVAL_SEQ = 1) AS A1_APPROVER
+	              ,(SELECT A2.APPROVAL_EMPNO
+	                  FROM PRO_ACTIVITY_APPROVAL A2
+	                 WHERE A2.PROJECT_NO = T.PROJECT_NO
+	                   AND A2.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A2.APPROVAL_SEQ = 2) AS A2_APPROVER
+	              ,(SELECT A3.APPROVAL_EMPNO
+	                  FROM PRO_ACTIVITY_APPROVAL A3
+	                 WHERE A3.PROJECT_NO = T.PROJECT_NO
+	                   AND A3.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A3.APPROVAL_SEQ = 3) AS A3_APPROVER
+	              ,(SELECT TO_CHAR(A0.UPDATEDATE,'YYYY-MM-DD')
+	                  FROM PRO_ACTIVITY_APPROVAL A0
+	                 WHERE A0.PROJECT_NO = T.PROJECT_NO
+	                   AND A0.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A0.APPROVAL_SEQ = 0
+	                   AND T.APPROVAL_STATUS > 0) AS A0_APPROVED_DATE
+	              ,(SELECT TO_CHAR(A1.UPDATEDATE,'YYYY-MM-DD')
+	                  FROM PRO_ACTIVITY_APPROVAL A1
+	                 WHERE A1.PROJECT_NO = T.PROJECT_NO
+	                   AND A1.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A1.APPROVAL_SEQ = 1
+	                   AND T.APPROVAL_STATUS > 1) AS A1_APPROVED_DATE
+	              ,(SELECT TO_CHAR(A2.UPDATEDATE,'YYYY-MM-DD')
+	                  FROM PRO_ACTIVITY_APPROVAL A2
+	                 WHERE A2.PROJECT_NO = T.PROJECT_NO
+	                   AND A2.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A2.APPROVAL_SEQ = 2
+	                   AND T.APPROVAL_STATUS > 2) AS A2_APPROVED_DATE
+	              ,(SELECT TO_CHAR(A3.UPDATEDATE,'YYYY-MM-DD')
+	                  FROM PRO_ACTIVITY_APPROVAL A3
+	                 WHERE A3.PROJECT_NO = T.PROJECT_NO
+	                   AND A3.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A3.APPROVAL_SEQ = 3
+	                   AND T.APPROVAL_STATUS > 3) AS A3_APPROVED_DATE
+	          FROM PRO_ACTIVITY_HEAD T) PAH
+	          ,DCC_DWGDEPTCODE DD
+	 	WHERE 1 = 1
+	   AND DD.DWGDEPTCODE = PAH.HEAD_DEPT_CODE
+   ) WHERE 1 = 1
+		]]>
+		<notempty name="PROJECT_NO">
+   AND PROJECT_NO = #PROJECT_NO#
+   		</notempty>
+   		<notempty name="ACTIVITY_CODE">
+   AND ACTIVITY_CODE = #ACTIVITY_CODE#
+   		</notempty>
+   		<notempty name="ACTIVITY_DESCRIPTION">
+   AND UPPER(ACTIVITY_DESCRIPTION) LIKE '%' || UPPER(#ACTIVITY_DESCRIPTION#) || '%'
+   		</notempty>
+   		<notempty name="HEAD_DEPT_CODE">
+   AND HEAD_DEPT_CODE = #HEAD_DEPT_CODE#
+   		</notempty>
+ 		<notempty name="DETAIL_DEPT_CODE">
+   AND PROJECT_NO || '|' || ACTIVITY_CODE IN(
+	   SELECT PAD.PROJECT_NO || '|' || PAD.ACTIVITY_CODE
+	     FROM PRO_ACTIVITY_DETAIL PAD
+	    WHERE PAD.DETAIL_DEPT_CODE = #DETAIL_DEPT_CODE#
+    )
+   		</notempty>
+   		<notempty name="DUE_DATE_F">
+   AND TO_DATE(DUE_DATE,'YYYY. MM. DD.')  >= TO_DATE(#DUE_DATE_F#,'YYYY. MM. DD.')
+        </notempty>
+   		<notempty name="DUE_DATE_T">
+   AND TO_DATE(DUE_DATE,'YYYY. MM. DD.') &lt;= TO_DATE(#DUE_DATE_T#,'YYYY. MM. DD.')
+        </notempty>
+   		<notempty name="APPROVAL_STATUS_REQUEST">
+   AND PROJECT_NO || '|' || ACTIVITY_CODE || '|' || APPROVAL_STATUS IN
+       (SELECT PAA.PROJECT_NO || '|' || PAA.ACTIVITY_CODE || '|' || PAA.APPROVAL_SEQ
+          FROM PRO_ACTIVITY_APPROVAL PAA
+         WHERE PAA.APPROVAL_EMPNO = #CREATOR#)
+        </notempty>
+   		<notempty name="APPROVAL_STATUS_COMPLETE">
+        </notempty>
+   		<notempty name="APPROVAL_STATUS_NOT_COMPLETE">
+   AND MAX_SEQ >= APPROVAL_STATUS
+        </notempty>
+   		<notempty name="sortDUE_DATEDESC">
+   ORDER BY DUE_DATE DESC
+        </notempty>
+        <notempty name="sortDUE_DATE">
+   ORDER BY DUE_DATE
+        </notempty>
+	</selectActivityInfo>
+	
+	<selectActivityInfoExcel>
+		<![CDATA[
+SELECT HEAD.*,DETAIL.SUB_ACTIVITY_DESCRIPTION,DETAIL.SUB_ACTIVITY_RESULT,DD.DWGDEPTNM AS SUB_DWGDEPTNM FROM (
+	SELECT PAH.PROJECT_NO
+		  ,PAH.HEAD_DEPT_CODE
+	      ,DD.DWGDEPTNM
+	      ,PAH.ACTIVITY_CODE
+	      ,PAH.APPROVAL_STATUS
+	      ,PAH.ACTIVITY_DESCRIPTION
+	      ,PAH.REF_KEY_EVENT
+	      ,PAH.TIME_LAG_DAY
+	      ,TO_CHAR(PAH.DUE_DATE,'YYYY. MM. DD.') AS DUE_DATE
+	      ,TO_CHAR(PAH.DUE_DATE_ORIGIN,'YYYY. MM. DD.') AS DUE_DATE_ORIGIN
+	      ,PAH.FILE_ID
+	      ,PAH.A0_APPROVED_DATE
+	      ,PAH.A1_APPROVED_DATE
+	      ,PAH.A2_APPROVED_DATE
+	      ,PAH.A3_APPROVED_DATE
+	      ,PAH.A0_APPROVER
+	      ,(SELECT CS0.NAME
+	          FROM CCC_SAWON CS0
+	         WHERE CS0.EMPLOYEE_NUM = PAH.A0_APPROVER) AS A0_APPROVER_NM
+	      ,PAH.A1_APPROVER
+	      ,(SELECT CS1.NAME
+	          FROM CCC_SAWON CS1
+	         WHERE CS1.EMPLOYEE_NUM = PAH.A1_APPROVER) AS A1_APPROVER_NM
+	      ,PAH.A2_APPROVER
+	      ,(SELECT CS2.NAME
+	          FROM CCC_SAWON CS2
+	         WHERE CS2.EMPLOYEE_NUM = PAH.A2_APPROVER) AS A2_APPROVER_NM
+	      ,PAH.A3_APPROVER
+	      ,(SELECT CS3.NAME
+	          FROM CCC_SAWON CS3
+	         WHERE CS3.EMPLOYEE_NUM = PAH.A3_APPROVER) AS A3_APPROVER_NM
+	      ,(SELECT MAX(SAA.APPROVAL_SEQ) FROM PRO_ACTIVITY_APPROVAL SAA WHERE SAA.ACTIVITY_CODE = PAH.ACTIVITY_CODE) AS MAX_SEQ
+	      ,(SELECT COUNT(F.FILE_ID) FROM PRO_ACTIVITY_FILE F WHERE F.ACTIVITY_CODE = PAH.ACTIVITY_CODE AND F.PROJECT_NO = PAH.PROJECT_NO) FILE_COUNT
+	  FROM (SELECT T.*
+	              ,(SELECT A0.APPROVAL_EMPNO
+	                  FROM PRO_ACTIVITY_APPROVAL A0
+	                 WHERE A0.PROJECT_NO = T.PROJECT_NO
+	                   AND A0.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A0.APPROVAL_SEQ = 0) AS A0_APPROVER
+	              ,(SELECT A1.APPROVAL_EMPNO
+	                  FROM PRO_ACTIVITY_APPROVAL A1
+	                 WHERE A1.PROJECT_NO = T.PROJECT_NO
+	                   AND A1.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A1.APPROVAL_SEQ = 1) AS A1_APPROVER
+	              ,(SELECT A2.APPROVAL_EMPNO
+	                  FROM PRO_ACTIVITY_APPROVAL A2
+	                 WHERE A2.PROJECT_NO = T.PROJECT_NO
+	                   AND A2.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A2.APPROVAL_SEQ = 2) AS A2_APPROVER
+	              ,(SELECT A3.APPROVAL_EMPNO
+	                  FROM PRO_ACTIVITY_APPROVAL A3
+	                 WHERE A3.PROJECT_NO = T.PROJECT_NO
+	                   AND A3.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A3.APPROVAL_SEQ = 3) AS A3_APPROVER
+	              ,(SELECT TO_CHAR(A0.UPDATEDATE,'YYYY-MM-DD')
+	                  FROM PRO_ACTIVITY_APPROVAL A0
+	                 WHERE A0.PROJECT_NO = T.PROJECT_NO
+	                   AND A0.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A0.APPROVAL_SEQ = 0
+	                   AND T.APPROVAL_STATUS > 0) AS A0_APPROVED_DATE
+	              ,(SELECT TO_CHAR(A1.UPDATEDATE,'YYYY-MM-DD')
+	                  FROM PRO_ACTIVITY_APPROVAL A1
+	                 WHERE A1.PROJECT_NO = T.PROJECT_NO
+	                   AND A1.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A1.APPROVAL_SEQ = 1
+	                   AND T.APPROVAL_STATUS > 1) AS A1_APPROVED_DATE
+	              ,(SELECT TO_CHAR(A2.UPDATEDATE,'YYYY-MM-DD')
+	                  FROM PRO_ACTIVITY_APPROVAL A2
+	                 WHERE A2.PROJECT_NO = T.PROJECT_NO
+	                   AND A2.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A2.APPROVAL_SEQ = 2
+	                   AND T.APPROVAL_STATUS > 2) AS A2_APPROVED_DATE
+	              ,(SELECT TO_CHAR(A3.UPDATEDATE,'YYYY-MM-DD')
+	                  FROM PRO_ACTIVITY_APPROVAL A3
+	                 WHERE A3.PROJECT_NO = T.PROJECT_NO
+	                   AND A3.ACTIVITY_CODE = T.ACTIVITY_CODE
+	                   AND A3.APPROVAL_SEQ = 3
+	                   AND T.APPROVAL_STATUS > 3) AS A3_APPROVED_DATE
+	          FROM PRO_ACTIVITY_HEAD T) PAH
+	          ,DCC_DWGDEPTCODE DD
+	 	WHERE 1 = 1
+	   AND DD.DWGDEPTCODE = PAH.HEAD_DEPT_CODE
+   ) HEAD
+   ,DCC_DWGDEPTCODE DD
+   ,PRO_ACTIVITY_DETAIL DETAIL
+   WHERE 1 = 1
+   AND HEAD.PROJECT_NO = DETAIL.PROJECT_NO(+)
+   AND HEAD.ACTIVITY_CODE = DETAIL.ACTIVITY_CODE(+)
+   AND DETAIL.DETAIL_DEPT_CODE = DD.DWGDEPTCODE(+)
+		]]>
+		<notempty name="PROJECT_NO">
+   AND HEAD.PROJECT_NO = #PROJECT_NO#
+   		</notempty>
+   		<notempty name="ACTIVITY_CODE">
+   AND HEAD.ACTIVITY_CODE = #ACTIVITY_CODE#
+   		</notempty>
+   		<notempty name="ACTIVITY_DESCRIPTION">
+   AND UPPER(HEAD.ACTIVITY_DESCRIPTION) LIKE '%' || UPPER(#ACTIVITY_DESCRIPTION#) || '%'
+   		</notempty>
+   		<notempty name="HEAD_DEPT_CODE">
+   AND HEAD.HEAD_DEPT_CODE = #HEAD_DEPT_CODE#
+   		</notempty>
+ 		<notempty name="DETAIL_DEPT_CODE">
+   AND HEAD.PROJECT_NO || '|' || HEAD.ACTIVITY_CODE IN(
+	   SELECT PAD.PROJECT_NO || '|' || PAD.ACTIVITY_CODE
+	     FROM PRO_ACTIVITY_DETAIL PAD
+	    WHERE PAD.DETAIL_DEPT_CODE = #DETAIL_DEPT_CODE#
+    )
+   		</notempty>
+   		<notempty name="DUE_DATE_F">
+   AND TO_DATE(HEAD.DUE_DATE,'YYYY. MM. DD.') >= TO_DATE(#DUE_DATE_F#,'YYYY. MM. DD.')
+        </notempty>
+   		<notempty name="DUE_DATE_T">
+   AND TO_DATE(HEAD.DUE_DATE,'YYYY. MM. DD.') &lt;= TO_DATE(#DUE_DATE_T#,'YYYY. MM. DD.')
+        </notempty>
+   		<notempty name="APPROVAL_STATUS_REQUEST">
+   AND HEAD.PROJECT_NO || '|' || HEAD.ACTIVITY_CODE || '|' || HEAD.APPROVAL_STATUS IN
+       (SELECT PAA.PROJECT_NO || '|' || PAA.ACTIVITY_CODE || '|' || PAA.APPROVAL_SEQ
+          FROM PRO_ACTIVITY_APPROVAL PAA
+         WHERE PAA.APPROVAL_EMPNO = #CREATOR#)
+        </notempty>
+   		<notempty name="APPROVAL_STATUS_COMPLETE">
+        </notempty>
+   		<notempty name="APPROVAL_STATUS_NOT_COMPLETE">
+   AND HEAD.MAX_SEQ >= HEAD.APPROVAL_STATUS
+        </notempty>
+	</selectActivityInfoExcel>
+	
+	<selectSubActivity>
+		<![CDATA[	
+	SELECT PAD.ACTIVITY_CODE
+      ,PAD.SUB_ACTIVITY_DESCRIPTION
+      ,PAD.DETAIL_DEPT_CODE
+      ,PAD.SUB_ACTIVITY_RESULT
+      ,PAD.PROJECT_NO
+      ,(SELECT DD.DWGDEPTNM
+          FROM DCC_DWGDEPTCODE DD
+         WHERE DD.DWGDEPTCODE = PAD.DETAIL_DEPT_CODE) DWGDEPTNM
+  FROM PRO_ACTIVITY_DETAIL PAD
+ WHERE PAD.ACTIVITY_CODE = #ACTIVITY_CODE#
+   AND PAD.PROJECT_NO = #PROJECT_NO#
+   		]]>
+   	</selectSubActivity>
+	<getAssignee>
+		<![CDATA[	
+	SELECT PAD.ACTIVITY_CODE
+      ,PAD.SUB_ACTIVITY_DESCRIPTION
+      ,PAD.DETAIL_DEPT_CODE
+      ,(SELECT DD.DWGDEPTNM
+          FROM DCC_DWGDEPTCODE DD
+         WHERE DD.DWGDEPTCODE = PAD.DETAIL_DEPT_CODE) DWGDEPTNM
+  FROM PRO_ACTIVITY_DETAIL PAD
+ WHERE PAD.ACTIVITY_CODE = #ACTIVITY_CODE#
+   AND PAD.PROJECT_NO = #PROJECT_NO#
+   		]]>
+   	</getAssignee>
+
+	<getDPProjectInfo>
+		<![CDATA[
+   	SELECT A.PROJECTNO,                                               
+        A.DWGSERIESPROJECTNO,   
+        A.DWGSERIESSERIALNO,  
+        A.SHIPSIZE,                                               
+        A.SHIPTYPE,  
+        A.OWNER,  
+        A.OWNERABBR,  
+        A.CLASS,  
+        A.DWGSHIPSIZE,  
+        A.CONTRACTTERM,  
+        A.DWGSC,        
+        TO_CHAR(A.SC,'YYYY-MM-DD') AS SC,                                               
+        TO_CHAR(A.KL,'YYYY-MM-DD') AS KL,                                                                                          
+        TO_CHAR(A.LC,'YYYY-MM-DD') AS LC,                                               
+        TO_CHAR(A.DL,'YYYY-MM-DD') AS DL,  
+        A.DOCKNO,  
+        A.BUILD_BLOCK,                    
+        A.MOTHERSHIP,  
+        A.DISTRIBUTIONCODE,  
+        A.DISTRIBUTIONCODE_OUT  
+   FROM LPM_NEWPROJECT A                   
+  WHERE PROJECTNO = #PROJECT_NO#    
+    AND CASENO    = '1'
+       		]]>
+   	</getDPProjectInfo>
+   	
+   	<getUserDeptJOBInfo>
+		<![CDATA[
+   	SELECT AA.DWG_DEPT_CODE AS DWG_DEPT_CODE
+      ,BB.JOB           AS JOB
+      ,BB.EMPLOYEE_NUM  AS EMP_NO
+      ,BB.NAME          AS EMP_NAME
+  FROM (select C.TEAM_CODE   AS DEPT_CODE
+              ,D.DWGDEPTCODE AS DWG_DEPT_CODE
+              ,C.DEPT_NAME   AS DEPT_NAME
+          from STX_COM_INSA_DEPT@STXERP C
+              ,DCC_DEPTCODE             D
+              ,CCC_SAWON                S
+         WHERE C.DEPT_CODE = D.DEPTCODE
+           AND C.DEPT_CODE = S.DEPT_CODE
+           AND S.EMPLOYEE_NUM = #USER_ID#
+        UNION ALL
+        select C.DEPT_CODE   AS DEPT_CODE
+              ,D.DWGDEPTCODE AS DWG_DEPT_CODE
+              ,C.DEPT_NAME   AS DEPT_NAME
+          from STX_COM_INSA_DEPT@STXERP C
+              ,DCC_DEPTCODE             D
+              ,CCC_SAWON                S
+         WHERE C.DEPT_CODE = D.DEPTCODE
+           AND C.DEPT_CODE = S.DEPT_CODE
+           AND S.EMPLOYEE_NUM = #USER_ID#) AA
+      ,CCC_SAWON BB
+ WHERE AA.DEPT_CODE = BB.DEPT_CODE
+   AND BB.TERMINATION_DATE IS NULL
+   AND (BB.JOB IN ('파트장', '팀장', '실장', '본부장'))
+          		]]>
+   	</getUserDeptJOBInfo>
+
+   	<getActivityFile>
+		<![CDATA[
+   	SELECT *
+  FROM (SELECT DF.FILE_NAME
+              ,DF.FILE_ID
+              ,PAF.PROJECT_NO
+              ,PAF.ACTIVITY_CODE
+              ,TO_CHAR(PAF.CREATION_DATE,'YYYY-MM-DD') AS CREATION_DATE
+              ,PAF.CREATOR
+          FROM DPS_FILE          DF
+              ,PRO_ACTIVITY_FILE PAF
+         WHERE DF.FILE_ID = PAF.FILE_ID) PRO_FILE
+	WHERE PRO_FILE.PROJECT_NO = #PROJECT_NO#
+	AND PRO_FILE.ACTIVITY_CODE = #ACTIVITY_CODE#
+          		]]>
+   	</getActivityFile>
+
+   	<updateDUE_DATE>
+		<![CDATA[
+		UPDATE PRO_ACTIVITY_HEAD
+		   SET DUE_DATE = TO_DATE(#DUE_DATE#,'YYYY. MM. DD.')
+		 WHERE 1 = 1
+		   AND ACTIVITY_CODE = #ACTIVITY_CODE#
+		   AND PROJECT_NO = #PROJECT_NO#
+          		]]>
+   	</updateDUE_DATE>
+   	
+   	<selectExistDept>
+		<![CDATA[
+	 SELECT DD.DWGDEPTNM   AS DISPLAY
+	      ,DD.DWGDEPTCODE AS VALUE
+	  FROM (SELECT DISTINCT HEAD_DEPT_CODE FROM PRO_ACTIVITY_HEAD) T
+	      ,DCC_DWGDEPTCODE DD
+	 WHERE DD.DWGDEPTCODE = T.HEAD_DEPT_CODE
+           		]]>
+   	</selectExistDept>
+   	
+   	<selectExistSubDept>
+		<![CDATA[
+	 SELECT DD.DWGDEPTNM   AS DISPLAY
+	      ,DD.DWGDEPTCODE AS VALUE
+	  FROM (SELECT DISTINCT DETAIL_DEPT_CODE FROM PRO_ACTIVITY_DETAIL) T
+	      ,DCC_DWGDEPTCODE DD
+	 WHERE DD.DWGDEPTCODE = T.DETAIL_DEPT_CODE
+           		]]>
+   	</selectExistSubDept>
+   	
+   	<selectApproveMailInfo>
+   			<![CDATA[
+SELECT MAIN.*,INSA.EP_MAIL FROM (
+    SELECT (SELECT A0.APPROVAL_EMPNO
+              FROM PRO_ACTIVITY_APPROVAL A0
+             WHERE A0.PROJECT_NO = PAH.PROJECT_NO
+               AND A0.ACTIVITY_CODE = PAH.ACTIVITY_CODE
+               AND A0.APPROVAL_SEQ = 0) AS A0_APPROVER
+          ,(SELECT INSA_CU.EP_MAIL
+                 FROM PRO_ACTIVITY_APPROVAL CURRENT_APP
+                 ,STX_COM_INSA_USER@STXERP.STXSHIP.CO.KR INSA_CU
+                WHERE CURRENT_APP.PROJECT_NO = PAH.PROJECT_NO
+                  AND CURRENT_APP.ACTIVITY_CODE = PAH.ACTIVITY_CODE
+                  AND CURRENT_APP.APPROVAL_SEQ = PAH.APPROVAL_STATUS
+                  AND INSA_CU.EMP_NO = CURRENT_APP.APPROVAL_EMPNO
+                  ) AS CURRENT_APPROVER
+          ,TO_CHAR(PAH.DUE_DATE,'YYYY. MM. DD.') AS DUE_DATE
+          ,TO_CHAR(PAH.DUE_DATE_ORIGIN,'YYYY. MM. DD.') AS DUE_DATE_ORIGIN
+          ,PAH.APPROVAL_STATUS
+          ,PAH.ACTIVITY_DESCRIPTION
+          ,DD.DWGDEPTNM
+          ,(SELECT MAX(SAA.APPROVAL_SEQ)
+              FROM PRO_ACTIVITY_APPROVAL SAA
+             WHERE SAA.ACTIVITY_CODE = PAH.ACTIVITY_CODE) AS MAX_SEQ
+          ,(SELECT COUNT(F.FILE_ID)
+              FROM PRO_ACTIVITY_FILE F
+             WHERE F.ACTIVITY_CODE = PAH.ACTIVITY_CODE
+               AND F.PROJECT_NO = PAH.PROJECT_NO) FILE_COUNT
+          ,LNP.OWNER
+          ,LNP.OWNERABBR
+          ,LNP.SHIPTYPE
+      FROM PRO_ACTIVITY_HEAD PAH
+           ,DCC_DWGDEPTCODE DD
+           ,LPM_NEWPROJECT LNP
+     WHERE PAH.PROJECT_NO = #PROJECT_NO#
+       AND PAH.ACTIVITY_CODE = #ACTIVITY_CODE#
+       AND DD.DWGDEPTCODE = PAH.HEAD_DEPT_CODE
+       AND PAH.PROJECT_NO = LNP.PROJECTNO
+       AND LNP.CASENO = '1'
+       ) MAIN
+       ,STX_COM_INSA_USER@STXERP.STXSHIP.CO.KR INSA
+       WHERE MAIN.A0_APPROVER = INSA.EMP_NO(+)
+           		]]>
+   	</selectApproveMailInfo>
+   	
+   	<selectApproveMailInfoDetail>
+   			<![CDATA[
+   SELECT PAD.SUB_ACTIVITY_DESCRIPTION
+         ,DD.DWGDEPTNM
+         ,DD.DWGDEPTCODE
+     FROM PRO_ACTIVITY_DETAIL PAD
+         ,DCC_DWGDEPTCODE     DD
+    WHERE PAD.PROJECT_NO = #PROJECT_NO#
+      AND PAD.ACTIVITY_CODE = #ACTIVITY_CODE#
+      AND PAD.DETAIL_DEPT_CODE = DD.DWGDEPTCODE
+           		]]>
+   	</selectApproveMailInfoDetail>
+   	
+   	<selectHeadAuthority>
+   			<![CDATA[
+   	SELECT *
+	  FROM (SELECT DISTINCT TEAM.EMPLOYEE_NUM
+	                       ,TEAM.JOB
+	          FROM DCC_DEPTCODE                           DD
+	              ,STX_COM_INSA_DEPT@STXERP.STXSHIP.CO.KR SCID
+	              ,CCC_SAWON                              TEAM
+	              ,PRO_ACTIVITY_HEAD                      PAH
+	         WHERE DD.DEPTCODE = SCID.DEPT_CODE
+	           AND SCID.TEAM_CODE = TEAM.DEPT_CODE
+	           AND TEAM.JOB = '팀장'
+			   AND TEAM.TERMINATION_DATE IS NULL
+	           AND DD.DWGDEPTCODE = PAH.HEAD_DEPT_CODE
+	           AND PAH.PROJECT_NO = #PROJECT_NO#
+	           AND PAH.ACTIVITY_CODE = #ACTIVITY_CODE#
+	        UNION ALL
+	        SELECT DISTINCT PART.EMPLOYEE_NUM
+	                       ,PART.JOB
+	          FROM CCC_SAWON         PART
+	              ,DCC_DEPTCODE      DD
+	              ,PRO_ACTIVITY_HEAD PAH
+	         WHERE (PART.JOB = '파트장' OR PART.JOB = '팀장')
+			   AND PART.TERMINATION_DATE IS NULL
+	           AND PART.DEPT_CODE = DD.DEPTCODE
+	           AND DD.DWGDEPTCODE = PAH.HEAD_DEPT_CODE
+	           AND PAH.PROJECT_NO = #PROJECT_NO#
+	           AND PAH.ACTIVITY_CODE = #ACTIVITY_CODE#
+	        UNION ALL
+	        SELECT PAA.APPROVAL_EMPNO
+	              ,'리더' AS JOB
+	          FROM PRO_ACTIVITY_APPROVAL PAA
+	         WHERE PAA.PROJECT_NO = #PROJECT_NO#
+	           AND PAA.ACTIVITY_CODE = #ACTIVITY_CODE#
+	           AND PAA.APPROVAL_SEQ = '0'
+	      UNION ALL 
+	      	SELECT '207087' AS EMPLOYEE_NUM
+	      		,'설계PC' AS JOB    
+	      		FROM DUAL 
+      	  UNION ALL 
+			SELECT SDHPM.USER_NO AS EMPLOYEE_NUM
+			      ,'설계PC' AS JOB
+			  FROM STX_DT_HULL_PERSON_MASTER SDHPM
+			 WHERE SDHPM.PROJECT_NO = #PROJECT_NO#
+			   AND SDHPM.PC_FLAG = 'Y'
+	      ) JOB_USER
+	      ,(SELECT *
+	          FROM PRO_ACTIVITY_AUTHORITY PAA2
+	         WHERE PAA2.KIND = #KIND#
+	           AND PAA2.ACTION = #ACTION#
+	           AND PAA2.ENABLE = '1') AUTHOR
+	 WHERE AUTHOR.RULE = JOB_USER.JOB
+   AND JOB_USER.EMPLOYEE_NUM = #EMPLOYEE_NUM#
+              	]]>
+   	</selectHeadAuthority>
+   	
+   	<selectDetailAuthority>
+   			<![CDATA[
+	SELECT *
+	  FROM (SELECT DISTINCT TEAM.EMPLOYEE_NUM
+	                       ,TEAM.JOB
+	          FROM DCC_DEPTCODE                           DD
+	              ,STX_COM_INSA_DEPT@STXERP.STXSHIP.CO.KR SCID
+	              ,CCC_SAWON                              TEAM
+	         WHERE DD.DEPTCODE = SCID.DEPT_CODE
+	           AND SCID.TEAM_CODE = TEAM.DEPT_CODE
+	           AND TEAM.JOB = '팀장'
+			   AND TEAM.TERMINATION_DATE IS NULL
+	           AND DD.DWGDEPTCODE = #DWGDEPTCODE#
+	        UNION ALL
+	        SELECT DISTINCT PART.EMPLOYEE_NUM
+	                       ,PART.JOB
+	          FROM CCC_SAWON    PART
+	              ,DCC_DEPTCODE DD
+	         WHERE (PART.JOB = '파트장' OR PART.JOB = '팀장')
+			   AND PART.TERMINATION_DATE IS NULL
+	           AND PART.DEPT_CODE = DD.DEPTCODE
+	           AND DD.DWGDEPTCODE = #DWGDEPTCODE#
+	        UNION ALL
+	        SELECT PAA.APPROVAL_EMPNO
+	              ,'리더' AS JOB
+	          FROM PRO_ACTIVITY_APPROVAL PAA
+	         WHERE PAA.PROJECT_NO = #PROJECT_NO#
+	           AND PAA.ACTIVITY_CODE = #ACTIVITY_CODE#
+	           AND PAA.APPROVAL_SEQ = '0'
+	        UNION ALL 
+	      	SELECT '207087' AS EMPLOYEE_NUM
+	      		,'설계PC' AS JOB    
+	      		FROM DUAL 
+	      	UNION ALL 
+			SELECT SDHPM.USER_NO AS EMPLOYEE_NUM
+			      ,'설계PC' AS JOB
+			  FROM STX_DT_HULL_PERSON_MASTER SDHPM
+			 WHERE SDHPM.PROJECT_NO = #PROJECT_NO#
+			   AND SDHPM.PC_FLAG = 'Y'
+	           ) JOB_USER
+	      ,(SELECT *
+	          FROM PRO_ACTIVITY_AUTHORITY PAA2
+	         WHERE PAA2.KIND = #KIND#
+	           AND PAA2.ACTION = #ACTION#
+	           AND PAA2.ENABLE = '1') AUTHOR
+	 WHERE AUTHOR.RULE = JOB_USER.JOB
+	   AND JOB_USER.EMPLOYEE_NUM = #EMPLOYEE_NUM#
+              	]]>
+   	</selectDetailAuthority>
+   	<selectRefAddress>
+   			<![CDATA[
+   	 SELECT DISTINCT PART.EMPLOYEE_NUM
+	               ,PART.JOB
+	               ,INSA.EP_MAIL || '@onestx.com' AS EP_MAIL
+	  FROM CCC_SAWON         PART
+	      ,DCC_DEPTCODE      DD
+	      ,PRO_ACTIVITY_HEAD PAH
+	      ,STX_COM_INSA_USER@STXERP.STXSHIP.CO.KR INSA
+	 WHERE (PART.JOB = '파트장')
+	   AND PART.TERMINATION_DATE IS NULL
+	   AND PART.DEPT_CODE = DD.DEPTCODE
+	   AND DD.DWGDEPTCODE = PAH.HEAD_DEPT_CODE
+	   and PART.EMPLOYEE_NUM = INSA.EMP_NO(+)
+	   AND PAH.PROJECT_NO = #PROJECT_NO#
+	   AND PAH.ACTIVITY_CODE = #ACTIVITY_CODE#
+	 UNION ALL 
+	 SELECT SDHPM.USER_NO AS EMPLOYEE_NUM
+	      ,'설계PC' AS JOB
+	      ,INSA.EP_MAIL || '@onestx.com' AS EP_MAIL
+	  FROM STX_DT_HULL_PERSON_MASTER              SDHPM
+	      ,STX_COM_INSA_USER@STXERP.STXSHIP.CO.KR INSA
+	 WHERE SDHPM.PROJECT_NO = #PROJECT_NO#
+	   AND SDHPM.PC_FLAG = 'Y'
+	   AND SDHPM.USER_NO = INSA.EMP_NO(+)
+           		]]>
+   	</selectRefAddress>
+  	<deleteActivityFile>
+   			<![CDATA[
+DELETE DPS_FILE DF
+ WHERE DF.FILE_ID = (SELECT PAF.FILE_ID
+                       FROM pro_activity_file PAF
+                      WHERE PAF.PROJECT_NO = #PROJECT_NO#
+                        AND PAF.ACTIVITY_CODE = #ACTIVITY_CODE#)
+           		]]>
+   	</deleteActivityFile>
+   	
+   	
+</SQL>		     

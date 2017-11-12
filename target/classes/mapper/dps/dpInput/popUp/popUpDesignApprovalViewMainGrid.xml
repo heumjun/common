@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpDesignApprovalViewMainGrid">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TO_CHAR(A.WORKINGDAY, 'YYYY-MM-DD') AS WORKINGDAY,
+		       B.EMPLOYEE_NO,
+		       A.ISWORKDAY,
+		       SUM(B.NORMAL_TIME) AS NORMAL,
+		       SUM(B.OVERTIME) AS OVERTIME,
+		       SUM(B.SPECIAL_TIME) AS SPECIAL,
+		       NVL(B.INPUTDONE_YN,'N') AS INPUTDONE_YN,
+		       NVL(B.CONFIRM_YN,'N') AS CONFIRM_YN
+		FROM   CCC_CALENDAR A,
+		       PLM_DESIGN_MH B
+		WHERE  A.WORKINGDAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		AND    A.WORKINGDAY= B.WORK_DAY(+)
+		AND    B.EMPLOYEE_NO(+)=#{designerId}
+		GROUP BY A.WORKINGDAY, B.EMPLOYEE_NO, A.ISWORKDAY, B.INPUTDONE_YN, B.CONFIRM_YN
+		ORDER BY A.WORKINGDAY 
+	</select>
+</mapper>

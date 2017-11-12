@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsPartListSave">
+
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+	SELECT COUNT(*) AS CNT
+	  FROM STX_DIS_SD_CODE@STXERP
+	 WHERE ITEM_CODE = #{item_code}
+	   AND SHIP_TYPE = #{ship_type}
+	   AND SHIP_SIZE = #{ship_size}
+  	</select>
+  	
+	<update id="update" parameterType="java.util.Map">
+	UPDATE STX_EMS_SHIP@STXERP SET 
+	       BOM_STAGE = #{bom_stage}
+	      ,BOM_LEVEL = #{bom_level}
+	      ,DOCK_EVENT_F = #{dock_event_f}
+	      ,DOCK_LAG_F = #{dock_lag_f}
+	      ,DOCK_EVENT_T = #{dock_event_t}
+	      ,DOCK_LAG_T = #{dock_lag_t}
+	      ,SKID_EVENT_F = #{skid_event_f}
+	      ,SKID_LAG_F = #{skid_lag_f}
+	      ,SKID_EVENT_T = #{skid_event_t}
+	      ,SKID_LAG_T = #{skid_lag_t}
+	      ,FDOCK_EVENT_F = #{fdock_event_f}
+	      ,FDOCK_LAG_F = #{fdock_lag_f}    
+	      ,LAST_UPDATED_BY = #{loginId}
+	      ,LAST_UPDATE_DATE = SYSDATE 
+	WHERE ITEM_CODE = #{item_code}
+	  AND SHIP_TYPE = #{ship_type}
+	  AND SHIP_SIZE = #{ship_size}
+	</update>
+  	  	
+</mapper>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveAdmin">
+  	
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT count(*) as cnt
+		  FROM STX_DIS_ADMIN
+		 WHERE EMP_NO = #{emp_no}
+  	</select>
+  	
+ 	<insert id="insert" parameterType="java.util.Map">
+		INSERT
+		  INTO STX_DIS_ADMIN(SEQ, EMP_NO, CREATE_BY, CREATE_DATE, MODIFY_BY, MODIFY_DATE )
+		VALUES((SELECT NVL(MAX(SEQ), 0) + 1 FROM STX_DIS_ADMIN)
+		     , #{emp_no}
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE)
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE STX_DIS_ADMIN
+		   SET EMP_NO = #{emp_no}
+		     , MODIFY_BY = #{loginId}
+		     , MODIFY_DATE = SYSDATE
+		 WHERE SEQ = #{seq}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  		DELETE FROM STX_DIS_ADMIN
+		 WHERE SEQ = #{seq}
+  	</delete>
+ 	
+</mapper>

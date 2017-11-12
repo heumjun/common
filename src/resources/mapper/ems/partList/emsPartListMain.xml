@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsPartListMain">
+
+	<select id="emsPartListMainList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	<if test='!p_is_excel.equalsIgnoreCase("Y")'>
+		SELECT B.*
+		  FROM (SELECT A.*
+					  ,ROWNUM RNUM
+				  FROM (
+					  SELECT COUNT(*) OVER() AS CNT
+						  ,C.*
+					  FROM (
+		</if>					  
+				SELECT SIPI.PARTLIST_ID
+				     , SIPI.PROJECT_NO
+				     , SIPI.EQUIPMENT_NAME
+				     , (SELECT PV.VENDOR_SITE_CODE_ALT
+						  FROM PO_VENDOR_SITES_ALL PV
+						 WHERE SIPI.VENDOR_SITE_ID = PV.VENDOR_SITE_ID) AS VENDOR_SITE_CODE_ALT
+					 , SIPI.TAG_NO
+					 , SIPI.QUANTITY AS EA_OBTAIN
+					 , '' AS EQUIP_DESCRIPTION
+					 , SIPB.BOM_ID
+					 , SIPB.DRAWING_NO
+					 , SIPB.PRIMARY_ITEM_CODE
+					 , SIPB.PRIMARY_ITEM_ID
+					 , SIPB.ORGANIZATION_ID
+					 , SIPB.BOM_QUANTITY AS EA_PLAN
+					 , SIPB.BEF_PRIMARY_ITEM_CODE
+					 , SIPB.BEF_PRIMARY_ITEM_ID
+					 , SIPB.LOCK_FLAG
+					 , SIPB.SOURCE_CODE
+					 , SIPB.PLM_BLOCK_NO
+					 , SIPB.PLM_STAGE_NO
+					 , SIPB.PLM_STR_FLAG
+					 , SIPB.PLM_STR_KEY
+					 , SIPB.PLM_ITEM_CODE
+					 , SIPB.PLM_MOTHER_CODE
+					 , SIPB.PLM_COMMENT
+					 , SIPB.LAST_UPDATE_DATE
+					 , SIPB.LAST_UPDATED_BY_SYSTEM
+					 , SIPB.LAST_UPDATED_BY_CODE
+					 , TO_CHAR(SIPB.CREATION_DATE, 'YYYY-MM-DD') AS CREATION_DATE
+					 , SIPB.CREATED_BY_SYSTEM
+					 , SIPB.CREATED_BY_CODE
+					 , (SELECT USER_NAME FROM STX_COM_INSA_USER WHERE EMP_NO = SIPB.CREATED_BY_CODE) AS USER_NAME
+					 , (SELECT DEPT_NAME FROM STX_COM_INSA_USER WHERE EMP_NO = SIPB.CREATED_BY_CODE) AS DEPT_NAME
+					 , SIPB.LAST_UPDATE_LOGIN
+				  FROM STX_INV_PARTLIST_ITEM SIPI    
+				     , STX_INV_PARTLIST_BOM SIPB
+				 WHERE SIPI.PARTLIST_ID  = SIPB.PARTLIST_ID(+)
+				 <if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+				   AND SIPI.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+				 </if>
+				 <if test='p_tag_no != null and !p_tag_no.equalsIgnoreCase("")'>
+				   AND SIPI.TAG_NO = #{p_tag_no, jdbcType=VARCHAR}
+				 </if>
+		<if test='!p_is_excel.equalsIgnoreCase("Y")'>
+			  			) C
+					) A
+		<![CDATA[ 									 
+				 WHERE ROWNUM <= #{p_page_end_no, jdbcType=VARCHAR}) B
+		 WHERE RNUM > #{p_page_start_no, jdbcType=VARCHAR}
+		]]>
+		</if>
+  	</select>   
+  	
+  	<select id="procEmsPartListSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_INV_PARTLIST_BOM_PKG.INSERT_BOM(	P_OPER 				    => #{p_oper, jdbcType=VARCHAR},
+       												P_SYSTEM				=> #{p_system, jdbcType=VARCHAR},
+													P_USER_CODE				=> #{p_user_code, jdbcType=VARCHAR},
+													P_BOM_ID				=> #{p_bom_id, jdbcType=NUMERIC},
+													P_PARTLIST_ID			=> #{p_partlist_id, jdbcType=NUMERIC},
+													P_DRAWING_NO			=> #{p_drawing_no, jdbcType=VARCHAR},
+													P_PRIMARY_ITEM_CODE		=> #{p_primary_item_code, jdbcType=VARCHAR},
+													P_ORGANIZATION_ID		=> #{p_organization_id, jdbcType=VARCHAR},
+													P_BOM_QUANTITY			=> #{p_bom_quantity, jdbcType=NUMERIC},
+													P_BEF_PRIMARY_ITEM_CODE => #{p_bef_primary_item_code, jdbcType=VARCHAR},
+													P_LOCK_FLAG				=> #{p_lock_flag, jdbcType=VARCHAR},
+													P_SOURCE_CODE			=> #{p_source_code, jdbcType=VARCHAR},
+													P_PLM_BLOCK_NO			=> #{p_plm_block_no, jdbcType=VARCHAR},
+													P_PLM_STAGE_NO			=> #{p_plm_stage_no, jdbcType=VARCHAR},
+													P_PLM_STR_FLAG			=> #{p_plm_str_flag, jdbcType=VARCHAR},
+													P_PLM_STR_KEY			=> #{p_plm_str_key, jdbcType=VARCHAR},
+													P_PLM_MOTHER_CODE		=> #{p_plm_mother_code, jdbcType=VARCHAR},
+													P_PLM_ITEM_CODE			=> #{p_plm_item_code, jdbcType=VARCHAR},
+													P_PLM_COMMENT			=> #{p_plm_comment, jdbcType=VARCHAR},
+													p_err_code              => #{p_err_code,jdbcType=VARCHAR,mode=OUT},
+                                         			p_err_msg               => #{p_err_msg,jdbcType=VARCHAR,mode=OUT}
+													)
+		}
+	</select>	
+
+	<select id="emsPartListJobList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT ' ' AS VALUE
+             , ' ' AS TEXT
+          FROM DUAL
+		 WHERE 1 <![CDATA[ < ]]> ( SELECT COUNT(*)
+									 FROM STX_TBC_JOB_CONFIRM 
+									WHERE USE_PROJECT LIKE '%' || #{p_project_no, jdbcType=VARCHAR} || '%'
+									 <if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+									   AND ITEM_ATTR1 = #{p_block_no, jdbcType=VARCHAR}
+									 </if>
+									 <if test='p_str_flag != null and !p_str_flag.equalsIgnoreCase("")'>
+									   AND ITEM_ATTR3 = #{p_str_flag, jdbcType=VARCHAR}
+									 </if>
+									  )
+		 UNION 
+		 SELECT NVL(JOB_CD2, JOB_CD1) AS VALUE
+		      , NVL(JOB_CD2, JOB_CD1) AS TEXT
+		   FROM STX_TBC_JOB_CONFIRM 
+		  WHERE USE_PROJECT LIKE '%' || #{p_project_no, jdbcType=VARCHAR} || '%'
+		    <if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+				AND ITEM_ATTR1 = #{p_block_no, jdbcType=VARCHAR}
+			</if>
+			<if test='p_str_flag != null and !p_str_flag.equalsIgnoreCase("")'>
+				AND ITEM_ATTR3 = #{p_str_flag, jdbcType=VARCHAR}
+			</if>
+    
+	</select>
+
+
+
+
+	<select id="emsPartListSelectOne" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SIPI.PARTLIST_ID
+		     , SIPI.PROJECT_NO
+		     , SIPI.EQUIPMENT_NAME
+			 , SIPI.TAG_NO
+			 , SIPI.QUANTITY AS EA_OBTAIN
+			 , '' AS EQUIP_DESCRIPTION
+		  FROM STX_INV_PARTLIST_ITEM SIPI
+		 WHERE 1=1
+		 <if test='p_partlist_id != null and !p_partlist_id.equalsIgnoreCase("")'>
+		   AND SIPI.PARTLIST_ID = #{p_partlist_id, jdbcType=VARCHAR}
+		 </if>
+	</select>
+	
+	<select id="emsPartListBomDetail" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SIPI.PARTLIST_ID
+		     , SIPI.PROJECT_NO
+		     , SIPI.EQUIPMENT_NAME
+			 , SIPI.TAG_NO
+			 , SIPI.QUANTITY AS EA_OBTAIN
+			 , '' AS EQUIP_DESCRIPTION
+			 , SIPB.BOM_ID
+			 , SIPB.DRAWING_NO
+			 , SIPB.PRIMARY_ITEM_CODE
+			 , SIPB.PRIMARY_ITEM_ID
+			 , SIPB.ORGANIZATION_ID
+			 , SIPB.BOM_QUANTITY AS EA_PLAN
+			 , SIPB.BEF_PRIMARY_ITEM_CODE
+			 , SIPB.BEF_PRIMARY_ITEM_ID
+			 , SIPB.LOCK_FLAG
+			 , SIPB.SOURCE_CODE
+			 , SIPB.PLM_BLOCK_NO
+			 , SIPB.PLM_STAGE_NO
+			 , SIPB.PLM_STR_FLAG
+			 , SIPB.PLM_STR_KEY
+			 , SIPB.PLM_ITEM_CODE
+			 , SIPB.PLM_MOTHER_CODE
+			 , SIPB.PLM_COMMENT
+			 , SIPB.LAST_UPDATE_DATE
+			 , SIPB.LAST_UPDATED_BY_SYSTEM
+			 , SIPB.LAST_UPDATED_BY_CODE
+			 , SIPB.CREATION_DATE
+			 , SIPB.CREATED_BY_SYSTEM
+			 , SIPB.CREATED_BY_CODE
+			 , SIPB.LAST_UPDATE_LOGIN
+		  FROM STX_INV_PARTLIST_ITEM SIPI    
+		     , STX_INV_PARTLIST_BOM SIPB
+		 WHERE SIPI.PARTLIST_ID  = SIPB.PARTLIST_ID
+		 <if test='p_partlist_id != null and !p_partlist_id.equalsIgnoreCase("")'>
+		   AND SIPI.PARTLIST_ID = #{p_partlist_id, jdbcType=VARCHAR}
+		 </if>
+	</select>
+	
+	<select id="emsPartListProjectCopyNextList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		<if test='!p_is_excel.equalsIgnoreCase("Y")'>
+		SELECT B.*
+		  FROM (SELECT A.*
+					  ,ROWNUM RNUM
+				  FROM (
+					  SELECT COUNT(*) OVER() AS CNT
+						  ,C.*
+					  FROM (
+		</if>
+		SELECT * FROM (
+			<foreach collection="p_chk_series" item="item" separator=" UNION ">
+			SELECT #{item} AS PROJECT_NO
+			     , SIPB.PLM_ITEM_CODE
+				 , SIPB.BOM_QUANTITY
+				 , SIPB.DRAWING_NO
+				 , SIPB.PLM_BLOCK_NO
+				 , SIPB.PLM_STAGE_NO
+				 , SIPB.PLM_STR_FLAG
+				 , SIPB.PLM_STR_KEY
+				 , SIPB.PLM_MOTHER_CODE
+				 , SIPB.PRIMARY_ITEM_CODE
+				 , (SELECT A.PARTLIST_ID
+                      FROM STX_INV_PARTLIST_ITEM A 
+                     WHERE A.TAG_NO = SIPI.TAG_NO
+                       AND A.PROJECT_NO = #{item}
+                       AND A.EQUIPMENT_NAME = SIPI.EQUIPMENT_NAME) AS PARTLIST_ID
+			  FROM STX_INV_PARTLIST_ITEM SIPI    
+				 , STX_INV_PARTLIST_BOM SIPB
+			 WHERE SIPI.PARTLIST_ID  = SIPB.PARTLIST_ID
+			   AND SIPI.PARTLIST_ID = #{p_partlist_id, jdbcType=VARCHAR}
+			   AND SIPI.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+			   AND EXISTS (SELECT 1 
+			                 FROM STX_INV_PARTLIST_ITEM A 
+			                WHERE A.TAG_NO = SIPI.TAG_NO
+			                  AND A.PROJECT_NO = #{item}
+			                  AND A.EQUIPMENT_NAME = SIPI.EQUIPMENT_NAME)
+			   
+			</foreach>
+		 ) 
+		 <if test='!p_is_excel.equalsIgnoreCase("Y")'>
+			  			) C
+					) A
+		 <![CDATA[ 									 
+				 WHERE ROWNUM <= #{p_page_end_no, jdbcType=VARCHAR}) B
+		 WHERE RNUM > #{p_page_start_no, jdbcType=VARCHAR}
+		 ]]>
+		</if>
+	</select>
+	
+	<select id="emsPartListId" parameterType="java.util.Map" resultType="String">
+		SELECT PARTLIST_ID 
+		  FROM STX_INV_PARTLIST_ITEM
+		 WHERE PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+		   AND EQUIPMENT_NAME = #{p_equipment_name, jdbcType=VARCHAR}
+		   AND TAG_NO = #{p_tag_no, jdbcType=VARCHAR}
+ 	</select>
+</mapper>

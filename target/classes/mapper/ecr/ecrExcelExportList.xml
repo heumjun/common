@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ecrExcelExportList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT Y.ENG_CHANGE_REQ_CODE AS MAIN_CODE
+				, Y.ENG_CHANGE_REQ_CODE AS MAIN_NAME
+				, Y.ENG_CHANGE_RELATED_PROJECT
+				, Y.ENG_CHANGE_DESCRIPTION || chr(13) || chr(10) || chr(13) || chr(10) || 
+					(SELECT REMARK FROM IF_ERPPLM_ECR IEE WHERE IEE.CD_ECR = Y.ENG_CHANGE_REQ_CODE) ENG_CHANGE_DESCRIPTION
+				, Y.CREATE_BY AS CREATED_BY
+				, SCID.USER_NAME AS CREATED_BY_NAME
+				, Y.LOCKER_BY
+				, STX_DIS_SHORT_EMP_NAME_F( Y.LOCKER_BY ) LOCKER_BY_NAME
+				, '...' POPUP_RELATED_PERSON
+				, Y.ENG_CHANGE_BASED_ON AS ENG_CHANGE_BASED_ON
+				, ( SELECT X.SD_DESC 
+				FROM STX_DIS_SD_CODE X
+				WHERE X.SD_CODE = Y.ENG_CHANGE_BASED_ON 
+				AND X.SD_TYPE = 'ECRBASED') AS COUSE_DESC
+				, Y.USER_CODE
+				, ( SELECT P.EMP_NO
+				FROM STX_DIS_USER P
+				WHERE P.EMP_NO = Y.USER_CODE ) EVALUATOR_EMP_NO
+				,(select x.user_name from STX_COM_INSA_USER@STXERP x where x.emp_no = (select /*+ INDEX_DESC(SDS STX_DIS_STATEREQ_IDX03) */
+			                SDS.EMP_NO
+			           from STX_DIS_STATEREQ SDS
+			          WHERE SDS.MAIN_CODE = Y.ENG_CHANGE_REQ_CODE
+			            AND SDS.REFERRERS = 'N'
+			            AND ROWNUM = 1
+			    )) AS DESIGN_ENGINEER
+			    ,(select /*+ INDEX_DESC(SDS STX_DIS_STATEREQ_IDX03) */
+			                SDS.EMP_NO
+			           from STX_DIS_STATEREQ SDS
+			          WHERE SDS.MAIN_CODE = Y.ENG_CHANGE_REQ_CODE
+			            AND SDS.REFERRERS = 'N'
+			            AND ROWNUM = 1
+			    ) AS DESIGN_ENGINEER_EMP_NO
+			    , NVL(STX_DIS_RP_EMP_NAME_F( Y.ENG_CHANGE_REQ_CODE ),'없음') RELATED_PERSON_EMP_NAME 
+				, STX_DIS_RP_EMP_NO_F( Y.ENG_CHANGE_REQ_CODE ) RELATED_PERSON_EMP_NO
+				, '...' POPUP_DESIGN_ENGINEER
+				, STX_DIS_SD_CODE_DESC_F('ECR_STATES',Y.STATES_CODE) AS STATES_DESC
+				, Y.STATES_CODE
+				FROM STX_DIS_ENG_CHANGE_REQ Y
+				,STX_COM_INSA_USER@STXERP SCID
+				WHERE 1=1
+				AND Y.CREATE_BY              = SCID.EMP_NO(+)
+		<if test='p_main_name != null and !p_main_name.equalsIgnoreCase("")'>
+		                     AND Y.ENG_CHANGE_REQ_CODE LIKE REPLACE(#{p_main_name,jdbcType=VARCHAR}, '*', '%') || '%'
+		</if>
+		<if test='p_created_by != null and !p_created_by.equalsIgnoreCase("")'>
+		                     AND Y.CREATE_BY = #{p_created_by,jdbcType=VARCHAR}
+		</if>
+		<if test='p_user_group != null and !p_user_group.equalsIgnoreCase("")'>
+		                     AND SCID.DEPT_CODE = #{p_user_group,jdbcType=VARCHAR}
+		</if>
+		<!--  작성 날자로 검색  -->
+		<if test='p_created_date_start != null and !p_created_date_start.equalsIgnoreCase("")'>
+		<![CDATA[
+		                     AND Y.CREATE_DATE >= TO_DATE( #{p_created_date_start}, 'YYYY-MM-DD' ) 
+		]]>
+		</if>		
+		<if test='p_created_date_end != null and !p_created_date_end.equalsIgnoreCase("")'>
+		<![CDATA[
+		                     AND Y.CREATE_DATE <= TO_DATE( #{p_created_date_end}, 'YYYY-MM-DD' ) + 1
+		]]>
+		</if>
+		<if test='p_locker_by != null and p_locker_by != ""'> 
+		<![CDATA[
+                         AND Y.LOCKER_BY              = #{p_locker_by}
+                         AND Y.STATES_CODE <> 'PLAN_ECO'
+                         AND Y.STATES_CODE <> 'CANCEL'
+        ]]>
+        </if>
+		 	ORDER BY Y.CREATE_DATE DESC
+		                
+  	</select>
+</mapper>

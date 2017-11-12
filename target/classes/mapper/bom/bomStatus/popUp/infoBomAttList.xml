@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoBomAttList">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.ATTRIBUTE_CODE AS ATTRIBUTE_CODE  
+		      ,A.ATTRIBUTE_DESC AS ATTRIBUTE_DESC   
+		      ,A.ATTRIBUTE_NAME AS ATTRIBUTE_NAME
+		      ,A.ATTRIBUTE_TYPE AS ATTRIBUTE_TYPE
+		      ,A.ATTR_REQ_FLG   AS ATTR_REQ_FLG
+		      ,A.ATTR_DATA_TYPE AS ATTR_DATA_TYPE
+		      ,A.ATTR_DATA_MIN  AS ATTR_DATA_MIN
+		      ,A.ATTR_DATA_MAX  AS ATTR_DATA_MAX
+		      ,(SELECT SDSC.SD_DESC  AS SD_DESC
+		          FROM STX_DIS_SD_CODE SDSC
+		         WHERE SDSC.ENABLE_FLAG = 'Y'
+		           AND SDSC.SD_CODE     = A.ATTR_DATA_TYPE
+		           AND SDSC.SD_TYPE     = 'CATALOG_DATA_TYPE'
+		       )                AS ATTR_DATA_TYPE_DESC
+		      ,DECODE(A.ATTRIBUTE_CODE,'QTY',TO_CHAR(BOM.QTY)
+		                              , '01',BOM.BOM1
+		                              , '02',BOM.BOM2
+		                              , '03',BOM.BOM3
+		                              , '04',BOM.BOM4
+		                              , '05',BOM.BOM5
+		                              , '06',BOM.BOM6
+		                              , '07',BOM.BOM7
+		                              , '08',BOM.BOM8
+		                              , '09',BOM.BOM9
+		                              , '10',BOM.BOM10
+		                              , '11',BOM.BOM11
+		                              , '12',BOM.BOM12
+		                              , '13',BOM.BOM13
+		                              , '14',BOM.BOM14
+		                              , '15',BOM.BOM15
+		        )               AS ATTRIBUTE_VALUE 
+		 FROM (SELECT 'QTY'                     AS ATTRIBUTE_CODE
+		             ,''                        AS ATTRIBUTE_DESC   
+		             ,'QTY'                     AS ATTRIBUTE_NAME
+		             ,'BOM'                     AS ATTRIBUTE_TYPE
+		             ,'Y'                       AS ATTR_REQ_FLG
+		             ,''                        AS ATTR_DATA_TYPE
+		             ,NULL                      AS ATTR_DATA_MIN
+		             ,NULL                      AS ATTR_DATA_MAX 
+		         FROM DUAL
+		       UNION ALL 
+		       SELECT A.ATTRIBUTE_CODE              AS ATTRIBUTE_CODE  
+		             ,B.SD_DESC                     AS ATTRIBUTE_DESC   
+		             ,A.ATTRIBUTE_NAME              AS ATTRIBUTE_NAME
+		             ,A.ATTRIBUTE_TYPE              AS ATTRIBUTE_TYPE
+		             ,A.ATTRIBUTE_REQUIRED_FLAG     AS ATTR_REQ_FLG
+		             ,A.ATTRIBUTE_DATA_TYPE         AS ATTR_DATA_TYPE
+		             ,TO_CHAR(A.ATTRIBUTE_DATA_MIN) AS ATTR_DATA_MIN
+		             ,TO_CHAR(A.ATTRIBUTE_DATA_MAX) AS ATTR_DATA_MAX
+		        FROM STX_DIS_SD_CATALOG_ATTRIBUTE  A
+		            ,STX_DIS_SD_CODE               B
+		       WHERE A.ATTRIBUTE_TYPE          = 'BOM'
+		         AND B.SD_CODE                 = A.ATTRIBUTE_CODE
+		         AND B.SD_TYPE                 = 'CATALOG_ATTRIBUTE_CODE'
+		         AND B.ATTRIBUTE1              = 'ITEM'
+		         AND B.ATTRIBUTE2              = 'BOM'
+		         AND B.ENABLE_FLAG             = 'Y'
+		         AND A.CATALOG_CODE            = #{catalog_code}
+		         AND A.ATTRIBUTE_REQUIRED_FLAG = 'Y'
+		         AND A.ENABLE_FLAG             = 'Y' 
+		      UNION ALL
+		      SELECT SD_CODE              AS ATTRIBUTE_CODE  
+		            ,SD_DESC              AS ATTRIBUTE_DESC   
+		            ,'기본속성'||SD_CODE  AS ATTRIBUTE_NAME
+		            ,'BOM'                AS ATTRIBUTE_TYPE
+		            ,''                   AS ATTR_REQ_FLG
+		            ,''                   AS ATTR_DATA_TYPE
+		            ,''                   AS ATTR_DATA_MIN
+		            ,''                   AS ATTR_DATA_MAX
+		       FROM STX_DIS_SD_CODE B
+		      WHERE ENABLE_FLAG = 'Y'
+		        AND SD_TYPE = 'CATALOG_ATTRIBUTE_CODE'
+		        AND SD_CODE IN ('01','02','03','04','05','06','07','08','09','10','11')
+		        AND NOT EXISTS ( SELECT 1
+		                           FROM STX_DIS_SD_CATALOG_ATTRIBUTE  A
+		                          WHERE A.ATTRIBUTE_TYPE          = 'BOM'
+		                            AND B.SD_CODE                 = A.ATTRIBUTE_CODE
+		                            AND B.ATTRIBUTE1              = 'ITEM'
+		                            AND B.ATTRIBUTE2              = 'BOM'
+		                            AND B.ENABLE_FLAG             = 'Y'
+		                            AND A.CATALOG_CODE            = #{catalog_code}
+		                            AND A.ATTRIBUTE_REQUIRED_FLAG = 'Y'
+		                       )
+		     ) A
+		    ,(SELECT BOM_LIST.* , 'BOM' AS ATTRIBUTE_TYPE 
+		        FROM (SELECT SDB.PROJECT_NO    AS PROJECT_NO
+		                    ,SDB.MOTHER_CODE   AS MOTHER_CODE
+		                    ,SDB.ITEM_CODE     AS ITEM_CODE
+		                    ,SDB.ITEM_CATALOG  AS ITEM_CATALOG 
+		                    ,SDB.BOM1          AS BOM1  
+		                    ,SDB.BOM2          AS BOM2  
+		                    ,SDB.BOM3          AS BOM3  
+		                    ,SDB.BOM4          AS BOM4  
+		                    ,SDB.BOM5          AS BOM5  
+		                    ,SDB.BOM6          AS BOM6  
+		                    ,SDB.BOM7          AS BOM7  
+		                    ,SDB.BOM8          AS BOM8  
+		                    ,SDB.BOM9          AS BOM9  
+		                    ,SDB.BOM10         AS BOM10 
+		                    ,SDB.BOM11         AS BOM11 
+		                    ,SDB.BOM12         AS BOM12 
+		                    ,SDB.BOM13         AS BOM13 
+		                    ,SDB.BOM14         AS BOM14 
+		                    ,SDB.BOM15         AS BOM15 
+		                    ,SDB.QTY           AS QTY
+		               FROM STX_DIS_USC_BOM          SDB
+		                   ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		              WHERE SDB.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+		                AND NOT EXISTS
+		                   (SELECT 1
+		                      FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+		                     WHERE SDB.PROJECT_NO  = SDBW_SUB.PROJECT_NO
+		                       AND SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+		                       AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+		                    ) 
+		              UNION ALL
+		              SELECT SDBW.PROJECT_NO    AS PROJECT_NO
+		                    ,SDBW.MOTHER_CODE   AS MOTHER_CODE
+		                    ,SDBW.ITEM_CODE     AS ITEM_CODE
+		                    ,SDBW.ITEM_CATALOG  AS ITEM_CATALOG 
+		                    ,SDBW.BOM1          AS BOM1  
+		                    ,SDBW.BOM2          AS BOM2  
+		                    ,SDBW.BOM3          AS BOM3  
+		                    ,SDBW.BOM4          AS BOM4  
+		                    ,SDBW.BOM5          AS BOM5  
+		                    ,SDBW.BOM6          AS BOM6  
+		                    ,SDBW.BOM7          AS BOM7  
+		                    ,SDBW.BOM8          AS BOM8  
+		                    ,SDBW.BOM9          AS BOM9  
+		                    ,SDBW.BOM10         AS BOM10 
+		                    ,SDBW.BOM11         AS BOM11 
+		                    ,SDBW.BOM12         AS BOM12 
+		                    ,SDBW.BOM13         AS BOM13 
+		                    ,SDBW.BOM14         AS BOM14 
+		                    ,SDBW.BOM15         AS BOM15
+		                    ,SDBW.QTY           AS QTY
+		                FROM STX_DIS_USC_BOM_WORK    SDBW
+		                    ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		              WHERE SDBW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+		              UNION ALL
+		              SELECT SDP.PROJECT_NO    AS PROJECT_NO
+		                    ,SDP.JOB_CD        AS MOTHER_CODE
+		                    ,SDP.MOTHER_CODE   AS ITEM_CODE
+		                    ,SDP.ITEM_CATALOG  AS ITEM_CATALOG 
+		                    ,SDP.BLOCK_NO      AS BOM1  
+		                    ,SDP.STR_FLAG      AS BOM2  
+		                    ,SDP.STAGE_NO      AS BOM3  
+		                    ,NULL              AS BOM4  
+		                    ,NULL              AS BOM5  
+		                    ,NULL              AS BOM6  
+		                    ,NULL              AS BOM7  
+		                    ,NULL              AS BOM8  
+		                    ,NULL              AS BOM9  
+		                    ,NULL              AS BOM10 
+		                    ,NULL              AS BOM11 
+		                    ,NULL              AS BOM12 
+		                    ,NULL              AS BOM13 
+		                    ,NULL              AS BOM14 
+		                    ,NULL              AS BOM15
+		                    ,NULL              AS QTY
+		               FROM STX_DIS_PENDING          SDP
+		                   ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		              WHERE SDP.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE
+		                AND NOT EXISTS
+		                    (SELECT 1
+		                       FROM STX_DIS_PENDING_WORK SDPW
+		                      WHERE SDP.PROJECT_NO = SDPW.PROJECT_NO 
+		                        AND SDP.JOB_CD     = SDPW.JOB_CD
+		                        AND SDP.MOTHER_CODE= SDPW.MOTHER_CODE
+		                     )
+		              UNION ALL
+		              SELECT SDP.PROJECT_NO    AS PROJECT_NO
+		                    ,SDP.JOB_CD        AS MOTHER_CODE
+		                    ,SDP.MOTHER_CODE   AS ITEM_CODE
+		                    ,SDP.ITEM_CATALOG  AS ITEM_CATALOG 
+		                    ,SDP.BLOCK_NO      AS BOM1  
+		                    ,SDP.STR_FLAG      AS BOM2  
+		                    ,SDP.STAGE_NO      AS BOM3  
+		                    ,NULL              AS BOM4  
+		                    ,NULL              AS BOM5  
+		                    ,NULL              AS BOM6  
+		                    ,NULL              AS BOM7  
+		                    ,NULL              AS BOM8  
+		                    ,NULL              AS BOM9  
+		                    ,NULL              AS BOM10 
+		                    ,NULL              AS BOM11 
+		                    ,NULL              AS BOM12 
+		                    ,NULL              AS BOM13 
+		                    ,NULL              AS BOM14 
+		                    ,NULL              AS BOM15
+		                    ,NULL              AS QTY
+		               FROM STX_DIS_PENDING_WORK  SDP
+		                   ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		              WHERE SDP.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+		              UNION ALL
+		              SELECT SDSH.PROJECT_NO    AS PROJECT_NO
+		                    ,SDSH.MOTHER_CODE
+		                    ,SDSH.ITEM_CODE
+		                    ,SDSH.ITEM_CATALOG AS ITEM_CATALOG
+		                    ,SDSH.BOM1
+		                    ,SDSH.BOM2
+		                    ,SDSH.BOM3
+		                    ,SDSH.BOM4
+		                    ,SDSH.BOM5
+		                    ,SDSH.BOM6
+		                    ,SDSH.BOM7
+		                    ,SDSH.BOM8
+		                    ,SDSH.BOM9
+		                    ,SDSH.BOM10
+		                    ,SDSH.BOM11
+		                    ,SDSH.BOM12
+		                    ,SDSH.BOM13
+		                    ,SDSH.BOM14
+		                    ,SDSH.BOM15
+		                    ,SDSH.BOM_QTY           AS QTY
+		                FROM STX_DIS_SSC_HEAD    SDSH 
+		                    ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		              WHERE 1=1
+		                AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE 
+		                AND NOT EXISTS
+		                    (SELECT 1
+		                       FROM STX_DIS_SSC_HEAD_WORK SDSHW
+		                      WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+		                     )
+		              UNION ALL
+		              SELECT SDSH.PROJECT_NO    AS PROJECT_NO
+		                    ,SDSH.MOTHER_CODE
+		                    ,SDSH.ITEM_CODE
+		                    ,SDSH.ITEM_CATALOG AS ITEM_CATALOG
+		                    ,SDSH.BOM1
+		                    ,SDSH.BOM2
+		                    ,SDSH.BOM3
+		                    ,SDSH.BOM4
+		                    ,SDSH.BOM5
+		                    ,SDSH.BOM6
+		                    ,SDSH.BOM7
+		                    ,SDSH.BOM8
+		                    ,SDSH.BOM9
+		                    ,SDSH.BOM10
+		                    ,SDSH.BOM11
+		                    ,SDSH.BOM12
+		                    ,SDSH.BOM13
+		                    ,SDSH.BOM14
+		                    ,SDSH.BOM15
+		                    ,SDSH.BOM_QTY           AS QTY
+		                FROM STX_DIS_SSC_HEAD_WORK    SDSH 
+		                    ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		              WHERE 1=1
+		                AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+		              UNION ALL
+		              SELECT SDSH.PROJECT_NO    AS PROJECT_NO
+		                    ,SDSH.MOTHER_CODE
+		                    ,SDSH.ITEM_CODE
+		                    ,SDSH.ITEM_CATALOG AS ITEM_CATALOG
+		                    ,SDSH.BOM1
+		                    ,SDSH.BOM2
+		                    ,SDSH.BOM3
+		                    ,SDSH.BOM4
+		                    ,SDSH.BOM5
+		                    ,SDSH.BOM6
+		                    ,SDSH.BOM7
+		                    ,SDSH.BOM8
+		                    ,SDSH.BOM9
+		                    ,SDSH.BOM10
+		                    ,SDSH.BOM11
+		                    ,SDSH.BOM12
+		                    ,SDSH.BOM13
+		                    ,SDSH.BOM14
+		                    ,SDSH.BOM15
+		                    ,SDSH.BOM_QTY           AS QTY
+		                FROM STX_DIS_RAWLEVEL    SDSH 
+		                    ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		              WHERE 1=1
+		                AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE 
+		                AND NOT EXISTS
+		                    (SELECT 1
+		                       FROM STX_DIS_RAWLEVEL_WORK SDSHW
+		                      WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+		                     )
+		              UNION ALL
+		              SELECT SDSH.PROJECT_NO    AS PROJECT_NO
+		                    ,SDSH.MOTHER_CODE
+		                    ,SDSH.ITEM_CODE
+		                    ,SDSH.ITEM_CATALOG AS ITEM_CATALOG
+		                    ,SDSH.BOM1
+		                    ,SDSH.BOM2
+		                    ,SDSH.BOM3
+		                    ,SDSH.BOM4
+		                    ,SDSH.BOM5
+		                    ,SDSH.BOM6
+		                    ,SDSH.BOM7
+		                    ,SDSH.BOM8
+		                    ,SDSH.BOM9
+		                    ,SDSH.BOM10
+		                    ,SDSH.BOM11
+		                    ,SDSH.BOM12
+		                    ,SDSH.BOM13
+		                    ,SDSH.BOM14
+		                    ,SDSH.BOM15
+		                    ,SDSH.BOM_QTY           AS QTY
+		                FROM STX_DIS_RAWLEVEL_WORK    SDSH 
+		                    ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		              WHERE 1=1
+		                AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)   
+		             ) BOM_LIST 
+		        ) BOM 
+		  WHERE BOM.ATTRIBUTE_TYPE(+) = A.ATTRIBUTE_TYPE
+		    AND BOM.PROJECT_NO(+)     = #{project_no}
+		    AND BOM.ITEM_CODE(+)      = #{item_code}
+		    AND BOM.MOTHER_CODE(+)    = #{mother_code}
+		  ORDER BY A.ATTRIBUTE_CODE 
+	
+           
+	</select>
+
+</mapper>

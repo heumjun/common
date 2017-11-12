@@ -1,0 +1,1065 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscAdd">
+	
+	<resultMap id="sscAddValidationListMap" type="org.apache.commons.collections.map.CaseInsensitiveMap"></resultMap>
+	
+	<select id="procActionSscAddValidationSU"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.SU_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="procActionSscAddValidationPA"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.PA_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="procActionSscAddValidationPI"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.PI_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="procActionSscAddValidationOU"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.OU_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="procActionSscAddValidationSE"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.SE_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="procActionSscAddValidationTR"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.TR_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+		
+	<select id="procActionSscAddValidationGE"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.GE_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="procActionSscAddValidationEQ"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.EQ_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="procActionSscAddValidationCA"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.CA_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="procActionSscAddValidationVA"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ CALL STX_DIS_SSC_PKG.VA_SSC_ADD_VALIDATION(
+					p_user_id 	=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+					,p_work_key => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+					,p_err_code => #{p_err_code,	jdbcType=VARCHAR,	mode=OUT}
+					,p_err_msg 	=> #{p_err_msg,		jdbcType=VARCHAR,	mode=OUT}
+	)}
+	</select>
+	
+	<select id="sscAddBackList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT
+			   USER_ID
+			 , WORK_KEY
+			 , ITEM_TYPE_CD
+			 , STATE_FLAG
+			 , MASTER_SHIP
+			 , PROJECT_NO
+			 , DWG_NO
+			 , DEPT_CODE
+			 , BLOCK_NO
+			 , STAGE_NO
+			 , STR_FLAG
+			 , USC_JOB_TYPE
+			 , JOB_CD
+			 , ITEM_GROUP
+			 , IS_STANDARD
+			 , CASE WHEN ITEM_TYPE_CD = 'VA' 
+				   THEN REPLACE(REPLACE(ITEM_CODE, KEY_NO, ''),'[TEMP]', '')
+			       ELSE ITEM_CODE
+			   END AS ITEM_CODE
+			 , ITEM_CATEGORY_NAME
+			 , ITEM_CATEGORY_DESC
+			 , CASE WHEN ITEM_CODE IS NULL THEN ITEM_CATEGORY_CODE
+			        ELSE NULL END AS ITEM_CATEGORY_CODE     
+			 , ITEM_DESC
+			 , BOM_QTY
+			 , CASE WHEN ITEM_CODE IS NULL THEN ITEM_WEIGHT
+			        ELSE NULL END AS ITEM_WEIGHT     
+			 , REV_NO
+			 , CAD_SUB_ID
+			 , SERIES_SIZE
+			 , CASE WHEN ITEM_TYPE_CD = 'VA' OR ITEM_TYPE_CD = 'SE' OR ITEM_TYPE_CD = 'TR' THEN KEY_NO
+			        WHEN ITEM_CODE IS NULL THEN KEY_NO
+			        ELSE NULL END AS KEY_NO
+			 , CASE WHEN ITEM_CODE IS NULL THEN DETAIL
+			        ELSE NULL END AS BOM_ITEM_DETAIL
+			 , CASE WHEN ITEM_CODE IS NULL THEN PAINT_CODE1
+			        ELSE NULL END AS PAINT_CODE1
+			 , PAINT_CODE2
+			 , CASE WHEN ITEM_CODE IS NULL THEN ATTR01
+			        ELSE NULL END AS ATTR01
+			 , CASE WHEN ITEM_CODE IS NULL THEN ATTR02
+                    ELSE NULL END AS ATTR02
+			 , CASE WHEN ITEM_CODE IS NULL THEN ATTR03
+                    ELSE NULL END AS ATTR03 
+			 , CASE WHEN ITEM_CODE IS NULL THEN ATTR04
+                    ELSE NULL END AS ATTR04
+			 , CASE WHEN ITEM_CODE IS NULL THEN ATTR05
+                    ELSE NULL END AS ATTR05
+             , CASE WHEN ITEM_CODE IS NULL THEN ATTR06
+                    ELSE NULL END AS ATTR06
+             , CASE WHEN ITEM_CODE IS NULL THEN ATTR07
+                    ELSE NULL END AS ATTR07
+             , CASE WHEN ITEM_CODE IS NULL THEN ATTR08
+                    ELSE NULL END AS ATTR08
+             , CASE WHEN ITEM_CODE IS NULL THEN ATTR09
+                    ELSE NULL END AS ATTR09        
+             , CASE WHEN ITEM_CODE IS NULL THEN ATTR10
+                    ELSE NULL END AS ATTR10
+			 , ATTR11
+			 , ATTR12
+             , CASE WHEN ITEM_CODE IS NULL THEN ATTR13
+                    ELSE NULL END AS ATTR13
+			 , ATTR14
+			 , ATTR15            
+			 , TEMP01
+			 , CASE WHEN ITEM_CODE IS NULL THEN TEMP02
+                    ELSE NULL END AS TEMP02
+			 , TEMP03
+			 , TEMP04
+			 , TEMP05
+			 , TEMP06
+			 , TEMP07
+			 , TEMP08
+			 , TEMP09
+			 , TEMP10
+			 , 'I' AS OPER
+			 , BUY_MOTHER_ITEM_CODE
+			 , BUY_MOTHER_KEY_NO
+		  FROM STX_DIS_WORK 
+		 WHERE USER_ID =  #{p_user_id, jdbcType=VARCHAR}
+		   AND WORK_KEY =  #{p_work_key, jdbcType=VARCHAR}
+		<if test='!p_item_type_cd.equalsIgnoreCase("EQ")'>
+		   AND MASTER_SHIP = PROJECT_NO						
+		</if>
+		 ORDER BY ITEM_GROUP, BLOCK_NO, STAGE_NO, STR_FLAG, KEY_NO 
+	</select>
+	
+	<select id="sscAddItemCreateList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT *
+		    FROM (
+		          SELECT DISTINCT
+		                 ITEM_GROUP
+		                ,SDW.ITEM_CATEGORY_CODE AS CATALOG_CODE
+		                ,ITEM_WEIGHT AS WEIGHT
+		                ,ATTR01 AS ATTR01_DESC
+		                ,ATTR02 AS ATTR02_DESC
+		                ,ATTR03 AS ATTR03_DESC
+		                ,ATTR04 AS ATTR04_DESC
+		                ,ATTR05 AS ATTR05_DESC
+		                ,ATTR06 AS ATTR06_DESC
+		                ,ATTR07 AS ATTR07_DESC
+		                ,ATTR08 AS ATTR08_DESC
+		                ,ATTR09 AS ATTR09_DESC
+		                ,ATTR10 AS ATTR10_DESC
+		                ,ATTR11 AS ATTR11_DESC
+		                ,ATTR12 AS ATTR12_DESC
+		                ,ATTR13 AS ATTR13_DESC
+		                ,ATTR14 AS ATTR14_DESC
+		                ,ATTR15 AS ATTR15_DESC
+		                ,KEY_NO
+		                ,PAINT_CODE1
+		                ,PAINT_CODE2
+		                ,ITEM_CODE
+		                ,''                    AS OLD_ITEM_CODE
+		                ,(SELECT B.SHIP_TYPE 
+		                    FROM STX_DIS_PROJECT      A 
+		                        ,STX_DIS_MODEL        B 
+		                   WHERE A.MODEL_NO = B.MODEL_NO
+		                     AND A.PROJECT_NO = SDW.PROJECT_NO) AS SHIP_TYPE
+		                --,SDW.PROJECT_NO
+		                ,SDW.BLOCK_NO
+		                ,SDW.STR_FLAG
+		                ,SDW.DWG_NO
+		                ,SDW.STAGE_NO
+		                ,SDW.JOB_CD
+		                ,'N' AS PAINT_FLAG
+		                ,'N' AS BUY_BUY_FLAG
+		            FROM STX_DIS_WORK SDW
+		           WHERE WORK_KEY = #{p_work_key, jdbcType=VARCHAR}
+		             AND USER_ID  = #{loginId, jdbcType=VARCHAR}
+		           --AND ITEM_CREATE_FLAG =  'Y' 
+		             AND NOT EXISTS 
+		                 (SELECT 1 
+		                    FROM STX_DIS_ITEM SDI 
+		                   WHERE SDI.ITEM_CODE = SDW.ITEM_CODE
+		                 )
+		             AND NVL(SDW.ITEM_CODE,'#') NOT LIKE '@@%'    --BUY BUY는 제외
+		             AND NOT (     SDW.ITEM_TYPE_CD            IN ('SE','TR') 
+		                       AND SUBSTR(SDW.ITEM_CATEGORY_CODE, 1, 1) IN ('1','2','3','4','5','6','7','8','9') 
+		                     )
+		         UNION ALL
+		         --BUY BUY 대상만 처리
+		         SELECT DISTINCT
+		                 ITEM_GROUP
+		                ,SDW.ITEM_CATEGORY_CODE AS CATALOG_CODE
+		                ,ITEM_WEIGHT AS WEIGHT
+		                ,ATTR01 AS ATTR01_DESC
+		                ,ATTR02 AS ATTR02_DESC
+		                ,ATTR03 AS ATTR03_DESC
+		                ,ATTR04 AS ATTR04_DESC
+		                ,ATTR05 AS ATTR05_DESC
+		                ,ATTR06 AS ATTR06_DESC
+		                ,ATTR07 AS ATTR07_DESC
+		                ,ATTR08 AS ATTR08_DESC
+		                ,ATTR09 AS ATTR09_DESC
+		                ,ATTR10 AS ATTR10_DESC
+		                ,ATTR11 AS ATTR11_DESC
+		                ,ATTR12 AS ATTR12_DESC
+		                ,ATTR13 AS ATTR13_DESC
+		                ,ATTR14 AS ATTR14_DESC
+		                ,ATTR15 AS ATTR15_DESC
+		                ,KEY_NO
+		                ,PAINT_CODE1
+		                ,PAINT_CODE2
+		                ,''             AS ITEM_CODE
+		                ,SDW.ITEM_CODE  AS OLD_ITEM_CODE
+		                ,(SELECT B.SHIP_TYPE 
+		                    FROM STX_DIS_PROJECT      A 
+		                        ,STX_DIS_MODEL        B 
+		                   WHERE A.MODEL_NO = B.MODEL_NO
+		                     AND A.PROJECT_NO = SDW.PROJECT_NO) AS SHIP_TYPE
+		                --,SDW.PROJECT_NO
+		                ,SDW.BLOCK_NO
+		                ,SDW.STR_FLAG
+		                ,SDW.DWG_NO
+		                ,SDW.STAGE_NO
+		                ,SDW.JOB_CD
+		                ,'N' AS PAINT_FLAG
+		                ,'Y' AS BUY_BUY_FLAG
+		            FROM STX_DIS_WORK SDW
+		           WHERE WORK_KEY = #{p_work_key, jdbcType=VARCHAR}
+		             AND USER_ID  = #{loginId, jdbcType=VARCHAR}
+		           --AND ITEM_CREATE_FLAG =  'Y' 
+		             AND NOT EXISTS 
+		                 (SELECT 1 
+		                    FROM STX_DIS_ITEM SDI 
+		                   WHERE SDI.ITEM_CODE = SDW.ITEM_CODE
+		                 )
+		             AND SDW.ITEM_CODE LIKE '@@%'
+		             AND NOT (     SDW.ITEM_TYPE_CD            IN ('SE','TR') 
+		                       AND SUBSTR(SDW.ITEM_CATEGORY_CODE, 1, 1) IN ('1','2','3','4','5','6','7','8','9') 
+		                     )
+		        UNION ALL
+		        SELECT DISTINCT
+		               SDW.ITEM_GROUP
+		              ,SDI.ITEM_CATALOG AS CATALOG_CODE
+		              ,SDI.ITEM_WEIGHT AS WEIGHT
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '01' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR1 END AS ATTR01_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '02' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR2 END AS ATTR02_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '03' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR3 END AS ATTR03_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '04' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR4 END AS ATTR04_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '05' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR5 END AS ATTR05_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '06' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR6 END AS ATTR06_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '07' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR7 END AS ATTR07_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '08' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR8 END AS ATTR08_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '09' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR9 END AS ATTR09_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '10' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR10 END AS ATTR10_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '11' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR11 END AS ATTR11_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '12' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR12 END AS ATTR12_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '13' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR13 END AS ATTR13_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '14' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR14 END AS ATTR14_DESC
+		              ,CASE WHEN A.ATTRIBUTE_CODE = '15' THEN SDW.PAINT_CODE1
+		                    ELSE SDI.ATTR15 END AS ATTR15_DESC
+		              ,SDI.ATTR1 AS KEY_NO
+		              ,SDW.PAINT_CODE1
+		              ,SDW.PAINT_CODE2
+		              ,SDW.ITEM_CODE
+		              ,''                 AS OLD_ITEM_CODE
+		              ,(SELECT B.SHIP_TYPE 
+		                  FROM STX_DIS_PROJECT      A 
+		                      ,STX_DIS_MODEL        B 
+		                 WHERE A.MODEL_NO = B.MODEL_NO
+		                   AND A.PROJECT_NO = SDW.PROJECT_NO) AS SHIP_TYPE
+		              --,SDW.PROJECT_NO
+		              ,SDW.BLOCK_NO
+		              ,SDW.STR_FLAG
+		              ,SDW.DWG_NO
+		              ,SDW.STAGE_NO
+		              ,SDW.JOB_CD
+		              ,'Y' AS PAINT_FLAG
+		              ,'N' AS BUY_BUY_FLAG
+		          FROM STX_DIS_WORK SDW
+		              ,STX_DIS_ITEM SDI
+		              ,STX_DIS_SD_CATALOG_ATTRIBUTE A
+		         WHERE SDW.WORK_KEY      = #{p_work_key, jdbcType=VARCHAR}
+		           AND SDW.USER_ID       = #{loginId, jdbcType=VARCHAR}
+		           AND SDI.ITEM_CODE     = SUBSTR(SDW.ITEM_CODE, 1, LENGTH(SDW.ITEM_CODE)-2)
+		           AND SDW.ITEM_TYPE_CD  IN ('SE','TR') 
+		           AND SUBSTR(SDW.ITEM_CODE, 1, 1) IN ('1','2','3','4','5','6','7','8','9')
+		           AND A.CATALOG_CODE    = SDI.ITEM_CATALOG
+		           AND A.ATTRIBUTE_TYPE  = 'ITEM'
+		           AND A.ATTRIBUTE_NAME  = 'OUT_SIDE COATING'
+		           AND NOT EXISTS 
+		               (SELECT 1 
+		                  FROM STX_DIS_ITEM SDI 
+		                 WHERE SDI.ITEM_CODE = SDW.ITEM_CODE
+		               )
+		  UNION ALL
+		  SELECT DISTINCT
+		         SDW.ITEM_GROUP
+		        ,SDI.ITEM_CATALOG AS CATALOG_CODE
+		        ,SDI.ITEM_WEIGHT AS WEIGHT
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '01' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR1 END AS ATTR01_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '02' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR2 END AS ATTR02_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '03' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR3 END AS ATTR03_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '04' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR4 END AS ATTR04_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '05' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR5 END AS ATTR05_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '06' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR6 END AS ATTR06_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '07' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR7 END AS ATTR07_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '08' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR8 END AS ATTR08_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '09' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR9 END AS ATTR09_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '10' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR10 END AS ATTR10_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '11' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR11 END AS ATTR11_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '12' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR12 END AS ATTR12_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '13' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR13 END AS ATTR13_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '14' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR14 END AS ATTR14_DESC
+		        ,CASE WHEN A.ATTRIBUTE_CODE = '15' THEN SDW.PAINT_CODE1
+		              ELSE SDI.ATTR15 END AS ATTR15_DESC
+		        ,SDI.ATTR1 AS KEY_NO
+		        ,SDW.PAINT_CODE1
+		        ,SDW.PAINT_CODE2
+		        ,SDW.ITEM_CODE
+		        ,''     AS OLD_ITEM_CODE
+		        ,(SELECT B.SHIP_TYPE 
+		            FROM STX_DIS_PROJECT      A 
+		                ,STX_DIS_MODEL        B 
+		           WHERE A.MODEL_NO = B.MODEL_NO
+		             AND A.PROJECT_NO = SDW.PROJECT_NO) AS SHIP_TYPE
+		        --,SDW.PROJECT_NO
+		        ,SDW.BLOCK_NO
+		        ,SDW.STR_FLAG
+		        ,SDW.DWG_NO
+		        ,SDW.STAGE_NO
+		        ,SDW.JOB_CD
+		        ,'Y' AS PAINT_FLAG
+		        ,'N' AS BUY_BUY_FLAG
+		    FROM ( SELECT SDW.PROJECT_NO
+		                 ,SDW.BLOCK_NO
+		                 ,SDW.STR_FLAG
+		                 ,SDW.DWG_NO
+		                 ,SDW.STAGE_NO
+		                 ,SDW.JOB_CD
+		                 ,SDW.ITEM_GROUP
+		                 ,SDW.PAINT_CODE1
+		                 ,SDW.PAINT_CODE2
+		                 ,SDW.ITEM_CODE
+		                 ,(SELECT SDI.ROWID   
+		                     FROM STX_DIS_ITEM SDI
+		                    WHERE SDI.ITEM_CODE    LIKE SUBSTR(SDW.ITEM_CODE, 1, LENGTH(SDW.ITEM_CODE)-2) || '%'
+		                      AND ROWNUM = 1
+		                   )  AS SDI_ROWID
+		             FROM STX_DIS_WORK SDW 
+		            WHERE SDW.WORK_KEY                = #{p_work_key, jdbcType=VARCHAR}
+		              AND SDW.USER_ID                 = #{loginId, jdbcType=VARCHAR}
+		              AND SDW.ITEM_TYPE_CD            IN ('SE','TR') 
+		              AND SUBSTR(SDW.ITEM_CODE, 1, 1) IN ('1','2','3','4','5','6','7','8','9') 
+		              AND NOT EXISTS 
+		                  (SELECT 1
+		                     FROM STX_DIS_ITEM A
+		                    WHERE A.ITEM_CODE = SUBSTR(SDW.ITEM_CODE, 1, LENGTH(SDW.ITEM_CODE)-2)    
+		                  )
+		              AND NOT EXISTS 
+		                  (SELECT 1
+		                     FROM STX_DIS_ITEM A
+		                    WHERE A.ITEM_CODE = SDW.ITEM_CODE   
+		                  )
+		          )                            SDW
+		         ,STX_DIS_ITEM                 SDI
+		         ,STX_DIS_SD_CATALOG_ATTRIBUTE A
+		    WHERE SDI.ROWID         = SDW.SDI_ROWID
+		      AND A.CATALOG_CODE    = SDI.ITEM_CATALOG
+		      AND A.ATTRIBUTE_TYPE  = 'ITEM'
+		      AND A.ATTRIBUTE_NAME  = 'OUT_SIDE COATING'
+		  )
+		  ORDER BY /*PROJECT_NO || */BLOCK_NO  || STR_FLAG || DWG_NO || STAGE_NO  || JOB_CD || ITEM_CODE || ITEM_GROUP
+    </select>	
+	
+	<update id="updateSscAddWorkItemCode" parameterType="java.util.Map">	
+		UPDATE STX_DIS_WORK 
+		   SET ITEM_CODE = #{p_item_code, jdbcType=VARCHAR}
+		 WHERE USER_ID = #{p_loginid, jdbcType=VARCHAR}
+		   AND WORK_KEY = #{p_work_key, jdbcType=VARCHAR}
+		   AND ITEM_GROUP = #{p_item_group, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateSscBuyBuyAddWorkItemCode" parameterType="java.util.Map">	
+		UPDATE STX_DIS_WORK 
+		   SET ITEM_CODE = #{p_item_code, jdbcType=VARCHAR}
+		 WHERE USER_ID    = #{p_loginid, jdbcType=VARCHAR}
+		   AND WORK_KEY   = #{p_work_key, jdbcType=VARCHAR}
+		   AND ITEM_GROUP = #{p_item_group, jdbcType=VARCHAR}
+		   AND ITEM_CODE  = #{p_old_item_code, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateSscMotherBuyAddWorkItemCode" parameterType="java.util.Map">	
+		UPDATE STX_DIS_WORK 
+		   SET BUY_MOTHER_ITEM_CODE = #{p_item_code, jdbcType=VARCHAR}
+		 WHERE USER_ID              = #{p_loginid, jdbcType=VARCHAR}
+		   AND WORK_KEY             = #{p_work_key, jdbcType=VARCHAR}
+		   AND BUY_MOTHER_ITEM_CODE = #{p_old_item_code, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="updateSscWorkItemCodeValidation"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		   {CALL STX_DIS_SSC_PKG.SSC_UPDATE_PROC(
+		   							p_user_id 		=> #{p_loginid, 	jdbcType=VARCHAR, mode=IN}
+                                  	, p_work_key 	=> #{p_work_key, 	jdbcType=VARCHAR, mode=IN}
+                                  	, p_err_code	=> #{p_err_code,	jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+									, p_err_msg		=> #{p_err_msg,		jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}  
+			)}
+	</select>
+	
+	<select id="sscAddMotherCreateList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT *
+		  FROM (
+		SELECT SDW.PROJECT_NO AS PROJECT_NO 
+		     , SDW.BLOCK_NO AS BLOCK_NO 
+--		     , SDW.DWG_NO AS ATTR02_DESC 
+		     , SDW.JOB_CD AS JOB_CD
+		     , SDW.USC_JOB_TYPE AS USC_JOB_TYPE
+		     , SDW.DWG_NO AS DWG_NO  
+		     , SDW.STAGE_NO AS STAGE_NO 
+		     , SDW.STR_FLAG AS STR_FLAG 
+		     , C.CATALOG_CODE 
+		     , (SELECT B.SHIP_TYPE 
+		          FROM STX_DIS_PROJECT      A 
+		             , STX_DIS_MODEL        B 
+		         WHERE A.MODEL_NO = B.MODEL_NO
+		           AND A.PROJECT_NO = SDW.PROJECT_NO) AS SHIP_TYPE
+		  FROM STX_DIS_WORK SDW 
+		     , (  SELECT SDCM.DWG_NO_CONCAT                                                         AS DWG_NO_CONCAT
+		               , SSSC.CATALOG_CODE                                                          AS CATALOG_CODE --카달로그 
+		               , SSCA.CATEGORY_CODE1||'.'||SSCA.CATEGORY_CODE2 ||'.' || SSCA.CATEGORY_CODE3 AS CATEGORY_CODE--카테고리 
+		               , SSSC.CATALOG_DESC                                                          AS ITEM_DESC 
+		            FROM STX_DWG_CATEGORY_MASTERS@STXERP SDCM 
+		               , STX_DIS_SD_CATALOG              SSSC 
+		               , STX_DIS_SD_CATEGORY             SSCA 
+		           WHERE SDCM.TBC_CATALOG_NO      = SSSC.CATALOG_CODE 
+		             AND SSSC.CATEGORY_ID         = SSCA.CATEGORY_ID ) C 
+		WHERE 1=1
+		  AND C.DWG_NO_CONCAT  = SUBSTR(SDW.DWG_NO, 0, 5)       
+		  AND SDW.USER_ID      = #{loginId, jdbcType=VARCHAR}
+		  AND SDW.WORK_KEY     = #{p_work_key, jdbcType=VARCHAR}
+		  AND SDW.WORK_FLAG   != 'MODIFY_MOVE'
+		  AND SDW.MOTHER_CODE IS NULL
+		GROUP BY SDW.PROJECT_NO  
+		       , SDW.BLOCK_NO 
+		       , SDW.DWG_NO  
+		       , SDW.JOB_CD 
+		       , SDW.USC_JOB_TYPE  
+		       , SDW.DWG_NO  
+		       , SDW.STAGE_NO 
+		       , SDW.STR_FLAG  
+		       , C.CATALOG_CODE  
+		UNION ALL 
+		SELECT SDW.PROJECT_NO            AS PROJECT_NO 
+		     , SDW.MODIFY_BLOCK_NO       AS BLOCK_NO 
+--		     , SDW.MODIFY_DWG_NO         AS ATTR02_DESC 
+		     , SDW.MODIFY_JOB_CD         AS JOB_CD
+		     , SDW.MODIFY_USC_JOB_TYPE   AS USC_JOB_TYPE
+		     , SDW.MODIFY_DWG_NO         AS DWG_NO  
+		     , SDW.MODIFY_STAGE_NO       AS STAGE_NO 
+		     , SDW.MODIFY_STR_FLAG       AS STR_FLAG 
+		     , C.CATALOG_CODE 
+		     , (SELECT B.SHIP_TYPE 
+		          FROM STX_DIS_PROJECT      A 
+		             , STX_DIS_MODEL        B 
+		         WHERE A.MODEL_NO = B.MODEL_NO
+		           AND A.PROJECT_NO = SDW.PROJECT_NO
+		       )                         AS SHIP_TYPE
+		  FROM STX_DIS_WORK SDW 
+		     , (  SELECT SDCM.DWG_NO_CONCAT                                                         AS DWG_NO_CONCAT
+		               , SSSC.CATALOG_CODE                                                          AS CATALOG_CODE --카달로그 
+		               , SSCA.CATEGORY_CODE1||'.'||SSCA.CATEGORY_CODE2 ||'.' || SSCA.CATEGORY_CODE3 AS CATEGORY_CODE--카테고리 
+		               , SSSC.CATALOG_DESC                                                          AS ITEM_DESC 
+		            FROM STX_DWG_CATEGORY_MASTERS@STXERP SDCM 
+		               , STX_DIS_SD_CATALOG              SSSC 
+		               , STX_DIS_SD_CATEGORY             SSCA 
+		           WHERE SDCM.TBC_CATALOG_NO      = SSSC.CATALOG_CODE 
+		             AND SSSC.CATEGORY_ID         = SSCA.CATEGORY_ID ) C 
+		WHERE 1=1
+		  AND C.DWG_NO_CONCAT  = SUBSTR(SDW.MODIFY_DWG_NO, 0, 5)       
+		  AND SDW.USER_ID      = #{loginId, jdbcType=VARCHAR}
+		  AND SDW.WORK_KEY     = #{p_work_key, jdbcType=VARCHAR} 
+		  AND SDW.WORK_FLAG    = 'MODIFY_MOVE'
+		  AND SDW.MODIFY_MOTHER_CD IS NULL
+		GROUP BY SDW.PROJECT_NO         
+		        ,SDW.MODIFY_BLOCK_NO  
+		        ,SDW.MODIFY_DWG_NO      
+		        ,SDW.MODIFY_JOB_CD      
+		        ,SDW.MODIFY_USC_JOB_TYPE
+		        ,SDW.MODIFY_DWG_NO   
+		        ,SDW.MODIFY_STAGE_NO    
+		        ,SDW.MODIFY_STR_FLAG    
+		        ,C.CATALOG_CODE   
+	      )
+	ORDER BY PROJECT_NO || BLOCK_NO  || STR_FLAG || DWG_NO || STAGE_NO  || JOB_CD  
+  	</select>
+  	
+  	<select id="sscAddMotherAttrDwg" parameterType="java.util.Map" resultType="String">
+		SELECT A.ATTRIBUTE_CODE
+		  FROM STX_DIS_SD_CATALOG_ATTRIBUTE A
+		 WHERE A.ATTRIBUTE_TYPE = 'ITEM'
+		   AND A.ATTRIBUTE_NAME = 'DWG'
+		   AND A.CATALOG_CODE   = #{catalog_code, jdbcType=VARCHAR}
+ 	</select>
+  
+    <select id="procInsertPendingMother"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_SSC_PKG.PENDING_INSERT(	
+										p_project_no		=> #{p_project_no, jdbcType=VARCHAR},
+										p_block_no			=> #{p_block_no, jdbcType=VARCHAR},
+										p_str_flag			=> #{p_str_flag, jdbcType=VARCHAR},
+		                                p_usc_job_type	    => #{p_usc_job_type, jdbcType=VARCHAR},
+										p_dwg_no			=> #{p_dwg_no, jdbcType=VARCHAR},
+										p_stage_no			=> #{p_stage_no, jdbcType=VARCHAR},
+       	                                p_job_cd			=> #{p_job_cd, jdbcType=VARCHAR},
+										p_mother_code		=> #{p_mother_code, jdbcType=VARCHAR},
+										p_item_catalog		=> #{p_catalog_code, jdbcType=VARCHAR},
+										p_state_flag		=> #{p_state_flag, jdbcType=VARCHAR},
+										p_mail_flag			=> #{p_mail_flag, jdbcType=VARCHAR},
+										p_eco_no			=> #{p_eco_no, jdbcType=VARCHAR},
+										p_user_id			=> #{p_loginid, jdbcType=VARCHAR},
+										p_act_bf_code		=> #{p_act_bf_code, jdbcType=VARCHAR},
+										p_act_bf_startdate	=> #{p_act_bf_startdate, jdbcType=VARCHAR},
+										p_dept_code			=> #{p_dept_code, jdbcType=VARCHAR},
+										p_ssc_bom_flag		=> #{p_ssc_bom_flag, jdbcType=VARCHAR},
+										p_ssc_bom_date		=> #{p_ssc_bom_date, jdbcType=VARCHAR},
+										p_err_code			=> #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+										p_err_msg			=> #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+									 )
+                          
+       }
+	</select>
+  
+	<update id="updateSscAddValveMotherBuyCode" parameterType="java.util.Map">	
+		UPDATE STX_DIS_WORK A
+		   SET A.MOTHER_CODE = (SELECT B.ITEM_CODE 
+		                          FROM STX_DIS_WORK B 
+		                         WHERE A.USER_ID = B.USER_ID
+		                           AND A.WORK_KEY = B.WORK_KEY
+		                           AND A.PROJECT_NO = B.PROJECT_NO
+		                           AND A.DWG_NO = B.DWG_NO
+		                           AND A.KEY_NO = B.KEY_NO
+		                           AND A.ITEM_CODE != B.ITEM_CODE)
+		 WHERE A.USER_ID = #{p_loginid, jdbcType=VARCHAR}
+		   AND A.WORK_KEY = #{p_work_key, jdbcType=VARCHAR}
+		   AND A.MOTHER_CODE LIKE '%[TEMP]'
+	</update>
+	
+    <select id="updateSscAddWorkMotherCode"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_SSC_PKG.WORK_MOTHER_UPDATE_PROC( P_USER_ID => #{p_user_id, jdbcType=VARCHAR},
+                                                       P_WORK_KEY => #{p_work_key, jdbcType=VARCHAR},
+                                                       P_WORK_FLAG => #{p_work_flag, jdbcType=VARCHAR},
+                                                       P_PROJECT_NO => #{p_project_no, jdbcType=VARCHAR},
+                                                       P_BLOCK_NO => #{p_block_no, jdbcType=VARCHAR},
+                                                       P_STR_FLAG => #{p_str_flag, jdbcType=VARCHAR},
+                                                       P_USC_JOB_TYPE => #{p_usc_job_type, jdbcType=VARCHAR},
+                                                       P_JOB_CD => #{p_job_cd, jdbcType=VARCHAR},
+                                                       P_DWG_NO => #{p_dwg_no, jdbcType=VARCHAR},
+                                                       P_STAGE_NO => #{p_stage_no, jdbcType=VARCHAR},
+                                                       P_MOTHER_CODE => #{p_mother_code, jdbcType=VARCHAR},
+                                                       P_ERR_CODE => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       P_ERR_MSG => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}	
+									                 )
+       }
+	</select>
+  
+<!-- 	<update id="updateSscAddWorkMotherCode" parameterType="java.util.Map">	 -->
+<!-- 		UPDATE STX_DIS_WORK  -->
+<!-- 		   SET MOTHER_CODE = #{p_mother_code, jdbcType=VARCHAR} -->
+<!-- 		 WHERE USER_ID = #{p_loginid, jdbcType=VARCHAR} -->
+<!-- 		   AND WORK_KEY = #{p_work_key, jdbcType=VARCHAR} -->
+<!-- 		   AND PROJECT_NO = #{p_project_no, jdbcType=VARCHAR} -->
+<!-- 		   AND JOB_CD = #{p_job_cd, jdbcType=VARCHAR} -->
+<!-- 		   AND USC_JOB_TYPE = #{p_usc_job_type, jdbcType=VARCHAR} -->
+<!-- 		   <choose> -->
+<!-- 				<when test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'> -->
+<!-- 					AND BLOCK_NO = #{p_block_no, jdbcType=VARCHAR}	 -->
+<!-- 				</when> -->
+<!-- 				<otherwise> -->
+<!-- 					AND BLOCK_NO IS NULL -->
+<!-- 				</otherwise> -->
+<!-- 		   </choose> -->
+		   
+<!-- 		   <choose> -->
+<!-- 				<when test='p_stage_no != null and !p_stage_no.equalsIgnoreCase("")'> -->
+<!-- 					AND STAGE_NO = #{p_stage_no, jdbcType=VARCHAR}	 -->
+<!-- 				</when> -->
+<!-- 				<otherwise> -->
+<!-- 					AND STAGE_NO IS NULL -->
+<!-- 				</otherwise> -->
+<!-- 		   </choose> -->
+<!-- 		   <choose> -->
+<!-- 				<when test='p_str_flag != null and !p_str_flag.equalsIgnoreCase("")'> -->
+<!-- 					AND STR_FLAG = #{p_str_flag, jdbcType=VARCHAR}	 -->
+<!-- 				</when> -->
+<!-- 				<otherwise> -->
+<!-- 					AND STR_FLAG IS NULL -->
+<!-- 				</otherwise> -->
+<!-- 		   </choose> -->
+<!-- 		   <choose> -->
+<!-- 				<when test='p_temp_mother_code != null and !p_temp_mother_code.equalsIgnoreCase("")'> -->
+<!-- 					AND MOTHER_CODE = #{p_temp_mother_code, jdbcType=VARCHAR}	 -->
+<!-- 				</when> -->
+<!-- 				<otherwise> -->
+<!-- 					AND MOTHER_CODE IS NULL -->
+<!-- 				</otherwise> -->
+<!-- 		   </choose> -->
+<!-- 	</update> -->
+  
+    <select id="procInsertSscAddHead"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_SSC_PKG.SSC_ADD_HEAD_INSERT(  
+       									    p_user_id => #{p_user_id, jdbcType=VARCHAR,mode=IN},
+											p_work_key => #{p_work_key, jdbcType=VARCHAR, mode=IN},
+											p_dept_code => #{p_dept_code, jdbcType=VARCHAR,mode=IN},
+											p_err_code => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+											p_err_msg => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+	 	)}
+	</select>
+	
+	<select id="procInsertSscAddRawLevel"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_RAWLEVEL_ADD_PROC(    p_user_id => #{p_user_id, jdbcType=VARCHAR,mode=IN},
+											p_work_key => #{p_work_key, jdbcType=VARCHAR, mode=IN},
+											p_err_code => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+											p_err_msg => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+                                            
+										 )
+                          
+        }
+	</select>
+  
+	<select id="sscAddTribonMainList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT B.*
+				  FROM (SELECT A.*
+							  ,ROWNUM RNUM
+						  FROM (SELECT COUNT(*) OVER() AS CNT
+									  ,C.*
+								  FROM (
+										SELECT AA.PROJECT_NO    
+											 , AA.ITEM_TYPE_CD  
+											 , AA.CAD_SUB_ID  
+											 , AA.ITEM_OLDCODE  
+											 , AA.ITEM_CODE  
+											 , AA.REV_NO        
+											 , AA.KEY_NO        
+											 , AA.DWG_NO        
+											 , AA.BLOCK_NO      
+											 , AA.STAGE_NO      
+											 , AA.STR_FLAG      
+											 , AA.ATTR1         
+											 , AA.ATTR2  
+											 , AA.ATTR3       
+											 , AA.ATTR4         
+											 , AA.ATTR5
+											 , AA.ATTR6
+											 , AA.ATTR7
+											 , AA.ATTR8
+											 , AA.ATTR9
+											 , AA.ATTR10
+											 , AA.ATTR11
+											 , AA.ATTR12        
+											 , AA.PROJECT_NO || '-' || AA.BLOCK_NO || '-' || AA.STAGE_NO || '-' || AA.ATTR5 AS STRUCTURE_NAME         
+											 , AA.BOM_QTY       
+											 , AA.ITEM_DESC     
+											 , AA.ITEM_WEIGHT   
+											 , AA.USER_ID       
+											 , AA.PAINT_CODE1   
+											 , AA.PAINT_CODE2                   
+											 , TO_CHAR(AA.CREATE_DATE, 'YYYY-MM-DD') AS CREATE_DATE     
+											 , (SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE AA.USER_ID = EMP_NO) AS USER_NAME
+											 , CASE WHEN SUBSTR(AA.ITEM_CODE,0,1) = 'Z' 
+											        THEN ATTR1 
+											        ELSE BOM11 
+											    END AS SEAT_NO 
+											 , CASE WHEN SUBSTR(AA.ITEM_CODE,0,1) = 'Z' 
+											        THEN ATTR1 
+											        ELSE BOM11 
+											    END AS TRAY_NO 
+											 , B.SEAT_DIM_W1 
+											 , B.SEAT_DIM_W 
+											 , B.SEAT_DIM_A 
+											 , B.SEAT_DIM_L1 
+											 , B.SEAT_DIM_L 
+											 , B.SEAT_DIM_B 
+											 , B.SEAT_DIM_D 
+											 , B.SEAT_DIM_D1 
+											 , B.SEAT_DIM_A1 
+											 , B.SEAT_MATERIAL1 
+											 , B.SEAT_MATERIAL2 
+											 , B.SEAT_MATERIAL3 
+											 , AA.EARTH_BOLT
+											 , CASE 
+											   	   WHEN SUBSTR(AA.ITEM_CODE,0,1) = 'Z' 
+											       THEN SUBSTR(AA.ITEM_CODE, 0, INSTR(AA.ITEM_CODE, '-')-1) 
+											       ELSE ''
+											    END AS CATALOG
+										  FROM STX_DIS_SSC_INPUT_HEAD AA
+										  	   ,STX_DIS_SSC_INPUT_ETC_ATTR      B                                                        
+										 WHERE 1=1
+										   AND AA.CAD_SUB_ID = B.CAD_SUB_ID(+)
+										   AND AA.ITEM_TYPE_CD = #{p_item_type_cd, jdbcType=VARCHAR}
+										   AND (SELECT MAX(BB.REV_NO)
+										           FROM STX_DIS_SSC_INPUT_HEAD BB 
+										           WHERE AA.PROJECT_NO = BB.PROJECT_NO 
+										             AND AA.ITEM_TYPE_CD = BB.ITEM_TYPE_CD 
+										             AND AA.ITEM_CODE = BB.ITEM_CODE 
+										             AND NVL(AA.BLOCK_NO, '.') = NVL(BB.BLOCK_NO, '.')
+         											 AND NVL(AA.STAGE_NO,'.') = NVL(BB.STAGE_NO,'.') 
+										             AND AA.KEY_NO = BB.KEY_NO 
+										         ) = REV_NO 
+										AND INTERFACE_FLAG = 'N' 
+										
+										<if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+											AND PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+										</if>
+										<if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+											AND BLOCK_NO LIKE REPLACE(#{p_block_no, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>
+										<if test='p_attr13 != null and !p_attr13.equalsIgnoreCase("")'>
+											AND ATTR13 LIKE REPLACE(#{p_attr13, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>										
+										<if test='p_circuit != null and !p_circuit.equalsIgnoreCase("")'>
+<!-- 확인 -->											AND ATTR13 LIKE REPLACE(#{p_circuit, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>											
+										<if test='p_deck != null and !p_deck.equalsIgnoreCase("")'>
+<!-- 확인 -->											AND ATTR13 LIKE REPLACE(#{p_deck, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>	
+										<if test='p_attr5 != null and !p_attr5.equalsIgnoreCase("")'>
+											AND ATTR5 LIKE REPLACE(#{p_attr5, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>
+										<if test='p_stage_no != null and !p_stage_no.equalsIgnoreCase("")'>
+											AND STAGE_NO LIKE REPLACE(#{p_stage_no, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>
+										<if test='p_attr1 != null and !p_attr1.equalsIgnoreCase("")'>
+											AND ATTR1 LIKE REPLACE(#{p_attr1, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>
+										<if test='p_desc != null and !p_desc.equalsIgnoreCase("")'>
+											AND ITEM_DESC LIKE REPLACE(#{p_desc, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>
+										<if test='p_seat_no != null and !p_seat_no.equalsIgnoreCase("")'>
+											AND CASE WHEN SUBSTR(AA.ITEM_CODE,0,1) = 'Z' 
+											        THEN ATTR1 
+											        ELSE BOM11 
+											    END LIKE REPLACE(#{p_seat_no, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>
+										<if test='p_user_id != null and !p_user_id.equalsIgnoreCase("")'>
+											AND AA.USER_ID LIKE REPLACE(#{p_user_id, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>
+										<if test='p_tray_no != null and !p_tray_no.equalsIgnoreCase("")'>
+											AND CASE WHEN SUBSTR(AA.ITEM_CODE,0,1) = 'Z' 
+											        THEN ATTR1 
+											        ELSE BOM11 
+											    END LIKE REPLACE(#{p_tray_no, jdbcType=VARCHAR} , '*', '%') || '%'
+										</if>
+										<!-- <if test='p_str_flag != null and !p_str_flag.equalsIgnoreCase("")'>
+											AND STR_FLAG  LIKE #{p_str_flag, jdbcType=VARCHAR}
+										</if> -->
+									    ORDER BY AA.ITEM_TYPE_CD, AA.PROJECT_NO, AA.BLOCK_NO, AA.STR_FLAG, AA.STAGE_NO, AA.KEY_NO, AA.ITEM_CODE, AA.REV_NO, AA.DWG_NO, AA.CAD_SUB_ID
+			<![CDATA[ 		
+									) C		
+		 					) A
+					 WHERE ROWNUM <= #{p_page_end_no, jdbcType=VARCHAR}) B
+			 WHERE RNUM > #{p_page_start_no, jdbcType=VARCHAR}
+			]]>
+	</select>
+	
+	<select id="sscAddEmsMainList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT B.*
+				  FROM (SELECT A.*
+							  ,ROWNUM RNUM
+						  FROM (SELECT COUNT(*) OVER() AS CNT
+									  ,C.*
+								  FROM (
+										SELECT DISTINCT 
+										       MAX(EMS_PUR_NO) OVER (PARTITION BY PROJECT, DWG_NO, ITEM_CODE) AS EMS_PUR_NO 
+										     , MASTER 
+										     , PROJECT 
+										     , DWG_NO 
+										     , (SELECT SUB_DWG_CODE FROM STX_EMS_DB_MASTER@STXERP B WHERE A.ITEM_CODE = B.ITEM_CODE AND ROWNUM = 1) AS SUB_DWG_NO 
+										     , ITEM_CODE 
+										     , (SELECT PA.DWGTITLE 
+										          FROM DPM_ACTIVITY@STXDP PA 
+										         WHERE PA.CASENO = '1' 
+										           AND PA.ACTIVITYCODE LIKE A.DWG_NO || '%' 
+										           AND PA.PROJECTNO = A.PROJECT 
+										           AND ROWNUM = 1 ) AS DWG_DESC 
+<!-- 										     , (SELECT ITEM_DESC  -->
+<!-- 										          FROM STX_DIS_ITEM  -->
+<!-- 										         WHERE ITEM_CODE = A.ITEM_CODE) AS ITEM_DESC  -->
+											 , MSI.DESCRIPTION AS ITEM_DESC 
+										     , TO_CHAR(SUM(EA) OVER (PARTITION BY PROJECT, DWG_NO, ITEM_CODE)) AS EA 
+										     , NVL((SELECT SUM(BOM_QTY) 
+					                                  FROM STX_DIS_SSC_HEAD 
+					                                 WHERE ITEM_TYPE_CD = 'EQ' 
+					                                   AND PROJECT_NO = A.PROJECT 
+					                                   AND DWG_NO = A.DWG_NO 
+					                                   AND ITEM_CODE = A.ITEM_CODE),0) AS SSC_EA
+<!-- 										     , NVL((SELECT SUM(BOM_QTY)  -->
+<!-- 										              FROM STX_DIS_SSC_HEAD_WORK -->
+<!-- 										             WHERE PROJECT_NO = A.PROJECT  -->
+<!-- 										               AND DWG_NO = A.DWG_NO  -->
+<!-- 										               AND ITEM_CODE = A.ITEM_CODE AND (STATE_FLAG != 'D' OR (STATE_FLAG = 'D' AND ECO_NO IS NULL))),0) AS SSC_EA  -->
+										     , TO_CHAR(MAX(PR_NO) OVER (PARTITION BY PROJECT, DWG_NO, ITEM_CODE)) AS PR_NO 
+										     , STX_DIS_GET_PO_NO_F( MAX(PR_NO) OVER (PARTITION BY PROJECT, DWG_NO, ITEM_CODE)) AS PO_NO 
+										  FROM STX_EMS_PURCHASING@STXERP A 
+					                          ,MTL_SYSTEM_ITEMS_B@STXERP MSI 
+					                     WHERE 1=1 
+					                       AND MSI.ORGANIZATION_ID = 82 
+					                       AND MSI.SEGMENT1        = A.ITEM_CODE 
+										    AND A.MASTER IN
+				                               (SELECT SDP.PROJECT_NO
+				                                  FROM STX_DIS_PROJECT SDP
+				                                 WHERE SDP.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR})
+										   AND STATUS = 'S' 
+										   AND ITEM_CODE NOT LIKE '%-000R%'
+										<if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>    
+										   AND (DWG_NO LIKE REPLACE(#{p_dwg_no, jdbcType=VARCHAR}, '*', '%')
+										        OR (SELECT SUB_DWG_CODE FROM STX_EMS_DB_MASTER@STXERP B WHERE A.ITEM_CODE = B.ITEM_CODE AND ROWNUM = 1)  LIKE REPLACE(#{p_dwg_no, jdbcType=VARCHAR}, '*', '%') )
+									    </if>
+									    <if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+										   AND PROJECT = REPLACE(#{p_project_no, jdbcType=VARCHAR}, '*', '%')
+										</if>
+										<if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+										   AND ITEM_CODE = REPLACE(#{p_item_code, jdbcType=VARCHAR}, '*', '%')
+										</if>
+										<if test='p_item_desc != null and !p_item_desc.equalsIgnoreCase("")'>
+										   AND ITEM_DESC = REPLACE(#{p_item_desc, jdbcType=VARCHAR}, '*', '%')
+										</if>
+										ORDER BY MASTER, PROJECT, ITEM_CODE
+			
+									) C		
+				<if test='p_ea.equalsIgnoreCase("Y")'>
+							WHERE EA <![CDATA[>]]> SSC_EA
+				</if>
+				<if test='p_ea.equalsIgnoreCase("N")'>
+							WHERE EA <![CDATA[<]]>= SSC_EA
+				</if>
+		 					) A
+					 WHERE ROWNUM <![CDATA[<]]>= #{p_page_end_no, jdbcType=VARCHAR}) B
+			 WHERE RNUM <![CDATA[>]]> #{p_page_start_no, jdbcType=VARCHAR}
+			
+	
+	</select>
+	
+	<select id="sscAddTribonTransferList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT #{p_master_no, jdbcType=VARCHAR} AS MASTER_SHIP    
+			 , AA.ITEM_TYPE_CD  
+			 , AA.CAD_SUB_ID  
+			 , AA.ITEM_OLDCODE  
+			 , AA.ITEM_CODE        
+			 , CASE WHEN AA.ITEM_TYPE_CD = 'SE' AND SUBSTR(AA.ITEM_CODE, 0, 1) != 'Z' THEN ''
+			        WHEN AA.ITEM_TYPE_CD = 'SU' THEN AA.ATTR5
+			        ELSE AA.KEY_NO
+			    END AS KEY_NO
+			 , #{p_dwg_no, jdbcType=VARCHAR} AS DWG_NO        
+			 , AA.BLOCK_NO      
+			 <choose>
+			 	<when test='p_keyin_stage_no != null and !p_keyin_stage_no.equalsIgnoreCase("")'>
+			 	, #{p_keyin_stage_no, jdbcType=VARCHAR} AS STAGE_NO
+			 	</when>
+			 	<otherwise>
+			 	, AA.STAGE_NO
+			 	</otherwise>
+			 </choose>
+			 , #{p_str_flag, jdbcType=VARCHAR} AS STR_FLAG  
+			 , CASE WHEN #{p_usc_job_type, jdbcType=VARCHAR} IS NOT NULL THEN #{p_usc_job_type, jdbcType=VARCHAR}
+			        WHEN 1 <![CDATA[ < ]]> ( SELECT COUNT(DISTINCT SDUB.USC_JOB_TYPE)
+                                                FROM STX_DIS_USC_BOM    SDUB
+                                                    ,STX_DIS_SD_CATALOG SDSC
+                                               WHERE SDUB.PROJECT_NO IN ( SELECT A.PROJECT_NO 
+                                                                            FROM STX_DIS_PROJECT A 
+                                                                           WHERE A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR})
+                                                 AND SDUB.BLOCK_NO   = AA.BLOCK_NO  
+                                                 AND SDUB.WORK_YN    = 'Y'
+                                                 AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+                                                 AND SDUB.USC_JOB_TYPE = SDSC.CATALOG_CODE
+                                                 AND EXISTS ( SELECT 1
+                                                                FROM STX_DIS_SD_CODE SDSC_VALUE
+                                                               WHERE SDSC_VALUE.SD_TYPE     = 'JOB_CATALOG' || '_' || #{p_item_type_cd, jdbcType=VARCHAR} || '_' || #{p_str_flag, jdbcType=VARCHAR}
+                                                                 AND SDSC_VALUE.ENABLE_FLAG = 'Y'
+                                                                 AND SDSC_VALUE.SD_CODE     = SDUB.ITEM_CATALOG )
+                                           		)
+                    THEN '선택'
+                    ELSE ( SELECT DISTINCT
+		                          SDUB.USC_JOB_TYPE
+		                     FROM STX_DIS_USC_BOM    SDUB
+		                         ,STX_DIS_SD_CATALOG SDSC
+		                    WHERE SDUB.PROJECT_NO IN ( SELECT A.PROJECT_NO 
+		                                                 FROM STX_DIS_PROJECT A 
+		                                                 WHERE A.REPRESENTATIVE_PRO_NUM = #{p_master_no, jdbcType=VARCHAR})
+		                      AND SDUB.BLOCK_NO   = AA.BLOCK_NO 
+		                      AND SDUB.WORK_YN    = 'Y'
+		                      AND SDUB.STR_FLAG   = #{p_str_flag, jdbcType=VARCHAR}
+		                      AND SDUB.USC_JOB_TYPE = SDSC.CATALOG_CODE
+		                      AND EXISTS ( SELECT 1
+		                                     FROM STX_DIS_SD_CODE SDSC_VALUE
+		                                     WHERE SDSC_VALUE.SD_TYPE     = 'JOB_CATALOG' || '_' || #{p_item_type_cd, jdbcType=VARCHAR} || '_' || #{p_str_flag, jdbcType=VARCHAR}
+		                                       AND SDSC_VALUE.ENABLE_FLAG = 'Y'
+		                                       AND SDSC_VALUE.SD_CODE     = SDUB.ITEM_CATALOG )
+			             ) END AS USC_JOB_TYPE
+			 , AA.ATTR1 AS ATTR01         
+			 , AA.ATTR2 AS ATTR02       
+			 , AA.ATTR3 AS ATTR03   
+			 , AA.ATTR4 AS ATTR04         
+			 , AA.ATTR5 AS ATTR05
+			 , AA.ATTR6 AS ATTR06
+			 , AA.ATTR7 AS ATTR07
+			 , AA.ATTR8 AS ATTR08
+			 , AA.ATTR9 AS ATTR09
+			 , AA.ATTR10 AS ATTR10
+			 , AA.ATTR11 AS ATTR11
+			 , AA.ATTR12 AS ATTR12
+			 , AA.ATTR13 AS ATTR13        	 
+			 , AA.BOM_QTY       
+			 , AA.ITEM_DESC     
+			 , AA.ITEM_WEIGHT   
+			 , AA.USER_ID
+			 , AA.EARTH_BOLT
+			 <choose>
+			 	<when test='p_keyin_paint_code != null and !p_keyin_paint_code.equalsIgnoreCase("")'>
+			 	, #{p_keyin_paint_code, jdbcType=VARCHAR} AS PAINT_CODE1
+			 	</when>
+			 	<otherwise>
+			 	, AA.PAINT_CODE1
+			 	</otherwise>
+			 </choose>
+			 , AA.PAINT_CODE2                   
+			 , TO_CHAR(AA.CREATE_DATE, 'YYYY-MM-DD') AS CREATE_DATE
+			 , 'I' AS OPER
+		  FROM STX_DIS_SSC_INPUT_HEAD AA                                                           
+		 WHERE 1=1
+		   AND AA.CAD_SUB_ID IN (
+				<foreach collection="p_cad_sub_id" item="item" separator=",">
+					#{item}
+				</foreach>
+               )
+		   AND INTERFACE_FLAG = 'N' 
+	</select>
+	
+	<select id="sscAddEmsTransferList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT 
+		       MAX(EMS_PUR_NO) OVER (PARTITION BY PROJECT, DWG_NO, ITEM_CODE) AS EMS_PUR_NO 
+		     , MASTER AS MASTER_SHIP
+		     , PROJECT AS PROJECT_NO
+		     , #{p_keyin_block_no, jdbcType=VARCHAR} AS BLOCK_NO 
+		     , #{p_keyin_stage_no, jdbcType=VARCHAR} AS STAGE_NO 
+		     , #{p_keyin_str_flag, jdbcType=VARCHAR} AS STR_FLAG
+		     , #{p_keyin_usc_job_type, jdbcType=VARCHAR} AS USC_JOB_TYPE 
+		     , DWG_NO 
+		     , ITEM_CODE 
+		     , (SELECT PA.DWGTITLE 
+		          FROM DPM_ACTIVITY@STXDP PA 
+		         WHERE PA.CASENO = '1' 
+		           AND PA.ACTIVITYCODE LIKE A.DWG_NO || '%' 
+		           AND PA.PROJECTNO = A.PROJECT 
+		           AND ROWNUM = 1 ) AS DWG_DESC 
+		     , (SELECT ITEM_DESC 
+		          FROM STX_DIS_ITEM 
+		         WHERE ITEM_CODE = A.ITEM_CODE) AS ITEM_DESC 
+		     , TO_CHAR(SUM(EA) OVER (PARTITION BY PROJECT, DWG_NO, ITEM_CODE)) AS EA 
+		     , SUM(EA) OVER (PARTITION BY PROJECT, DWG_NO, ITEM_CODE) 
+		       - NVL((SELECT SUM(BOM_QTY) 
+		              FROM STX_DIS_SSC_HEAD_WORK 
+		             WHERE PROJECT_NO = A.PROJECT 
+		               AND DWG_NO = A.DWG_NO 
+		               AND ITEM_CODE = A.ITEM_CODE AND (STATE_FLAG != 'D' OR (STATE_FLAG = 'D' AND ECO_NO IS NULL))),0) AS BOM_QTY 
+		     , 'I' AS OPER                 
+		  FROM STX_EMS_PURCHASING@STXERP A 
+		 WHERE PROJECT || DWG_NO || ITEM_CODE IN (SELECT PROJECT || DWG_NO || ITEM_CODE FROM STX_EMS_PURCHASING@STXERP WHERE EMS_PUR_NO IN ( 
+				 <foreach collection="p_ems_pur_no" item="item" separator=",">
+					#{item}
+				</foreach>
+		   ))
+	</select>
+	
+	<select id="searchMarkNoItemCode" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) AS CNT
+		  FROM STX_DIS_ITEM
+		 WHERE ATTR1 = #{p_key_no}
+	</select>
+	
+	<select id="getMarkNoItemCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT ITEM_CODE
+		  FROM STX_DIS_ITEM
+		 WHERE ATTR1  = #{p_key_no}
+		   AND ROWNUM = 1
+	</select>
+	
+</mapper>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveTechnicalSpec">  
+	<select id="selectTechnicalSpec" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	select 'S01'                          			   as org_code
+	      ,'진해공장'                     				   as org_name
+	      ,#{catalog_code} || '-' || sssc.attribute1   as item_code
+	      ,#{catalog_desc} || ' - ' || sssc.attribute2 as item_description    
+	      ,sssc.sd_desc                   			   as template_name
+	  from stx_dis_sd_code sssc
+	 where sssc.sd_type     = 'ITEM_TYPE'
+	   and sssc.enable_flag = 'Y'
+	   and sssc.sd_code     = #{sd_code}
+	</select>
+		
+  	<select id="selectUnitOfMeasure" parameterType="java.util.Map" resultType="string">
+	select muom.unit_of_measure
+      from mtl_units_of_measure@stxerp muom
+     where muom.uom_code = #{uom_code}
+	</select>
+	
+	<select id="selectUserName" parameterType="java.util.Map" resultType="string">
+	select user_name
+      from fnd_user@stxerp
+     where user_id = #{user_id}
+       and rownum  = 1
+	</select>
+	
+	<select id="selectExistSystemItems" parameterType="java.util.Map" resultType="string">
+	select 'Y' as exist_yn
+      from mtl_system_items_b@stxerp msi
+     where msi.organization_id = 82
+       and msi.segment1        = #{item_code}
+       and rownum              = 1
+	</select>
+ 	
+ 	<select id="procedurePlmItemInterface" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	 {	call stx_std_plm_item_interface.run@stxerp(
+					#{org_code}
+				  ,	#{org_name}
+				  , #{item_code}
+				  , '0'
+				  , #{uom_description}
+				  , #{item_description}
+				  , null
+				  , 0
+				  , #{template_name}
+				  , #{category_code}
+				  , null
+				  , #{emp_no}
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null 
+				  , #{catalog_code}
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null 
+				  , null
+				  , null
+				  , null
+				  , null
+				  , null 
+				  , #{return_code, jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+			 	)
+	 }
+  	</select>
+</mapper>

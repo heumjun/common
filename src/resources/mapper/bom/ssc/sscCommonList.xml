@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscCommonList">
+	<select id="sscDwgNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			
+		SELECT DISTINCT SUBSTR(PA.ACTIVITYCODE, 0, 8) AS OBJECT 
+		  FROM DPM_ACTIVITY@STXDP PA 
+		     , LPM_NEWPROJECT@STXDP LN 
+		     , ( SELECT STX_DIS_GET_MASTER_F(#{p_project_no, jdbcType=VARCHAR}) AS MASTER_SHIP FROM DUAL ) A
+		 WHERE 1=1 
+		   AND PA.DWGDEPTCODE        = #{p_dept_code, jdbcType=VARCHAR}
+		   AND PA.PROJECTNO          = LN.PROJECTNO 
+		   AND PA.WORKTYPE           = 'DW' 
+		   AND LN.CASENO             = '1' 
+		   AND LN.CASENO             = PA.CASENO
+		   AND LN.DWGSERIESPROJECTNO   = A.MASTER_SHIP
+		 ORDER BY OBJECT
+	</select>
+	
+	<select id="sscAutoCompleteUscJobTypeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT 
+		       B.USC_JOB_TYPE AS OBJECT
+		  FROM STX_DIS_SSC_HEAD A
+		      ,STX_DIS_PENDING  B
+		 WHERE A.MOTHER_CODE = B.MOTHER_CODE
+		   AND A.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+		   AND (   #{p_item_type_cd, jdbcType=VARCHAR} != 'ALL' AND A.ITEM_TYPE_CD = #{p_item_type_cd, jdbcType=VARCHAR}
+		        OR #{p_item_type_cd, jdbcType=VARCHAR}  = 'ALL'
+		       )
+		   AND (   #{p_block_no, jdbcType=VARCHAR} IS NOT NULL AND B.BLOCK_NO LIKE REPLACE(#{p_block_no, jdbcType=VARCHAR},'*','%')
+		        OR #{p_block_no, jdbcType=VARCHAR} IS NULL
+		       )
+		   AND (   #{p_str_flag, jdbcType=VARCHAR} IS NOT NULL AND B.STR_FLAG LIKE REPLACE(#{p_str_flag, jdbcType=VARCHAR},'*','%')
+		        OR #{p_str_flag, jdbcType=VARCHAR} IS NULL
+		       )
+		UNION
+		SELECT DISTINCT 
+		       B.USC_JOB_TYPE AS OBJECT
+		  FROM STX_DIS_SSC_HEAD_WORK A
+		      ,STX_DIS_PENDING       B
+		 WHERE A.MOTHER_CODE = B.MOTHER_CODE
+		   AND A.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+		   AND (   #{p_item_type_cd, jdbcType=VARCHAR} != 'ALL' AND A.ITEM_TYPE_CD = #{p_item_type_cd, jdbcType=VARCHAR}
+		        OR #{p_item_type_cd, jdbcType=VARCHAR}  = 'ALL'
+		       )
+		   AND (   #{p_block_no, jdbcType=VARCHAR} IS NOT NULL AND B.BLOCK_NO LIKE REPLACE(#{p_block_no, jdbcType=VARCHAR},'*','%')
+		        OR #{p_block_no, jdbcType=VARCHAR} IS NULL
+		       )
+		   AND (   #{p_str_flag, jdbcType=VARCHAR} IS NOT NULL AND B.STR_FLAG LIKE REPLACE(#{p_str_flag, jdbcType=VARCHAR},'*','%')
+		        OR #{p_str_flag, jdbcType=VARCHAR} IS NULL
+		       )
+		ORDER BY 1
+	</select>
+	
+	<select id="sscSeriesList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.PROJECT_NO 
+		  FROM stx_dis_project A  
+		 WHERE A.REPRESENTATIVE_PRO_NUM = ( SELECT REPRESENTATIVE_PRO_NUM 
+			                                  FROM STX_DIS_PROJECT
+											 WHERE PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+											   AND ENABLE_FLAG = 'Y') 
+		   AND LENGTH(A.PROJECT_NO) = 5
+		   AND A.ENABLE_FLAG = 'Y'
+		   <if test='p_self_view == "N"'>
+			   AND PROJECT_NO != #{p_project_no, jdbcType=VARCHAR}
+		   </if>
+		   
+		 ORDER BY PROJECT_NO ASC
+	</select>
+	
+	<select id="sscPaintSeriesList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.PROJECT_NO 
+		  FROM stx_dis_project A  
+		 WHERE A.PIS_REPRESENTATIVE_PRO_NUM = ( SELECT PIS_REPRESENTATIVE_PRO_NUM 
+				                                  FROM STX_DIS_PROJECT 
+												 WHERE PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+												   AND ENABLE_FLAG = 'Y') 
+		   AND LENGTH(A.PROJECT_NO) = 5
+		   <if test='p_self_view == "N"'>
+			   AND PROJECT_NO != #{p_project_no, jdbcType=VARCHAR}
+		   </if>
+		 ORDER BY PROJECT_NO ASC
+	</select>
+	
+	<select id="sscPaintDwgNo" parameterType="java.util.Map" resultType="String">
+		select SDSC.SD_CODE AS DWG_NO
+		  from STX_DIS_SD_CODE SDSC
+		 where SDSC.SD_TYPE = 'PAINT_DWG_NO'
+ 	</select>
+	<select id="sscRevText" parameterType="java.util.Map" resultType="String">
+		SELECT 
+	        NVL( CASE 
+	             WHEN LENGTH(MAX(A.REV_NO)+1) = 1 THEN '0' || TO_CHAR(MAX(A.REV_NO)+1) 
+	             ELSE TO_CHAR(MAX(A.REV_NO) + 1) 
+	        END, '00' ) 
+	        AS REV_NO
+	    FROM STX_DIS_SSC_HEAD A 
+		INNER JOIN STX_DIS_ENG_CHANGE_ORDER B ON A.ECO_NO = B.ENG_CHANGE_ORDER_CODE AND B.STATES_CODE = 'RELEASE'
+		WHERE A.DWG_NO =  #{p_dwg_no, jdbcType=VARCHAR}
+		  AND A.MASTER_SHIP =  #{p_master_no, jdbcType=VARCHAR}
+		  AND A.ITEM_TYPE_CD = #{p_item_type_cd, jdbcType=VARCHAR}
+	</select>
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap3"></resultMap>
+	<select id="sscJobList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_SSC_PKG.JOB_TYPE_SELECT_PROC( p_master_no    => #{p_master_no}
+		                                           ,p_block_no     => #{p_block_no}
+		                                           ,p_str_flag     => #{p_str_flag}
+		                                           ,p_item_type_cd => #{p_item_type_cd}
+		                                           ,p_error_code 	 => #{p_error_code, jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		                                           ,p_error_msg    => #{p_error_msg,  jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		                                           ,p_refer        => #{p_refer,      jdbcType=CURSOR,  javaType=ResultSet, resultMap=sscMainListOU.procResultMap, mode=OUT}
+		)}
+	</select>
+	
+	<select id="sscMasterNo" parameterType="java.util.Map" resultType="String">
+		SELECT STX_DIS_GET_MASTER_F(#{p_project_no, jdbcType=VARCHAR}
+								  , #{p_item_type_cd, jdbcType=VARCHAR}) AS MASTER_NO 
+		  FROM DUAL
+	</select>
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="sscCheckedMainList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_DIS_SSC_PKG.BOM_SELECT_PROC(
+						P_SSC_SUB_ID  		=> #{p_ssc_sub_id}
+						, P_DWG_NO          => #{p_dwg_no}
+						, P_DEPT_CODE       => #{p_dept_code}
+                        , P_CURPAGENO   	=> #{curPageNo}  
+                        , P_PAGESIZE    	=> #{pageSize}    
+                        , P_ERROR_CODE  	=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                        , P_ERROR_MSG   	=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}  
+                        , P_REFER       	=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=sscCommonList.procResultMap, mode=OUT}
+			)}                                    
+	</select>
+	
+	<select id="procInsertSscWork"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_SSC_PKG.WORK_INSERT(  
+       			p_user_id 				=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN},
+				p_work_key 				=> #{p_work_key, 	jdbcType=VARCHAR, 	mode=IN},
+				p_work_flag 			=> #{p_work_flag, 	jdbcType=VARCHAR, 	mode=IN},
+				p_chk_series            => #{p_chk_series,  jdbcType=VARCHAR, 	mode=IN},
+				p_item_type_cd 			=> #{p_item_type_cd,	jdbcType=VARCHAR,	mode=IN},
+				p_state_flag 			=> #{p_state_flag,	jdbcType=VARCHAR,	mode=IN},
+				p_master_ship 			=> #{p_master_ship, jdbcType=VARCHAR,	mode=IN},
+				p_project_no 			=> #{p_project_no, 	jdbcType=VARCHAR,	mode=IN},
+				p_dwg_no 				=> #{p_dwg_no, 		jdbcType=VARCHAR,	mode=IN},
+				p_dept_code 			=> #{p_dept_code, 	jdbcType=VARCHAR,	mode=IN},
+				p_block_no 				=> #{p_block_no, 	jdbcType=VARCHAR,	mode=IN},
+				p_stage_no 				=> #{p_stage_no, 	jdbcType=VARCHAR,	mode=IN},
+				p_str_flag 				=> #{p_str_flag, 	jdbcType=VARCHAR,	mode=IN},
+				p_usc_job_type			=> #{p_usc_job_type,	jdbcType=VARCHAR,	mode=IN},
+				p_job_cd 				=> #{p_job_cd, 		jdbcType=VARCHAR,	mode=IN},
+				p_mother_code 			=> #{p_mother_code, jdbcType=VARCHAR,	mode=IN},
+				p_item_group 			=> #{p_item_group, 	jdbcType=VARCHAR,	mode=IN},
+				p_is_standard 			=> #{p_is_standard, jdbcType=VARCHAR,	mode=IN},
+				p_item_code 			=> #{p_item_code, 	jdbcType=VARCHAR,	mode=IN},
+				p_item_category_name 	=> #{p_item_category_name, jdbcType=VARCHAR,	mode=IN},
+				p_item_category_desc 	=> #{p_item_category_desc, jdbcType=VARCHAR,	mode=IN},
+				p_item_category_code 	=> #{p_item_category_code, jdbcType=VARCHAR,	mode=IN},
+				p_item_catalog          => #{p_item_catalog, 	jdbcType=VARCHAR,	mode=IN},
+				p_item_desc 			=> #{p_item_desc, 	jdbcType=VARCHAR,	mode=IN},
+				p_bom_qty 				=> #{p_bom_qty, 	jdbcType=VARCHAR,	mode=IN},
+				p_item_weight 			=> #{p_item_weight, jdbcType=VARCHAR,	mode=IN},
+				p_rev_no 				=> #{p_rev_no, 		jdbcType=VARCHAR,	mode=IN},
+				p_cad_sub_id 			=> #{p_cad_sub_id, 	jdbcType=VARCHAR,	mode=IN},
+				p_series_size 			=> #{p_series_size, jdbcType=VARCHAR,	mode=IN},
+				p_key_no 				=> #{p_key_no, 		jdbcType=VARCHAR,	mode=IN},
+				p_bom_item_detail 		=> #{p_bom_item_detail, jdbcType=VARCHAR,	mode=IN},
+				p_paint_code1 			=> #{p_paint_code1, jdbcType=VARCHAR,	mode=IN},
+				p_paint_code2 			=> #{p_paint_code2, jdbcType=VARCHAR,	mode=IN},
+				p_attr01 				=> #{p_attr01, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr02 				=> #{p_attr02, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr03 				=> #{p_attr03, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr04 				=> #{p_attr04, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr05 				=> #{p_attr05, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr06 				=> #{p_attr06, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr07 				=> #{p_attr07, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr08 				=> #{p_attr08, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr09 				=> #{p_attr09, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr10 				=> #{p_attr10, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr11 				=> #{p_attr11, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr12 				=> #{p_attr12, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr13 				=> #{p_attr13, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr14 				=> #{p_attr14, 		jdbcType=VARCHAR,	mode=IN},
+				p_attr15 				=> #{p_attr15, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp01 				=> #{p_temp01, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp02 				=> #{p_temp02, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp03 				=> #{p_temp03, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp04 				=> #{p_temp04, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp05 				=> #{p_temp05, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp06 				=> #{p_temp06, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp07 				=> #{p_temp07, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp08 				=> #{p_temp08, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp09 				=> #{p_temp09, 		jdbcType=VARCHAR,	mode=IN},
+				p_temp10 				=> #{p_temp10, 		jdbcType=VARCHAR,	mode=IN},
+				p_modify_bom14 			=> #{p_modify_bom14,jdbcType=VARCHAR,	mode=IN},
+				p_modify_bom_qty 		=> #{p_modify_bom_qty, 	jdbcType=VARCHAR,	mode=IN},
+				p_modify_key_no 		=> #{p_modify_key_no, 	jdbcType=VARCHAR,	mode=IN},
+				p_modify_detail 		=> #{p_modify_detail, 	jdbcType=VARCHAR,	mode=IN},
+				p_modify_buy_mother_code => #{p_modify_buy_mother_code, 	jdbcType=VARCHAR,	mode=IN},
+				p_buy_mother_item_code 	=> #{p_buy_mother_item_code, 	jdbcType=VARCHAR,	mode=IN},
+				p_buy_mother_key_no 	=> #{p_buy_mother_key_no, 	jdbcType=VARCHAR,	mode=IN},
+				p_buy_buy_flag          => #{p_buy_buy_flag, 	jdbcType=VARCHAR,	mode=IN},
+				p_move_buy_buy_flag     => #{p_move_buy_buy_flag, 	jdbcType=VARCHAR,	mode=IN},
+				p_supply_type           => #{p_supply_type, 	jdbcType=VARCHAR,	mode=IN},
+				p_err_code 				=> #{p_err_code,	jdbcType=VARCHAR,	javaType=java.lang.String,	mode=OUT},
+				p_err_msg 				=> #{p_err_msg,		jdbcType=VARCHAR,	javaType=java.lang.String,	mode=OUT}
+		)}
+	</select>
+	
+	<select id="procDeleteSscWork"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ call STX_DIS_SSC_PKG.DELETE_WORK_INSERT(P_USER_ID       => #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_WORK_KEY      => #{p_work_key, 		jdbcType=VARCHAR, 	mode=IN}
+                                       			 ,P_ITEM_TYPE_CD  => #{p_item_type_cd,	jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_DEPT_CODE     => #{p_dept_code, 	jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_PROJECT_NO    => #{p_project_no, 	jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_BLOCK_NO      => #{p_block_no, 		jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_STR_FLAG      => #{p_str_flag, 		jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_USC_JOB_TYPE  => #{p_usc_job_type, 	jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_DWG_NO        => #{p_dwg_no, 		jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_STAGE_NO      => #{p_stage_no, 		jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_JOB_CATALOG   => #{p_job_catalog, 	jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_JOB_CD   	  => #{p_job_cd, 		jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_DELETE_TYPE   => #{p_delete_type, 	jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_MOTHER_CODE   => #{p_mother_code, 	jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_ITEM_CODE     => #{p_item_code, 	jdbcType=VARCHAR,	mode=IN}
+                                       			 ,P_ERR_CODE      => #{p_err_code,		jdbcType=VARCHAR,	javaType=java.lang.String,	mode=OUT}
+                                       			 ,P_ERR_MSG       => #{p_err_msg,		jdbcType=VARCHAR,	javaType=java.lang.String,	mode=OUT}
+        )}
+	</select>
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap1"></resultMap>
+   	<select id="sscWorkValidationList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+   	{ call STX_DIS_SSC_PKG.BOM_VALIDATION_PROC(P_USER_ID    => #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+                                              ,P_WORK_KEY   => #{p_work_key, 	jdbcType=VARCHAR, 	mode=IN}
+                                              ,P_WORK_FLAG  => #{p_work_flag,	jdbcType=VARCHAR, 	mode=IN}
+                                              ,P_CURPAGENO  => #{page,			jdbcType=VARCHAR, 	mode=IN}
+                                              ,P_PAGESIZE   => #{rows,			jdbcType=VARCHAR, 	mode=IN}
+                                              ,P_ERROR_CODE	=> #{p_error_code,  jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                                              ,P_ERROR_MSG  => #{p_error_msg,   jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}  
+                                              ,P_CNT        => #{p_cnt,         jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}              
+                                              ,P_REFER      => #{p_refer,       jdbcType=CURSOR,  javaType=ResultSet, resultMap=sscCommonList.procResultMap1, mode=OUT}
+	)}
+	</select>
+	
+	<select id="getCatalogDesign" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT COUNT(*) AS CNT
+		  FROM STX_DIS_SD_CATALOG_VALUE A
+			    ,STX_DIS_SD_CODE          B
+		 WHERE A.VALUE_TYPE = B.SD_TYPE(+)
+		   AND A.VALUE_CODE = B.SD_CODE(+)
+		   AND CATALOG_CODE = #{catalog_code}
+		   AND VALUE_TYPE   = 'CATALOG_DESIGN'
+		   AND B.SD_DESC    = #{design_code}
+		   AND A.VALUE_NAME = 'Y'
+	</select>
+	
+	<select id="getDeliverySeries" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDP.PROJECT_NO
+		  FROM STX_DIS_PROJECT SDP  
+		 WHERE SDP.REPRESENTATIVE_PRO_NUM = ( SELECT REPRESENTATIVE_PRO_NUM 
+		                                        FROM STX_DIS_PROJECT A
+		                                       WHERE A.PROJECT_NO  = #{p_project_no}
+		                                         AND A.ENABLE_FLAG = 'Y') 
+		   AND SDP.DL_FLAG = 'Y'
+	</select>
+</mapper>

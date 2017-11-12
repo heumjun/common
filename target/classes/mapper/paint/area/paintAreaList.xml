@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="paintAreaList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					 select  area_code
+				       		,area_desc
+					        ,af_code
+					        ,loss_code
+					   from stx_dis_pis_area
+					  where 1=1
+					  <if test="areaCode != null and areaCode !='' ">
+					    and area_code like #{areaCode} || '%'
+					  </if>
+					  
+					  <if test="areaName != null and areaName !='' ">
+					  	 and area_desc like '%'|| #{areaName} || '%'
+					  </if>
+					  
+					  <if test="lossCode != null and lossCode !='' ">
+					  	 and loss_code like '%'|| #{lossCode} || '%'
+					  </if>
+					  
+					  order by area_code
+	   				) t1
+         	) t2
+  	  where page = #{curPageNo}   				  
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_area
+	  where 1=1
+	  <if test="areaCode != null and areaCode !='' ">
+	    and area_code like #{areaCode} || '%'
+	  </if>
+	  
+	  <if test="areaName != null and areaName !='' ">
+	  	 and area_desc like '%'|| #{areaName} || '%'
+	  </if>
+  	</select>
+
+</mapper>

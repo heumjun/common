@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="pendingGetPendingDwgno">
+
+	<select id="popupPendingAddGetDwgnoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		        SELECT DISTINCT SUBSTR(PA.ACTIVITYCODE, 0, 8) AS DWG_NO,
+		        	   PA.DWGTITLE AS DWG_TITLE
+				  FROM DPM_ACTIVITY@STXDP PA 
+				     , LPM_NEWPROJECT@STXDP LN 
+				 WHERE 1=1 
+				   AND PA.DWGDEPTCODE        = #{p_dept_code, jdbcType=VARCHAR}
+				   AND PA.PROJECTNO          = LN.PROJECTNO 
+				   AND PA.WORKTYPE           = 'DW' 
+				   AND LN.CASENO             = '1' 
+				   AND LN.CASENO             = PA.CASENO
+				   AND LN.DWGSERIESPROJECTNO =  STX_DIS_GET_MASTER_F(#{p_project_no, jdbcType=VARCHAR})
+				   
+				<if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>
+					AND PA.ACTIVITYCODE LIKE REPLACE(#{p_dwg_no, jdbcType=VARCHAR },'*','') || '%'
+				</if>
+				
+				 ORDER BY DWG_NO
+	</select>
+	
+</mapper>

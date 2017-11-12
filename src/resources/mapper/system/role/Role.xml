@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Role">
+  	<!-- 프로그램관리 조회버튼 클릭시 SQL Mapping -->
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.*
+		  FROM (SELECT A.*
+		             , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM (SELECT A.LEV
+		                     , A.EMP_NO
+		                     , A.MENU_ID
+		                     , A.PGM_ID
+		                     , A.PGM_NAME
+		                     , DECODE(LEV, 0, A.PGM_NAME, '') PGM_NAME0
+		                     , DECODE(LEV, 1, A.PGM_NAME, '') PGM_NAME1
+		                     , DECODE(LEV, 2, A.PGM_NAME, '') PGM_NAME2
+		                     , DECODE(LEV, 3, A.PGM_NAME, '') PGM_NAME3
+		                     , A.PGM_LINK
+		                     , A.UP_MENU_ID
+		                     , A.PGM_YN
+		                     , A.SORT_ORDER
+		                     , A.ATTRIBUTE1
+		                     , A.ATTRIBUTE2
+		                     , A.ATTRIBUTE3
+		                     , A.ATTRIBUTE4
+		                     , A.ATTRIBUTE5
+		                     , A.ATTRIBUTE6
+		                     , A.ATTRIBUTE7
+		                     , A.ATTRIBUTE8
+		                     , A.ATTRIBUTE9
+		                     , A.ATTRIBUTE10
+		                     , A.NOTE
+		                  FROM (SELECT LEVEL-1 LEV
+		                             , A.EMP_NO
+		                             , A.MENU_ID
+		                             , A.PGM_ID
+		                             , A.PGM_NAME
+		                             , A.PGM_LINK
+		                             , A.UP_MENU_ID
+		                             , A.PGM_YN
+		                             , A.SORT_ORDER
+		                             , A.ATTRIBUTE1
+		                             , A.ATTRIBUTE2
+		                             , A.ATTRIBUTE3
+		                             , A.ATTRIBUTE4
+		                             , A.ATTRIBUTE5
+		                             , A.ATTRIBUTE6
+		                             , A.ATTRIBUTE7
+		                             , A.ATTRIBUTE8
+		                             , A.ATTRIBUTE9
+		                             , A.ATTRIBUTE10
+		                             , A.NOTE
+		                          FROM (SELECT A.EMP_NO
+		                                     , A.MENU_ID
+		                                     , NVL(A.PGM_ID, '') PGM_ID
+		                                     , A.PGM_NAME
+		                                     , NVL(A.PGM_LINK, '') PGM_LINK
+		                                     , NVL(A.UP_MENU_ID, '') UP_MENU_ID
+		                                     , DECODE(NVL(A.PGM_LINK, ''), ' ', 'N', 'Y') PGM_YN
+		                                     , NVL(A.SORT_ORDER, 0) SORT_ORDER
+		                                     , NVL(B.ATTRIBUTE1, 'N') ATTRIBUTE1
+		                                     , NVL(B.ATTRIBUTE2, 'N') ATTRIBUTE2
+		                                     , NVL(B.ATTRIBUTE3, 'N') ATTRIBUTE3
+		                                     , NVL(B.ATTRIBUTE4, 'N') ATTRIBUTE4
+		                                     , NVL(B.ATTRIBUTE5, 'N') ATTRIBUTE5
+		                                     , NVL(B.ATTRIBUTE6, 'N') ATTRIBUTE6
+		                                     , NVL(B.ATTRIBUTE7, 'N') ATTRIBUTE7
+		                                     , NVL(B.ATTRIBUTE8, 'N') ATTRIBUTE8
+		                                     , NVL(B.ATTRIBUTE9, 'N') ATTRIBUTE9
+		                                     , NVL(B.ATTRIBUTE10, 'N') ATTRIBUTE10
+		                                     , NVL(B.NOTE, '') NOTE
+		                                  FROM (SELECT A.EMP_NO
+		                                             , B.*
+		                                          FROM (SELECT *
+		                                                  FROM STX_DIS_USER
+		                                                 WHERE EMP_NO = #{p_emp_no}) A
+		                                             , (SELECT *
+		                                                  FROM STX_DIS_MENU
+		                                                 WHERE USE_YN = 'Y'
+		                                                 <if test='admin_yn != "Y"'>
+		                                                   AND MENU_ID &lt;> (SELECT MENU_ID
+		                                                          FROM STX_DIS_MENU
+		                                                         WHERE PGM_ID = 'F_SYSTEM')
+		                                                 </if>) B
+		                                         WHERE 1=1) A
+		                                     , (SELECT *
+		                                          FROM STX_DIS_USER_MENU
+		                                         WHERE ATTRIBUTE1 = 'Y'
+		                                           AND EMP_NO = #{p_emp_no}) B
+		                                 WHERE 1=1
+		                                   AND A.MENU_ID = B.MENU_ID(+)) A CONNECT BY PRIOR(A.MENU_ID) = A.UP_MENU_ID START WITH A.MENU_ID = (SELECT MENU_ID
+		                                  FROM STX_DIS_MENU
+		                                 WHERE UP_MENU_ID IS NULL)
+		                         ORDER SIBLINGS BY SORT_ORDER) A) A) A
+		 WHERE PAGE = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT
+		  FROM (SELECT A.EMP_NO
+                     , A.MENU_ID
+                     , NVL(A.PGM_ID, '') PGM_ID
+                     , A.PGM_NAME
+                     , NVL(A.PGM_LINK, '') PGM_LINK
+                     , NVL(A.UP_MENU_ID, '') UP_MENU_ID
+                     , DECODE(NVL(A.PGM_LINK, ''), ' ', 'N', 'Y') PGM_YN
+                     , NVL(A.SORT_ORDER, 0) SORT_ORDER
+                     , NVL(B.ATTRIBUTE1, 'N') ATTRIBUTE1
+                     , NVL(B.ATTRIBUTE2, 'N') ATTRIBUTE2
+                     , NVL(B.ATTRIBUTE3, 'N') ATTRIBUTE3
+                     , NVL(B.ATTRIBUTE4, 'N') ATTRIBUTE4
+                     , NVL(B.ATTRIBUTE5, 'N') ATTRIBUTE5
+                     , NVL(B.ATTRIBUTE6, 'N') ATTRIBUTE6
+                     , NVL(B.ATTRIBUTE7, 'N') ATTRIBUTE7
+                     , NVL(B.ATTRIBUTE8, 'N') ATTRIBUTE8
+                     , NVL(B.ATTRIBUTE9, 'N') ATTRIBUTE9
+                     , NVL(B.ATTRIBUTE10, 'N') ATTRIBUTE10
+                     , NVL(B.NOTE, '') NOTE
+                  FROM (SELECT A.EMP_NO
+                             , B.*
+                          FROM (SELECT *
+                                  FROM STX_DIS_USER
+                                 WHERE EMP_NO = #{p_emp_no}) A
+                             , (SELECT *
+                                  FROM STX_DIS_MENU
+                                 WHERE USE_YN = 'Y'
+                                 <if test='admin_yn != "Y"'>
+                                   AND MENU_ID &lt;> (SELECT MENU_ID
+                                          FROM STX_DIS_MENU
+                                         WHERE PGM_ID = 'F_SYSTEM')
+                                 </if>) B
+                         WHERE 1=1) A
+                     , (SELECT *
+                          FROM STX_DIS_USER_MENU
+                         WHERE ATTRIBUTE1 = 'Y'
+                           AND EMP_NO = #{p_emp_no}) B
+                 WHERE 1=1
+                   AND A.MENU_ID = B.MENU_ID(+))
+  	</select>
+  	
+  	<!-- insert 전 중복 체크 -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT count(*) as cnt
+		  FROM STX_DIS_USER_MENU
+		 WHERE EMP_NO = #{loginId}
+		   AND MENU_ID = #{menu_id}
+  	</select>
+  	
+ 	<insert id="insertRole" parameterType="java.util.Map">
+ 		INSERT
+		  INTO STX_DIS_USER_MENU (EMP_NO, MENU_ID, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3, ATTRIBUTE4, ATTRIBUTE5, ATTRIBUTE6, ATTRIBUTE7, ATTRIBUTE8, ATTRIBUTE9, ATTRIBUTE10, NOTE, CREATE_BY, CREATE_DATE, MODIFY_BY, MODIFY_DATE)
+		VALUES(#{loginId}
+		     , #{menu_id}
+		     , #{attribute1}
+		     , #{attribute2}
+		     , #{attribute3}
+		     , #{attribute4}
+		     , #{attribute5}
+		     , #{attribute6}
+		     , #{attribute7}
+		     , #{attribute8}
+		     , #{attribute9}
+		     , #{attribute10}
+		     , #{note}
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE )
+	</insert>
+	
+	<update id="updateRole" parameterType="java.util.Map">
+		UPDATE STX_DIS_USER_MENU
+		   SET ATTRIBUTE1 = #{attribute1}
+		     , ATTRIBUTE2 = #{attribute2}
+		     , ATTRIBUTE3 = #{attribute3}
+		     , ATTRIBUTE4 = #{attribute4}
+		     , ATTRIBUTE5 = #{attribute5}
+		     , ATTRIBUTE6 = #{attribute6}
+		     , ATTRIBUTE7 = #{attribute7}
+		     , ATTRIBUTE8 = #{attribute8}
+		     , ATTRIBUTE9 = #{attribute9}
+		     , ATTRIBUTE10 = #{attribute10}
+		     , NOTE = #{note}
+		     , MODIFY_BY = #{loginId}
+		     , MODIFY_DATE = SYSDATE
+		 WHERE EMP_NO = #{loginId}
+		   AND MENU_ID = #{menu_id}
+	</update>
+  	
+  	<delete id="deleteRole" parameterType="java.util.Map">
+  		DELETE FROM STX_DIS_USER_MENU
+		 WHERE EMP_NO = #{loginId}
+		   AND MENU_ID = #{menu_id}
+  	</delete>
+  	
+  	<delete id="deleteRoleByUser" parameterType="java.util.Map">
+  		DELETE FROM STX_DIS_USER_MENU
+		 WHERE EMP_NO = #{t_emp_no}
+  	</delete>
+  	
+  	<select id="selectUserRoleByMenuId" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		SELECT EMP_NO
+		     , MENU_ID
+		     , ATTRIBUTE1
+		     , ATTRIBUTE2
+		     , ATTRIBUTE3
+		     , ATTRIBUTE4
+		     , ATTRIBUTE5
+		     , ATTRIBUTE6
+		     , ATTRIBUTE7
+		     , ATTRIBUTE8
+		     , ATTRIBUTE9
+		     , ATTRIBUTE10
+		     , NOTE
+		     , CREATE_BY
+		     , CREATE_DATE
+		     , MODIFY_BY
+		     , MODIFY_DATE
+		  FROM STX_DIS_USER_MENU
+		  WHERE EMP_NO = 
+		  <!-- 권한이 선택된경우 -->
+		  <if test='roleCode != null and !roleCode.equalsIgnoreCase("")'>
+		 	#{roleCode}
+		 </if>
+		  <!-- 권한이 선택되지 않는경우 유저의 권한중 첫번째 권한으로 권한정보를 취득 -->
+		 <if test='roleCode == null or roleCode.equalsIgnoreCase("")'>
+		  <![CDATA[
+                (SELECT SUBSTR(A.TXT, INSTR(A.TXT, '|', 1, LEVEL) + 1, INSTR(A.TXT, '|', 1, LEVEL + 1) - INSTR(A.TXT, '|', 1, LEVEL) - 1) TXT
+		FROM (
+		    SELECT '|'||AUTHOR_CODE||'|' AS TXT
+		    FROM STX_DIS_USER
+		    WHERE EMP_NO = #{loginId}) A
+		WHERE ROWNUM = 1 CONNECT BY LEVEL <= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, '|')) - 1)
+		]]>
+         </if>
+		   AND MENU_ID = #{menu_id, jdbcType=VARCHAR}
+  	</select>
+  	
+  	<insert id="copyRole" parameterType="java.util.Map">
+ 		INSERT
+		  INTO STX_DIS_USER_MENU (EMP_NO, MENU_ID, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3, ATTRIBUTE4, ATTRIBUTE5, ATTRIBUTE6, ATTRIBUTE7, ATTRIBUTE8, ATTRIBUTE9, ATTRIBUTE10, NOTE, CREATE_BY, CREATE_DATE, MODIFY_BY, MODIFY_DATE)
+		SELECT #{t_emp_no} AS EMP_NO
+		     , MENU_ID
+		     , ATTRIBUTE1
+		     , ATTRIBUTE2
+		     , ATTRIBUTE3
+		     , ATTRIBUTE4
+		     , ATTRIBUTE5
+		     , ATTRIBUTE6
+		     , ATTRIBUTE7
+		     , ATTRIBUTE8
+		     , ATTRIBUTE9
+		     , ATTRIBUTE10
+		     , NOTE
+		     , #{loginId}
+		     , SYSDATE AS CREATE_DATE
+		     , #{loginId}
+		     , SYSDATE AS MODIFY_DATE
+		  FROM STX_DIS_USER_MENU
+		 WHERE EMP_NO = #{p_emp_no}
+	</insert>
+ 	
+</mapper>

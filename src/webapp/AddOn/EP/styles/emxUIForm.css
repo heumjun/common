@@ -1,0 +1,39 @@
+/* ====================================================================
+// Dialog Stylesheet
+// by Nicholas C. Zakas
+// ==================================================================== */
+
+/* --------------------------------------------------------------------
+// Default Settings
+// -------------------------------------------------------------------- */
+
+/* Background Appearance */
+body { background-color: white; }
+
+/* --------------------------------------------------------------------
+// Form Settings
+// -------------------------------------------------------------------- */
+
+/* Default Label Appearance */
+td.label { background-color: #dadada; color: black; font-weight: bold; height: 24px; }
+
+/* Required Label Appearance */
+td.labelRequired { background-color: #dadada; color: #990000; font-weight: bold; height: 24px; ; font-style: italic }
+
+/* Input Field Appearance */
+td.inputField { background-color: #eeeeee; font-size: 12px; }
+
+/* Required Notice Appearance */
+td.requiredNotice {  font-family: Arial, Helvetica, sans-serif; color: #990000}
+
+
+/* --------------------------------------------------------------------
+// Headings
+// -------------------------------------------------------------------- */
+
+/* Heading Level 1 */
+td.heading1 { font-size: 10pt; font-weight: bold; border-top: 1px solid #003366;  height: 24px;}
+
+/* Heading Level 2 */
+td.heading2 { font-size: 8pt; font-weight: bold; background-color: #dddddd;  height: 24px;}
+

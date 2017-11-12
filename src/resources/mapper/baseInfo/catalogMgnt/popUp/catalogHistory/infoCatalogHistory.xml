@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoCatalogHistory">  	
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT SDSCH.REVISION_NO                             AS REVISION_NO
+	      ,SDSCH.PROCESS_ACTION                          AS PROCESS_ACTION
+	      ,TO_CHAR(SDSCH.LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LAST_UPDATE_DATE
+	      ,SDSCH.LAST_UPDATED_BY                         AS LAST_UPDATED_BY
+	      ,''                                            AS LAST_UPDATE_BY_NAME
+	      ,SDSCH.CATALOG_CODE                            AS CATALOG_CODE
+	      ,SDSCH.CATALOG_DESC                            AS CATALOG_DESC
+	      ,SDSCH.CATEGORY_ID                             AS CATEGORY_ID
+	      ,''                                            AS CATEGORY_DESC
+	      ,SDSCH.UOM_CODE                                AS UOM_CODE
+	      ,SDSCH.PART_FAMILY_CODE                        AS PART_FAMILY_CODE
+	      ,''                                            AS PART_FAMILY_DESC
+	      ,SDSCH.INVALID_DATE                            AS INVALID_DATE
+	      ,SDSCH.WBS_FLAG                                AS WBS_FLAG
+	      ,SDSCH.WBS_SUB_FLAG                            AS WBS_SUB_FLAG
+	      ,SDSCH.ACTIVITY_FLAG                           AS ACTIVITY_FLAG
+	      ,SDSCH.JOB_FLAG                                AS JOB_FLAG
+	      ,SDSCH.PD_FLAG                                 AS PD_FLAG
+	      ,SDSCH.PAINT_FLAG                              AS PAINT_FLAG
+	      ,SDSCH.PAINT_USC_FLAG                          AS PAINT_USC_FLAG
+	      ,SDSCH.ENABLE_FLAG                             AS ENABLE_FLAG
+	  FROM STX_DIS_SD_CATALOG_HIS SDSCH
+	 WHERE SDSCH.CATALOG_CODE = #{p_catalog_code}
+  	</select>
+ 	
+</mapper>

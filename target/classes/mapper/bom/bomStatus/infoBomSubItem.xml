@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoBomSubItem">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TO_NUMBER(#{p_level}) + 1 AS LEV
+		    ,CASE WHEN (SDSC.WBS_FLAG     = 'Y' OR SDSC.WBS_SUB_FLAG = 'Y')       THEN 'WBS'
+            WHEN SDSC.ACTIVITY_FLAG = 'Y' AND SDSC_ASSY.ACTIVITY_FLAG = 'N' THEN 'ACT'
+            WHEN SDSC.ACTIVITY_FLAG = 'Y' AND SDSC_ASSY.ACTIVITY_FLAG = 'Y' THEN 'JOB'
+            WHEN SDSC.JOB_FLAG      = 'Y'                                   THEN 'JOB'
+            WHEN SDSC.PD_FLAG       = 'Y'                                   THEN 'PD'
+       ELSE 'SSC'
+       END                                                            AS BOM_TYPE
+       ,AA.MOTHER_CODE                                                AS MOTHER_CODE  
+       ,AA.ITEM_CODE                                                  AS ITEM_CODE    
+       ,AA.ITEM_CATALOG                                               AS ITEM_CATALOG 
+       ,'...'                                                         AS JOB_CATALOG_POPUP
+       ,AA.CATALOG_TYPE                                               AS CATALOG_TYPE                                                                            
+       ,AA.LOCATION_CODE                                              AS LOCATION_CODE
+       ,AA.DWG_NO                                                     AS DWG_NO
+       ,'...'                                                         AS DWG_NO_POPUP
+       ,AA.ECO_NO                                                     AS ECO_NO
+       ,STX_DIS_SHORT_EMP_NAME_F(AA.EMP_NO)                           AS EMP_NO       
+       ,SDI.UOM                                                       AS UOM                        
+       ,SDI.ITEM_DESC                                                 AS ITEM_DESC
+       ,AA.QTY                                                        AS QTY           
+       ,AA.FINDNUMBER                                                 AS FINDNUMBER    
+       ,AA.BOM1                                                       AS BOM1          
+       ,AA.BOM2                                                       AS BOM2          
+       ,AA.BOM3                                                       AS BOM3          
+       ,AA.BOM4                                                       AS BOM4          
+       ,AA.BOM5                                                       AS BOM5          
+       ,AA.BOM6                                                       AS BOM6          
+       ,AA.BOM7                                                       AS BOM7          
+       ,AA.BOM8                                                       AS BOM8          
+       ,AA.BOM9                                                       AS BOM9          
+       ,AA.BOM10                                                      AS BOM10         
+       ,AA.BOM11                                                      AS BOM11         
+       ,AA.BOM12                                                      AS BOM12         
+       ,AA.BOM13                                                      AS BOM13         
+       ,AA.BOM14                                                      AS BOM14         
+       ,AA.BOM15                                                      AS BOM15         
+       ,STX_DIS_SHORT_EMP_NAME_F(AA.CREATED_BY)                       AS CREATED_BY
+       ,AA.STATES_CODE                                                AS STATES_CODE  
+       ,AA.STATES_DESC                                                AS STATES_DESC  
+       ,AA.STATES_FLAG                                                AS STATES_FLAG  
+       ,DECODE(AA.STATES_FLAG, 'A', '추가', 'D', '삭제', 'C', '수정') AS STATES_FLAG_DESC
+       ,'...'                                                         AS ITEM_ATTR
+       ,'...'                                                         AS BOM_ATTR
+       ,'...'                                                         AS HISTORY
+       ,'false'                                                        AS LEAF
+       ,SDI.STATES_CODE                                               AS ITEM_STATES_CODE
+       ,SDI.STATES_DESC                                               AS ITEM_STATES_DESC
+   FROM (SELECT SDB.MOTHER_CODE
+               , SDB.ITEM_CODE
+               , SDB.ITEM_CATALOG
+               , SDB.CATALOG_TYPE
+               , SDB.LOCATION_CODE
+               , SDB.DWG_NO
+               , SDB.ECO_NO
+               , SDB.EMP_NO
+               , SDB.QTY
+               , SDB.FINDNUMBER
+               , SDB.BOM1
+               , SDB.BOM2
+               , SDB.BOM3
+               , SDB.BOM4
+               , SDB.BOM5
+               , SDB.BOM6
+               , SDB.BOM7
+               , SDB.BOM8
+               , SDB.BOM9
+               , SDB.BOM10
+               , SDB.BOM11
+               , SDB.BOM12
+               , SDB.BOM13
+               , SDB.BOM14
+               , SDB.BOM15
+               , SDECO.CREATE_BY          AS CREATED_BY
+               , SDECO.STATES_CODE        AS STATES_CODE
+               , SDSC.SD_DESC             AS STATES_DESC
+               , NULL AS STATES_FLAG
+           FROM STX_DIS_BOM              SDB
+               ,STX_DIS_ENG_CHANGE_ORDER SDECO
+               , STX_DIS_SD_CODE         SDSC
+           WHERE SDB.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+             AND NOT EXISTS 
+                 (SELECT 1
+                    FROM STX_DIS_BOM_WORK SDBW
+                   WHERE SDBW.MOTHER_CODE = SDB.MOTHER_CODE
+                     AND SDBW.ITEM_CODE   = SDB.ITEM_CODE
+                  )
+          UNION ALL
+          SELECT SDBW.MOTHER_CODE
+               , SDBW.ITEM_CODE
+               , SDBW.ITEM_CATALOG
+               , SDBW.CATALOG_TYPE
+               , SDBW.LOCATION_CODE
+               , SDBW.DWG_NO
+               , SDBW.ECO_NO
+               , SDBW.EMP_NO
+               , SDBW.QTY
+               , SDBW.FINDNUMBER
+               , SDBW.BOM1
+               , SDBW.BOM2
+               , SDBW.BOM3
+               , SDBW.BOM4
+               , SDBW.BOM5
+               , SDBW.BOM6
+               , SDBW.BOM7
+               , SDBW.BOM8
+               , SDBW.BOM9
+               , SDBW.BOM10
+               , SDBW.BOM11
+               , SDBW.BOM12
+               , SDBW.BOM13
+               , SDBW.BOM14
+               , SDBW.BOM15
+               , SDECO.CREATE_BY          AS CREATED_BY
+               , SDECO.STATES_CODE        AS STATES_CODE
+               , SDSC.SD_DESC             AS STATES_DESC
+               , SDBW.STATES	          AS STATE_FLAG
+            FROM STX_DIS_BOM_WORK         SDBW
+                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+               , STX_DIS_SD_CODE          SDSC
+           WHERE SDBW.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+          UNION ALL
+          SELECT SDP.JOB_CD AS MOTHER_CODE
+               , SDP.MOTHER_CODE AS ITEM_CODE
+               , SDP.ITEM_CATALOG
+               , NULL AS CATALOG_TYPE
+               , NULL AS LOCATION_CODE
+               , SDP.DWG_NO
+               , SDP.ECO_NO
+               , SDP.USER_ID AS EMP_NO
+               , 1 AS QTY
+               , SDP.FIND_NUMBER AS FINDNUMBER
+               , SDP.BLOCK_NO AS BOM1
+               , SDP.STR_FLAG AS BOM2
+               , SDP.STAGE_NO AS BOM3
+               , NULL AS BOM4
+               , NULL AS BOM5
+               , NULL AS BOM6
+               , NULL AS BOM7
+               , NULL AS BOM8
+               , NULL AS BOM9
+               , NULL AS BOM10
+               , NULL AS BOM11
+               , NULL AS BOM12
+               , NULL AS BOM13
+               , NULL AS BOM14
+               , NULL AS BOM15
+               , SDECO.CREATE_BY          AS CREATED_BY
+               , SDECO.STATES_CODE        AS STATES_CODE
+               , SDSC.SD_DESC             AS STATES_DESC
+               , SDP.STATE_FLAG
+            FROM STX_DIS_PENDING          SDP
+                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+               , STX_DIS_SD_CODE          SDSC
+           WHERE SDP.PROJECT_NO    = #{p_project_no}
+             AND SDP.ECO_NO        = SDECO.ENG_CHANGE_ORDER_CODE(+)
+             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+          UNION ALL
+          SELECT SDSH.MOTHER_CODE
+               , SDSH.ITEM_CODE
+               , NULL AS ITEM_CATALOG
+               , NULL AS CATALOG_TYPE
+               , NULL AS LOCATION_CODE
+               , SDSH.DWG_NO
+               , SDSH.ECO_NO
+               , SDSH.USER_ID AS EMP_NO
+               , SDSH.BOM_QTY AS QTY
+               , TO_NUMBER(SDSH.FIND_NUMBER) AS FINDNUMBER
+               , SDSH.BOM1
+               , SDSH.BOM2
+               , SDSH.BOM3
+               , SDSH.BOM4
+               , SDSH.BOM5
+               , SDSH.BOM6
+               , SDSH.BOM7
+               , SDSH.BOM8
+               , SDSH.BOM9
+               , SDSH.BOM10
+               , SDSH.BOM11
+               , SDSH.BOM12
+               , SDSH.BOM13
+               , SDSH.BOM14
+               , SDSH.BOM15
+               , SDECO.CREATE_BY          AS CREATED_BY
+               , SDECO.STATES_CODE        AS STATES_CODE
+               , SDSC.SD_DESC             AS STATES_DESC
+               , SDSH.STATE_FLAG
+            FROM STX_DIS_SSC_HEAD         SDSH
+                ,STX_DIS_ENG_CHANGE_ORDER SDECO
+               , STX_DIS_SD_CODE          SDSC
+           WHERE SDSH.PROJECT_NO   = #{p_project_no}
+             AND SDSH.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+             AND SDECO.STATES_CODE = SDSC.SD_CODE(+)
+             AND SDSC.SD_TYPE(+)   = 'ECO_STATES'
+         )                  AA
+       , STX_DIS_ITEM       SDI
+       , STX_DIS_SD_CATALOG SDSC
+       , STX_DIS_ITEM       SDI_ASSY
+       , STX_DIS_SD_CATALOG SDSC_ASSY
+   WHERE AA.ITEM_CODE            = SDI.ITEM_CODE(+)
+     AND SDI.ITEM_CATALOG        = SDSC.CATALOG_CODE(+)
+     AND AA.MOTHER_CODE         = SDI_ASSY.ITEM_CODE(+)
+     AND SDI_ASSY.ITEM_CATALOG   = SDSC_ASSY.CATALOG_CODE(+)
+     AND AA.MOTHER_CODE          = #{p_nodeid}
+
+	</select>
+</mapper>

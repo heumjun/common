@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoBomReverseTree">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT /*+RULE*/
+	        A.*
+	        ,'true' AS FOLD
+	   FROM (SELECT A.SELECT_ID
+	               ,A.LEV                                                                AS LEV
+	               ,A.RLEV                                                               AS RLEV
+	               ,CASE WHEN SDSC.WBS_FLAG = 'Y' OR SDSC.WBS_SUB_FLAG = 'Y'
+	                     THEN 'WBS'
+	                     WHEN SDSC.ACTIVITY_FLAG = 'Y' AND SDSC_ASSY.ACTIVITY_FLAG = 'N' 
+	                     THEN 'ACT'
+	                     WHEN SDSC.ACTIVITY_FLAG = 'Y' AND SDSC_ASSY.ACTIVITY_FLAG = 'Y'
+	                     THEN 'JOB'
+	                     WHEN SDSC.JOB_FLAG = 'Y' 
+	                     THEN 'JOB'
+	                     WHEN SDSC.PD_FLAG = 'Y' 
+	                     THEN 'PD'
+	                     ELSE 'SSC'
+	                END                                                                  AS BOM_TYPE
+	               ,A.MOTHER_CODE                                                        AS MOTHER_CODE
+	               ,A.ITEM_CODE                                                          AS ITEM_CODE
+	               ,A.ITEM_CATALOG                                                       AS ITEM_CATALOG 
+	               ,A.DWG_NO                                                             AS DWG_NO
+	               ,A.ECO_NO                                                             AS ECO_NO
+	               ,A.EMP_NO                                                             AS EMP_NO
+	               ,A.QTY                                                                AS QTY 
+	               ,A.BOM1                                                               AS BOM1
+	               ,A.BOM2                                                               AS BOM2
+	               ,A.BOM3                                                               AS BOM3
+	               ,A.BOM4                                                               AS BOM4
+	               ,A.BOM5                                                               AS BOM5
+	               ,A.BOM6                                                               AS BOM6
+	               ,A.BOM7                                                               AS BOM7
+	               ,A.BOM8                                                               AS BOM8
+	               ,A.BOM9                                                               AS BOM9
+	               ,A.BOM10                                                              AS BOM10
+	               ,A.BOM11                                                              AS BOM11
+	               ,A.BOM12                                                              AS BOM12
+	               ,A.BOM13                                                              AS BOM13
+	               ,A.BOM14                                                              AS BOM14
+	               ,A.BOM15                                                              AS BOM15
+	               ,SDI.UOM                                                              AS UOM
+	               ,SDI.ITEM_DESC                                                        AS ITEM_DESC
+	               ,SDI.STATES_CODE                                                      AS ITEM_STATES_CODE
+	               ,SDI.STATES_DESC                                                      AS ITEM_STATES_DESC
+	               ,A.CREATED_BY                                                         AS CREATED_BY
+	               ,A.STATES_CODE                                                        AS STATES_CODE
+	               ,A.STATES_DESC                                                        AS STATES_DESC
+	               ,A.STATES_FLAG_DESC                                                                                                                                                               AS STATES_FLAG_DESC
+	               ,A.LEAF                                   AS LEAF
+	               ,ROW_NUM                                                              AS ROW_NUM
+	           FROM (SELECT SUBSTR(SYS_CONNECT_BY_PATH(A.MOTHER_CODE||'/'||A.ITEM_CODE,','),2) AS SELECT_ID
+	                                                 ,LEVEL - 1                                                AS LEV
+	                       ,ROWNUM                                                   AS ROW_NUM
+	                       ,(MAX(LEVEL) OVER() + 1 - LEVEL) - 1                      AS RLEV
+	                       ,A.MOTHER_CODE                                            AS MOTHER_CODE
+	                       ,A.ITEM_CODE                                              AS ITEM_CODE
+	                       ,A.ITEM_CATALOG                                           AS ITEM_CATALOG 
+	                       ,A.DWG_NO                                                 AS DWG_NO
+	                       ,A.ECO_NO                                                 AS ECO_NO
+	                       ,STX_DIS_SHORT_EMP_NAME_F(A.EMP_NO)                       AS EMP_NO
+	                       ,A.QTY                                                    AS QTY 
+	                       ,A.BOM1                                                   AS BOM1
+	                       ,A.BOM2                                                   AS BOM2
+	                       ,A.BOM3                                                   AS BOM3
+	                       ,A.BOM4                                                   AS BOM4
+	                       ,A.BOM5                                                   AS BOM5
+	                       ,A.BOM6                                                   AS BOM6
+	                       ,A.BOM7                                                   AS BOM7
+	                       ,A.BOM8                                                   AS BOM8
+	                       ,A.BOM9                                                   AS BOM9
+	                       ,A.BOM10                                                  AS BOM10
+	                       ,A.BOM11                                                  AS BOM11
+	                       ,A.BOM12                                                  AS BOM12
+	                       ,A.BOM13                                                  AS BOM13
+	                       ,A.BOM14                                                  AS BOM14
+	                       ,A.BOM15                                                  AS BOM15
+	                       ,STX_DIS_SHORT_EMP_NAME_F(A.CREATED_BY)                   AS CREATED_BY
+	                       ,A.STATES_CODE                                            AS STATES_CODE
+	                       ,A.STATES_DESC                                            AS STATES_DESC
+	                       ,DECODE(A.STATES_FLAG, 'A', '추가-BOM', 'D', '삭제-BOM', 'C', '수정-BOM', A.STATES_FLAG) AS STATES_FLAG_DESC
+	                       ,DECODE(A.MOTHER_CODE, 'PROJECT', 'true', 'false')                            AS LEAF
+	                 FROM (
+	                 		SELECT ''                AS MOTHER_CODE
+		                          ,A.MOTHER_CODE     AS ITEM_CODE
+		                          ,A.MOTHER_CATALOG  AS ITEM_CATALOG 
+		                          ,''                AS DWG_NO
+		                          ,MAX(A.ECO_NO)     AS ECO_NO
+		                          ,MAX(A.MODIFY_BY)       AS EMP_NO
+		                          ,1                 AS QTY 
+		                          ,''                AS BOM1
+		                          ,''           AS BOM2
+		                          ,''           AS BOM3
+		                          ,''            AS BOM4
+		                          ,''            AS BOM5
+		                          ,''           AS BOM6
+		                          ,''           AS BOM7
+		                          ,''          AS BOM8
+		                          ,''            AS BOM9
+		                          ,''          AS BOM10
+		                          ,''           AS BOM11
+		                          ,''           AS BOM12
+		                          ,''           AS BOM13
+		                          ,''         AS BOM14
+		                          ,''           AS BOM15
+		                          ,MAX(SDECO.CREATE_BY)   AS CREATED_BY
+		                          ,''                     AS STATES_CODE
+		                          ,MAX(SDSC.SD_DESC)      AS STATES_DESC
+		                          , 'BOM'            AS STATES_FLAG
+		                      FROM STX_DIS_USC_BOM          A
+		                          ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+		                          ,STX_DIS_SD_CODE          SDSC
+		                     WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+)
+		                       AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+		                       AND SDSC.SD_TYPE(+)      = 'ECO_STATES'
+		                       AND A.PROJECT_NO         = #{p_project_no} 
+		                       AND A.PROJECT_NO         = A.MOTHER_CODE 
+		                   GROUP BY A.MOTHER_CODE    
+		                          ,A.MOTHER_CATALOG      
+		                   UNION ALL
+
+	                 		SELECT A.MOTHER_CODE     AS MOTHER_CODE
+	                             ,A.ITEM_CODE       AS ITEM_CODE
+	                             ,A.ITEM_CATALOG    AS ITEM_CATALOG 
+	                             ,''                AS DWG_NO
+	                             ,A.ECO_NO          AS ECO_NO
+	                             ,A.MODIFY_BY       AS EMP_NO
+	                             ,A.QTY             AS QTY 
+	                             ,A.BOM1            AS BOM1
+	                             ,A.BOM2            AS BOM2
+	                             ,A.BOM3            AS BOM3
+	                             ,A.BOM4            AS BOM4
+	                             ,A.BOM5            AS BOM5
+	                             ,A.BOM6            AS BOM6
+	                             ,A.BOM7            AS BOM7
+	                             ,A.BOM8            AS BOM8
+	                             ,A.BOM9            AS BOM9
+	                             ,A.BOM10           AS BOM10
+	                             ,A.BOM11           AS BOM11
+	                             ,A.BOM12           AS BOM12
+	                             ,A.BOM13           AS BOM13
+	                             ,A.BOM14           AS BOM14
+	                             ,A.BOM15           AS BOM15
+	                             ,SDECO.CREATE_BY   AS CREATED_BY
+	                             ,SDECO.STATES_CODE AS STATES_CODE
+	                             ,SDSC.SD_DESC      AS STATES_DESC
+	                             , 'BOM'            AS STATES_FLAG
+	                         FROM STX_DIS_USC_BOM          A
+	                             ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                             ,STX_DIS_SD_CODE          SDSC
+	                        WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+)
+	                          AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                          AND SDSC.SD_TYPE(+)      = 'ECO_STATES'
+	                          AND A.PROJECT_NO         = #{p_project_no} 
+	                          AND A.ITEM_CATALOG       != 'V72'
+	                          AND NOT EXISTS
+	                              (SELECT 1
+	                                 FROM STX_DIS_USC_BOM_WORK B
+	                                WHERE B.PROJECT_NO  = A.PROJECT_NO
+	                                  AND B.MOTHER_CODE = A.MOTHER_CODE
+	                                  AND B.ITEM_CODE   = A.ITEM_CODE
+	                              ) 
+	                        UNION ALL
+	                       SELECT A.MOTHER_CODE   AS MOTHER_CODE
+	                             ,A.ITEM_CODE     AS ITEM_CODE
+	                             ,A.ITEM_CATALOG  AS ITEM_CATALOG 
+	                             ,''              AS DWG_NO
+	                             ,A.ECO_NO        AS ECO_NO
+	                             ,A.MODIFY_BY     AS EMP_NO
+	                             ,A.QTY           AS QTY 
+	                             ,A.BOM1          AS BOM1
+	                             ,A.BOM2          AS BOM2
+	                             ,A.BOM3          AS BOM3
+	                             ,A.BOM4          AS BOM4
+	                             ,A.BOM5          AS BOM5
+	                             ,A.BOM6          AS BOM6
+	                             ,A.BOM7          AS BOM7
+	                             ,A.BOM8          AS BOM8
+	                             ,A.BOM9          AS BOM9
+	                             ,A.BOM10         AS BOM10
+	                             ,A.BOM11         AS BOM11
+	                             ,A.BOM12         AS BOM12
+	                             ,A.BOM13         AS BOM13
+	                             ,A.BOM14         AS BOM14
+	                             ,A.BOM15         AS BOM15
+	                             ,SDECO.CREATE_BY   AS CREATED_BY
+	                             ,SDECO.STATES_CODE AS STATES_CODE
+	                             ,SDSC.SD_DESC      AS STATES_DESC 
+	                             ,A.STATE_FLAG      AS STATE_FLAG
+	                         FROM STX_DIS_USC_BOM_WORK A
+	                             ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                             ,STX_DIS_SD_CODE          SDSC
+	                        WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+)
+	                          AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                          AND SDSC.SD_TYPE(+)      = 'ECO_STATES'
+	                          AND A.PROJECT_NO         = #{p_project_no} 
+	                          AND A.ITEM_CATALOG       != 'V72'
+	                          
+	                          
+	                        UNION ALL
+	                           SELECT  DUB.ITEM_CODE     AS MOTHER_CODE
+	                                  ,V.ITEM_CODE       AS ITEM_CODE
+	                                  ,V.ITEM_CATALOG    AS ITEM_CATALOG
+	                                  ,''                AS DWG_NO
+	                                  ,V.ECO_NO          AS ECO_NO
+	                                  ,V.EMP_NO          AS EMP_NO
+	                                  ,V.QTY             AS QTY
+	                                  ,V.BOM1            AS BOM1  
+	                                  ,V.BOM2            AS BOM2  
+	                                  ,V.BOM3            AS BOM3  
+	                                  ,V.BOM4            AS BOM4  
+	                                  ,V.BOM5            AS BOM5  
+	                                  ,V.BOM6            AS BOM6  
+	                                  ,V.BOM7            AS BOM7  
+	                                  ,V.BOM8            AS BOM8  
+	                                  ,V.BOM9            AS BOM9  
+	                                  ,V.BOM10           AS BOM10 
+	                                  ,V.BOM11           AS BOM11 
+	                                  ,V.BOM12           AS BOM12 
+	                                  ,V.BOM13           AS BOM13 
+	                                  ,V.BOM14           AS BOM14 
+	                                  ,V.BOM15           AS BOM15
+	                                  ,SDECO.CREATE_BY    AS CREATED_BY
+	                                  ,SDECO.STATES_CODE AS STATES_CODE
+	                                  ,SDSC.SD_DESC      AS STATES_DESC 
+	                                  ,V.STATE_FLAG      AS STATES_FLAG 
+	                            FROM   STX_DIS_USC_BOM DUB
+	                                  ,(
+	                                      SELECT DUB1.ITEM_CODE
+	                                            ,DUB1.PROJECT_NO
+	                                            ,DUB1.UPPER_BLOCK AS BLOCK_NO
+	                                            ,DUB1.ITEM_CATALOG
+	                                            ,DUB1.QTY
+	                                            ,DUB1.MODIFY_BY AS EMP_NO
+	                                            ,DUB1.ECO_NO    AS ECO_NO
+	                                            ,DUB1.BOM1          AS BOM1  
+	                                            ,DUB1.BOM2          AS BOM2  
+	                                            ,DUB1.BOM3          AS BOM3  
+	                                            ,DUB1.BOM4          AS BOM4  
+	                                            ,DUB1.BOM5          AS BOM5  
+	                                            ,DUB1.BOM6          AS BOM6  
+	                                            ,DUB1.BOM7          AS BOM7  
+	                                            ,DUB1.BOM8          AS BOM8  
+	                                            ,DUB1.BOM9          AS BOM9  
+	                                            ,DUB1.BOM10         AS BOM10 
+	                                            ,DUB1.BOM11         AS BOM11 
+	                                            ,DUB1.BOM12         AS BOM12 
+	                                            ,DUB1.BOM13         AS BOM13 
+	                                            ,DUB1.BOM14         AS BOM14 
+	                                            ,DUB1.BOM15         AS BOM15
+	                                            ,'BOM'              AS STATE_FLAG
+	                                      FROM   STX_DIS_USC_BOM DUB1
+	                                      WHERE  DUB1.PROJECT_NO = #{p_project_no} 
+	                                      AND    DUB1.ITEM_CATALOG = 'V72'
+	                                      AND NOT EXISTS
+	                                            (SELECT 1
+	                                               FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+	                                              WHERE DUB1.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+	                                                AND DUB1.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+	                                              )
+	                                      UNION ALL
+	                                      SELECT DUBW.ITEM_CODE
+	                                            ,DUBW.PROJECT_NO
+	                                            ,DUBW.UPPER_BLOCK AS BLOCK_NO
+	                                            ,DUBW.ITEM_CATALOG
+	                                            ,DUBW.QTY
+	                                            ,DUBW.MODIFY_BY AS EMP_NO
+	                                            ,DUBW.ECO_NO    AS ECO_NO
+	                                            ,DUBW.BOM1          AS BOM1  
+	                                            ,DUBW.BOM2          AS BOM2  
+	                                            ,DUBW.BOM3          AS BOM3  
+	                                            ,DUBW.BOM4          AS BOM4  
+	                                            ,DUBW.BOM5          AS BOM5  
+	                                            ,DUBW.BOM6          AS BOM6  
+	                                            ,DUBW.BOM7          AS BOM7  
+	                                            ,DUBW.BOM8          AS BOM8  
+	                                            ,DUBW.BOM9          AS BOM9  
+	                                            ,DUBW.BOM10         AS BOM10 
+	                                            ,DUBW.BOM11         AS BOM11 
+	                                            ,DUBW.BOM12         AS BOM12 
+	                                            ,DUBW.BOM13         AS BOM13 
+	                                            ,DUBW.BOM14         AS BOM14 
+	                                            ,DUBW.BOM15         AS BOM15
+	                                            ,DUBW.STATE_FLAG
+	                                      FROM   STX_DIS_USC_BOM_WORK DUBW
+	                                      WHERE  DUBW.PROJECT_NO = #{p_project_no} 
+	                                      AND    DUBW.ITEM_CATALOG = 'V72'
+	                                   ) V
+	                                  ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                                  ,STX_DIS_SD_CODE          SDSC
+	                            WHERE  DUB.PROJECT_NO = V.PROJECT_NO
+	                            AND    DUB.BLOCK_NO = V.BLOCK_NO
+	                            AND    DUB.MOTHER_CATALOG = 'S00'
+	                            AND DUB.ITEM_CATALOG IN ('OP0','OD0','OQ0') 
+	                            AND    V.ECO_NO       = SDECO.ENG_CHANGE_ORDER_CODE(+)
+	                            AND    SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                            AND    SDSC.SD_TYPE(+)      = 'ECO_STATES'
+                                        
+	                        UNION ALL
+	                        SELECT A.JOB_CD                AS MOTHER_CODE
+	                             ,A.MOTHER_CODE            AS ITEM_CODE
+	                             ,A.ITEM_CATALOG           AS ITEM_CATALOG 
+	                             ,A.DWG_NO                 AS DWG_NO
+	                             ,A.ECO_NO                 AS ECO_NO
+	                             ,A.MODIFY_BY              AS EMP_NO
+	                             ,1                        AS QTY 
+	                             ,A.BLOCK_NO               AS BOM1
+	                             ,A.STR_FLAG               AS BOM2
+	                             ,A.STAGE_NO               AS BOM3
+	                             ,NULL                     AS BOM4
+	                             ,NULL                     AS BOM5
+	                             ,NULL                     AS BOM6
+	                             ,NULL                     AS BOM7
+	                             ,NULL                     AS BOM8
+	                             ,NULL                     AS BOM9
+	                             ,NULL                     AS BOM10
+	                             ,NULL                     AS BOM11
+	                             ,NULL                     AS BOM12
+	                             ,NULL                     AS BOM13
+	                             ,NULL                     AS BOM14
+	                             ,NULL                     AS BOM15
+	                             ,SDECO.CREATE_BY          AS CREATED_BY
+	                             ,SDECO.STATES_CODE        AS STATES_CODE
+	                             ,SDSC.SD_DESC             AS STATES_DESC
+	                             ,A.PROJECT_NO||'-'||'PD'  AS STATES_FLAG
+	                         FROM STX_DIS_PENDING          A
+	                             ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                             ,STX_DIS_SD_CODE          SDSC
+	                        WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+	                          AND A.PROJECT_NO         = #{p_project_no} 
+	                          AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                          AND SDSC.SD_TYPE(+)      = 'ECO_STATES'
+	                          AND NOT EXISTS
+	                              (SELECT 1
+	                                 FROM STX_DIS_PENDING_WORK SDPW
+	                                WHERE A.PROJECT_NO = SDPW.PROJECT_NO
+	                                  AND A.JOB_CD     = SDPW.JOB_CD
+	                                  AND A.MOTHER_CODE= SDPW.MOTHER_CODE
+	                               )
+	                        UNION ALL
+	                        SELECT A.JOB_CD                AS MOTHER_CODE
+	                             ,A.MOTHER_CODE            AS ITEM_CODE
+	                             ,A.ITEM_CATALOG           AS ITEM_CATALOG 
+	                             ,A.DWG_NO                 AS DWG_NO
+	                             ,A.ECO_NO                 AS ECO_NO
+	                             ,A.MODIFY_BY              AS EMP_NO
+	                             ,1                        AS QTY 
+	                             ,A.BLOCK_NO               AS BOM1
+	                             ,A.STR_FLAG               AS BOM2
+	                             ,A.STAGE_NO               AS BOM3
+	                             ,NULL                     AS BOM4
+	                             ,NULL                     AS BOM5
+	                             ,NULL                     AS BOM6
+	                             ,NULL                     AS BOM7
+	                             ,NULL                     AS BOM8
+	                             ,NULL                     AS BOM9
+	                             ,NULL                     AS BOM10
+	                             ,NULL                     AS BOM11
+	                             ,NULL                     AS BOM12
+	                             ,NULL                     AS BOM13
+	                             ,NULL                     AS BOM14
+	                             ,NULL                     AS BOM15
+	                             ,SDECO.CREATE_BY          AS CREATED_BY
+	                             ,SDECO.STATES_CODE        AS STATES_CODE
+	                             ,SDSC.SD_DESC             AS STATES_DESC
+	                             ,A.PROJECT_NO||'-'||'PD'  AS STATES_FLAG
+	                         FROM STX_DIS_PENDING_WORK     A
+	                             ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                             ,STX_DIS_SD_CODE          SDSC
+	                        WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+	                          AND A.PROJECT_NO         = #{p_project_no} 
+	                          AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                          AND SDSC.SD_TYPE(+)      = 'ECO_STATES'
+	                        UNION ALL
+	                        SELECT A.MOTHER_CODE            AS MOTHER_CODE
+	                             ,A.ITEM_CODE              AS ITEM_CODE
+	                             ,SDI.ITEM_CATALOG         AS ITEM_CATALOG 
+	                             ,A.DWG_NO                 AS DWG_NO
+	                             ,A.ECO_NO                 AS ECO_NO
+	                             ,A.MODIFY_BY              AS EMP_NO
+	                             ,A.BOM_QTY                AS QTY 
+	                             ,A.BOM1                   AS BOM1
+	                             ,A.BOM2                   AS BOM2
+	                             ,A.BOM3                   AS BOM3
+	                             ,A.BOM4                   AS BOM4
+	                             ,A.BOM5                   AS BOM5
+	                             ,A.BOM6                   AS BOM6
+	                             ,A.BOM7                   AS BOM7
+	                             ,A.BOM8                   AS BOM8
+	                             ,A.BOM9                   AS BOM9
+	                             ,A.BOM10                  AS BOM10
+	                             ,A.BOM11                  AS BOM11
+	                             ,A.BOM12                  AS BOM12
+	                             ,A.BOM13                  AS BOM13
+	                             ,A.BOM14                  AS BOM14
+	                             ,A.BOM15                  AS BOM15
+	                             ,SDECO.CREATE_BY   AS CREATED_BY
+	                             ,SDECO.STATES_CODE AS STATES_CODE
+	                             ,SDSC.SD_DESC      AS STATES_DESC
+	                             ,A.PROJECT_NO||'-'||'SSC'                        AS STATES_FLAG
+	                         FROM STX_DIS_SSC_HEAD A
+	                             ,STX_DIS_ITEM                              SDI
+	                             ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                             ,STX_DIS_SD_CODE          SDSC
+	                        WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+)
+	                          AND A.PROJECT_NO         = #{p_project_no} 
+	                          AND A.ITEM_CODE          = SDI.ITEM_CODE(+) 
+	                          AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                          AND SDSC.SD_TYPE(+)      = 'ECO_STATES' 
+	                          AND NOT EXISTS
+	                              (SELECT 1 
+	                                 FROM STX_DIS_SSC_HEAD_WORK SDSHW
+	                                WHERE A.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+	                               )
+	                        UNION ALL
+	                        SELECT A.MOTHER_CODE            AS MOTHER_CODE
+	                             ,A.ITEM_CODE              AS ITEM_CODE
+	                             ,SDI.ITEM_CATALOG         AS ITEM_CATALOG 
+	                             ,A.DWG_NO                 AS DWG_NO
+	                             ,A.ECO_NO                 AS ECO_NO
+	                             ,A.MODIFY_BY              AS EMP_NO
+	                             ,A.BOM_QTY                AS QTY 
+	                             ,A.BOM1                   AS BOM1
+	                             ,A.BOM2                   AS BOM2
+	                             ,A.BOM3                   AS BOM3
+	                             ,A.BOM4                   AS BOM4
+	                             ,A.BOM5                   AS BOM5
+	                             ,A.BOM6                   AS BOM6
+	                             ,A.BOM7                   AS BOM7
+	                             ,A.BOM8                   AS BOM8
+	                             ,A.BOM9                   AS BOM9
+	                             ,A.BOM10                  AS BOM10
+	                             ,A.BOM11                  AS BOM11
+	                             ,A.BOM12                  AS BOM12
+	                             ,A.BOM13                  AS BOM13
+	                             ,A.BOM14                  AS BOM14
+	                             ,A.BOM15                  AS BOM15
+	                             ,SDECO.CREATE_BY   AS CREATED_BY
+	                             ,SDECO.STATES_CODE AS STATES_CODE
+	                             ,SDSC.SD_DESC      AS STATES_DESC
+	                             ,A.PROJECT_NO||'-'||'SSC'  AS STATES_FLAG
+	                         FROM STX_DIS_SSC_HEAD_WORK         A
+	                             ,STX_DIS_ITEM            SDI
+	                             ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                             ,STX_DIS_SD_CODE          SDSC
+	                        WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+)
+	                          AND A.PROJECT_NO         = #{p_project_no}
+	                          AND A.ITEM_CODE          = SDI.ITEM_CODE(+) 
+	                          AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                          AND SDSC.SD_TYPE(+)      = 'ECO_STATES' 
+	                       UNION ALL
+	                        SELECT A.MOTHER_CODE            AS MOTHER_CODE
+	                             ,A.ITEM_CODE              AS ITEM_CODE
+	                             ,SDI.ITEM_CATALOG         AS ITEM_CATALOG 
+	                             ,''                       AS DWG_NO
+	                             ,A.ECO_NO                 AS ECO_NO
+	                             ,A.MODIFY_BY              AS EMP_NO
+	                             ,A.BOM_QTY                AS QTY 
+	                             ,A.BOM1                   AS BOM1
+	                             ,A.BOM2                   AS BOM2
+	                             ,A.BOM3                   AS BOM3
+	                             ,A.BOM4                   AS BOM4
+	                             ,A.BOM5                   AS BOM5
+	                             ,A.BOM6                   AS BOM6
+	                             ,A.BOM7                   AS BOM7
+	                             ,A.BOM8                   AS BOM8
+	                             ,A.BOM9                   AS BOM9
+	                             ,A.BOM10                  AS BOM10
+	                             ,A.BOM11                  AS BOM11
+	                             ,A.BOM12                  AS BOM12
+	                             ,A.BOM13                  AS BOM13
+	                             ,A.BOM14                  AS BOM14
+	                             ,A.BOM15                  AS BOM15
+	                             ,SDECO.CREATE_BY   AS CREATED_BY
+	                             ,SDECO.STATES_CODE AS STATES_CODE
+	                             ,SDSC.SD_DESC      AS STATES_DESC
+	                             ,A.PROJECT_NO||'-'||'SSC'                        AS STATES_FLAG
+	                         FROM STX_DIS_RAWLEVEL A
+	                             ,STX_DIS_ITEM                              SDI
+	                             ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                             ,STX_DIS_SD_CODE          SDSC
+	                        WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+)
+	                          AND A.PROJECT_NO         = #{p_project_no}
+	                          AND A.ITEM_CODE          = SDI.ITEM_CODE(+) 
+	                          AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                          AND SDSC.SD_TYPE(+)      = 'ECO_STATES' 
+	                          AND NOT EXISTS
+	                              (SELECT 1 
+	                                 FROM STX_DIS_RAWLEVEL_WORK SDSHW
+	                                WHERE A.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+	                               )
+	                        UNION ALL
+	                        SELECT A.MOTHER_CODE            AS MOTHER_CODE
+	                             ,A.ITEM_CODE              AS ITEM_CODE
+	                             ,SDI.ITEM_CATALOG         AS ITEM_CATALOG 
+	                             ,''                       AS DWG_NO
+	                             ,A.ECO_NO                 AS ECO_NO
+	                             ,A.MODIFY_BY              AS EMP_NO
+	                             ,A.BOM_QTY                AS QTY 
+	                             ,A.BOM1                   AS BOM1
+	                             ,A.BOM2                   AS BOM2
+	                             ,A.BOM3                   AS BOM3
+	                             ,A.BOM4                   AS BOM4
+	                             ,A.BOM5                   AS BOM5
+	                             ,A.BOM6                   AS BOM6
+	                             ,A.BOM7                   AS BOM7
+	                             ,A.BOM8                   AS BOM8
+	                             ,A.BOM9                   AS BOM9
+	                             ,A.BOM10                  AS BOM10
+	                             ,A.BOM11                  AS BOM11
+	                             ,A.BOM12                  AS BOM12
+	                             ,A.BOM13                  AS BOM13
+	                             ,A.BOM14                  AS BOM14
+	                             ,A.BOM15                  AS BOM15
+	                             ,SDECO.CREATE_BY   AS CREATED_BY
+	                             ,SDECO.STATES_CODE AS STATES_CODE
+	                             ,SDSC.SD_DESC      AS STATES_DESC
+	                             ,A.PROJECT_NO||'-'||'SSC'  AS STATES_FLAG
+	                         FROM STX_DIS_RAWLEVEL_WORK   A
+	                             ,STX_DIS_ITEM            SDI
+	                             ,STX_DIS_ENG_CHANGE_ORDER SDECO 
+	                             ,STX_DIS_SD_CODE          SDSC
+	                        WHERE A.ECO_NO             = SDECO.ENG_CHANGE_ORDER_CODE(+)
+	                          AND A.PROJECT_NO         = #{p_project_no}
+	                          AND A.ITEM_CODE          = SDI.ITEM_CODE(+) 
+	                          AND SDECO.STATES_CODE    = SDSC.SD_CODE(+)
+	                          AND SDSC.SD_TYPE(+)      = 'ECO_STATES'   
+	            ) A 
+	            START WITH A.ITEM_CODE = #{nodeid} 
+	            AND A.MOTHER_CODE = #{motherCode} 
+	            CONNECT BY PRIOR A.MOTHER_CODE = A.ITEM_CODE
+	    ) A
+	     ,STX_DIS_ITEM       SDI
+	     ,STX_DIS_SD_CATALOG SDSC
+	     ,STX_DIS_ITEM       SDI_ASSY
+	     ,STX_DIS_SD_CATALOG SDSC_ASSY
+	WHERE A.ITEM_CODE           = SDI.ITEM_CODE(+)
+	AND SDI.ITEM_CATALOG      = SDSC.CATALOG_CODE(+)
+	AND A.MOTHER_CODE         = SDI_ASSY.ITEM_CODE(+)
+	AND SDI_ASSY.ITEM_CATALOG = SDSC_ASSY.CATALOG_CODE(+)
+	) A
+	ORDER BY A.ROW_NUM
+	</select>
+</mapper>

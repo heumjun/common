@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpEmsDbMasterAddList_Item">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	from (    
+	select t1.*,  COUNT(*) OVER() AS CNT
+	,floor((rownum - 1) / #{rows} + 1 ) as page
+	from    
+	(     
+	SELECT DISTINCT CATALOG_CODE
+	      ,ITEM_CODE AS I_ITEM_CODE
+	      ,ITEM_DESC AS I_ITEM_DESC
+	  FROM STX_EMS_ITEM
+	ORDER BY ITEM_CODE
+	) t1
+	WHERE 1=1  
+	<if test="p_catalog_code != null and !p_catalog_code.equalsIgnoreCase('') and !p_catalog_code.equalsIgnoreCase('null') and !p_catalog_code.equalsIgnoreCase('*')">
+	   AND CATALOG_CODE = #{p_catalog_code}
+	</if>
+	) t2   
+	where page = #{page}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	SELECT COUNT(*) AS CNT
+	  FROM STX_EMS_ITEM
+	 WHERE 1=1  
+	<if test="p_catalog_code != null and !p_catalog_code.equalsIgnoreCase('') and !p_catalog_code.equalsIgnoreCase('null') and !p_catalog_code.equalsIgnoreCase('*')">
+	   AND CATALOG_CODE = #{p_catalog_code}
+	</if>
+  	</select>
+	
+</mapper>

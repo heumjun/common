@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintQuantityTransfer">
+  
+	<update id="updatePrePEQuantityHalfTransfer">
+	update stx_dis_pis_pattern_scheme
+   	   set last_updated_by    		= #{loginId}
+		  ,last_update_date   		= sysdate
+	      ,pre_pe_area        		= nvl(pre_pe_area,0) + round(pe_area/2,3)
+	      ,pe_area            		= trunc(pe_area/2,3)
+	      ,pre_pe_quantity    		= nvl(pre_pe_quantity,0) + round(pe_quantity/2,3)
+	      ,pe_quantity        		= trunc(pe_quantity/2,3)
+	      ,pre_pe_theory_quantity 	= nvl(pre_pe_theory_quantity,0) + round(pe_theory_quantity/2,3)
+	      ,pe_theory_quantity   	= trunc(pe_theory_quantity/2,3)
+	      ,transfer_gbn				= 'Y'
+	 where project_no  		  = #{project_no}
+	   and revision    		  = #{revision}
+	   and season_code 		  = #{season_code}    
+	   and pre_pe_define_flag = 'N'
+	   and pe_define_flag 	  = 'N'
+	   and transfer_gbn	is null		
+	   and pre_pe_code  is not null  
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>
+	
+	<update id="updatePrePEQuantityAllTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by    		= #{loginId}
+		  ,last_update_date   		= sysdate
+	      ,pre_pe_area        		= nvl(pre_pe_area,0) + round(pe_area,3)
+	      ,pe_area            		= 0
+	      ,pre_pe_quantity    		= nvl(pre_pe_quantity,0) + round(pe_quantity,3)
+	      ,pe_quantity        		= 0    
+	      ,pre_pe_theory_quantity 	= nvl(pre_pe_theory_quantity,0) + round(pe_theory_quantity,3)
+	      ,pe_theory_quantity   	= 0
+	 where project_no  		  = #{project_no}
+	   and revision    		  = #{revision}
+	   and season_code 		  = #{season_code}    
+	   and pre_pe_define_flag = 'N'
+	   and pe_define_flag 	  = 'N'
+	   and pre_pe_code is not null  
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>	
+	
+	<update id="updateHullQuantityAllTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   	= #{loginId}
+		  ,last_update_date  	= sysdate
+	      ,hull_area         	= nvl(hull_area,0) + round(pe_area,3)
+	      ,pe_area           	= 0
+	      ,hull_quantity     	= nvl(hull_quantity,0) + round(pe_quantity,3)
+	      ,pe_quantity       	= 0 
+	      ,hull_theory_quantity = nvl(hull_theory_quantity,0) + round(pe_theory_quantity,3)
+	      ,pe_theory_quantity   = 0
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}    
+	   and hull_define_flag  = 'N'
+	   and pe_define_flag 	 = 'N'
+	   and pe_code 			 is not null
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>
+	
+	<update id="updateBlockQuantityAllTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   	= #{loginId}
+		  ,last_update_date  	= sysdate
+	      ,block_area         	= nvl(block_area,0) + round(pe_area,3)
+	      ,pe_area           	= 0
+	      ,block_quantity     	= nvl(block_quantity,0) + round(pe_quantity,3)
+	      ,pe_quantity       	= 0 
+	      ,block_theory_quantity = nvl(block_theory_quantity,0) + round(pe_theory_quantity,3)
+	      ,pe_theory_quantity   = 0
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}    
+	   and block_define_flag  = 'N'
+	   and pe_define_flag 	 = 'N'	   
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>			
+
+</mapper>

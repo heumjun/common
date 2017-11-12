@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ecrHistoryList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT *
+	  FROM (SELECT TO_CHAR( INSERT_DATE, 'yyyy-mm-dd hh24:mi:ss' ) AS INSERT_DATE
+	              ,STX_DIS_SHORT_EMP_NAME_F(INSERT_EMPNO) AS INSERT_EMPNO
+	              ,ACTION_TYPE
+	              ,ECO_NAME                  AS MAIN_NAME
+	              ,RELATED_ECR               AS ECO_ATTR1
+	              ,TYPE                      AS ECO_ATTR2
+	              ,ECO_CAUSE                 AS ECO_ATTR3
+	              ,DESIGN_ENGINEER           AS ECO_ATTR4
+	              ,MANUFACTURING_ENGINEER    AS ECO_ATTR5
+	              ,STATES_CODE               AS ECO_ATTR6
+	              ,PROJECT                   AS ECO_ATTR7
+	              ,ECO_DESCRIPTION           AS ECO_ATTR8
+	              ,NULL                      AS ECO_ATTR9
+	              ,NULL                      AS ECR_ATTR1
+	              ,NULL                      AS ECR_ATTR2
+	              ,NULL                      AS ECR_ATTR3
+	              ,NULL                      AS ECR_ATTR4
+	              ,NULL                      AS ECR_ATTR5
+	              ,NULL                      AS ECR_ATTR6
+	              ,NULL                      AS ECR_ATTR7
+	              ,NULL                      AS ECR_ATTR8
+	              ,NULL                      AS ECR_ATTR9
+	              ,'ECO'                     AS MAIN_TYPE
+	          FROM STX_DIS_ENG_CHANGE_ORDER_HIS
+	         UNION ALL
+	        SELECT TO_CHAR( INSERT_DATE, 'yyyy-mm-dd hh24:mi:ss' ) AS INSERT_DATE
+	              ,STX_DIS_SHORT_EMP_NAME_F(INSERT_EMPNO) AS INSERT_EMPNO
+	              ,ACTION_TYPE
+	              ,ECR_NAME                  AS MAIN_NAME
+	              ,NULL                      AS ECO_ATTR1
+	              ,NULL                      AS ECO_ATTR2
+	              ,NULL                      AS ECO_ATTR3
+	              ,NULL                      AS ECO_ATTR4
+	              ,NULL                      AS ECO_ATTR5
+	              ,NULL                      AS ECO_ATTR6
+	              ,NULL                      AS ECO_ATTR7
+	              ,NULL                      AS ECO_ATTR8
+	              ,NULL                      AS ECO_ATTR9
+	              ,STATES_DESC               AS ECR_ATTR1
+	              ,RELATED_PROJECT           AS ECR_ATTR2
+	              ,ENG_CHANGE_DESCRITPION    AS ECR_ATTR3
+	              ,ENG_RELATED_PERSON        AS ECR_ATTR4
+	              ,ENG_CHANGE_BASED_ON       AS ECR_ATTR5
+	              ,USER_CODE                 AS ECR_ATTR6
+	              ,DESIGN_ENGINEER           AS ECR_ATTR7
+	              ,LOCKER_BY      		     AS ECR_ATTR8
+	              ,CREATED_BY                AS ECR_ATTR9
+	              ,'ECR'                     AS MAIN_TYPE
+	          FROM STX_DIS_ENG_CHANGE_REQ_HIS
+	       ) HIS_LIST
+	 WHERE HIS_LIST.MAIN_TYPE = #{p_main_type}
+	   AND HIS_LIST.MAIN_NAME = #{p_main_name}
+	 ORDER BY HIS_LIST.INSERT_DATE
+	</select>
+
+
+</mapper>

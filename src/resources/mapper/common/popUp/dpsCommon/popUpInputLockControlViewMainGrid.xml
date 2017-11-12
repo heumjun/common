@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpInputLockControlViewMainGrid">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT A.DEPT_CODE,
+		       B.DEPT_NAME,
+		       TO_CHAR((SELECT NVL( (SELECT C.START_DATE
+		                                FROM   PLM_DESIGN_MH_LOCK C
+		                                WHERE  C.DEPT_CODE = A.DEPT_CODE
+		                                AND    TO_CHAR(C.END_DATE, 'YYYY-MM-DD') >= TO_CHAR(SYSDATE, 'YYYY-MM-DD') ), (SELECT DDD.WORKINGDAY AS S_DATE
+		                                FROM   (SELECT ROWNUM AS ROW_NUM,
+		                                               DD.WORKINGDAY
+		                                        FROM   (SELECT CALENDAR.WORKINGDAY
+		                                                FROM   CCC_CALENDAR CALENDAR
+		                                                WHERE  CALENDAR.WORKINGDAY &lt;= SYSDATE
+		                                                AND    CALENDAR.ISWORKDAY = 'Y'
+		                                                ORDER BY CALENDAR.WORKINGDAY DESC ) DD ) DDD
+		                                WHERE  DDD.ROW_NUM = 2 ) )
+		                FROM   DUAL), 'YYYY-MM-DD') AS LOCK_DATE,
+				'R' as OPER
+		FROM   (SELECT DISTINCT(DEPT_CODE)
+		        FROM   CCC_SAWON
+		        WHERE  INPUT_MAN_HOUR_ENABLED = 'Y'
+		        AND    TERMINATION_DATE IS NULL ) A,
+		       STX_COM_INSA_DEPT@STXERP B
+		WHERE  A.DEPT_CODE = B.DEPT_CODE
+		ORDER BY DEPT_CODE 
+  	</select>
+</mapper>

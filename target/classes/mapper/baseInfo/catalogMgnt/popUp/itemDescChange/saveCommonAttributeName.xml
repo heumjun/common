@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveCommonAttributeName">  	
+  	<insert id="insertCommonAttributeName" parameterType="java.util.Map">
+	insert into stx_dis_sd_code
+       (sd_type
+       ,sd_code
+       ,attribute1
+       ,enable_flag
+       ,created_by
+       ,creation_date
+       ,last_updated_by
+       ,last_update_date)
+	select 'CATALOG_ATTRIBUTE_NAME'  
+	       ,attribute_name
+	       ,'ITEM'
+	       ,'Y'
+	       ,-1
+	       ,SYSDATE
+	       ,-1
+	       ,SYSDATE  
+	  from (
+	        select distinct ca.attribute_name
+	          from stx_dis_sd_catalog_attribute ca
+	         where ca.attribute_name is not null
+	         minus
+	        select sd_code
+	          from stx_dis_sd_code sd
+	         where sd.sd_type = 'CATALOG_ATTRIBUTE_NAME'
+	       ) 
+    </insert>
+</mapper>

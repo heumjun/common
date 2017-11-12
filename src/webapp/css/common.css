@@ -1,0 +1,1029 @@
+@CHARSET "UTF-8";
+
+body {
+	font-size: 9pt;
+	font-family: 맑은 고딕;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	word-break: break-all;
+	border: none;
+	overflow-y: auto;
+	text-align: left;
+}
+
+select {
+	height: 24px;
+	font-size: 9pt;
+	font-family: 맑은 고딕;
+	vertical-align: middle;
+}
+
+input[type=text] {
+	font-size: 9pt;
+	font-family: 맑은 고딕;
+	height: 18px;
+	vertical-align: middle;
+}
+
+input[type=file] {
+	font-size: 9pt;
+	font-family: 맑은 고딕;
+	height: 24px;
+	vertical-align: middle;
+}
+
+input[type=checkbox] {
+	font-size: 9pt;
+	font-family: 맑은 고딕;
+	height: 16px;
+	vertical-align: middle;
+	border: 0px
+}
+
+input[type=radio] {
+	border: 0;
+	height: 20px;
+	vertical-align: middle;
+}
+
+textarea {
+	font-size: 9pt;
+	font-family: 맑은 고딕;
+}
+
+a {
+	font-size: 1em;
+	color: #333333;
+	text-decoration: none;
+}
+
+a:link {
+	font-size: 1em;
+	color: #555555;
+	text-decoration: none;
+}
+
+a:visited {
+	font-size: 1em;
+	color: #555555;
+	text-decoration: none;
+}
+
+a:hover {
+	font-size: 1em;
+	color: #468BE1;
+	text-decoration: underline;
+}
+
+label {
+	cursor: pointer;
+	color: #333333;
+	text-decoration: none;
+}
+
+label:link, label:visited {
+	color: #333333;
+	text-decoration: none;
+}
+
+label:hover, label:active, label:focus {
+	color: #468BE1;
+}
+
+.commonSeries {
+	padding-left: 4px;
+	padding-top: 4px;
+	border: 1px solid #999999;
+	height: 28px;
+}
+
+.header {
+	position: relative;
+	min-width: 1490px;
+	height: 60px;
+	margin: 0 0 10px 0px;
+	width: expression(this.width < 1490 ? 1490 : true);
+}
+
+.pendingheader {
+	position: relative;
+	min-width: 1390px;
+	height: 70px;
+	margin: 0 0 10px 0px;
+	width: expression(this.width < 1380 ? 1490 : true);
+}
+
+.pendingpopupheader {
+	position: relative;
+	width: 98%;
+	height: 70px;
+	margin: 0 0 10px 0px;
+}
+
+.popupheader {
+	position: relative;
+	width: 98%;
+	height: 70px;
+	margin: 0 0 10px 0px;
+}
+/*
+.header {position:relative; min-height:80px; margin:0 0 10px 0px;}
+*/
+.searchTitle {
+	border: 1px solid #A6C9E2;
+	width: 80px;
+	text-align: center;
+	font-weight: bold;
+	float: left;
+	background-color: #E1F0FD;
+	height: 21px;
+	color: #2E6E9E;
+}
+
+/* input[type=button] {
+	border: 2px solid #FFFFFF;
+	background-color: #0288D0;
+	color: #FFFFFF;
+	font-weight: bold;
+	cursor: pointer;
+	border-radius: 0px;
+	height: 25px;
+	font-size: 9pt;
+	padding-bottom: 5px;
+}
+
+input[type=button]:hover {
+	color: #222222;
+	background-color: #FFFFFF;
+	border: 2px solid #000000;
+} */
+.CommonArea {
+	position: relative;
+	min-width: 1490px;
+	width: 100%;
+}
+
+.popupCommonArea {
+	position: relative;
+	width: 98%;
+}
+
+.pendingCommonArea {
+	position: relative;
+	min-width: 1380px;
+}
+
+.pendingPopupCommonArea {
+	position: relative;
+	width: 98%;
+}
+
+.loadingBar {
+	position: relative;
+	text-align: center;
+	height: 30px;
+	margin-top: 6px;
+	display: none;
+	width: 100%;
+	clear: both;
+}
+
+.loadingBoxArea {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	left: 0;
+	top: 0;
+	z-index: 10;
+	z-index: 199;
+	display: none;
+}
+
+.loadingBg {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	left: 0;
+	top: 0;
+	filter: alpha(opacity : '30');
+	background-color: black;
+	z-index: 1;
+}
+
+.loadingProgress {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url(/ematrix/TBC/images/ajax-loader-5.gif);
+	background-repeat: no-repeat;
+	background-position: center;
+	z-index: 3;
+}
+
+.loadingText {
+	position: fixed;
+	width: 500px;
+	height: 130px;
+	z-index: 2;
+	text-align: center;
+	background-color: #FFFFFF;
+	left: 50%;
+	top: 50%;
+	margin-left: -265px;
+	margin-top: 30px;
+	border: 3px solid #DA010A;
+	padding: 20px;
+	font-size: 11pt;
+}
+
+.blue-loader .ajax_loader {
+	/* background: url("../images/ajax-loader-3.gif") no-repeat center center transparent; */
+	position: absolute;
+	top: 45%;
+	left: 45%;
+	height: 50px;
+	border: 2px solid #36b1fc;
+	z-index: 999999;
+}
+
+.commonSeries {
+	padding-left: 4px;
+	padding-top: 4px;
+	border: 1px solid #999999;
+	height: 28px;
+}
+
+.mainBodyScroll {
+	overflow-x: auto;
+	width: 100%;
+}
+
+.pagingArea {
+	width: 100%;
+	text-align: center;
+	margin-top: 10px;
+}
+
+.bomTotalCntArea {
+	font-weight: bold;
+}
+
+.bomTotalCnt {
+	color: red;
+	font-size: 14pt;
+	font-weight: bold;
+}
+
+.ui-autocomplete {
+	max-height: 200px;
+	overflow-y: auto;
+	/* prevent horizontal scrollbar */
+	overflow-x: hidden;
+}
+
+.tooltipArea {
+	position: absolute;
+	width: auto;
+	height: auto;
+	border: 2px solid #666;
+	background-color: #ffffff;
+	font-weight: bold;
+	color: #666;
+	display: none;
+	padding: 5px;
+	box-shadow: 2px 2px 4px #888;
+	border-radius: 4px;
+}
+
+.grid_warning {
+	background-color: #F9C474
+}
+
+/*레이어 관련*/
+.layer {
+	display: none;
+	position: fixed;
+	_position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 99;
+}
+
+.layer .bg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: #000;
+	opacity: .5;
+	filter: alpha(opacity = 50);
+}
+
+.layer .pop-layer {
+	display: block;
+}
+
+.pop-layer {
+	display: none;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 410px;
+	height: auto;
+	background-color: #fff;
+	border: 5px solid #3571B5;
+	z-index: 100;
+}
+
+.pop-layer .pop-container {
+	padding: 20px 25px;
+}
+
+.pop-layer p.ctxt {
+	color: #666;
+	line-height: 25px;
+}
+
+.pop-layer .btn-r {
+	width: 100%;
+	margin: 10px 0 20px;
+	padding-top: 10px;
+	border-top: 1px solid #DDD;
+	text-align: right;
+}
+
+a.cbtn {
+	display: inline-block;
+	height: 25px;
+	padding: 0 14px 0;
+	border: 1px solid #304a8a;
+	background-color: #3f5a9d;
+	font-size: 13px;
+	color: #fff;
+	line-height: 25px;
+}
+
+a.cbtn:hover {
+	border: 1px solid #091940;
+	background-color: #1f326a;
+	color: #fff;
+}
+
+.headerAct {
+	position: relative;
+	width: 1300px;
+	height: 120px;
+	margin: 0 0 10px 4px;
+}
+
+.headerAct .searchArea {
+	position: relative;
+	width: 200px;
+	float: left;
+	height: 140px;
+	margin: 0;
+	padding: 12px 0px 5px 0px;
+}
+
+.headerAct .searchArea .searchDetail {
+	padding: 3px 0 0 0;
+	float: right;
+	margin: 0 10px 0 0;
+	font-weight: bold;
+}
+
+.headerAct .searchArea .searchDetail .selectbox1 {
+	width: 106px;
+	background-color: #FFE0C0;
+}
+
+.headerAct .searchArea .searchDetail .selectbox2 {
+	width: 106px;
+}
+
+.headerAct .searchArea .commonInput {
+	width: 100px;
+}
+
+.headerAct .searchArea .commonInput1 {
+	width: 100px;
+	background-color: #FFE0C0;
+}
+
+.headerAct .searchArea2 {
+	position: relative;
+	width: 270px;
+	float: left;
+	height: 120px;
+	margin: 0;
+	padding: 10px 0px 0px 160px;
+}
+
+.headerAct .searchArea2 .searchDetail2 {
+	padding: 3px 0 0 0;
+	float: right;
+	margin: 0 10px 0 0;
+	font-weight: bold;
+}
+
+.headerAct .searchArea2 .searchDetail2 .button1 {
+	cursor: hand;
+	width: 208px;
+}
+
+.headerAct .searchArea2 .searchDetail3 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 20px;
+	font-weight: bold;
+}
+
+.headerAct .searchArea2 .searchDetail4 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 35px;
+	font-weight: bold;
+}
+
+.headerAct .searchArea2 .commonInput2 {
+	width: 100px;
+}
+
+.headerAct .buttonArea {
+	position: relative;
+	width: 100px;
+	float: left;
+	height: 120px;
+	padding: 14px 0px 0px 265px;
+}
+
+.headerAct .buttonArea2 {
+	position: relative;
+	width: 200px;
+	float: left;
+	height: 100px;
+	padding: 14px 0px 0px 0px;
+}
+
+.headerAct .buttonArea2 .button1 {
+	cursor: hand;
+	width: 80px;
+	height: 110px;
+}
+
+.headerAct .buttonArea .btnLeft {
+	width: 220px;
+	height: 26px;
+	float: left;
+	padding: 0px 0px 5px 0px;
+}
+
+.headerAct .buttonArea input {
+	width: 70px;
+	height: 20px;
+	cursor: pointer;
+	margin-bottom: 8px;
+}
+
+.headerAct .buttonArea .ECOLabel {
+	width: 66px;
+	height: 17px;
+	padding: 2px 0px 0px 2px;
+	font-weight: bold;
+	text-align: center;
+}
+
+.headerAct .buttonArea .ECOInput {
+	width: 142px;
+	height: 17px;
+	padding: 2px 0px 0px 2px;
+	cursor: text;
+}
+
+.headerAct .buttonArea .button1 {
+	width: 220px;
+}
+
+.headerAct .buttonArea .button2 {
+	width: 71px;
+}
+
+.headerAct .buttonArea .button3 {
+	width: 71px;
+	float: right;
+}
+
+.contentAct {
+	position: relative;
+	margin-left: 18px;
+	width: 1300px;
+	text-align: center;
+}
+
+.headerJob {
+	position: relative;
+	width: 1520px;
+	height: 140px;
+	margin: 0 0 10px 4px;
+}
+
+.headerJob .searchArea {
+	position: relative;
+	width: 210px;
+	float: left;
+	height: 215px;
+	margin: 0;
+	padding: 12px 0px 0px 15px;
+}
+
+.headerJob .searchArea .searchDetail {
+	padding: 3px 0 0 0;
+	float: right;
+	margin: 0 10px 0 0;
+	font-weight: bold;
+}
+
+.headerJob .searchArea .searchDetail .selectbox1 {
+	width: 106px;
+	background-color: #FFE0C0;
+}
+
+.headerJob .searchArea .searchDetail .selectbox2 {
+	width: 106px;
+}
+
+.headerJob .searchArea .commonInput {
+	width: 100px;
+}
+
+.headerJob .searchArea .discriptionInput {
+	width: 216px;
+}
+
+.headerJob .searchArea2 {
+	position: relative;
+	width: 430px;
+	float: left;
+	height: 120px;
+	margin: 0;
+	padding: 10px 0px 0px 6px;
+}
+
+.headerJob .searchArea2 .searchDetail2 {
+	padding: 3px 0 0 0px;
+	float: right;
+	margin: 0 10px 0 0;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .searchDetail2 .button1 {
+	cursor: hand;
+	width: 208px;
+}
+
+.headerJob .searchArea2 .searchDetail3 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 16px;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .searchDetail4 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 24px;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .searchDetail5 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 36px;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .searchDetail6 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 46px;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .commonInput2 {
+	width: 101px;
+}
+
+.headerJob .searchArea3 {
+	position: relative;
+	width: 50px;
+	float: left;
+	height: 40px;
+	margin: 0;
+	padding: 29px 10px 0px 150px;
+}
+
+.headerJob .searchArea3 .commonInput3 {
+	float: left;
+	width: 60px;
+	height: 35px;
+	text-align: center;
+	vertical-align: middle;
+	line-height: 35px;
+	font-weight: bold;
+	font-size: 15px;
+	background-color: #FFE0C0;
+}
+
+.headerJob .buttonArea {
+	position: relative;
+	width: 100px;
+	float: left;
+	height: 120px;
+	padding: 14px 0px 0px 240px;
+}
+
+.headerJob .buttonArea .btnLeft {
+	width: 220px;
+	height: 26px;
+	float: left;
+	padding: 0px 0px 5px 0px;
+}
+
+.headerJob .buttonArea .btnLeft .button1 {
+	width: 220px;
+}
+
+.headerJob .buttonArea .btnLeft .button2 {
+	width: 71px;
+}
+
+.headerJob .buttonArea .btnLeft .button3 {
+	width: 71px;
+	float: right;
+}
+
+.headerJob .buttonArea input {
+	width: 70px;
+	height: 20px;
+	cursor: pointer;
+	margin-bottom: 8px;
+}
+
+.headerJob .buttonArea .ECOLabel {
+	width: 66px;
+	height: 17px;
+	padding: 2px 0px 0px 2px;
+	font-weight: bold;
+	text-align: center;
+}
+
+.headerJob .buttonArea .ECOInput {
+	width: 142px;
+	height: 17px;
+	padding: 2px 0px 0px 2px;
+	cursor: text;
+}
+
+.headerJob .buttonArea2 {
+	position: relative;
+	width: 200px;
+	float: left;
+	height: 100px;
+	padding: 14px 0px 0px 0px;
+}
+
+.headerJob .buttonArea2 .button1 {
+	cursor: hand;
+	width: 80px;
+	height: 134px;
+}
+
+.contentJob {
+	position: relative;
+	margin-left: 18px;
+	width: 1520px;
+	text-align: center;
+}
+
+/* DWG 조회 조건 style  */
+.topMain {
+	margin-top: 10px;
+}
+
+.topMain .conSearch {
+	display: inline;
+}
+
+.topMain .conSearch .spanMargin {
+	margin-left: 8px;
+}
+
+.topMain .conSearch .textBox {
+	width: 100px;
+}
+
+.topMain .conSearch .required {
+	background-color: #FFFFA2;
+	text-transform: uppercase;
+}
+
+.topMain .conSearch .notdisabled {
+	background-color: #DADADA;
+	text-transform: uppercase;
+}
+
+.topMain .button {
+	float: right;
+	margin: 0px 15px 0px 0px;
+	display: inline;
+}
+
+.content {
+	margin-top: 0px;
+	margin-left: 30px;
+}
+
+.topMain .conSearch .toUpper {
+	width: 100px;
+	text-transform: uppercase;
+}
+
+.handcursor {
+	cursor: pointer;
+	text-decoration: underline;
+	color: blue
+}
+
+.conCaption50 {
+	position: relative;
+	width: 50px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption60 {
+	position: relative;
+	width: 60px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption65 {
+	position: relative;
+	width: 65px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption70 {
+	position: relative;
+	width: 70px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption80 {
+	position: relative;
+	width: 80px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption90 {
+	position: relative;
+	width: 90px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption100 {
+	position: relative;
+	width: 100px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption150 {
+	position: relative;
+	width: 150px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput50 {
+	position: relative;
+	width: 50px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput100 {
+	position: relative;
+	width: 100px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput130 {
+	position: relative;
+	width: 130px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput150 {
+	position: relative;
+	width: 150px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput160 {
+	position: relative;
+	width: 160px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput170 {
+	position: relative;
+	width: 170px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput180 {
+	position: relative;
+	width: 180px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput190 {
+	position: relative;
+	width: 190px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput200 {
+	position: relative;
+	width: 200px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput250 {
+	position: relative;
+	width: 250px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput300 {
+	position: relative;
+	width: 300px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput400 {
+	position: relative;
+	width: 400px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conBr {
+	position: relative;
+	width: 100%;
+	float: left;
+}
+
+.disablefield {
+	background-color: #DFEFFC;
+	text-align: center
+}
+
+.subtitle {
+	width: 98%;
+	height: 13px;
+	font-size: 11pt;
+	font-weight: 700;
+	color: #000;
+	background: url(../images/main/icon1.gif) no-repeat 9px 15px;
+	letter-spacing: 0em;
+	padding-left: 35px;
+	padding-bottom: 20px;
+	padding-top: 1px;
+	line-height: 29px;
+	vertical-align: middle;
+	border-bottom: 1px solid #cdcdcd;
+}
+
+.subtitle2 {
+	width: 97%;
+	height: 13px;
+	font-size: 11pt;
+	font-weight: 700;
+	color: #000;
+	background: url(../images/main/icon1.gif) no-repeat 9px 15px;
+	letter-spacing: 0em;
+	padding-left: 35px;
+	padding-bottom: 20px;
+	padding-top: 1px;
+	line-height: 29px;
+	vertical-align: middle;
+	border-bottom: 1px solid #cdcdcd;
+}
+
+.mainDiv {
+	width: 98%;
+	display: block;
+	margin-left: 10px;
+	float: left;
+	min-height: 550px;
+	background: url(../images/main/ct_bg.gif) repeat-x left top;
+}

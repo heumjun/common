@@ -1,0 +1,25 @@
+<font size=2><p><b>수고 많으십니다. </b></p></font>
+
+#if ($states_desc == "Release")
+<font size=2><p><b> ECO NO  :  <a href="http://172.16.2.13:7777/j2ee/STXERP/WebReport.jsp?src=http://172.16.2.13:7777/j2ee/STXERP/mrd/STXSTD303.mrd&param=${main_code}">${main_code}</a> 가 ${states_desc} 되었습니다. ${action} 바랍니다. </b></p></font>
+#else
+<font size=2><p><b> ECO NO  :  <a href="http://dims.stxons.com:8001/eco.do?ecoName=${main_code}&menu_id=M00161&popupDiv=Y&checkPopup=Y">${main_code}</a> 가 ${states_desc} 되었습니다. ${action} 바랍니다. </b></p></font>
+#end
+
+<font size=2><p><b> 사유 :  ${notify_msg} </b></p></font>
+<font size=2><p>&nbsp;--------------------- 아래-----------------------</p>
+&nbsp;&nbsp;&nbsp;&nbsp;- ECO NO :  ${main_code}
+<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO 원인 CODE :  ${mail_eco_cause}
+<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO Description :  ${mail_main_desc}
+<br />
+#foreach( $ecr in $ecrList )
+	#if ($ecr.state_type == "ECR")
+	<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECR NO : $ecr.main_name
+	<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECR Based On : $ecr.baseOn
+	<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECR Description : $ecr.main_desc
+	<br />
+    #elseif ($ecr.state_type == "ROUTE" &&  "1"== $ecr.no && 1==2)
+    <br /> 사유 : $ecr.notify_msg
+    #end
+#end
+</font>

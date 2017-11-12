@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="factorCaseMainGridSave">
+	<insert id="insert"  parameterType="java.util.Map">
+		INSERT
+		INTO   PLM_DESIGN_MH_FACTOR
+		VALUES(#{case_no},
+		               #{factor_no},
+		               #{month_from},
+		               #{month_to},
+		               #{factor},
+		               SYSDATE,
+		               #{loginId},
+		               SYSDATE,
+		               #{loginId})
+	</insert>
+	
+	<update id="updateDefaultCase"   parameterType="java.util.Map">
+		UPDATE PLM_CODE_TBL A
+		SET    A.VALUE = #{case_no},
+		       A.UPDATE_DATE = SYSDATE,
+		       A.UPDATE_BY = #{loginId}
+		WHERE  A.CATEGORY = 'MH_FACTOR'
+		AND    A.KEY = 'ACTIVE_CASE' 
+	</update>
+</mapper>

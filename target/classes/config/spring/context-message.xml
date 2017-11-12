@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- 메시지 관리 -->
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="defaultEncoding" value="UTF-8" />
+		<property name="basenames">
+			<list>
+				<value>classpath:/system</value>
+				<value>classpath:/message/stxdismessage</value>
+				<value>classpath:/add_db_connect</value>
+				<value>classpath:/stxEngineeringCentralItemStringResource</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="messageSourceAccessor" class="org.springframework.context.support.MessageSourceAccessor">
+		<constructor-arg ref="messageSource"></constructor-arg>
+	</bean>
+	<bean id="message" class="stxship.dis.common.util.DisMessageUtil">
+		<property name="messageSourceAccessor" ref="messageSourceAccessor" />
+	</bean>
+</beans>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintZone">
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_zone
+	  where project_no = #{project_no}
+	    and revision   = #{revision}  
+	    and area_code  = #{area_code}
+  	</select>
+  	
+  	<insert id="insert" parameterType="java.util.Map">
+	 insert into stx_dis_pis_zone
+	   (
+		  project_no
+	     ,revision
+	     ,zone_code
+	     ,area_code
+	     ,quay
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	     ,area_master
+	     ,area_group
+	     ,master_area_desc	     
+	   )
+	   values
+	   (
+	     #{project_no}
+		,#{revision}
+		,#{zone_code}
+		,#{area_code}
+		,#{quay}
+	    ,#{loginId}
+	    ,sysdate
+	    ,#{loginId}
+	    ,sysdate
+	    ,#{area_master}
+	    ,#{area_group}
+	    ,#{master_area_desc}    
+	   )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+	 update stx_dis_pis_zone
+	   set quay		= #{quay}
+	   	  ,zone_code = #{zone_code}
+	      ,last_updated_by  = #{loginId}
+	      ,last_update_date = sysdate
+	      ,area_master      = #{area_master}
+	      ,area_group       = #{area_group}
+	      ,master_area_desc = #{master_area_desc}
+	 where rowid  	 		= #{main_rowid}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  	 delete from stx_dis_pis_zone
+     where 1=1 
+       and rowid   = #{main_rowid}
+  	 
+  	</delete>
+  	
+  	<select id="selectZoneAreaGroupValidCheck" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT ZONE_CODE
+	      ,AREA_GROUP
+	      ,(CASE WHEN MASTER_CNT = 0 THEN 'NON'
+	             WHEN MASTER_CNT <![CDATA[>]]> 1 THEN 'DUP'
+	        END) AS CHECK_MSG 
+	  FROM (
+	         SELECT ZONE_CODE
+	               ,AREA_GROUP
+	               ,SUM(CASE WHEN AREA_MASTER = 'Y' THEN 1 ELSE 0 END) AS MASTER_CNT 
+	          FROM STX_DIS_PIS_ZONE
+	         WHERE PROJECT_NO = #{project_no}
+	           AND REVISION   = #{revision}
+	           AND AREA_GROUP IS NOT NULL 
+	         GROUP BY ZONE_CODE
+	                 ,AREA_GROUP
+	        )
+	 WHERE  MASTER_CNT != 1
+	 ORDER BY ZONE_CODE,CHECK_MSG,AREA_GROUP 
+  	
+  	</select>
+  	
+  	
+  	<select id="selectZoneQuayValidCheck" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT ZONE_CODE
+	  FROM 
+	       ( SELECT ZONE_CODE
+	              ,QUAY
+	          FROM STX_DIS_PIS_ZONE
+	         WHERE 1=1
+	           AND PROJECT_NO = #{project_no}
+	           AND REVISION   = #{revision}
+	           AND QUAY IS NOT NULL
+	        GROUP BY ZONE_CODE,QUAY
+	       )
+	  GROUP BY ZONE_CODE
+	  HAVING COUNT(*) > 1  	
+  	</select>  	
+</mapper>

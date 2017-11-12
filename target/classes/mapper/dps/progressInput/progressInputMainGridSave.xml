@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="progressInputMainGridSave">
+
+	<update id="saveOneStPartPerson" parameterType="java.util.Map">
+		UPDATE PLM_ACTIVITY
+		SET    SABUN = #{sabun},
+		       UPDATEDATE = SYSDATE,
+		       UPDATEBY = #{loginId}
+		WHERE  PROJECTNO = #{projectno}
+		AND    ACTIVITYCODE like #{dwgcode}|| '%'
+	</update>
+	
+	<update id="saveTwoNdPartPerson" parameterType="java.util.Map">
+		UPDATE PLM_ACTIVITY
+		SET    SUB_SABUN = #{sub_sabun},
+		       UPDATEDATE = SYSDATE,
+		       UPDATEBY = #{loginId}
+		WHERE  PROJECTNO = #{projectno}
+		AND    ACTIVITYCODE like #{dwgcode}|| '%'
+	</update>
+	
+	<update id="saveStartPPStmt" parameterType="java.util.Map">
+		UPDATE PLM_ACTIVITY
+		SET    ACTUALSTARTDATE = TO_DATE(#{targetDate,jdbcType=VARCHAR}, 'YYYY-MM-DD'),
+		       UPDATEDATE = SYSDATE,
+		       UPDATEBY = #{loginId}
+		WHERE  PROJECTNO = #{projectno}
+		AND    ACTIVITYCODE = #{dwgcode}|| #{actionAddCode}
+	</update>
+	<update id="saveFinishPPStmt" parameterType="java.util.Map">
+		UPDATE PLM_ACTIVITY
+		SET    ACTUALFINISHDATE = TO_DATE(#{targetDate,jdbcType=VARCHAR}, 'YYYY-MM-DD'),
+		       UPDATEDATE = SYSDATE,
+		       UPDATEBY = #{loginId}
+		WHERE  PROJECTNO = #{projectno}
+		AND    ACTIVITYCODE = #{dwgcode}|| #{actionAddCode}
+	</update>
+</mapper>

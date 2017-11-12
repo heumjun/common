@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="purchasingGroupCodeExcelExport">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		 SELECT catalog_type
+		                      , catalog_type_desc
+		                      , standard_flag
+		                      , enable_flag
+		                      , enable_flag AS enable_flag_changed
+		                   FROM stx_dis_sd_catalog_type
+		<where>
+			<if test='p_catalogType != null and !p_catalogType.equalsIgnoreCase("")'>
+		                    AND catalog_type LIKE #{p_catalogType} || '%'
+			</if>
+			<if test='p_catalogTypeDesc != null and !p_catalogTypeDesc.equalsIgnoreCase("")'>
+		                    AND catalog_type_desc LIKE #{p_catalogTypeDesc} || '%'
+			</if>
+		</where>
+		                  ORDER BY catalog_type
+	</select>
+
+</mapper>

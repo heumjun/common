@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePatternUndefine">
+
+ 	<update id="updatePatternCodeUndefine">
+	update stx_dis_pis_pattern
+	   set define_flag  = 'N'
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}	
+	   and pattern_code = #{pattern_code}
+	   and define_flag  = 'Y'
+	</update>
+</mapper>

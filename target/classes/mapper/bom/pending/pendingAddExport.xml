@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="pendingAddExport">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT AA.USE_PROJECT                                                AS USE_PROJECT
+              ,AA.JOB_CD                                                     AS JOB_CD
+              ,AA.ACTION_FLAG                                                AS ACTION_FLAG                          
+              ,AA.STR_FLAG                                                   AS STR_FLAG
+              ,AA.ITEM_DESC                                                  AS ITEM_DESC
+              ,AA.BLOCK_NO                                                   AS BLOCK_NO
+              ,(SELECT SPIC.ACTIVITY_DESC
+			     FROM STX_PM_ITEM_CATALOG_BLK_MAP@STXERP  SPIC
+			     WHERE SPIC.ORGANIZATION_ID = 82
+			       AND SPIC.SHIPTYPE        = AA.SHIP_TYPE
+			       AND SPIC.ITEM_CATALOG    = AA.MOTHER_CATALOG 
+			       AND SPIC.BLOCK           = AA.BLOCK_NO
+			       AND ROWNUM = 1
+			   ) 															 AS BLOCK_DESC
+              ,AA.ACTIVITY_CD                                                AS ACTIVITY_CD
+              ,AA.JOB_CATALOG                                                AS JOB_CATALOG
+              ,AA.MASTER_SHIP                                        		 AS MASTER_SHIP
+              ,(SELECT COUNT(*)
+                  FROM STX_DIS_PENDING_WORK  A
+                 WHERE A.JOB_CD = AA.JOB_CD           
+                )                                                            AS WK_CNT
+              ,(SELECT COUNT(*)  
+                  FROM STX_DIS_PENDING  A
+                 WHERE A.JOB_CD = AA.JOB_CD
+                )                                                            AS PD_CNT
+              ,TO_CHAR(STX_DIS_PENDING_TERM_START_F(AA.USE_PROJECT, AA.STR_FLAG, AA.BLOCK_NO, AA.BOM10, AA.MOTHER_CATALOG, AA.JOB_CD, AA.JOB_CATALOG),'YYYY-MM-DD') AS TERM_DATE
+           FROM (SELECT SDP.REPRESENTATIVE_PRO_NUM   AS MASTER_SHIP
+                       ,BOM_LIST.PROJECT_NO          AS USE_PROJECT
+                       ,BOM_LIST.ITEM_CODE           AS JOB_CD
+                       ,BOM_LIST.ITEM_CATALOG        AS JOB_CATALOG
+                       ,''                           AS ACTION_FLAG
+                       ,BOM_LIST.STR                 AS STR_FLAG
+                       ,STI.ITEM_DESC                AS ITEM_DESC
+                       ,BOM_LIST.BLOCK_NO            AS BLOCK_NO
+                       ,BOM_LIST.MOTHER_CODE         AS ACTIVITY_CD
+                       ,BOM_LIST.MOTHER_CATALOG      AS MOTHER_CATALOG 
+					   ,SDM.SHIP_TYPE                AS SHIP_TYPE
+					   ,BOM_LIST.BOM10               AS BOM10
+                   FROM (
+                         SELECT CONNECT_BY_ISLEAF  AS LAST_LEVEL_FLAG
+                               ,SDUB.*
+                           FROM STX_DIS_USC_BOM SDUB
+                          START WITH SDUB.MOTHER_CODE = #{p_project_no, jdbcType=VARCHAR} 
+                         CONNECT BY PRIOR SDUB.ITEM_CODE = SDUB.MOTHER_CODE
+                        )                   BOM_LIST
+                       ,STX_DIS_SD_CATALOG  SDSC   
+                       ,STX_DIS_PROJECT     SDP
+                       ,STX_DIS_MODEL       SDM
+                       ,STX_DIS_ITEM        STI
+                  WHERE BOM_LIST.LAST_LEVEL_FLAG = 1
+                    AND BOM_LIST.ITEM_CATALOG = SDSC.CATALOG_CODE
+                    AND SDSC.JOB_FLAG         = 'Y'  
+                    AND BOM_LIST.PROJECT_NO   = SDP.PROJECT_NO
+                    AND SDP.MODEL_NO          = SDM.MODEL_NO
+                    AND BOM_LIST.ITEM_CODE    = STI.ITEM_CODE
+                 ORDER BY BOM_LIST.BLOCK_NO
+                         ,BOM_LIST.STR 
+                         ,BOM_LIST.ITEM_CODE
+                 ) AA
+                  WHERE 1=1
+                 
+                <if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+                	AND BLOCK_NO LIKE REPLACE(#{p_block_no, jdbcType=VARCHAR }, '*', '%')
+                </if>
+                
+                <if test='p_job_catalog != null and !p_job_catalog.equalsIgnoreCase("")'>
+                	AND JOB_CATALOG LIKE REPLACE(#{p_job_catalog, jdbcType=VARCHAR }, '*', '%')
+                </if>
+                
+                <if test='p_str != null and !p_str.equalsIgnoreCase("") and !p_str.equalsIgnoreCase("ALL")'>
+                	AND STR_FLAG = #{p_str, jdbcType=VARCHAR }
+                </if>
+                
+                <if test='p_description != null and !p_description.equalsIgnoreCase("")'>
+                	AND ITEM_DESC LIKE REPLACE(#{p_description, jdbcType=VARCHAR }, '*', '%')
+                </if>
+                
+                <if test='p_wkCnt != null and !p_wkCnt.equalsIgnoreCase("") and !p_wkCnt.equalsIgnoreCase("ALL")'>
+					<choose>
+						<when test='p_wkCnt == "Y"'>
+		 					AND ( SELECT COUNT(*) FROM STX_DIS_PENDING_WORK A WHERE A.JOB_CD = AA.JOB_CD ) > 0
+		 				</when>
+		 				<otherwise>
+		 					AND ( SELECT COUNT(*) FROM STX_DIS_PENDING_WORK A WHERE A.JOB_CD = AA.JOB_CD ) = 0
+		 				</otherwise>
+	 				 </choose>
+			    </if>
+			    
+			    <if test='p_pdCnt != null and !p_pdCnt.equalsIgnoreCase("") and !p_pdCnt.equalsIgnoreCase("ALL")'>
+					<choose>
+						<when test='p_pdCnt == "Y"'>
+		 					AND ( SELECT COUNT(*) FROM STX_DIS_PENDING A WHERE A.JOB_CD = AA.JOB_CD ) > 0
+		 				</when>
+		 				<otherwise>
+		 					AND ( SELECT COUNT(*) FROM STX_DIS_PENDING A WHERE A.JOB_CD = AA.JOB_CD ) = 0
+		 				</otherwise>
+	 				 </choose>
+			    </if>
+	  
+  	</select>
+
+</mapper>

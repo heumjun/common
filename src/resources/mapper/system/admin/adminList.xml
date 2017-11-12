@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="adminList">
+  	<!-- 프로그램관리 조회버튼 클릭시 SQL Mapping -->
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T2.*
+		  FROM (SELECT T1.*
+		             , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM (SELECT C.SEQ
+		                     , A.EMP_NO
+						     , A.PASSWORD
+						     , A.AUTHOR_CODE
+						     , A.ECR_EVALUATOR
+						     , A.NAME
+						     , A.CREATE_BY
+						     , A.CREATE_DATE
+						     , A.MODIFY_BY
+						     , A.MODIFY_DATE
+						     , A.GROUP_ID
+						     , A.USE_YN
+						     , A.ECR_EVALUATOR_SITE
+						     , A.ADMIN_YN
+						     , B.DEPT_CODE
+						     , B.DEPT_NAME
+						     , B.POSITION_CODE
+						     , B.POSITION_NAME
+						     , B.JOB_COD
+						     , B.JOB_NAM
+						     , B.JIK_COD
+						     , B.JIK_NAM
+						     , B.TEL_NO
+						     , B.CEL_NO
+						     , B.EP_MAIL
+						     , B.SEX_CD
+						     , B.EMP_KIND_CD
+						     , B.EMP_KIND_NM
+						     , B.EMP_KIND_SUB_CD
+						     , B.EMP_KIND_SUB_NM
+						     , B.WORK_AREA_CD
+						     , B.WORK_AREA_NM
+						  FROM (SELECT *
+						          FROM STX_DIS_USER
+						         WHERE USE_YN = 'Y') A
+						     , (SELECT *
+						          FROM STX_COM_INSA_USER@STXERP
+						         WHERE DEL_DATE IS NULL) B
+						     , STX_DIS_ADMIN C
+						 WHERE A.EMP_NO = B.EMP_NO
+						   AND A.EMP_NO = C.EMP_NO
+						 ORDER BY B.EMP_KIND_CD, B.POSITION_CODE, B.POSITION_CODE, A.NAME) T1 ) T2
+		 WHERE PAGE = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT
+		  FROM (SELECT *
+		          FROM STX_DIS_USER
+		         WHERE USE_YN = 'Y') A
+		     , (SELECT *
+		          FROM STX_COM_INSA_USER@STXERP
+		         WHERE DEL_DATE IS NULL) B
+		     , STX_DIS_ADMIN C
+		 WHERE A.EMP_NO = B.EMP_NO
+		   AND A.EMP_NO = C.EMP_NO
+  	</select>
+</mapper>

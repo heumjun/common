@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoItemCatalogCode">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		<choose>
+			<when test='level_no == "1"'>
+				SELECT A.ACTIVITY_CATALOG AS CATALOG_CODE, B.CATALOG_DESC
+				  FROM STX_DIS_INFO_PD_LIST A, STX_DIS_SD_CATALOG B
+				 WHERE B.CATALOG_CODE(+) = A.ACTIVITY_CATALOG
+				   AND A.ACTIVITY_CATALOG LIKE '%'||#{p_catalog_code}||'%'
+				   AND A.ENABLE_FLAG = 'Y'
+				 GROUP BY A.ACTIVITY_CATALOG, B.CATALOG_DESC
+				 ORDER BY A.ACTIVITY_CATALOG
+			</when>
+			<when test='level_no != "1"'>
+				<!-- SELECT A.ACTIVITY_CATALOG AS ASSY_CATALOG_CODE, A.JOB_CATALOG AS CATALOG_CODE, B.CATALOG_DESC
+				  FROM STX_DIS_INFO_PD_LIST A, STX_DIS_SD_CATALOG B
+				 WHERE B.CATALOG_CODE(+) = A.JOB_CATALOG
+				   <if test='mother_catalog !=null and mother_catalog !="" '>
+				   AND A.ACTIVITY_CATALOG = #{mother_catalog}
+				   </if>
+				   AND A.JOB_CATALOG LIKE '%'||#{p_catalog_code}||'%'
+				   AND A.ENABLE_FLAG = 'Y'
+				 GROUP BY A.ACTIVITY_CATALOG, A.JOB_CATALOG, B.CATALOG_DESC
+				 ORDER BY A.JOB_CATALOG -->
+				   SELECT B.CATALOG_CODE     AS CATALOG_CODE
+			        ,B.CATALOG_DESC     AS CATALOG_DESC
+			    FROM STX_DIS_SD_CATALOG   B
+			   WHERE B.CATALOG_CODE    LIKE '%' || #{p_catalog_code} || '%'
+			     AND B.PAINT_USC_FLAG = 'Y'
+			     AND B.ENABLE_FLAG    = 'Y'
+			   GROUP BY B.CATALOG_CODE
+			           ,B.CATALOG_DESC
+			   ORDER BY B.CATALOG_CODE
+			</when>
+			
+		</choose>
+		
+	</select>
+</mapper>

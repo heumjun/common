@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveDWGMailReceiver">
+	<select id = "selectDWG_RECEIVER_ID" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+  	SELECT CASE
+	         WHEN T2.RECEIVER_ID IS NULL THEN
+	          STX_DWG_RECEIVER_ID_S.NEXTVAL@stxerp
+	         ELSE
+	          T2.RECEIVER_ID
+	       END RECEIVER_ID
+	      ,T2.RECEIVER_ID RECEIVER_ID_EXIST
+	  FROM (SELECT #{MASTER_PROJECT_NO} MASTER_PROJECT_NO FROM DUAL) T1
+	      ,(SELECT SDER.RECEIVER_ID
+	              ,SDER.MASTER_PROJECT_NO
+	          FROM STX_DWG_ECO_RECEIVER@stxerp SDER
+	         WHERE SDER.MASTER_PROJECT_NO = #{MASTER_PROJECT_NO}
+	           AND SDER.DWG_NO = #{DWG_NO}
+	           AND SDER.REV_NO = #{REV_NO}
+	           AND SDER.ECO_NO IS NULL) T2
+	 WHERE T1.MASTER_PROJECT_NO = T2.MASTER_PROJECT_NO(+)
+  	</select>  	
+  	<delete id = "delSTX_DWG_ECO_RECEIVER_USER" parameterType="java.util.Map">
+  		DELETE STX_DWG_ECO_RECEIVER_USER@stxerp 
+	 	 WHERE RECEIVER_ID = #{RECEIVER_ID}
+  	</delete>
+  	<update id = "updateSTX_DWG_ECO_RECEIVER" parameterType="java.util.Map">
+  		UPDATE STX_DWG_ECO_RECEIVER@stxerp
+	       SET DESCRIPTION       = #{DESCRIPTION,jdbcType=VARCHAR}
+	          ,LAST_UPDATED_BY   = #{LAST_UPDATED_BY,jdbcType=VARCHAR}
+	          ,LAST_UPDATE_DATE  = SYSDATE
+	          ,CAUSEDEPT		 = #{CAUSEDEPT,jdbcType=VARCHAR}
+	          ,work_stage        = #{WORK_STAGE,jdbcType=VARCHAR}
+	          ,work_time         = #{WORK_TIME,jdbcType=VARCHAR}
+	          ,user_list         = #{USER_LIST,jdbcType=VARCHAR}
+	          ,item_eco_no       = #{ITEM_ECO_NO,jdbcType=VARCHAR}
+	          ,ecr_no            = #{ECR_NO,jdbcType=VARCHAR}
+	          ,eco_ea            = #{ECO_EA,jdbcType=VARCHAR}
+	     WHERE RECEIVER_ID = #{RECEIVER_ID,jdbcType=VARCHAR}
+  	</update>
+  	<insert id="addSTX_DWG_ECO_RECEIVER" parameterType="java.util.Map">
+  		INSERT INTO STX_DWG_ECO_RECEIVER@stxerp
+		  (
+			  MASTER_PROJECT_NO       
+			 ,DWG_NO                  
+			 ,REV_NO                  
+			 ,ECO_NO                  
+			 ,RECEIVER_ID             
+			 ,DESCRIPTION             
+			 ,CREATED_BY               
+			 ,CREATION_DATE              
+			 ,LAST_UPDATED_BY          
+			 ,LAST_UPDATE_DATE        
+			 ,LAST_UPDATE_LOGIN
+			 ,CAUSEDEPT 
+			 ,work_stage
+	         ,work_time
+	         ,user_list
+	         ,item_eco_no
+	         ,ecr_no
+	         ,eco_ea
+		  )
+		VALUES
+		  (
+			  #{MASTER_PROJECT_NO,jdbcType=VARCHAR}       
+			 ,#{DWG_NO,jdbcType=VARCHAR}
+			 ,#{REV_NO,jdbcType=VARCHAR}
+			 ,#{ECO_NO,jdbcType=VARCHAR}
+			 ,#{RECEIVER_ID,jdbcType=VARCHAR}
+			 ,#{DESCRIPTION,jdbcType=VARCHAR}
+			 ,#{CREATED_BY,jdbcType=VARCHAR}
+			 ,SYSDATE
+			 ,#{LAST_UPDATED_BY,jdbcType=VARCHAR}
+			 ,SYSDATE
+			 ,-1
+			 ,#{CAUSEDEPT,jdbcType=VARCHAR}
+			 ,#{WORK_STAGE,jdbcType=VARCHAR}
+	         ,#{WORK_TIME,jdbcType=VARCHAR}
+	         ,#{USER_LIST,jdbcType=VARCHAR}
+	         ,#{ITEM_ECO_NO,jdbcType=VARCHAR}
+	         ,#{ECR_NO,jdbcType=VARCHAR}
+	         ,#{ECO_EA,jdbcType=VARCHAR}
+		  )
+  	</insert>
+  	<select id="addSTX_DWG_ECO_RECEIVER_USER"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_DWG_ECO_REC_USER_PROC ( p_receiver_id      => #{RECEIVER_ID,jdbcType=VARCHAR},
+											  p_project_no       => #{PROJECT_NO,jdbcType=VARCHAR},
+											  p_email_adress     => #{EMAIL_ADRESS,jdbcType=VARCHAR},
+											  p_after_working_yn => #{AFTER_WORKING_YN,jdbcType=VARCHAR},
+											  p_receiver_name    => #{RECEIVER_NAME,jdbcType=VARCHAR},
+											  p_receiver_dept    => #{RECEIVER_DEPT,jdbcType=VARCHAR},
+											  p_receiver_type    => #{RECEIVER_TYPE,jdbcType=VARCHAR},
+											  p_user_id          => #{CREATED_BY,jdbcType=VARCHAR},
+											  p_receiver_empno   => #{RECEIVER_EMPNO,jdbcType=VARCHAR},
+											  p_drwaing_status   => #{DRAWING_SATAUS,jdbcType=VARCHAR},
+		                                      p_error_code       => #{P_ERROR_CODE,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+											  p_error_msg        => #{P_ERROR_MSG,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+                                            )
+        }
+	</select>
+<!--   	<insert id = "addSTX_DWG_ECO_RECEIVER_USER" parameterType="java.util.Map"> -->
+<!--   		INSERT INTO STX_DWG_ECO_RECEIVER_USER@stxerp -->
+<!-- 		  ( -->
+<!-- 			RECEIVER_ID -->
+<!-- 			,PROJECT_NO -->
+<!-- 			,EMAIL_ADRESS -->
+<!-- 			,AFTER_WORKING_YN -->
+<!-- 			,RECEIVER_NAME -->
+<!-- 			,RECEIVER_DEPT -->
+<!-- 			,RECEIVER_TYPE -->
+<!-- 			,CREATED_BY -->
+<!-- 			,CREATION_DATE -->
+<!-- 			,LAST_UPDATED_BY -->
+<!-- 			,LAST_UPDATE_DATE -->
+<!-- 			,LAST_UPDATE_LOGIN -->
+<!-- 			,RECEIVER_EMPNO -->
+<!-- 			,DRWAING_STATUS -->
+<!-- 		  ) -->
+<!-- 		VALUES -->
+<!-- 		  ( -->
+<!-- 		  	#{RECEIVER_ID,jdbcType=VARCHAR} -->
+<!-- 			,#{PROJECT_NO,jdbcType=VARCHAR} -->
+<!-- 			,#{EMAIL_ADRESS,jdbcType=VARCHAR} -->
+<!-- 			,#{AFTER_WORKING_YN,jdbcType=VARCHAR} -->
+<!-- 			,#{RECEIVER_NAME,jdbcType=VARCHAR} -->
+<!-- 			,#{RECEIVER_DEPT,jdbcType=VARCHAR} -->
+<!-- 			,#{RECEIVER_TYPE,jdbcType=VARCHAR} -->
+<!-- 			,#{CREATED_BY,jdbcType=VARCHAR} -->
+<!-- 			,SYSDATE -->
+<!-- 			,-1 -->
+<!-- 			,SYSDATE -->
+<!-- 			,#{LAST_UPDATED_BY,jdbcType=VARCHAR} -->
+<!-- 			,#{RECEIVER_EMPNO,jdbcType=VARCHAR} -->
+<!-- 			,#{DRAWING_SATAUS,jdbcType=VARCHAR} -->
+<!-- 		  ) -->
+<!--   	</insert> -->
+</mapper>

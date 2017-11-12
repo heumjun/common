@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="systemStandardView">
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+	        <result column="FILE_NAME"	 	property="FILE_NAME" />
+	        <result column="FILE_DATA" 		property="FILE_DATA"  javaType="[B" jdbcType="BLOB" />
+	</resultMap>
+	
+	<select id="systemStandardViewList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		<if test='p_isexcel != "Y" '>
+			SELECT * FROM ( 
+					SELECT ROWNUM AS RNUM, XX.* FROM ( 
+		</if>
+		
+
+				SELECT SSSC.ST_ID_S                                 AS ST_ID_S
+				      ,COUNT(*) OVER ()                             AS CNT 
+				      ,SSSC.ST_TITLE                                AS ST_TITLE
+				      ,SSSC.ST_KEY                                  AS ST_KEY
+				      ,SSSC.ST_PRIORITY_1                           AS ST_PRIORITY_1
+				      ,SSSC.ST_PRIORITY_2                           AS ST_PRIORITY_2
+				      ,SSSC.ST_PRIORITY_3                           AS ST_PRIORITY_3
+				      ,SSSC.ST_PRIORITY_4                           AS ST_PRIORITY_4
+				      ,SSSC.ST_PRIORITY_5                           AS ST_PRIORITY_5
+				      ,SSSC.ST_PRIORITY_6                           AS ST_PRIORITY_6
+				      ,SSSC.ST_DESC                                 AS ST_DESC
+				      ,TO_CHAR(SSSC.LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LAST_UPDATE_DATE
+				      ,SCIU2.USER_NAME                              AS LAST_UPDATED_BY
+				      ,TO_CHAR(SSSC.CREATION_DATE, 'YYYY-MM-DD')    AS CREATION_DATE
+				      ,SCIU1.USER_NAME                              AS CREATED_BY
+				  FROM STX_STD_STANDARD_CODE SSSC
+				      ,STX_COM_INSA_USER     SCIU1
+				      ,STX_COM_INSA_USER     SCIU2
+				 WHERE SSSC.CREATED_BY      = SCIU1.EMP_NO
+				   AND SSSC.LAST_UPDATED_BY = SCIU2.EMP_NO
+				<if test="p_eng_keyworkd != null and p_eng_keyworkd != '' ">
+					 AND SSSC.ST_TITLE        LIKE '%' || #{ p_eng_keyworkd} || '%'
+				</if>
+				<if test="p_key_keyworkd != null and p_key_keyworkd != '' ">
+					AND SSSC.ST_KEY          LIKE '%' || #{p_key_keyworkd} || '%'
+				</if>
+				<if test="p_desc_keyworkd != null and p_desc_keyworkd != '' ">
+					 AND SSSC.ST_DESC          LIKE '%' || #{p_desc_keyworkd} || '%'
+				</if>
+				<if test="p_kor_keyworkd != null and p_kor_keyworkd != '' ">
+					AND (SSSC.ST_PRIORITY_1   LIKE '%' || #{p_kor_keyworkd} || '%'
+					     OR SSSC.ST_PRIORITY_2   LIKE '%' || #{p_kor_keyworkd} || '%'
+					     OR SSSC.ST_PRIORITY_3   LIKE '%' || #{p_kor_keyworkd} || '%'
+					     OR SSSC.ST_PRIORITY_4   LIKE '%' || #{p_kor_keyworkd} || '%'
+					     OR SSSC.ST_PRIORITY_5   LIKE '%' || #{p_kor_keyworkd} || '%'
+					     OR SSSC.ST_PRIORITY_6   LIKE '%' || #{p_kor_keyworkd} || '%'
+					       )
+				</if>
+		
+				 ORDER BY SSSC.ST_TITLE
+			<if test='p_isexcel != "Y" '>
+					) XX WHERE ROWNUM &lt;= #{p_page_end_no}
+				) WHERE RNUM > #{p_page_start_no}
+			</if>
+
+	</select>
+	
+	<select id="systemStandardViewFileList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT * FROM ( 
+		SELECT ROWNUM AS RNUM, XX.* FROM ( 
+
+			SELECT SSSF.FILE_ID                                 AS FILE_ID
+			      ,COUNT(*) OVER ()                             AS CNT 
+			      ,SSSF.FILE_NAME                               AS FILE_NAME
+<!-- 			      ,SSSF.BLOB_FILE                               AS BLOB_FILE -->
+			      ,TO_CHAR(SSSF.LAST_UPDATE_DATE, 'YYYY-MM-DD') AS LAST_UPDATE_DATE
+			      ,SCIU2.USER_NAME                              AS LAST_UPDATED_BY
+			      ,TO_CHAR(SSSF.CREATION_DATE, 'YYYY-MM-DD')    AS CREATION_DATE
+			      ,SCIU1.USER_NAME                              AS CREATED_BY
+			  FROM STX_STD_STANDARD_FILE SSSF
+			      ,STX_COM_INSA_USER     SCIU1
+			      ,STX_COM_INSA_USER     SCIU2
+			 WHERE SSSF.CREATED_BY      = SCIU1.EMP_NO
+			   AND SSSF.LAST_UPDATED_BY = SCIU2.EMP_NO
+	
+			) XX WHERE ROWNUM &lt;= #{p_page_end_no}
+		) WHERE RNUM > #{p_page_start_no}
+	</select>
+	
+	<select id="saveSystemStandardView" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call stx_std_standard_code_action(
+					 #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{oper}
+				   , #{st_id_s}
+				   , #{st_title}
+				   , #{st_key}
+				   , #{st_priority_1}
+				   , #{st_priority_2}
+				   , #{st_priority_3}
+				   , #{st_priority_4}
+				   , #{st_priority_5}
+				   , #{st_priority_6}				   
+				   , #{st_desc}
+				   , #{loginId}
+				  )
+			}
+	</select> 
+	
+	<select id="selectStxStdFileListSeq" resultType="string">
+		SELECT TO_CHAR(STX_STD_STANDARD_FILE_S.NEXTVAL) AS FILE_ID FROM DUAL
+	</select>
+	
+	<insert id="insertSystemStandardFile" parameterType="java.util.Map">
+		INSERT INTO STX_STD_STANDARD_FILE
+				  (FILE_ID
+				  ,FILE_NAME
+				  ,BLOB_FILE
+				  ,LAST_UPDATE_DATE
+				  ,LAST_UPDATED_BY
+				  ,CREATION_DATE
+				  ,CREATED_BY)
+				VALUES
+				  (#{file_id}
+				  ,#{fileName}
+				  ,#{fileByte}
+				  ,SYSDATE
+				  ,#{loginId}
+				  ,SYSDATE
+				  ,#{loginId})
+	</insert>
+	
+	<delete id="saveSystemStandardFile" parameterType="java.util.Map">
+		DELETE FROM STX_STD_STANDARD_FILE SSSF WHERE SSSF.FILE_ID = #{file_id}
+	</delete>
+	
+	<select id="systemStandardFileDownload" parameterType="java.util.Map" resultMap="fileMaps">
+		 SELECT FILE_NAME, BLOB_FILE AS FILE_DATA         
+          FROM STX_STD_STANDARD_FILE   
+         WHERE FILE_ID = #{file_id}                
+	</select>
+</mapper>

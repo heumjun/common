@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoGroupItemList">
+  <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 <if test='group_code =="1" or group_code =="2" or group_code =="3" or group_code =="4"'>
+		SELECT PAINT_ITEM ,
+		  MAX(ITEM_DESC) AS ITEM_DESC,
+		  MAX(CAN_SIZE) AS CAN_SIZE,
+		  TO_CHAR(SYSDATE + 7, 'YYYY-MM-DD') AS PR_DATE,
+		  SUM(BASE_QUANTITY) AS BASE_QUANTITY,
+		  SUM(QUANTITY) AS QUANTITY,
+		  SUM(QUANTITY) AS CAN_QUANTITY
+		FROM (
+		SELECT 
+			PAINT_ITEM,
+			MAX(ITEM_DESC) AS ITEM_DESC,
+			MAX(CAN_SIZE) AS CAN_SIZE,
+			SUM(BASE_QUANTITY) as BASE_QUANTITY,
+			CEIL(SUM(BASE_QUANTITY)/MAX(CAN_SIZE))*MAX(CAN_SIZE) AS QUANTITY FROM (
+		    SELECT 
+		    	PAINT_COUNT,
+		    	BASE_CODE,
+		     (
+		                  CASE
+		                    WHEN GBN.ITEM_GBN = 1 THEN SDPPS.PAINT_ITEM
+		                    ELSE SDPPS.THINNER_CODE
+		                  END) AS PAINT_ITEM ,
+		      (
+		                  CASE
+		                    WHEN GBN.ITEM_GBN = 1 THEN SDI.ITEM_DESC
+		                    ELSE SDI_TH.ITEM_DESC
+		                  END) AS ITEM_DESC ,
+		      (
+		                  CASE
+		                    WHEN GBN.ITEM_GBN = 1 THEN SDI.CAN_SIZE
+		                    ELSE SDI_TH.CAN_SIZE
+		                  END) AS CAN_SIZE ,
+		      (
+		                  CASE
+		                    WHEN GBN.ITEM_GBN = 1 THEN SDPPS.QUANTITY
+		                    ELSE SDPPS.QUANTITY* 0.15
+		                  END) AS BASE_QUANTITY<!-- ,
+		      (
+		                  CASE
+		                    WHEN GBN.ITEM_GBN = 1 THEN CEIL(SDPPS.QUANTITY/SDI.CAN_SIZE)*SDI.CAN_SIZE
+		                    ELSE CEIL((SDPPS.QUANTITY* 0.15)/SDI_TH.CAN_SIZE)*SDI_TH.CAN_SIZE
+		                  END) AS QUANTITY -->
+		    FROM (
+		    <if test='group_code =="1" or group_code =="2" '>
+			<!-- BLOCK JOB별 -->
+		        SELECT PAINT_COUNT AS PAINT_COUNT ,
+		          'BLOCK-'||BLOCK_CODE AS BASE_CODE ,
+		          PAINT_ITEM AS PAINT_ITEM ,
+		          (
+		            SELECT THINNER_CODE
+		            FROM STX_DIS_ITEM
+		            WHERE ITEM_CODE = T1.PAINT_ITEM ) AS THINNER_CODE ,
+		          SUM(BLOCK_QUANTITY) AS QUANTITY
+		        FROM STX_DIS_PIS_PATTERN_SCHEME T1
+		        WHERE T1.PROJECT_NO = #{project_no}
+		          AND T1.REVISION = #{revision}
+		          AND T1.BLOCK_DEFINE_FLAG = 'Y'
+		          AND T1.BLOCK_QUANTITY != 0
+		          and t1.block_code        <![CDATA[<]]> '900'
+				  and t1.block_code 		in ( ${block_list} )
+		        GROUP BY (T1.BLOCK_CODE,
+		              T1.PAINT_COUNT,
+		              T1.PAINT_ITEM)
+		     </if>
+		     
+		     <if test='group_code =="3" or group_code =="4"'>
+		    <!-- PE JOB별 -->    
+		        SELECT PAINT_COUNT AS PAINT_COUNT ,
+		          'PE-'||T1.AREA_CODE||'-'||PE_CODE AS BASE_CODE ,
+		          PAINT_ITEM AS PAINT_ITEM ,
+		          (
+		            SELECT THINNER_CODE
+		            FROM STX_DIS_ITEM
+		            WHERE ITEM_CODE = T1.PAINT_ITEM ) AS THINNER_CODE ,
+		          SUM(PE_QUANTITY) AS QUANTITY
+		        FROM STX_DIS_PIS_PATTERN_SCHEME T1
+		        WHERE T1.PROJECT_NO = #{project_no}
+		          AND T1.REVISION = #{revision}
+		          AND T1.PE_DEFINE_FLAG = 'Y'
+		          AND T1.PE_QUANTITY != 0
+		          AND T1.PE_CODE IS NOT NULL
+		          and t1.pe_code            like '9' || '%'
+				  and t1.pe_code 			 in ( ${pe_list} )
+		        GROUP BY (T1.PE_CODE ,
+		              T1.AREA_CODE,
+		              T1.PAINT_COUNT,
+		              T1.PAINT_ITEM)
+		      </if>
+		      <if test='group_code =="1" or group_code =="2" or group_code =="3" '>
+				<!-- PRE PE JOB별 -->
+		        UNION ALL
+		        SELECT PAINT_COUNT AS PAINT_COUNT ,
+		          'PRE_PE-'||PRE_PE_CODE AS BASE_CODE ,
+		          PAINT_ITEM AS PAINT_ITEM ,
+		          (
+		            SELECT THINNER_CODE
+		            FROM STX_DIS_ITEM
+		            WHERE ITEM_CODE = T1.PAINT_ITEM ) AS THINNER_CODE ,
+		          SUM(PRE_PE_QUANTITY) AS QUANTITY
+		        FROM STX_DIS_PIS_PATTERN_SCHEME T1
+		        WHERE T1.PROJECT_NO = #{project_no}
+		          AND T1.REVISION = #{revision}
+		          AND T1.PRE_PE_DEFINE_FLAG = 'Y'
+		          AND T1.PRE_PE_QUANTITY != 0
+		          AND T1.PRE_PE_CODE IS NOT NULL
+		          <if test='group_code =="3"'>
+		          and t1.block_code         like  '9' || '%'
+		          </if>
+		          <if test='group_code =="1" or group_code =="2"'>
+		          and t1.block_code         <![CDATA[<]]> '900'
+				  </if>
+		          and t1.block_code 		 in ( ${block_list}  )
+		        GROUP BY (T1.PRE_PE_CODE ,
+		              <!-- T1.AREA_CODE, -->
+		              T1.PAINT_COUNT,
+		              T1.PAINT_ITEM)
+		     </if>
+		     <if test='group_code =="4"'>
+				<!-- HULL JOB별 -->      
+		        UNION ALL
+		        SELECT PAINT_COUNT AS PAINT_COUNT ,
+		          'HULL-'||TZ.MASTER_AREA_CODE||'-'||T1.ZONE_CODE AS BASE_CODE ,
+		          PAINT_ITEM AS PAINT_ITEM ,
+		          (
+		            SELECT THINNER_CODE
+		            FROM STX_DIS_ITEM
+		            WHERE ITEM_CODE = T1.PAINT_ITEM ) AS THINNER_CODE ,
+		          SUM(HULL_QUANTITY) AS QUANTITY
+		        FROM STX_DIS_PIS_PATTERN_SCHEME T1 ,
+		          (
+		            SELECT A.*,
+		              NVL ((
+		                    SELECT AREA_CODE
+		                    FROM STX_DIS_PIS_ZONE B
+		                    WHERE B.PROJECT_NO = A.PROJECT_NO
+		                      AND B.REVISION = A.REVISION
+		                      AND B.ZONE_CODE = A.ZONE_CODE
+		                      AND B.AREA_GROUP IS NOT NULL
+		                      AND B.AREA_MASTER = 'Y'
+		                      AND B.AREA_GROUP = A.AREA_GROUP ), A.AREA_CODE) AS MASTER_AREA_CODE
+		            FROM STX_DIS_PIS_ZONE A
+		            WHERE A.PROJECT_NO = #{project_no}
+		              AND A.REVISION = #{revision} ) TZ
+		        WHERE T1.PROJECT_NO = #{project_no}
+		          AND T1.REVISION = #{revision}
+		          AND T1.PROJECT_NO = TZ.PROJECT_NO(+)
+		          AND T1.REVISION = TZ.REVISION(+)
+		          AND T1.AREA_CODE = TZ.AREA_CODE(+)
+		          AND T1.HULL_DEFINE_FLAG = 'Y'
+		          AND T1.HULL_QUANTITY != 0
+		          AND T1.ZONE_CODE IS NOT NULL
+		          and t1.zone_code 		 in ( ${hull_list} )
+		        GROUP BY (T1.ZONE_CODE,
+		              TZ.MASTER_AREA_CODE,
+		              T1.PAINT_COUNT,
+		              T1.PAINT_ITEM)
+				<!-- QUAY JOB별 -->     
+		        UNION ALL
+		        SELECT PAINT_COUNT AS PAINT_COUNT ,
+		          'QUAY-'||TZ.MASTER_AREA_CODE||'-'||TZ.QUAY AS BASE_CODE ,
+		          PAINT_ITEM AS PAINT_ITEM ,
+		          (
+		            SELECT THINNER_CODE
+		            FROM STX_DIS_ITEM
+		            WHERE ITEM_CODE = T1.PAINT_ITEM ) AS THINNER_CODE ,
+		          SUM(QUAY_QUANTITY) AS QUANTITY
+		        FROM STX_DIS_PIS_PATTERN_SCHEME T1 ,
+		          (
+		            SELECT A.*,
+		              NVL ((
+		                    SELECT AREA_CODE
+		                    FROM STX_DIS_PIS_ZONE B
+		                    WHERE B.PROJECT_NO = A.PROJECT_NO
+		                      AND B.REVISION = A.REVISION
+		                      AND B.ZONE_CODE = A.ZONE_CODE
+		                      AND B.AREA_GROUP IS NOT NULL
+		                      AND B.AREA_MASTER = 'Y'
+		                      AND B.AREA_GROUP = A.AREA_GROUP ), A.AREA_CODE) AS MASTER_AREA_CODE
+		            FROM STX_DIS_PIS_ZONE A ) TZ
+		        WHERE T1.PROJECT_NO = #{project_no}
+		          AND T1.REVISION = #{revision}
+		          AND T1.PROJECT_NO = TZ.PROJECT_NO(+)
+		          AND T1.REVISION = TZ.REVISION(+)
+		          AND T1.AREA_CODE = TZ.AREA_CODE(+)
+		          AND T1.QUAY_DEFINE_FLAG = 'Y'
+		          AND T1.QUAY_QUANTITY != 0
+		          AND TZ.QUAY IS NOT NULL
+		          AND TZ.QUAY in ( ${quay_list} )
+		        GROUP BY (TZ.QUAY,
+		              TZ.MASTER_AREA_CODE,
+		              T1.PAINT_COUNT,
+		              T1.PAINT_ITEM) 
+		        </if>              
+		              
+		              
+		              ) SDPPS ,
+		      STX_DIS_ITEM SDI,
+		      STX_DIS_ITEM SDI_TH,
+		      (
+		        SELECT 1 AS ITEM_GBN
+		        FROM DUAL
+		        UNION ALL
+		        SELECT 2 AS ITEM_GBN
+		        FROM DUAL) GBN
+		    WHERE SDPPS.PAINT_ITEM = SDI.ITEM_CODE(+)
+		      AND SDPPS.THINNER_CODE = SDI_TH.ITEM_CODE(+)
+		    
+		    
+		    
+		    <if test='group_code =="1" or group_code =="3"  or group_code =="4"'>
+		    <!-- OUTFITTING JOB별 -->
+		    UNION ALL
+		    SELECT 
+		      0 AS PAINT_COUNT,
+		      'OUT' AS BASE_CODE, 
+		      OUTF.PAINT_ITEM AS PAINT_ITEM ,
+		      SDI.ITEM_DESC,
+		      SDI.CAN_SIZE,
+		      OUTF.QUANTITY AS BASE_QUANTITY<!-- ,
+		      CEIL(OUTF.QUANTITY/SDI.CAN_SIZE)*SDI.CAN_SIZE AS QUANTITY -->
+		    FROM (
+		        SELECT TEAM_COUNT AS TEAM_COUNT ,
+		          PAINT_ITEM AS PAINT_ITEM ,
+		          SUM(QUANTITY) AS QUANTITY
+		        FROM STX_DIS_PIS_OUTFITTING T1
+		        WHERE T1.PROJECT_NO = #{project_no}
+		          AND T1.REVISION = #{revision}
+		          AND T1.QUANTITY != 0
+		          and t1.team_count         in ( ${outfitting_list} )
+		        GROUP BY ( T1.TEAM_COUNT,
+		              T1.PAINT_ITEM) ) OUTF ,
+		      STX_DIS_ITEM SDI
+		    WHERE OUTF.PAINT_ITEM = SDI.ITEM_CODE
+		    </if>
+		    
+		    
+		    
+		    
+		    <if test='group_code =="4"'>
+		    <!-- COSMETIC JOB별 -->
+		    UNION ALL
+		    SELECT 
+		      0 AS PAINT_COUNT,
+		      'COSM' AS BASE_CODE,
+		      COSM.PAINT_ITEM AS PAINT_ITEM ,
+		      SDI.ITEM_DESC,
+		      SDI.CAN_SIZE,
+		      COSM.QUANTITY AS BASE_QUANTITY<!-- ,
+		      CEIL(COSM.QUANTITY/SDI.CAN_SIZE)*SDI.CAN_SIZE AS QUANTITY -->
+		    FROM (
+		        SELECT TEAM_COUNT AS TEAM_COUNT ,
+		          PAINT_ITEM AS PAINT_ITEM ,
+		          SUM(QUANTITY) AS QUANTITY
+		        FROM STX_DIS_PIS_COSMETIC T1
+		        WHERE T1.PROJECT_NO = #{project_no}
+		          AND T1.REVISION = #{revision}
+		          AND T1.QUANTITY != 0
+		          and t1.team_count         in ( ${cosmetic_list} )
+		        GROUP BY ( T1.TEAM_COUNT,
+		              T1.PAINT_ITEM) ) COSM ,
+		      STX_DIS_ITEM SDI
+		    WHERE COSM.PAINT_ITEM = SDI.ITEM_CODE
+		    </if>
+		      )
+           GROUP BY PAINT_COUNT,BASE_CODE,PAINT_ITEM)
+		WHERE PAINT_ITEM IS NOT NULL
+		GROUP BY PAINT_ITEM 
+		ORDER BY PAINT_ITEM 
+		</if>
+	 <if test='group_code =="5"'>
+	 select t4.item_code                             as paint_item
+	      ,t4.item_desc                              as item_desc
+	      ,t4.can_size                               as can_size
+	      ,to_char(sysdate + 7, 'YYYY-MM-DD')        as pr_date
+	      ,ceil((case when t4.item_code = '42101-33261NGY01' then qty.cnt
+		                                                  else round(qty.cnt*0.33,3)
+		                       end)/t4.can_size)*t4.can_size     as can_quantity
+	      ,(case when t4.item_code = '42101-33261NGY01' then qty.cnt
+		                                                  else round(qty.cnt*0.33,3)
+		                       end)                               	 as quantity
+	 from stx_dis_item t4
+	      ,(select round(sum(t1.area)/10,3) as cnt 
+	      	from stx_dis_pis_block t1
+		   		,stx_dis_pis_area  t2
+				 where 1=1
+				 and t1.project_no = #{project_no}  
+				 and t1.revision	  = #{revision}    
+				 and t1.area_code  = t2.area_code(+)) qty
+	  where t4.item_code in ('42101-33261NGY01','42102-33067')
+	 </if>
+	 <if test='group_code !="1" and group_code !="2" and group_code !="3" and group_code !="4" and group_code !="5"'>
+	 	SELECT  SDPPL.PAINT_ITEM,
+		        SDI.ITEM_DESC,
+		        TO_CHAR(SYSDATE + 7, 'YYYY-MM-DD') AS PR_DATE,
+		        SDI.CAN_SIZE,
+		        SDPPL.QUANTITY,
+		        CEIL(SDPPL.QUANTITY/SDI.CAN_SIZE)*CAN_SIZE AS CAN_QUANTITY
+		FROM STX_DIS_PIS_PR_LIST SDPPL,
+		     STX_DIS_ITEM SDI
+		WHERE SDPPL.PROJECT_NO = #{p_project_no}
+		  AND SDPPL.REVISION = #{p_revision} 
+		  AND SDPPL.GROUP_CODE=#{group_code} 
+		  AND SDPPL.PAINT_ITEM = SDI.ITEM_CODE(+)
+	 </if>
+ 	</select>
+</mapper>  	

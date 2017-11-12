@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsDbMasterList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		select t2.* 
+		from (  
+		select t1.* ,  COUNT(*) OVER() AS CNT  
+		,floor((rownum - 1) / #{rows} + 1 ) as page 
+		from 
+		( 
+		
+		SELECT 
+		    SESV.SHIP_TYPE 
+		  , SESV.SHIP_SIZE 
+		  , SESV.EQUIP_NAME 
+		  , SESV.DWG_CODE 
+		  , SESV.DWG_NAME 
+		  , SESV.ITEM_CODE 
+		  , SESV.ITEM_DESC 
+		  , SESV.VOYAGE_NO 
+		  , SESV.IMPORTANCE 
+		  , SESV.BOM_STAGE 
+		  , SESV.BOM_LEVEL 
+		  , SESV.DOCK_EVENT_F 
+		  , SESV.DOCK_LAG_F 
+		  , SESV.DOCK_EVENT_T 
+		  , SESV.DOCK_LAG_T 
+		  , SESV.SKID_EVENT_F 
+		  , SESV.SKID_LAG_F 
+		  , SESV.SKID_EVENT_T 
+		  , SESV.SKID_LAG_T 
+		  , SESV.FDOCK_EVENT_F 
+		  , SESV.FDOCK_LAG_F 
+		  , SESV.REV 
+		  , SCIU.USER_NAME AS BUYER 
+		  , SESV.PLAN_PART 
+		  , SESV.REQUIRE_REASON 
+		  , SESV.APP_REJ_REASON 
+		  , SESV.MIDDLE_CODE 
+		  , SESV.MIDDLE_NAME 
+		  , SESV.CATALOG_CODE 
+		  , SESV.CATALOG_NAME 
+		  , SESV.OBTAIN_LT 
+		  , '' EMS_OPTION 
+		  , '' EMS_BLOCK 
+		  , '' EMS_JOB 
+		  , '' EMS_ZONE 
+		  , '' EMS_ACTIVITY 
+		  , '' EMS_GROUP 
+		  , SESV.MOTHER_BUY AS MOTHER_BUY 
+		  , SESV.MOTHER_BUY_DESC AS MOTHER_BUY_DESC 
+		  , SESV.MAIN_ACCESSARIES MAIN_ACCESSARIES 
+		  , SESV.PRICE_BREAKDOWN PRICE_BREAKDOWN 
+		  , SESV.EQUIP EQUIP 
+		  , SESV.CREATED_BY 
+		  , TO_CHAR(SESV.CREATION_DATE, 'YYYY-MM-DD') AS CREATION_DATE
+		  , SESV.IS_DIRECT_INPUT 
+		  FROM STX_EMS_STANDARD_V SESV 
+		     , STX_COM_INSA_USER SCIU  
+		 WHERE SCIU.EMP_NO = SESV.BUYER  
+		   AND SESV.USE_YN = 'Y'  
+		<if test="p_Ship_kind != null and !p_Ship_kind.equalsIgnoreCase('') and !p_Ship_kind.equalsIgnoreCase('null') and !p_Ship_kind.equalsIgnoreCase('*')">
+	      AND SHIP_TYPE LIKE '%' || #{p_Ship_kind} || '%'
+		</if>
+		<if test="p_Middle_code != null and !p_Middle_code.equalsIgnoreCase('') and !p_Middle_code.equalsIgnoreCase('null') and !p_Middle_code.equalsIgnoreCase('*')">
+		      AND MIDDLE_CODE LIKE '%' || #{p_Middle_code} || '%'
+		</if>
+		<if test="p_Plan_part != null and !p_Plan_part.equalsIgnoreCase('') and !p_Plan_part.equalsIgnoreCase('null') and !p_Plan_part.equalsIgnoreCase('*')">
+		      AND PLAN_PART LIKE '%' || #{p_Plan_part} || '%'
+		</if>
+		<!-->if test="p_Ems_option != null and !p_Ems_option.equalsIgnoreCase('') and !p_Ems_option.equalsIgnoreCase('null') and !p_Ems_option.equalsIgnoreCase('*')">
+		      AND EMS_OPTION LIKE '%' || #{p_Ems_option} || '%'
+		</if>
+		<if test="p_Ems_job != null and !p_Ems_job.equalsIgnoreCase('') and !p_Ems_job.equalsIgnoreCase('null') and !p_Ems_job.equalsIgnoreCase('*')">
+		      AND EMS_JOB LIKE '%' || #{p_Ems_job} || '%'
+		</if-->
+		<if test="p_Ship_face != null and !p_Ship_face.equalsIgnoreCase('') and !p_Ship_face.equalsIgnoreCase('null') and !p_Ship_face.equalsIgnoreCase('*')">
+		      AND SHIP_SIZE LIKE '%' || #{p_Ship_face} || '%'
+		</if>
+		<if test="p_Dwg_no != null and !p_Dwg_no.equalsIgnoreCase('') and !p_Dwg_no.equalsIgnoreCase('null') and !p_Dwg_no.equalsIgnoreCase('*')">
+		      AND DWG_CODE LIKE '%' || #{p_Dwg_no} || '%'
+		</if>
+		<if test="p_Ship_charge != null and !p_Ship_charge.equalsIgnoreCase('') and !p_Ship_charge.equalsIgnoreCase('null') and !p_Ship_charge.equalsIgnoreCase('*')">
+		      AND SCIU.USER_NAME LIKE '%' || #{p_Ship_charge} || '%'
+		</if>
+		<if test="p_Equipment_name != null and !p_Equipment_name.equalsIgnoreCase('') and !p_Equipment_name.equalsIgnoreCase('null') and !p_Equipment_name.equalsIgnoreCase('*')">
+		      AND EQUIP_NAME LIKE '%' || #{p_Equipment_name} || '%'
+		</if>
+		<!-->if test="p_Ems_zone != null and !p_Ems_zone.equalsIgnoreCase('') and !p_Ems_zone.equalsIgnoreCase('null') and !p_Ems_zone.equalsIgnoreCase('*')">
+		      AND EMS_ZONE LIKE '%' || #{p_Ems_zone} || '%'
+		</if>      
+		<if test="p_Ems_group != null and !p_Ems_group.equalsIgnoreCase('') and !p_Ems_group.equalsIgnoreCase('null') and !p_Ems_group.equalsIgnoreCase('*')">
+		      AND EMS_GROUP LIKE '%' || #{p_Ems_group} || '%'
+		</if-->
+		<if test="p_Catalog_code != null and !p_Catalog_code.equalsIgnoreCase('') and !p_Catalog_code.equalsIgnoreCase('null') and !p_Catalog_code.equalsIgnoreCase('*')">
+		      AND CATALOG_CODE LIKE '%' || #{p_Catalog_code} || '%'
+		</if>        
+		<if test="p_Item_code != null and !p_Item_code.equalsIgnoreCase('') and !p_Item_code.equalsIgnoreCase('null') and !p_Item_code.equalsIgnoreCase('*')">
+		      AND ITEM_CODE LIKE '%' || #{p_Item_code} || '%'
+		</if>   
+		ORDER BY SHIP_TYPE, SHIP_SIZE, EQUIP_NAME, ITEM_CODE 
+		) t1  
+		  WHERE 1=1 
+		) t2 
+		where page = #{page}   
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*)
+		  FROM STX_EMS_STANDARD_V SESV 
+		     , STX_COM_INSA_USER SCIU  
+		 WHERE SCIU.EMP_NO = SESV.BUYER  
+		   AND SESV.USE_YN = 'Y'  
+		<if test="p_Ship_kind != null and !p_Ship_kind.equalsIgnoreCase('') and !p_Ship_kind.equalsIgnoreCase('null') and !p_Ship_kind.equalsIgnoreCase('*')">
+	      AND SHIP_TYPE LIKE '%' || #{p_Ship_kind} || '%'
+		</if>
+		<if test="p_Middle_code != null and !p_Middle_code.equalsIgnoreCase('') and !p_Middle_code.equalsIgnoreCase('null') and !p_Middle_code.equalsIgnoreCase('*')">
+		      AND MIDDLE_CODE LIKE '%' || #{p_Middle_code} || '%'
+		</if>
+		<if test="p_Plan_part != null and !p_Plan_part.equalsIgnoreCase('') and !p_Plan_part.equalsIgnoreCase('null') and !p_Plan_part.equalsIgnoreCase('*')">
+		      AND PLAN_PART LIKE '%' || #{p_Plan_part} || '%'
+		</if>
+		<!-->if test="p_Ems_option != null and !p_Ems_option.equalsIgnoreCase('') and !p_Ems_option.equalsIgnoreCase('null') and !p_Ems_option.equalsIgnoreCase('*')">
+		      AND EMS_OPTION LIKE '%' || #{p_Ems_option} || '%'
+		</if>
+		<if test="p_Ems_job != null and !p_Ems_job.equalsIgnoreCase('') and !p_Ems_job.equalsIgnoreCase('null') and !p_Ems_job.equalsIgnoreCase('*')">
+		      AND EMS_JOB LIKE '%' || #{p_Ems_job} || '%'
+		</if-->
+		<if test="p_Ship_face != null and !p_Ship_face.equalsIgnoreCase('') and !p_Ship_face.equalsIgnoreCase('null') and !p_Ship_face.equalsIgnoreCase('*')">
+		      AND SHIP_SIZE LIKE '%' || #{p_Ship_face} || '%'
+		</if>
+		<if test="p_Dwg_no != null and !p_Dwg_no.equalsIgnoreCase('') and !p_Dwg_no.equalsIgnoreCase('null') and !p_Dwg_no.equalsIgnoreCase('*')">
+		      AND DWG_CODE LIKE '%' || #{p_Dwg_no} || '%'
+		</if>
+		<if test="p_Ship_charge != null and !p_Ship_charge.equalsIgnoreCase('') and !p_Ship_charge.equalsIgnoreCase('null') and !p_Ship_charge.equalsIgnoreCase('*')">
+		      AND SCIU.USER_NAME LIKE '%' || #{p_Ship_charge} || '%'
+		</if>
+		<if test="p_Equipment_name != null and !p_Equipment_name.equalsIgnoreCase('') and !p_Equipment_name.equalsIgnoreCase('null') and !p_Equipment_name.equalsIgnoreCase('*')">
+		      AND EQUIP_NAME LIKE '%' || #{p_Equipment_name} || '%'
+		</if>
+		<!-->if test="p_Ems_zone != null and !p_Ems_zone.equalsIgnoreCase('') and !p_Ems_zone.equalsIgnoreCase('null') and !p_Ems_zone.equalsIgnoreCase('*')">
+		      AND EMS_ZONE LIKE '%' || #{p_Ems_zone} || '%'
+		</if>      
+		<if test="p_Ems_group != null and !p_Ems_group.equalsIgnoreCase('') and !p_Ems_group.equalsIgnoreCase('null') and !p_Ems_group.equalsIgnoreCase('*')">
+		      AND EMS_GROUP LIKE '%' || #{p_Ems_group} || '%'
+		</if-->
+		<if test="p_Catalog_code != null and !p_Catalog_code.equalsIgnoreCase('') and !p_Catalog_code.equalsIgnoreCase('null') and !p_Catalog_code.equalsIgnoreCase('*')">
+		      AND CATALOG_CODE LIKE '%' || #{p_Catalog_code} || '%'
+		</if>        
+		<if test="p_Item_code != null and !p_Item_code.equalsIgnoreCase('') and !p_Item_code.equalsIgnoreCase('null') and !p_Item_code.equalsIgnoreCase('*')">
+		      AND ITEM_CODE LIKE '%' || #{p_Item_code} || '%'
+		</if>            
+  	</select>
+  	
+  	<select id="loginGubun" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT A.EMP_NO 
+	     , A.USER_NAME 
+	     , A.USER_ENG_NAME 
+	     , C.DWGDEPTNM 
+	     , A.DEPT_CODE  
+	     , A.DEPT_NAME  
+	     , B.DWGDEPTCODE 
+	     , A.JOB_COD 
+	     , CASE WHEN B.DEPTCODE LIKE '440%' OR B.DEPTCODE LIKE '202000' THEN 'M1'
+	            ELSE 'U1' 
+	       END AS GRCODE 
+	     , 'N' AS DP_GUBUN 
+	     , (SELECT BB.DWGDEPTCODE 
+	          FROM STX_COM_INSA_USER AA 
+	              ,DCC_DEPTCODE@STXDPSP     BB 
+	              ,DCC_DWGDEPTCODE@STXDPSP  CC 
+	         WHERE AA.DEPT_CODE = BB.DEPTCODE  
+	           AND BB.DWGDEPTCODE = CC.DWGDEPTCODE  
+	           AND AA.EMP_NO = #{loginId}  
+	           AND CC.USERYN  = 'Y' 
+	         ) AS TS_DWGDEPTCODE      
+	     , A.EP_MAIL || '@onestx.com' AS EP_MAIL  
+	     , (SELECT CASE WHEN PLAN_CNT > 0 THEN 'plan' 
+	              WHEN OBTAIN_CNT > 0 THEN 'obtain' 
+	            END AS EMS_LOGIN_GUBUN 
+	        FROM ( SELECT (SELECT COUNT(*) CNT --설계 
+	                   FROM CCC_SAWON@STXDP CS 
+	                  WHERE CS.VENDOR_CODE IS NULL 
+	                    AND CS.APPLY_DATE IS NOT NULL 
+	                  AND CS.DESIGN_APPLY_DATE IS NOT NULL 
+	                  AND CS.TERMINATION_DATE IS NULL 
+	                  AND CS.EMPLOYEE_NUM = #{loginId}) AS PLAN_CNT 
+	           , (SELECT COUNT(*) CNT 
+	            FROM PO_AGENTS_V  
+	             WHERE END_DATE_ACTIVE IS NULL 
+	             AND #{loginId} = SUBSTR(agent_name, length(agent_name) - 5, length(agent_name))) AS OBTAIN_CNT 
+	            FROM DUAL ) A ) AS EMS_GUBUN 
+	      , (SELECT 'product' CNT FROM STX_EMS_PERIOD_MANAGER WHERE USER_ID = #{loginId}) AS EMS_MANAGER 
+	  FROM STX_COM_INSA_USER A 
+	  LEFT JOIN DCC_DEPTCODE@STXDP B ON A.DEPT_CODE = B.DEPTCODE 
+	  LEFT JOIN DCC_DWGDEPTCODE@STXDP C ON B.DWGDEPTCODE = C.DWGDEPTCODE 
+	 WHERE A.EMP_NO = #{loginId} 
+	   AND 'S' =  (select nvl((select 'N' from stx_com_insa_user  sciu where sciu.emp_no = #{loginId}  and sciu.dept_name like '%특수선%' ),'S') from dual )
+	
+	UNION ALL  
+	SELECT A.EMP_NO 
+	     , A.USER_NAME 
+	     , A.USER_ENG_NAME 
+	     , C.DWGDEPTNM 
+	     , A.DEPT_CODE  
+	     , A.DEPT_NAME  
+	     , B.DWGDEPTCODE 
+	     , A.JOB_COD 
+	     , CASE WHEN B.DEPTCODE LIKE '568900' THEN 'M1'
+	            ELSE 'U1'
+	       END AS GRCODE
+	     , 'Y' AS DP_GUBUN 
+	     , ''  AS TS_DWGDEPTCODE 
+	     , A.EP_MAIL || '@onestx.com' AS EP_MAIL  
+	     , (SELECT CASE WHEN PLAN_CNT > 0 THEN 'plan' 
+	              WHEN OBTAIN_CNT > 0 THEN 'obtain' 
+	            END AS EMS_LOGIN_GUBUN 
+	        FROM ( SELECT (SELECT COUNT(*) CNT --설계 
+	                   FROM CCC_SAWON@STXDP CS 
+	                  WHERE CS.VENDOR_CODE IS NULL 
+	                    AND CS.APPLY_DATE IS NOT NULL 
+	                  AND CS.DESIGN_APPLY_DATE IS NOT NULL 
+	                  AND CS.TERMINATION_DATE IS NULL 
+	                  AND CS.EMPLOYEE_NUM = #{loginId}) AS PLAN_CNT 
+	           , (SELECT COUNT(*) CNT 
+	            FROM PO_AGENTS_V  
+	             WHERE END_DATE_ACTIVE IS NULL 
+	             AND #{loginId} = SUBSTR(agent_name, length(agent_name) - 5, length(agent_name))) AS OBTAIN_CNT 
+	            FROM DUAL ) A ) AS EMS_GUBUN 
+	      , (SELECT 'product' CNT FROM STX_EMS_PERIOD_MANAGER WHERE USER_ID = #{loginId}) AS EMS_MANAGER 
+	  FROM STX_COM_INSA_USER A 
+	  LEFT JOIN DCC_DEPTCODE@STXDPSP B ON A.DEPT_CODE = B.DEPTCODE 
+	  LEFT JOIN DCC_DWGDEPTCODE@STXDPSP C ON B.DWGDEPTCODE = C.DWGDEPTCODE 
+	 WHERE A.EMP_NO = #{loginId} 
+	   AND C.DWGDEPTNM  LIKE '%특수%'  
+	   AND 'N' =  (select nvl((select 'N' from stx_com_insa_user  sciu where sciu.emp_no = #{loginId}  and sciu.dept_name like '%특수선%' ),'S') from dual )
+  	</select>
+
+</mapper>

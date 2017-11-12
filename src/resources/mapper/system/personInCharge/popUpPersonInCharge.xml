@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPersonInCharge">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT CONTACT_SEQ
+						     , DEPT_NAME
+						     , MANAGER_NAME
+						     , MANAGER_TASK
+						     , MANAGER_TEL
+						     , MANAGER_MOBILE
+						     , EMAIL_ADDRESS
+						     , CREATE_BY
+						     , CREATE_DATE
+						     , MODIFY_BY
+						     , MODIFY_DATE
+						     , POSITION_NAME
+						  FROM STX_DIS_CONTACTUS
+		                 WHERE 1=1
+		                 ORDER BY DEPT_NAME, DECODE(POSITION_NAME, '전무', '1', '상무', 2, '이사', 3, '부장', 4, '차장', 5, '과장', 6, '대리', 7, '주임', 8), MANAGER_NAME
+  	</select>
+</mapper>

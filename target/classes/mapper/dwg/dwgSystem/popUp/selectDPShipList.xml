@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectDPShipList">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT DISTINCT DA_DP.PROJECTNO
+	  FROM DPM_ACTIVITY@STXDP DA_DP
+	      ,DCC_DEPTCODE@STXDP DDC_DP
+	 WHERE DDC_DP.DWGDEPTCODE = DA_DP.DWGDEPTCODE
+	   AND DA_DP.WORKTYPE = 'DW'
+	   AND DA_DP.CASENO = '1'
+		<if test='p_deptGubun != null and !p_deptGubun.equalsIgnoreCase("")'>
+	   AND 'S' = #{p_deptGubun}
+		</if>
+		<if test='DpGubun.equalsIgnoreCase("Y") and !GrCode.equalsIgnoreCase("M1")'>
+	   AND DDC_DP.DWGDEPTCODE = #{dept}
+		</if>
+		<if test='p_code_find != null and !p_code_find.equalsIgnoreCase("")'>
+	   AND DA_DP.PROJECTNO LIKE #{p_code_find} || '%'
+		</if>
+	 UNION ALL
+	SELECT DISTINCT DA_DPSP.PROJECTNO
+	  FROM DPM_ACTIVITY@STXDPSP DA_DPSP
+	      ,DCC_DEPTCODE@STXDPSP DDC_DPSP
+	 WHERE DDC_DPSP.DWGDEPTCODE = DA_DPSP.DWGDEPTCODE
+	   AND DA_DPSP.WORKTYPE = 'DW'
+	   AND DA_DPSP.CASENO = '1'
+		<if test='p_deptGubun != null and !p_deptGubun.equalsIgnoreCase("")'>
+	   AND 'N' = #{p_deptGubun}
+		</if>
+		<if test='!DpGubun.equalsIgnoreCase("Y") and !GrCode.equalsIgnoreCase("M1")'>
+	   <!--  AND DDC_DPSP.DWGDEPTCODE = #{dpsp_dept}  -->
+		</if>
+		<if test='p_code_find != null and !p_code_find.equalsIgnoreCase("")'>
+	   AND DA_DPSP.PROJECTNO LIKE #{p_code_find} || '%'
+		</if>
+	 ORDER BY PROJECTNO
+  	</select>
+</mapper>

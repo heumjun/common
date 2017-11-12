@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoOutfittingArea">
+	<select id="select" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select area
+	  from stx_dis_pis_outfitting_area
+	 where project_no   = 	#{project_no}
+	   and revision     =	#{revision}
+	   and team_count   =	#{team_count}  	 	 
+  	</select>
+</mapper>

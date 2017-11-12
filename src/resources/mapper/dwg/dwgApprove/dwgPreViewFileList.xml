@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgPreViewFileList">
+  	<select id="list" parameterType="String" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		 SELECT t3.file_name 
+		   FROM stx_dis_dwg_trans t1 
+		      , stx_dis_dwg_trans_detail t2 
+		      , STX_DWG_DW302TBL@stxerp t3 
+		  WHERE 1                 = 1 
+		    AND t1.req_seq        = t2.req_seq 
+		    AND t2.req_dwg_seq_id = t3.dwg_seq_id 
+		    AND t1.req_seq        = #{req_seq}
+  	</select>
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintAfvolume">
+  
+  	<insert id="insertAFVolume">
+  	merge into stx_dis_pis_afvolume
+       using dual
+       on (project_no = #{project_no} and revision = #{revision} and section_cls = #{section_cls})
+       when matched then
+            update set
+              separated_val 	= #{separated_val}
+       		, last_updated_by	= #{loginId}
+            , last_update_date	= sysdate
+       when not matched then
+            insert 
+            (
+              project_no
+            , revIsion
+            , section_cls
+            , separated_val
+            , created_by
+            , creation_date
+            , last_updated_by
+            , last_update_date
+            )
+            values
+            (
+             #{project_no}
+            ,#{revision}
+            ,#{section_cls}
+			,#{separated_val}
+			,#{loginId}
+			,sysdate
+			,#{loginId}
+			,sysdate
+			) 
+  	</insert>
+  	
+</mapper>  	

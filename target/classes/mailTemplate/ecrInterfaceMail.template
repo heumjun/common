@@ -1,0 +1,7 @@
+<font size=2><p><b>수고 많으십니다. </b></p></font>
+<font size=2><p><b>ERP FEEDBACK 기능에 의해 ECR NO  :  ${main_code} 가 ${states_desc} 되었습니다. ${action} 바랍니다. </b></p></font>
+<font size=2><p>&nbsp;--------------------- 아래-----------------------</p>
+&nbsp;&nbsp;&nbsp;&nbsp;- ECR NO : ${main_code}<br />
+&nbsp;&nbsp;&nbsp;&nbsp;- ECR Description :  ${ecr_description}<br />
+&nbsp;&nbsp;&nbsp;&nbsp;- ECR Based on :  ${ecr_based_on}<br />
+&nbsp;&nbsp;&nbsp;&nbsp;- Feedback no  :  ${feedback_no}

@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpsCommon">
+	<select id="dpsUserInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DEPT_CODE AS DEPT_CODE,
+		  A.DEPT_NAME AS DEPT_NAME,
+		  (
+		    SELECT C.DEPT_NAME
+		    FROM STX_COM_INSA_DEPT@STXERP C
+		    WHERE C.DEPT_CODE = A.PARENT_CODE) AS UP_DEPT_NAME,
+		  B.NAME AS NAME,
+		  B.JOB AS TITLE,
+		  B.INPUT_MAN_HOUR_ENABLED AS MH_YN,
+		  (
+		    SELECT GROUPNO
+		    FROM CCC_USER D
+		    WHERE D.USERID = B.EMPLOYEE_NUM) AS GROUPNO,
+		  TO_CHAR(TERMINATION_DATE, 'YYYY-MM-DD') AS TERMINATION_DATE,
+		  (
+		    SELECT DWGDEPTCODE
+		    FROM DCC_DEPTCODE E
+		    WHERE E.DEPTCODE = B.DEPT_CODE) AS DWG_DEPTCODE,
+		  B.INPUT_PROGRESS_ENABLED AS PROGRESS_YN
+		FROM STX_COM_INSA_DEPT@STXERP A,
+		  CCC_SAWON B
+		WHERE A.DEPT_CODE = B.DEPT_CODE
+		  AND B.EMPLOYEE_NUM = #{loginId}
+    </select>
+    
+    <select id="selectEmployeeInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  		SELECT A.DEPT_CODE AS DEPT_CODE,
+  			   A.DEPT_NAME AS DEPT_NAME,
+  			   (SELECT C.DEPT_NAME FROM STX_COM_INSA_DEPT@stxerp C WHERE C.DEPT_CODE = A.PARENT_CODE) AS UP_DEPT_NAME,
+  			   B.NAME AS NAME,
+  			   B.JOB AS TITLE,
+  			   B.INPUT_MAN_HOUR_ENABLED AS MH_YN,
+  			   (SELECT GROUPNO FROM CCC_USER D WHERE D.USERID = B.EMPLOYEE_NUM) AS GROUPNO,
+  			   TO_CHAR(TERMINATION_DATE, 'YYYY-MM-DD') AS TERMINATION_DATE,
+  			   (SELECT DWGDEPTCODE FROM DCC_DEPTCODE E WHERE E.DEPTCODE = B.DEPT_CODE) AS DWG_DEPTCODE,
+  			   B.INPUT_PROGRESS_ENABLED AS PROGRESS_YN
+  			   FROM STX_COM_INSA_DEPT@stxerp A, CCC_SAWON B
+  			   WHERE A.DEPT_CODE = B.DEPT_CODE
+  			   AND B.EMPLOYEE_NUM = #{loginId}
+  	</select>
+  	
+  	
+  	<insert id="insertLog" parameterType="java.util.Map">
+	  	INSERT INTO   STX_LOGIN_RESPONSIBILITIES@stxerp
+			SELECT '2', 
+			        6,
+			       A.GROUPNO,
+			       A.USERID,
+			       SYSDATE,
+			       -1,
+			       SYSDATE,
+			       SYSDATE,
+			       -1
+			FROM   (SELECT GROUPNO,
+			               USERID
+			        FROM   CCC_USER
+			        WHERE  1 = 1
+			        AND    USERID = #{loginId} ) A
+  	</insert>
+  	
+  	<select id="selectEmployeeInfoDalian" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	  	SELECT A.DEPTCODE AS DEPT_CODE,
+	       A.DEPTNM AS DEPT_NAME,
+	       '' AS UP_DEPT_NAME,
+	       B.SAWON_NAME AS NAME,
+	       '' AS TITLE,
+	       '' AS MH_YN,
+	       '' AS GROUPNO,
+	       '' AS TERMINATION_DATE,
+	       B.DWG_DEPTCODE AS DWG_DEPTCODE,
+	       'Y' AS PROGRESS_YN
+		FROM   DCC_DEPTCODE A,
+		       Z_DALIAN_SAWON_TO111231 B
+		WHERE  A.DWGDEPTCODE = B.DWG_DEPTCODE
+		AND    B.SAWON_ID = #{loginId}
+  	</select>
+  	<select id="selectEmployeeInfo_Maritime" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	  	SELECT '' AS DEPT_CODE,
+	       '' AS DEPT_NAME,
+	       '' AS UP_DEPT_NAME,
+	       SAWON_NAME AS NAME,
+	       '' AS TITLE,
+	       '' AS MH_YN,
+	       IS_ADMIN,
+	       '' AS TERMINATION_DATE,
+	       '' AS DWG_DEPTCODE,
+	       'Y' AS PROGRESS_YN
+		FROM   Z_MARITIME_SAWON_TO111231
+		WHERE  SAWON_ID = #{loginId}
+  	</select>
+  	
+  	<select id="selectDepartmentList"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DECODE(A.DEPT_CODE, NULL, B.DEPTCODE, A.DEPT_CODE) AS DEPT_CODE,
+		       DECODE(A.DEPT_NAME, NULL, B.DEPTNM, A.DEPT_NAME) AS DEPT_NAME,
+		       (SELECT B.DEPT_NAME
+		        FROM   STX_COM_INSA_DEPT@STXERP B
+		        WHERE  B.DEPT_CODE = A.PARENT_CODE) AS UP_DEPT_NAME,
+		       B.DWGDEPTCODE AS DWGDEPTCODE
+		FROM   STX_COM_INSA_DEPT@STXERP A,
+		       (SELECT DEPTCODE,
+		               DWGDEPTCODE,
+		               DEPTNM
+		        FROM   DCC_DEPTCODE
+		        WHERE  DWGDEPTCODE IN (SELECT DWGDEPTCODE
+		                FROM   DCC_DWGDEPTCODE) ) B
+		WHERE  1 = 1
+		AND    A.DEPT_CODE(+) = B.DEPTCODE
+		ORDER BY DEPT_CODE 
+	</select>
+	<select id="selectReasonCodeList" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT ECO_GROUP,
+	       (SELECT COUNT(1)
+	        FROM   PLM_CODE_TBL C
+	        WHERE  C.CATEGORY = 'ECO_CODE'
+	        AND    SUBSTR(C.KEY, 1, 1) = SUBSTR(ECO_CODE, 1, 1) ) AS CODE_CNT,
+	       ECO_CODE
+		FROM   (SELECT (SELECT B.VALUE
+		                FROM   PLM_CODE_TBL B
+		                WHERE  B.CATEGORY = 'ECO_GROUP'
+		                AND    B.KEY = SUBSTR(A.KEY, 1, 1) ) AS ECO_GROUP,
+		               A.KEY AS ECO_CODE
+		        FROM   PLM_CODE_TBL A
+		        WHERE  A.CATEGORY = 'ECO_CODE'
+		        ORDER BY A.CATEGORY ) 
+	</select>
+	
+	<select id="selectERPSessionValue" resultType="String">
+		SELECT USERENV('SESSIONID') as sessionid FROM DUAL@STXERP
+	</select>
+	
+	<delete id="deleteERPDwgDpsTemp" parameterType="java.util.Map">
+		DELETE FROM STX_DWG_DPS_TEMPORARY@STXERP WHERE SESSION_ID = #{sessionid}
+	</delete>
+	
+	<insert id="insertERPDwgDpsTemp" parameterType="java.util.Map">
+	
+		INSERT INTO   STX_DWG_DPS_TEMPORARY@STXERP(SESSION_ID, DWG_DATE_FROM, DWG_DATE_TO, PROJECT_NO, DEPT_CODE)
+		VALUES (#{sessionid},
+		        TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD'),
+		        TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD'),
+		        <choose>
+		            <when test="projectList != null and projectList.size != 0 and projectList.size == 1">
+		                #{projectList[0]},
+		            </when>
+		            <otherwise>
+		                null,
+		            </otherwise>
+		        </choose>
+		        <choose>
+		            <when test="departmentList != null and departmentList != ''">
+		                #{departmentList}
+		            </when>
+		            <otherwise>
+		                null
+		            </otherwise>
+		        </choose>
+		        )
+	</insert>
+	
+	
+	<select id="selectMHFactorCaseList"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		WITH ACTIVE_CASE_TBL AS (SELECT VALUE AS ACTIVE_CASE
+	        FROM   PLM_CODE_TBL
+	        WHERE  CATEGORY = 'MH_FACTOR'
+	        AND    KEY = 'ACTIVE_CASE' )
+		SELECT CASE_NO,
+		       CASE
+		         WHEN CASE_NO = (SELECT ACTIVE_CASE
+		        FROM   ACTIVE_CASE_TBL) THEN 'Y'
+		         ELSE 'N'
+		       END AS ACTIVE_CASE_YN
+		FROM   PLM_DESIGN_MH_FACTOR
+		GROUP BY CASE_NO 
+	</select>
+	
+	<select id="selectMHFactorCaseAndValueList"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		WITH ACTIVE_CASE_TBL AS (SELECT VALUE AS ACTIVE_CASE
+	        FROM   PLM_CODE_TBL
+	        WHERE  CATEGORY = 'MH_FACTOR'
+	        AND    KEY = 'ACTIVE_CASE' )
+		SELECT CASE_NO,
+		       FACTOR_NO,
+		       CAREER_MONTH_FROM,
+		       CAREER_MONTH_TO,
+		       TO_CHAR(FACTOR_VALUE, '99990D9') AS FACTOR,
+		       CASE
+		         WHEN CASE_NO = (SELECT ACTIVE_CASE
+		        FROM   ACTIVE_CASE_TBL) THEN 'Y'
+		         ELSE 'N'
+		       END AS ACTIVE_CASE_YN
+		FROM   PLM_DESIGN_MH_FACTOR
+		ORDER BY CASE_NO, FACTOR_NO 
+	</select>
+	
+	<select id="selectProgressDepartmentList"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DEPTCODE AS DEPT_CODE,
+		       DECODE(B.DEPT_NAME, NULL, A.DEPTNM, B.DEPT_NAME) AS DEPT_NAME,
+		       DECODE(B.PARENT_CODE, NULL, '', (SELECT C.DEPT_NAME
+		                FROM   STX_COM_INSA_DEPT@STXERP C
+		                WHERE  C.DEPT_CODE = B.PARENT_CODE) ) AS UP_DEPT_NAME
+		FROM   (SELECT C.DEPTCODE,
+		               C.DEPTNM
+		        FROM   DCC_DEPTCODE C
+		        WHERE  C.DWGDEPTCODE IN (SELECT DWGDEPTCODE
+		                FROM   DCC_DWGDEPTCODE
+		                WHERE  COUNTYN = 'Y') ) A,
+		       STX_COM_INSA_DEPT@STXERP B
+		WHERE  1 = 1
+		AND    A.DEPTCODE = B.DEPT_CODE(+)
+		AND    B.USE_YN = 'Y'
+		ORDER BY DEPTCODE 
+	</select>
+	
+	<select id="selectPartListUnderTeamStr" parameterType="String" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DEPT_CODE
+		FROM   STX_COM_INSA_DEPT@STXERP
+		WHERE  TEAM_CODE = (SELECT TEAM_CODE FROM STX_COM_INSA_DEPT@STXERP WHERE DEPT_CODE=#{teamdeptcode})
+		AND    USE_YN = 'Y'
+		ORDER BY DEPT_CODE 
+	</select>
+	
+	<select id="selectBaseWorkTime"  parameterType="java.util.Map" resultType="String">
+		SELECT SUM(INSIDEWORKTIME) AS MAX_WTIME
+		FROM   CCC_CALENDAR
+		WHERE  WORKINGDAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD') 
+	</select>
+	
+	<select id="selectPartPersons2" parameterType="java.util.HashMap" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.EMPLOYEE_NUM,
+		       A.NAME,
+		       A.WORK_TELEPHONE
+		FROM   CCC_SAWON A
+		WHERE A.DEPT_CODE IN (<foreach collection="dept_code_list" item="item" separator=",">
+												#{item}
+								</foreach>)
+		AND    TERMINATION_DATE IS NULL
+		AND    INPUT_MAN_HOUR_ENABLED = 'Y'
+		ORDER BY A.EMPLOYEE_NUM 
+	</select>
+	
+	<select id="selectAllDepartmentList" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DEPT_CODE AS DEPT_CODE,
+		       A.DEPT_NAME AS DEPT_NAME,
+		       (SELECT B.DEPT_NAME
+		        FROM   STX_COM_INSA_DEPT@STXERP B
+		        WHERE  B.DEPT_CODE = A.PARENT_CODE) AS UP_DEPT_NAME
+		FROM   STX_COM_INSA_DEPT@STXERP A
+		WHERE  DEPT_CODE IN (SELECT DISTINCT(DEPT_CODE)
+		        FROM   CCC_SAWON)
+		ORDER BY DEPT_CODE 
+	</select>
+	
+	<select id="selectOPCodesForRevision" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT KEY,
+		       VALUE
+		FROM   PLM_CODE_TBL
+		WHERE  CATEGORY = 'OP_CODE'
+		AND    KEY LIKE '5%'
+		ORDER BY KEY 
+	</select>
+	
+	<select id="selectPartPersons" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.EMPLOYEE_NUM as EMPLOYEE_NO,
+		       A.NAME as EMPLOYEE_NAME,
+		       A.WORK_TELEPHONE as PHONE
+		FROM   CCC_SAWON A
+		WHERE  A.DEPT_CODE = #{dept_code}
+		AND    TERMINATION_DATE IS NULL
+		AND    INPUT_MAN_HOUR_ENABLED = 'Y'
+		ORDER BY A.EMPLOYEE_NUM 
+	</select>
+	
+	<select id="selectMHInputConfirmYN" parameterType="java.util.Map" resultType="String">
+		SELECT distinct(NVL(CONFIRM_YN, 'N'))
+		FROM   PLM_DESIGN_MH
+		WHERE  EMPLOYEE_NO = #{id}
+		AND    WORK_DAY = TO_DATE(#{selectDate}, 'YYYY-MM-DD') 
+	</select>
+	
+	<select id="selectDateHolidayInfo"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT ISWORKDAY, INSIDEWORKTIME FROM CCC_CALENDAR WHERE WORKINGDAY = TO_DATE(#{selectDate}, 'YYYY-MM-DD')
+	</select>
+	
+	<select id="selectDesignMHInputs"   parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT START_TIME,
+		       PROJECT_NO,
+		       DWG_TYPE,
+		       DWG_CODE,
+		       OP_CODE,
+		       CAUSE_DEPART,
+		       BASIS,
+		       WORK_DESC,
+		       EVENT1,
+		       EVENT2,
+		       EVENT3,
+		       NORMAL_TIME,
+		       OVERTIME,
+		       SPECIAL_TIME,
+		       (SELECT B.VALUE
+		        FROM   PLM_CODE_TBL B
+		        WHERE  B.CATEGORY='OP_CODE'
+		        AND    B.KEY=OP_CODE) AS OP_STR,
+		       (SELECT B.VALUE
+		        FROM   PLM_CODE_TBL B
+		        WHERE  B.CATEGORY='DWG_EVENT'
+		        AND    B.KEY=EVENT1) AS EVENT1_STR,
+		       (SELECT B.VALUE
+		        FROM   PLM_CODE_TBL B
+		        WHERE  B.CATEGORY='DWG_EVENT'
+		        AND    B.KEY=EVENT2) AS EVENT2_STR,
+		       (SELECT B.VALUE
+		        FROM   PLM_CODE_TBL B
+		        WHERE  B.CATEGORY='DWG_EVENT'
+		        AND    B.KEY=EVENT3) AS EVENT3_STR,
+		       SHIP_TYPE
+		FROM   PLM_DESIGN_MH
+		WHERE  EMPLOYEE_NO=#{id}
+		AND    WORK_DAY = TO_DATE(#{selectDate}, 'YYYY-MM-DD')
+		ORDER BY START_TIME ASC 
+	</select>
+	
+	<select id="selectDPInputLockDate"   parameterType="java.util.Map" resultType="String">
+		SELECT TO_CHAR((SELECT NVL( (SELECT C.START_DATE
+		                                FROM   PLM_DESIGN_MH_LOCK C
+		                                WHERE  C.DEPT_CODE = (SELECT DEPT_CODE
+		                                        FROM   CCC_SAWON
+		                                        WHERE  EMPLOYEE_NUM = #{id})
+		                                AND    TO_CHAR(C.END_DATE, 'YYYY-MM-DD') >= TO_CHAR(SYSDATE, 'YYYY-MM-DD') ), (SELECT DDD.WORKINGDAY AS S_DATE
+		                                FROM   (SELECT ROWNUM AS ROW_NUM,
+		                                               DD.WORKINGDAY
+		                                        FROM   (SELECT CALENDAR.WORKINGDAY
+		                                                FROM   CCC_CALENDAR CALENDAR
+		                                                WHERE  CALENDAR.WORKINGDAY &lt;= SYSDATE
+		                                                AND    CALENDAR.ISWORKDAY = 'Y'
+		                                                ORDER BY CALENDAR.WORKINGDAY DESC ) DD ) DDD
+		                                WHERE  DDD.ROW_NUM = 2 ) )
+		                FROM   DUAL), 'YYYY-MM-DD') AS LOCK_DATE
+		FROM   DUAL 
+	</select>
+	
+	<select id="selectSelectedProjectList"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PROJECTNO,
+		       DL,
+		       DL_EFFECTIVE,
+		       DWGSERIESPROJECTNO
+		FROM   (SELECT PROJECTNO,
+		               NVL(DL, SYSDATE + 1) AS DL,
+		               DECODE(SIGN(TRUNC(SYSDATE) - LAST_DAY(ADD_MONTHS(NVL(DL, SYSDATE + 1), 1))), 1, 'N', 0, 'N', -1, 'Y') AS DL_EFFECTIVE,
+		               DWGSERIESPROJECTNO
+		        FROM   LPM_NEWPROJECT
+		        WHERE  CASENO='1'
+		        AND    PROJECTNO IN (SELECT PROJECT_NO
+		                FROM   PLM_USER_PROJECT
+		                WHERE  EMPLOYEE_NO = #{employee_id}
+		                AND    (END_DATE IS NULL
+		                        OR     END_DATE >= SYSDATE) )
+		        AND    DWGMHYN = 'Y'
+		        ORDER BY PROJECTNO )
+		UNION
+		SELECT PROJECT_NO,
+		       SYSDATE + 1,
+		       'Y',
+		       ''
+		FROM   PLM_USER_PROJECT A
+		WHERE  EMPLOYEE_NO = #{employee_id}
+		AND    (END_DATE IS NULL
+		        OR     END_DATE >= SYSDATE)
+		AND    SUBSTR(PROJECT_NO, 1, 1) >= '1'
+		AND    SUBSTR(PROJECT_NO, 1, 1) &lt;= '9'
+		AND    EXISTS (SELECT 1
+		        FROM   LPM_NEWPROJECT L
+		        WHERE  L.PROJECTNO = A.PROJECT_NO
+		        AND    L.CASENO = '1'
+		        AND    NVL(L.DWGMHYN, 'N') = 'Y' ) 
+	</select>
+	
+	<select id="selectInvalidSelectedProjectList"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PROJECT_NO
+				FROM   (SELECT PROJECT_NO
+				        FROM   PLM_USER_PROJECT
+				        WHERE  EMPLOYEE_NO = #{employee_id}
+				        AND    (END_DATE IS NULL
+				                OR     END_DATE >= SYSDATE)
+				        AND    PROJECT_NO NOT IN (SELECT PROJECTNO
+				                FROM   LPM_NEWPROJECT
+				                WHERE  CASENO = '1')
+				        ORDER BY PROJECT_NO )
+				MINUS
+				SELECT PROJECT_NO
+				FROM   PLM_USER_PROJECT
+				WHERE  EMPLOYEE_NO = #{employee_id}
+				AND    (END_DATE IS NULL
+				        OR     END_DATE >= SYSDATE)
+				AND    SUBSTR(PROJECT_NO, 1, 1) >= '1'
+				AND    SUBSTR(PROJECT_NO, 1, 1) &lt;= '9' 
+	</select>
+	
+	<select id="selectDesignMHConfirmExist" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DECODE(COUNT(*), 0, 'N', 'Y') AS CONFIRM_EXIST
+		FROM   PLM_DESIGN_MH A
+		WHERE  A.WORK_DAY BETWEEN TO_DATE(#{from_date}, 'YYYY-MM-DD') AND TO_DATE(#{to_date}, 'YYYY-MM-DD')
+		AND    A.EMPLOYEE_NO=#{employee_id}
+		AND    A.CONFIRM_YN='Y' 
+	</select>
+	
+	<select id="selectDesignProgressInfo"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TO_CHAR(DW.PLANSTARTDATE, 'YYYY-MM-DD') AS DW_PLAN_S,
+		       TO_CHAR(DW.PLANFINISHDATE, 'YYYY-MM-DD') AS DW_PLAN_F,
+		       TO_CHAR(DW.ACTUALSTARTDATE, 'YYYY-MM-DD') AS DW_ACT_S,
+		       TO_CHAR(DW.ACTUALFINISHDATE, 'YYYY-MM-DD') AS DW_ACT_F,
+		       TO_CHAR(OW.PLANSTARTDATE, 'YYYY-MM-DD') AS OW_PLAN_S,
+		       TO_CHAR(OW.PLANFINISHDATE, 'YYYY-MM-DD') AS OW_PLAN_F,
+		       TO_CHAR(OW.ACTUALSTARTDATE, 'YYYY-MM-DD') AS OW_ACT_S,
+		       TO_CHAR(OW.ACTUALFINISHDATE, 'YYYY-MM-DD') AS OW_ACT_F,
+		       TO_CHAR(CL.PLANSTARTDATE, 'YYYY-MM-DD') AS CL_PLAN_S,
+		       TO_CHAR(CL.PLANFINISHDATE, 'YYYY-MM-DD') AS CL_PLAN_F,
+		       TO_CHAR(CL.ACTUALSTARTDATE, 'YYYY-MM-DD') AS CL_ACT_S,
+		       TO_CHAR(CL.ACTUALFINISHDATE, 'YYYY-MM-DD') AS CL_ACT_F,
+		       TO_CHAR(RF.PLANSTARTDATE, 'YYYY-MM-DD') AS RF_PLAN_S,
+		       TO_CHAR(RF.ACTUALSTARTDATE, 'YYYY-MM-DD') AS RF_ACT_S,
+		       TO_CHAR(WK.PLANSTARTDATE, 'YYYY-MM-DD') AS WK_PLAN_S,
+		       TO_CHAR(WK.ACTUALSTARTDATE, 'YYYY-MM-DD') AS WK_ACT_S,
+		       (NVL(DW.PLANSTDMH, 0)) AS PLANMH,
+		       (NVL(DW.ACTUALSTDMH, 0)) AS ACTUALMH
+		FROM   PLM_ACTIVITY DW,
+		       (SELECT A.PROJECTNO,
+		               A.ACTIVITYCODE,
+		               A.PLANSTARTDATE,
+		               A.PLANFINISHDATE,
+		               A.ACTUALSTARTDATE,
+		               A.ACTUALFINISHDATE,
+		               A.PLANSTDMH,
+		               A.ACTUALSTDMH
+		        FROM   PLM_ACTIVITY A
+		        WHERE  A.WORKTYPE = 'OW' ) OW,
+		       (SELECT B.PROJECTNO,
+		               B.ACTIVITYCODE,
+		               B.PLANSTARTDATE,
+		               B.PLANFINISHDATE,
+		               B.ACTUALSTARTDATE,
+		               B.ACTUALFINISHDATE,
+		               B.PLANSTDMH,
+		               B.ACTUALSTDMH
+		        FROM   PLM_ACTIVITY B
+		        WHERE  B.WORKTYPE = 'CL' ) CL,
+		       (SELECT C.PROJECTNO,
+		               C.ACTIVITYCODE,
+		               C.PLANSTARTDATE,
+		               C.PLANFINISHDATE,
+		               C.ACTUALSTARTDATE,
+		               C.ACTUALFINISHDATE,
+		               C.PLANSTDMH,
+		               C.ACTUALSTDMH
+		        FROM   PLM_ACTIVITY C
+		        WHERE  C.WORKTYPE = 'RF' ) RF,
+		       (SELECT D.PROJECTNO,
+		               D.ACTIVITYCODE,
+		               D.PLANSTARTDATE,
+		               D.PLANFINISHDATE,
+		               D.ACTUALSTARTDATE,
+		               D.ACTUALFINISHDATE,
+		               D.PLANSTDMH,
+		               D.ACTUALSTDMH
+		        FROM   PLM_ACTIVITY D
+		        WHERE  D.WORKTYPE = 'WK' ) WK
+		WHERE  DW.PROJECTNO = #{projectNo}
+		AND    DW.PROJECTNO = OW.PROJECTNO(+)
+		AND    DW.PROJECTNO = CL.PROJECTNO(+)
+		AND    DW.PROJECTNO = RF.PROJECTNO(+)
+		AND    DW.PROJECTNO = WK.PROJECTNO(+)
+		AND    DW.WORKTYPE = 'DW'
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = #{drawingNo}
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(OW.ACTIVITYCODE(+), 1, 8)
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(CL.ACTIVITYCODE(+), 1, 8)
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(RF.ACTIVITYCODE(+), 1, 8)
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(WK.ACTIVITYCODE(+), 1, 8) 
+	</select>
+	
+	<select id="selectDrawingTypesForWork1" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT(DWGTYPE) as DWGTYPE
+		FROM   PLM_ACTIVITY
+		WHERE  PROJECTNO = #{projectNo}
+		AND    WORKTYPE = 'DW' 
+		<if test="departCode != '440500'"><!--  검도교육P는 업무특성으로 인해 전 부서 도면을 조회 -->
+		    AND    DWGDEPTCODE = (SELECT E.DWGDEPTCODE FROM   DCC_DEPTCODE E WHERE  E.DEPTCODE = #{departCode}) 
+		</if>
+		ORDER BY DWGTYPE 
+	</select>
+	<select id="selectDrawingTypesForWork2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT(DWGTYPE) as DWGTYPE
+		FROM   DPC_HEAD A
+		WHERE  1 = 1
+		AND    A.CASENO = (SELECT MAX(CASENO)
+		        FROM   DPC_HEAD) 
+		        <if test="departCode != '440500'">   <!-- 검도교육P는 업무특성으로 인해 전 부서 도면을 조회 -->
+		        AND    A.DWGDEPTCODE = (SELECT DWGDEPTCODE
+		                FROM   DCC_DEPTCODE
+		                WHERE  DEPTCODE = #{departCode}) 
+		       </if>
+		AND    (SELECT COUNT(*)
+		        FROM   CCC_CODE B
+		        WHERE  B.P_CODE = 'SHIPTYPE'
+		        AND    B.M_CODE = 'SHIPTYPE'
+		        AND    B.C_CODE = (SELECT C.SHIPTYPE
+		                FROM   LPM_NEWPROJECT C
+		                WHERE  C.CASENO = '1'
+		                AND    C.PROJECTNO = #{projectNo})
+		        AND    B.ATTRIBUTE1 = BITAND(B.ATTRIBUTE1, A.SHIPTYPE) ) > 0 
+	</select>
+	<select id="selectDrawingTypesForWork3" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT(DWGTYPE) as DWGTYPE
+		FROM   PLM_ACTIVITY
+		WHERE  PROJECTNO = #{projectNo}
+		AND    WORKTYPE = 'DW'
+		AND    DWGDEPTCODE IN ('000051')
+		ORDER BY DWGTYPE 
+	</select>
+	<select id="selectDrawingTypesForWork4" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT(DWGTYPE) as DWGTYPE
+		FROM   DPC_HEAD A
+		WHERE  1 = 1
+		AND    A.CASENO = (SELECT MAX(CASENO)
+		        FROM   DPC_HEAD)
+		AND    DWGDEPTCODE IN ('000051')
+		AND    (SELECT COUNT(*)
+		        FROM   CCC_CODE B
+		        WHERE  B.P_CODE = 'SHIPTYPE'
+		        AND    B.M_CODE = 'SHIPTYPE'
+		        AND    B.C_CODE = (SELECT C.SHIPTYPE
+		                FROM   LPM_NEWPROJECT C
+		                WHERE  C.CASENO = '1'
+		                AND    C.PROJECTNO = #{projectNo})
+		        AND    B.ATTRIBUTE1 = BITAND(B.ATTRIBUTE1, A.SHIPTYPE) ) > 0 
+	</select>
+	
+	<select id="selectShipType" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.C_CODE
+		FROM   CCC_CODE A
+		WHERE  A.P_CODE = 'SHIPTYPE'
+		AND    A.USE_FLAG = 'Y'
+		ORDER BY A.TAG 
+	</select>
+	
+	<select id="selectDrawingWorkStartDate" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD') AS WK_PLAN_S
+		FROM   PLM_ACTIVITY A
+		WHERE  A.WORKTYPE = 'WK'
+		AND    SUBSTR(A.ACTIVITYCODE, 1, 8) = #{dwg_code}
+		AND    A.PROJECTNO = #{project_no}
+	</select>
+	
+	<select id="selectAllDepartmentOfSTXShipList" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DEPT_CODE AS DEPT_CODE,
+		       A.DEPT_NAME AS DEPT_NAME,
+		       (SELECT B.DEPT_NAME
+		        FROM   STX_COM_INSA_DEPT@STXERP B
+		        WHERE  B.DEPT_CODE = A.PARENT_CODE) AS UP_DEPT_NAME
+		FROM   STX_COM_INSA_DEPT@STXERP A
+		WHERE  1 = 1
+		AND    USE_YN = 'Y'
+		ORDER BY DEPT_NAME 
+	</select>
+	
+	<select id="selectAllDepartmentOfSTXShipList_Dalian" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DEPT_CODE AS DEPT_CODE,
+	       A.DEPT_NAME AS DEPT_NAME,
+	       (SELECT B.DEPT_NAME
+	        FROM   STX_COM_INSA_DEPT@STXERP B
+	        WHERE  B.DEPT_CODE = A.PARENT_CODE) AS UP_DEPT_NAME
+		FROM   STX_COM_INSA_DEPT@STXERP A
+		WHERE  1 = 1
+		AND    USE_YN = 'Y'
+		UNION ALL
+		SELECT A.DEPTCODE AS DEPT_CODE,
+		       A.DEPTNM AS DEPT_NAME,
+		       '' AS UP_DEPT_NAME
+		FROM   DCC_DEPTCODE A,
+		       Z_DALIAN_SAWON_TO111231 B
+		WHERE  A.DWGDEPTCODE = B.DWG_DEPTCODE
+		GROUP BY A.DEPTCODE, A.DEPTNM
+		ORDER BY DEPT_NAME 
+	</select>
+	
+	<select id="selectPartPersonsForDPProgress" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.EMPLOYEE_NUM,
+		       A.NAME,
+		       NVL(A.WORK_TELEPHONE,' ') AS WORK_TELEPHONE
+		FROM   CCC_SAWON A
+		WHERE  A.DEPT_CODE = #{dept_code}
+		AND    TERMINATION_DATE IS NULL
+		AND    (INPUT_MAN_HOUR_ENABLED = 'Y'
+		        OR     INPUT_PROGRESS_ENABLED = 'Y')
+		ORDER BY A.EMPLOYEE_NUM 
+	</select>
+	
+	<select id="selectPartPersons_Dalian" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.SAWON_ID as EMPLOYEE_NO,
+		       A.SAWON_NAME as EMPLOYEE_NAME,
+		       '' AS PHONE as PHONE
+		FROM   Z_DALIAN_SAWON_TO111231 A,
+		       DCC_DEPTCODE B
+		WHERE  1 = 1
+		AND    A.DWG_DEPTCODE = B.DWGDEPTCODE
+		AND    B.DEPTCODE = #{dept_code}
+	</select>
+	
+	
+	<update id="updatePlmSearchableProject"  parameterType="java.util.Map">
+		MERGE
+		INTO   PLM_SEARCHABLE_PROJECT A USING (SELECT DISTINCT(PROJECTNO) AS B
+		        FROM   PLM_ACTIVITY) ON (B IN A.PROJECTNO
+		        AND    A.CATEGORY = #{category})
+		       WHEN MATCHED THEN
+		UPDATE
+		SET    UPDATEDATE = UPDATEDATE
+		       WHEN NOT MATCHED THEN
+		INSERT
+		VALUES(#{category},
+		               B,
+		               'ALL',
+		               SYSDATE,
+		               #{loginId},
+		               SYSDATE,
+		               #{loginId}) 
+	</update>
+	
+	<select id="selectProgressSearchableProjectList"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.PROJECTNO,
+		       A.STATE,
+		       (SELECT B.DWGSERIESSERIALNO
+		        FROM   LPM_NEWPROJECT B
+		        WHERE  B.CASENO='1'
+		        and    B.PROJECTNO = A.PROJECTNO) AS S_NO
+		FROM   PLM_SEARCHABLE_PROJECT A
+		WHERE  1 = 1
+		AND    A.CATEGORY = #{category}
+		<if test="openOnly == true">
+			AND A.STATE &lt;&gt; 'CLOSED'
+		</if>
+		ORDER BY PROJECTNO                 
+	</select>
+	
+	<select id="selectProgressSearchableProjectList_Dalian"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT project_no as projectno FROM Z_DALIAN_PROJECT_TO111231
+	</select>
+	
+	<select id="selectPartOutsidePersonsForDPProgress" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.EMPLOYEE_NUM,
+		       A.NAME,
+		       NVL(A.WORK_TELEPHONE,' ') AS WORK_TELEPHONE
+		FROM   CCC_SAWON A
+		WHERE  1=1
+		AND    A.TERMINATION_DATE IS NULL
+		AND    A.OUTSIDER_FLAG='Y'
+		AND    A.DEPT_CODE IN (SELECT DEPT_1.DEPTCODE
+		        FROM   DCC_DEPTCODE DEPT ,
+		               DCC_DEPTCODE DEPT_1 ,
+		               STX_COM_INSA_DEPT@STXERP INSA_DEPT
+		        WHERE  1=1
+		        AND    DEPT.DWGDEPTCODE = DEPT_1.DWGDEPTCODE
+		        AND    DEPT_1.DEPTCODE = INSA_DEPT.DEPT_CODE
+		        AND    INSA_DEPT.USE_YN ='Y'
+		        AND    DEPT.DEPTCODE = #{dept_code})
+		ORDER BY A.EMPLOYEE_NUM 
+	</select>
+	
+	<select id="selectDPProgressLockDate" parameterType="java.util.Map" resultType="String">
+		SELECT RESTRICT_TO                  
+		FROM PLM_PROGRESS_LOCK              
+		WHERE DEPT_CODE = #{dwg_deptcode}
+	</select>
+	
+	<select id="selectKeyEventDates" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TO_CHAR(CONTRACTDATE, 'YYYY-MM-DD') as CT,
+		       TO_CHAR(SC, 'YYYY-MM-DD') as SC,
+		       TO_CHAR(KL, 'YYYY-MM-DD') as KL,
+		       TO_CHAR(LC, 'YYYY-MM-DD') as LC,
+		       TO_CHAR(DL, 'YYYY-MM-DD') as DL
+		FROM   LPM_NEWPROJECT
+		WHERE  1 = 1
+		AND    PROJECTNO = #{project_no}
+		AND    CASENO = '1' 
+	</select>
+	
+</mapper>

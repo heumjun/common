@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoSelectRelatedEco">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDECO.ENG_CHANGE_ORDER_CODE                                    AS ECO_NO
+			     ,SDECO.ENG_CHANGE_ORDER_CODE                                    AS ECO_NAME
+			     ,(SELECT SDER_ECR.SUB_CODE
+		          FROM STX_DIS_ENG_REL SDER_ECR
+		         WHERE SDER_ECR.ENG_TYPE = 'ECR'
+		           AND SDER_ECR.MAIN_CODE = SDECO.ENG_CHANGE_ORDER_CODE )                    AS REL_ECR
+		      ,DECODE( SDECO.PERMANENT_TEMPORARY_FLAG, '5', '영구', '잠정' )  AS PERMANENT_TEMPORARY_FLAG_DESC
+		      ,SDSM.SD_DESC                                                   AS CAUSE_DESC
+		      ,STX_DIS_SHORT_EMP_NAME_F( SDECO.DESIGN_ENGINEER )              AS DESIGN_ENGINEER_NAME
+		      ,STX_DIS_SHORT_EMP_NAME_F( SDECO.MANUFACTURING_ENGINEER )       AS MANUFACTURING_ENGINEER
+		      ,SDECO_STATES.SD_DESC                                           AS STATES_DESC
+		      ,SDECO.ENG_ECO_PROJECT                                          AS ENG_ECO_PROJECT
+		  FROM STX_DIS_ENG_REL          SDER 
+		      ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		      ,STX_DIS_SD_CODE          SDSM
+		      ,STX_DIS_SD_CODE          SDECO_STATES
+		 WHERE SDER.ENG_TYPE                = 'ECO'
+		   AND SDER.SUB_CODE                = SDECO.ENG_CHANGE_ORDER_CODE 
+		   AND SDECO.ENG_CHANGE_ORDER_CAUSE = SDSM.SD_CODE
+		   AND SDSM.SD_TYPE                 = 'CAUSE'
+		   AND SDECO.STATES_CODE            = SDECO_STATES.SD_CODE
+		   AND SDECO_STATES.SD_TYPE         = 'ECO_STATES'
+		   AND SDER.MAIN_CODE               = #{main_code}
+		 ORDER BY SDECO.ENG_CHANGE_ORDER_CODE
+	</select>
+  	
+</mapper>

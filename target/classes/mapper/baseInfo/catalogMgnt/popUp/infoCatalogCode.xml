@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoCatalogCode">  	
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					select catalog_code
+					      ,catalog_desc
+				      from stx_dis_sd_catalog
+				     where 1=1
+				       <!--and catalog_code like #{p_code_find} || '%'
+				       and catalog_desc	like #{p_desc_find} || '%'-->
+				       <if test="p_search_type != null and p_search_type !='' ">
+					   	<if test='p_search_type == "cata_code" '>
+					   		and catalog_code like REPLACE(#{p_code_find} , '*', '%') || '%'
+					   	</if>
+					   	<if test='p_search_type == "cata_desc" '>
+					   		and catalog_desc like '%' || #{p_code_find} || '%'
+					   	</if>
+					   </if>
+				       <if test="inv_category_id != null and inv_category_id !='' ">
+				       and category_id = #{inv_category_id}
+				       </if>
+				       <if test="p_bomCheck != null and p_bomCheck !='' ">
+				        <if test='p_bomCheck == "WBS" '>
+				          and wbs_flag='Y'
+				        </if>
+				       </if>
+				     order by catalog_code
+				  ) t1
+     	   ) t2
+	 where page = #{curPageNo}       			     
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+      from stx_dis_sd_catalog
+     where 1=1
+       <!-- and catalog_code like #{p_code_find} || '%'
+       and catalog_desc	like #{p_desc_find} || '%'-->
+       <if test="p_search_type != null and p_search_type !='' ">
+	   	<if test='p_search_type == "cata_code" '>
+	   		and catalog_code like REPLACE(#{p_code_find} , '*', '%') || '%'
+	   	</if>
+	   	<if test='p_search_type == "cata_desc" '>
+	   		and catalog_desc like '%' || #{p_code_find} || '%'
+	   	</if>
+	   </if>
+       <if test="p_bomCheck != null and p_bomCheck !='' ">
+	        <if test='p_bomCheck == "WBS" '>
+	          and wbs_flag='Y'
+	        </if>
+	   </if>
+  	</select>
+ 	
+</mapper>

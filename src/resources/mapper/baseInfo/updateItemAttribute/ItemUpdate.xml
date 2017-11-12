@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ItemUpdate">
+	
+
+	<select id="selectItemList">
+
+	</select>
+	
+	
+	
+	
+	<select id="selectItemInterfaceList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT t2.*
+		  FROM ( SELECT t1.*
+		              , FLOOR( ( ROWNUM - 1) / #{pageSize} + 1 ) AS page
+		           FROM ( 
+				           	SELECT SDI.ITEM_CODE
+					      ,SDI.ITEM_DESC
+					      ,SDI.ITEM_CATALOG
+					      ,SDI.ITEM_CATEGORY
+					      ,SDI.SHIP_PATTERN
+					      ,SDI.UOM
+					      ,SDI.ITEM_WEIGHT
+					      ,SDI.ATTR1
+					      ,SDI.ATTR2
+					      ,SDI.ATTR3
+					      ,SDI.ATTR4
+					      ,SDI.ATTR5
+					      ,SDI.ATTR6
+					      ,SDI.ATTR7
+					      ,SDI.ATTR8
+					      ,SDI.ATTR9
+					      ,SDI.ATTR10
+					      ,SDI.ATTR11
+					      ,SDI.ATTR12
+					      ,SDI.ATTR13
+					      ,SDI.ATTR14
+					      ,SDI.ATTR15
+					      ,SDI.CABLE_LENGTH
+					      ,SDI.CABLE_TYPE
+					      ,SDI.CABLE_OUTDIA
+					      ,SDI.CAN_SIZE
+					      ,SDI.STXSVR
+					      ,SDI.THINNER_CODE
+					      ,SDI.STX_STANDARD
+					      ,SDI.PAINT_CODE
+					      ,SDI.STATES_CODE
+					      ,SDI.STATES_DESC
+					      ,SDI.USER_NAME
+					      ,(SELECT SDIU.USER_NAME FROM STX_COM_INSA_USER@STXERP SDIU WHERE SDIU.EMP_NO = SDI.LAST_UPDATED_BY) AS LAST_UPDATED_BY
+					      ,TO_CHAR(SDI.LAST_UPDATE_DATE, 'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDATE_DATE
+					  FROM STX_DIS_ITEM SDI
+					 WHERE SDI.ITEM_CODE LIKE #{p_item_code} || '%'
+		                ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+	</select>
+	
+  	<select id="selectItemInterfaceListTotalRecord" parameterType="java.util.Map" resultType="String">
+				           	SELECT count(*) as cnt
+			  FROM STX_DIS_ITEM SDI
+			 WHERE SDI.ITEM_CODE LIKE #{p_item_code} || '%'
+  	</select>
+	
+	<select id="saveItemToErp"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_item_pkg.re_send_item2erp(p_item_code  => #{p_item_code},
+                                             p_loginid    => #{p_loginid},
+                                             p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                             p_error_msg  => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+  	</select>
+	
+</mapper>

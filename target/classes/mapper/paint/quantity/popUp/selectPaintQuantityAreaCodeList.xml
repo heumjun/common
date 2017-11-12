@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectPaintQuantityAreaCodeList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" > 	
+	with pis_block as 
+	(select t1.area_code
+	       ,substr(area_code,1,1) as col
+	       ,row_number() over(partition by substr(area_code,1,1) order by area_code) as num
+	   from 
+	       ( 
+	         select distinct a.area_code                     
+	           from stx_dis_pis_block a
+	          where a.project_no = #{project_no} 
+	            and a.revision   = #{revision} 
+	        ) t1
+	)
+	select *
+	  from (
+	        select max(decode(col,'A',area_code)) as area1
+	              ,max(decode(col,'B',area_code)) as area2
+	              ,max(decode(col,'C',area_code)) as area3
+	              ,max(decode(col,'D',area_code)) as area4
+	              ,max(decode(col,'E',area_code)) as area5
+	              ,max(decode(col,'F',area_code)) as area6
+	              ,max(decode(col,'G',area_code)) as area7
+	              ,max(decode(col,'H',area_code)) as area8
+	              ,max(decode(col,'I',area_code)) as area9
+	              ,max(decode(col,'J',area_code)) as area10
+	              ,max(decode(col,'K',area_code)) as area11
+	              ,max(decode(col,'L',area_code)) as area12
+	              ,max(decode(col,'N',area_code)) as area13
+	              ,max(decode(col,'M',area_code)) as area14
+	              ,max(decode(col,'O',area_code)) as area15
+	              ,max(decode(col,'P',area_code)) as area16
+	              ,max(decode(col,'Q',area_code)) as area17
+	              ,max(decode(col,'R',area_code)) as area18
+	              ,max(decode(col,'S',area_code)) as area19
+	              ,max(decode(col,'T',area_code)) as area20
+	              ,max(decode(col,'U',area_code)) as area21
+	              ,max(decode(col,'V',area_code)) as area22
+	              ,max(decode(col,'W',area_code)) as area23
+	              ,max(decode(col,'X',area_code)) as area24
+	              ,max(decode(col,'Y',area_code)) as area25
+	              ,max(decode(col,'Z',area_code)) as area26
+	          from pis_block
+	          group by num  
+	        ) t1
+	 order by 1,2,3,4,5,6,7,8,9,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26 
+ 	</select>
+</mapper>

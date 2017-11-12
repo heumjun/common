@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpRevisionDataMainGrid">
+	<select id="list" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DEPT_CODE,
+		       DEPT_NAME,
+		       OP_CODE,
+		       OP_WTIME
+		FROM   (SELECT A.DEPT_CODE,
+		               B.DEPT_NAME,
+		               D.DWGDEPTCODE AS DWG_DEPTCODE,
+		               A.OP_CODE,
+		               A.OP_WTIME
+		        FROM   (SELECT DEPT_CODE,
+		                       OP_CODE,
+		                       SUM(NORMAL_TIME + OVERTIME + SPECIAL_TIME) AS OP_WTIME
+		                FROM   (SELECT DEPT_CODE,
+		                               OP_CODE,
+		                               TO_CHAR(NORMAL_TIME * MH_FACTOR) AS NORMAL_TIME,
+		                               TO_CHAR(OVERTIME * MH_FACTOR) AS OVERTIME,
+		                               TO_CHAR(SPECIAL_TIME * MH_FACTOR) AS SPECIAL_TIME
+		                        FROM   (SELECT DEPT_CODE,
+		                                       OP_CODE,
+		                                       NORMAL_TIME,
+		                                       OVERTIME,
+		                                       SPECIAL_TIME,
+		                                                                       CASE
+		                                                                         WHEN CAREER_MONTHS IS NULL THEN 1
+		                                                                         ELSE (SELECT FACTOR_VALUE
+		                                        FROM   (SELECT CAREER_MONTH_FROM,
+		                                                       CAREER_MONTH_TO,
+		                                                       FACTOR_VALUE
+		                                                FROM   PLM_DESIGN_MH_FACTOR
+		                                                WHERE  1 = 1
+		                                                AND    CASE_NO = #{factorCaseList} )
+		                                        WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+		                                        AND    NVL(CAREER_MONTH_TO, 9999) >= CAREER_MONTHS )
+		                                                                       END AS MH_FACTOR
+		                                FROM   (SELECT A.DEPT_CODE,
+		                                               A.OP_CODE,
+		                                               A.NORMAL_TIME,
+		                                               A.OVERTIME,
+		                                               A.SPECIAL_TIME,
+		                                               A.EMPLOYEE_NO,
+		                                               ((TO_CHAR(A.WORK_DAY, 'YYYY') - TO_CHAR(B.DESIGN_APPLY_DATE, 'YYYY'))* 12 + (TO_CHAR(A.WORK_DAY, 'MM') - TO_CHAR(B.DESIGN_APPLY_DATE, 'MM'))) +
+		                                                                                       CASE
+		                                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+		                                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') > 15 THEN 0
+		                                                                                       END + NVL(ROUND(B.BEFORE_ENTRANCE_CAREER * 12, 0), 0) AS CAREER_MONTHS
+		                                        FROM   PLM_DESIGN_MH A,
+		                                               CCC_SAWON B
+		                                        WHERE  1 = 1
+		                                        AND    A.EMPLOYEE_NO = B.EMPLOYEE_NUM(+)
+		                                        AND    A.OP_CODE &lt;&gt; '90'
+		                                        AND    (A.OP_CODE LIKE '5%'
+		                                                OR     A.OP_CODE = '20')                                                
+		                                        <if test="dept_code_list != null and dept_code_list.size > 0">
+		                                            AND    A.DEPT_CODE IN (<foreach collection="dept_code_list" item="item" separator=",">#{item}</foreach>) 
+				                                </if> 
+		                                        <if test="project_no_list != null and project_no_list.size() > 0">
+		                                            AND    A.PROJECT_NO IN (<foreach collection="project_no_list" item="item" separator=",">#{item}</foreach>) 
+		                                        </if>
+		                                        <if test="causeDeptList != null and causeDeptList != ''">
+		
+		                                            AND A.CAUSE_DEPART = #{causeDeptList}
+		
+		                                        </if>
+		                                        AND    A.WORK_DAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD') ) ) )
+		                GROUP BY DEPT_CODE, OP_CODE
+		                ORDER BY DEPT_CODE, OP_CODE ) A,
+		               STX_COM_INSA_DEPT@STXERP B,
+		               DCC_DEPTCODE D
+		        WHERE  B.DEPT_CODE = A.DEPT_CODE
+		        AND    A.DEPT_CODE = D.DEPTCODE(+) ) A,
+		       DCC_DWGDEPTCODE B
+		WHERE  A.DWG_DEPTCODE = B.DWGDEPTCODE(+)
+		ORDER BY B.ORDERNO, DEPT_NAME 
+	</select>
+</mapper>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Mail">
+	<select id="mailPromoteSendList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select
+	        '' AS main_name,
+	        '' AS main_desc,
+	        (a.ep_mail||'@onestx.com') as ep_mail,
+	        s.state_type,
+	        '' as baseOn,
+	        s.notify_msg,
+	        to_char(s.no) no
+	    from stx_dis_statereq s ,STX_COM_INSA_USER@stxerp A
+	    where s.MAIN_CODE = #{main_code}
+	    and a.emp_no(+) = s.emp_no
+	    union all
+	    select     r.main_code  as main_name,
+	    (select ENG_CHANGE_DESCRIPTION from stx_dis_eng_change_req q
+            where r.main_code = q.eng_change_req_code) AS main_desc,
+	       (a.ep_mail||'@onestx.com') as ep_mail,
+	       'ECR' as state_type,
+           (select listagg(a.sd_desc, ','||CHR(10) ) WITHIN GROUP(ORDER BY a.sd_desc)  
+	       from stx_dis_eng_change_req q ,STXDIS.STX_DIS_SD_CODE  a
+	       where q.eng_change_based_on = a.sd_code
+           and   sd_type = 'ECRBASED'
+	       and r.main_code = q.eng_change_req_code) as baseOn,
+	       '' as notify_msg,
+	       '' as no
+	   from stx_dis_eng_rel r, 
+	        STX_COM_INSA_USER@stxerp a,
+	        stx_dis_eng_change_req  ecr
+	    where r.sub_code = #{main_code}
+	    and eng_type='ECR'
+	    and r.MAIN_CODE = ecr.ENG_CHANGE_REQ_CODE
+	    and a.emp_no(+) = ecr.CREATE_BY
+ 	</select>
+ 	
+ 	<select id="mailPromoteOwnerSendList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT x.ep_mail || '@onestx.com' sendOwnerMail
+		  FROM stx_com_insa_user@stxerp x
+		 WHERE x.emp_no = #{loginId}
+ 	</select>
+ 	
+ 	
+ 	<select id="selectEcrMailInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT 	  y.eng_change_req_code
+                 ,y.ENG_CHANGE_DESCRIPTION ecr_description
+		         ,(select listagg(a.sd_desc, ','||CHR(10) ) WITHIN GROUP(ORDER BY a.sd_desc)  
+                                           from STXDIS.STX_DIS_SD_CODE  a
+                                           where y.eng_change_based_on = a.sd_code
+                                           and   a.sd_type = 'ECRBASED') ecr_based_on
+		         , ( SELECT nvl2( t.ep_mail, t.ep_mail || '@onestx.com', t.ep_mail ) ep_mail
+		               FROM stx_com_insa_user@stxerp t
+		              WHERE t.emp_no = y.create_by ) as create_ep_mail
+		         , ( SELECT nvl2( t.ep_mail, t.ep_mail || '@onestx.com', t.ep_mail ) ep_mail
+		               FROM stx_com_insa_user@stxerp t
+		              WHERE t.emp_no = y.USER_CODE ) as evaluator_ep_mail
+		         , ( SELECT nvl2( t.ep_mail, t.ep_mail || '@onestx.com', t.ep_mail ) ep_mail
+		               FROM stx_com_insa_user@stxerp t
+		              WHERE t.emp_no = (select SUB_EMP_NO 
+								from stx_dis_user_register 
+								where MAIN_TYPE = 'ECR' 
+								and REGISTER_TYPE ='RME' 
+								and MAIN_EMP_NO = y.create_by) ) as manufacturing_ep_mail
+				,(select listagg( nvl2( k.ep_mail, k.ep_mail || '@onestx.com', k.ep_mail ) , ',' ) within group( order by t.no ) APPROVE_ALL_NAME
+	                from stx_dis_statereq t
+	                   , stx_com_insa_user@stxerp k
+	               where t.emp_no = k.emp_no
+	                 AND t.main_code = y.eng_change_req_code
+	                 AND t.referrers = 'Y'    
+	               )  as related_person_emp_name
+                ,(select listagg( nvl2( insa2.ep_mail, insa2.ep_mail || '@onestx.com', insa2.ep_mail ) , ',' ) within group( order by t.no ) APPROVE_ALL_NAME
+	                from stx_dis_statereq t
+	                   , stx_com_insa_user@stxerp insa
+                       , stx_com_insa_user@stxerp insa2
+	               where t.emp_no = insa.emp_no
+	                 AND t.main_code = y.eng_change_req_code
+	                 AND t.referrers = 'Y'                     
+                     and insa.dept_code = insa2.dept_code
+                     and insa2.job_nam = '파트장'                     
+                     and insa2.del_date is null
+                  )  as related_person_partjang	               				
+		      FROM stx_dis_eng_change_req y
+		       WHERE y.eng_change_req_code = #{main_code}
+ 	</select>
+ 	
+ 	<select id="selectEcrRelEcoMailInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT 	  r.sub_code as eco_code
+                 ,eco.ENG_CHANGE_ORDER_DESC as eco_description
+                 ,stx_dis_short_emp_name_f( eco.create_by ) as eco_created_by
+		         ,( SELECT t.sd_desc
+                                 FROM STX_DIS_SD_CODE t
+                                WHERE t.sd_code = eco.eng_change_order_cause
+                                  AND t.sd_type = 'CAUSE' ) as eco_cause
+		      FROM stx_dis_eng_rel r
+		         , stx_dis_eng_change_order eco
+		     WHERE r.sub_code = eco.eng_change_order_code
+               and r.eng_type ='ECR'
+		       and r.main_code = #{main_code}
+ 	</select>
+ 	
+ 	<select id="selectEcrPromoteSendList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	    SELECT x.main_type || ' No. : ' || x.main_name ecr_no
+	         , x.main_type || ' No. ' || x.main_name ecr_no_subject
+	         , x.main_name
+	         , 'ECR Based on : ' || ( SELECT t.states_var1
+	                                    FROM stx_dis_states_mgnt t
+	                                   WHERE t.states_code = z.eng_change_based_on
+	                                     AND t.states_main_category = 'ECRBASED' ) ECR_BASED_ON
+	         , 'Description : ' || CHR(10) || x.main_description description
+	         , 'Related Person : ' || CHR(10) || ( SELECT listagg( stx_dis_short_emp_name_f( p.emp_no ), CHR(10) ) WITHIN GROUP( ORDER BY p.no )
+	                                                 FROM stx_dis_statereq p
+	                                                WHERE p.referrers = 'Y'
+	                                                  AND p.main_code = x.main_code ) ECR_RELATED_PERSON
+ 	         , u.ep_mail || '@onestx.com' ep_mail
+	      FROM stx_dis_main x
+	         , stx_dis_statereq y
+	         , stx_dis_eng_change_req z
+	         , stx_com_insa_user@stxerp u
+	     WHERE x.main_code = y.main_code
+	       AND x.main_code = z.eng_change_req_code
+	       AND y.emp_no = u.emp_no
+		   AND x.main_code = #{main_code}
+		<if test=' states_desc.equalsIgnoreCase("Create") and promote.equalsIgnoreCase("promote") '>
+		   AND y.no = 1
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Evaluate") and promote.equalsIgnoreCase("promote") '>
+		   AND y.no = 2
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Review") and promote.equalsIgnoreCase("promote") '>
+		   AND y.no NOT IN ( 1, 2 )
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Evaluate") and promote.equalsIgnoreCase("demote") '>
+		   AND y.no = 0
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Review") and promote.equalsIgnoreCase("demote") '>
+		   AND y.no = 1
+		</if>
+		<if test=' states_desc.equalsIgnoreCase("Create") and promote.equalsIgnoreCase("cancel") '>
+		   AND y.no = 0
+		</if>
+ 	</select>
+ 
+	
+</mapper>

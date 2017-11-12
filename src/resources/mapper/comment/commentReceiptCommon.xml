@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="commentReceiptCommon">
+
+	<select id="commentReceiptProjectNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PROJECT_NO AS VALUE 
+			,PROJECT_NO AS TEXT 
+		  FROM STX_DIS_PROJECT
+		 WHERE DOC_ENABLE_FLAG = 'Y'
+		 ORDER BY PROJECT_NO
+	</select>
+
+	<select id="commentReceiptDwgNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DWG_NO AS OBJECT
+		  FROM (SELECT 'NEW' AS DWG_NO, 1 AS ORDER_BY
+		          FROM DUAL
+		        UNION ALL
+		        SELECT DISTINCT SUBSTR(PA.ACTIVITYCODE, 0, 8) AS DWG_NO,
+		                        2 AS ORDER_BY
+		          FROM DPM_ACTIVITY@STXDP PA,
+		               LPM_NEWPROJECT@STXDP LN,
+		               (SELECT STX_DIS_GET_MASTER_F(#{p_project_no, jdbcType=VARCHAR}) AS MASTER_SHIP FROM DUAL) A
+		         WHERE 1 = 1
+		           AND PA.DWGDEPTCODE = #{p_dept_code, jdbcType=VARCHAR}
+		           AND PA.PROJECTNO = LN.PROJECTNO
+		           AND PA.WORKTYPE = 'DW'
+		           AND LN.CASENO = '1'
+		           AND LN.CASENO = PA.CASENO
+		           AND LN.DWGSERIESPROJECTNO = A.MASTER_SHIP
+		         )
+		 ORDER BY ORDER_BY, DWG_NO
+	</select>
+	
+	<select id="commentReceiptTeamSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DD_UPPER.DWGDEPTCODE AS SB_VALUE 
+		     , DD_UPPER.DWGDEPTNM AS SB_NAME
+		     , CASE WHEN DD_UPPER.DWGDEPTCODE = #{p_dept_code} THEN 'selected=\"selected\"' 
+		       ELSE '' 
+		       END AS SB_SELECTED
+		  FROM DCC_DWGDEPTCODE@STXDP DD, DCC_DWGDEPTCODE@STXDP DD_UPPER
+		 WHERE DD.UPPERDWGDEPTCODE = DD_UPPER.DWGDEPTCODE
+		   AND DD.UPPERDWGDEPTCODE IS NOT NULL
+		   AND DD.USERYN = 'Y'
+		 GROUP BY DD_UPPER.DWGDEPTCODE, DD_UPPER.DWGDEPTNM
+		 ORDER BY DD_UPPER.DWGDEPTNM
+  	</select>
+	
+	<select id="commentReceiptDeptSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DD.DWGDEPTCODE AS SB_VALUE  
+		      ,DD.DWGDEPTNM AS SB_NAME
+		      ,CASE WHEN DD.DWGDEPTCODE = #{p_dept_code} THEN 'selected=\"selected\"' 
+		       ELSE '' 
+		       END AS SB_SELECTED
+		  FROM DCC_DWGDEPTCODE@STXDP DD
+		 WHERE DD.UPPERDWGDEPTCODE = #{p_upper_dept_code}
+		   AND DD.UPPERDWGDEPTCODE != DD.DWGDEPTCODE 
+		   AND DD.USERYN = 'Y'
+		 GROUP BY DD.DWGDEPTCODE, DD.DWGDEPTNM
+		 ORDER BY DD.DWGDEPTNM
+  	</select>
+  	
+  	
+  	<select id="commentReceiptGridTeamList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DD_UPPER.DWGDEPTCODE AS SB_VALUE 
+		     , DD_UPPER.DWGDEPTNM AS SB_NAME
+		  FROM DCC_DWGDEPTCODE@STXDP DD, DCC_DWGDEPTCODE@STXDP DD_UPPER
+		 WHERE DD.UPPERDWGDEPTCODE = DD_UPPER.DWGDEPTCODE
+		   AND DD.UPPERDWGDEPTCODE IS NOT NULL
+		   AND DD.USERYN = 'Y'
+		 GROUP BY DD_UPPER.DWGDEPTCODE, DD_UPPER.DWGDEPTNM
+		 ORDER BY DD_UPPER.DWGDEPTNM
+  	</select>
+  	
+  	<select id="commentReceiptGridDeptList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DD.DWGDEPTCODE AS SB_VALUE  
+		      ,DD.DWGDEPTNM AS SB_NAME
+		  FROM DCC_DWGDEPTCODE@STXDP DD
+		 WHERE DD.UPPERDWGDEPTCODE = #{p_dept_code}
+		   AND DD.UPPERDWGDEPTCODE != DD.DWGDEPTCODE 
+		   AND DD.USERYN = 'Y'
+		 GROUP BY DD.DWGDEPTCODE, DD.DWGDEPTNM
+		 ORDER BY DD.DWGDEPTNM
+  	</select>
+  	
+  	<select id="commentReceiptGridUserList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDU.EMP_NO AS SB_VALUE
+		      ,SDU.NAME || '(' || SDU.EMP_NO || ')' AS SB_NAME  
+		  FROM DCC_DWGDEPTCODE@STXDP DD 
+		      ,DCC_DEPTCODE@STXDP    DD_DEPT 
+		      ,STX_DIS_USER          SDU 
+		      ,STX_COM_INSA_USER@STXERP SCIU
+		 WHERE DD.DWGDEPTCODE      = #{p_dept_code}
+		   AND DD.USERYN           = 'Y' 
+		   AND DD.DWGDEPTCODE      = DD_DEPT.DWGDEPTCODE 
+		   AND DD_DEPT.DEPTCODE    = SDU.DEPT_CODE 
+		   AND SCIU.EMP_NO         = SDU.EMP_NO
+		   AND SCIU.DEL_DATE IS NULL
+	  ORDER BY SDU.NAME ASC
+  	</select>
+  	
+  	<select id="commentReceiptUserList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDU.EMP_NO AS SB_VALUE
+		      ,SDU.NAME || '(' || SCIU.EP_MAIL || '@onestx.com)' AS SB_NAME 
+		  FROM DCC_DWGDEPTCODE@STXDP DD 
+		      ,DCC_DEPTCODE@STXDP    DD_DEPT 
+		      ,STX_DIS_USER          SDU 
+		      ,STX_COM_INSA_USER@STXERP SCIU
+		 WHERE DD.DWGDEPTCODE      = #{p_dept_code}
+		   AND DD.USERYN           = 'Y' 
+		   AND DD.DWGDEPTCODE      = DD_DEPT.DWGDEPTCODE 
+		   AND DD_DEPT.DEPTCODE    = SDU.DEPT_CODE 
+		   AND SCIU.EMP_NO         = SDU.EMP_NO
+		   AND SCIU.DEL_DATE IS NULL
+	  ORDER BY SDU.NAME ASC
+  	</select>
+  	
+  	<select id="commentAutoCompleteDwgNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DWG_NO AS OBJECT
+		  FROM (SELECT 'NEW' AS DWG_NO, 1 AS ORDER_BY
+		          FROM DUAL
+		        UNION ALL
+		        SELECT DISTINCT SUBSTR(PA.ACTIVITYCODE, 0, 8) AS DWG_NO,
+		                        2 AS ORDER_BY
+		          FROM DPM_ACTIVITY@STXDP PA,
+		               LPM_NEWPROJECT@STXDP LN,
+		               (SELECT STX_DIS_GET_MASTER_F(#{p_project_no, jdbcType=VARCHAR}) AS MASTER_SHIP FROM DUAL) A
+		         WHERE 1 = 1
+		           AND PA.PROJECTNO = LN.PROJECTNO
+               AND PA.WORKTYPE = 'DW'
+               AND LN.CASENO = '1'
+               AND LN.CASENO = PA.CASENO
+               AND LN.DWGSERIESPROJECTNO = A.MASTER_SHIP
+               AND PA.DWGDEPTCODE = #{dwg_dept_code, jdbcType=VARCHAR}
+            UNION ALL
+            SELECT SDCD.DWG_NO AS DWG_NO, 2 AS ORDER_BY
+              FROM STX_DIS_COMMENT_DWG_NO SDCD
+             WHERE 1=1
+               AND dept_CODE = #{dwg_dept_code, jdbcType=VARCHAR}
+             )
+     ORDER BY ORDER_BY, DWG_NO
+	</select>
+	
+	<select id="commentReceiptNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT SDCRL.RECEIPT_NO AS OBJECT, 
+				   SDCRD.RECEIPT_DETAIL_ID AS RECEIPT_DETAIL_ID
+			  FROM STX_DIS_COMMENT_RECEIPT_LIST   SDCRL,
+			       STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD,
+			       STX_DIS_COMMENT_RECEIPT_DWG    SDCRDW
+			 WHERE SDCRL.RECEIPT_ID = SDCRD.RECEIPT_ID
+			   AND SDCRD.RECEIPT_DETAIL_ID = SDCRDW.RECEIPT_DETAIL_ID
+			   AND SDCRDW.DWG_NO = #{p_dwg_no, jdbcType=VARCHAR}
+			   AND SDCRL.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+			   AND SDCRL.ISSUER = #{p_issuer, jdbcType=VARCHAR}
+			 GROUP BY SDCRL.RECEIPT_NO, SDCRD.RECEIPT_DETAIL_ID
+			 ORDER BY SDCRL.RECEIPT_NO DESC
+	</select>
+
+	<select id="commentReceiptUserEtcDeptSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DD.DWGDEPTCODE AS SB_VALUE  
+	          ,DD.DWGDEPTNM AS SB_NAME
+	          ,CASE WHEN DD.DWGDEPTCODE = #{p_dept_code} THEN 'selected=\"selected\"' 
+	           ELSE '' 
+	           END AS SB_SELECTED
+	      FROM DCC_DWGDEPTCODE@STXDP DD
+	     WHERE DD.UPPERDWGDEPTCODE != DD.DWGDEPTCODE 
+	       AND DD.USERYN = 'Y'
+	     GROUP BY DD.DWGDEPTCODE, DD.DWGDEPTNM
+	     ORDER BY DD.DWGDEPTNM
+  	</select>
+  	
+  	<select id="commentRefNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  		SELECT ' ' AS REF_NO,
+		       0 AS SEND_ID
+		FROM DUAL
+		UNION ALL
+	  	SELECT SDCRL.REF_NO, 
+		       SDCRL.SEND_ID 
+		  FROM STX_DIS_COMMENT_SEND_LIST SDCRL 
+		 WHERE SDCRL.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR} 
+		   AND SDCRL.DEPT_CODE = #{p_dept_code, jdbcType=VARCHAR} 
+		   AND SDCRL.STATUS_FLAG != 'C'
+		   AND SDCRL.SEND_TYPE = #{p_issuer, jdbcType=VARCHAR} 
+		 ORDER BY REF_NO DESC
+  	</select>
+
+</mapper>

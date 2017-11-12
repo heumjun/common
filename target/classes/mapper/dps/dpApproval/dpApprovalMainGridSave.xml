@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpApprovalMainGridSave">
+	<update id="updateApprovalConfirm" parameterType="java.util.Map">
+		UPDATE PLM_DESIGN_MH
+		SET    CONFIRM_YN = #{confirm_yn},
+		       UPDATE_DATE = SYSDATE,
+		       UPDATE_BY = #{loginId}
+		WHERE  EMPLOYEE_NO = #{employee_num}
+		AND    WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+		AND    CONFIRM_YN &lt;&gt; #{confirm_yn}
+	</update>
+	
+	<update id="updateApprovalPlmActivity" parameterType="java.util.Map">
+		UPDATE PLM_ACTIVITY
+		SET    ACTUALSTDMH = #{std_mh},
+		       ACTUALFOLLOWMH = #{followup_mh}
+		WHERE  PROJECTNO = #{project_no}
+		AND    ACTIVITYCODE = #{dwg_code}||'DW'
+	</update>
+	
+	<update id="updateApprovalPlmActionDate" parameterType="java.util.Map">
+		UPDATE PLM_ACTIVITY
+		SET    #{dbFieldName} = TO_DATE(#{dateStr}, 'YYYY-MM-DD'),
+		       #{dbFieldName3} = 'MH_EVENT'
+		WHERE  PROJECTNO = #{project_no}
+		AND    ACTIVITYCODE = #{dwg_code}||#{workTypeStr}
+		AND    #{dbFieldName} IS NULL 
+		<if test="dbFieldName2 != ''">
+			AND    #{dbFieldName2} IS NOT NULL 
+		</if>
+	</update>
+	
+	<update id="updateApprovalPlmDwStart" parameterType="java.util.Map">
+		UPDATE PLM_ACTIVITY 
+		SET ACTUALSTARTDATE = TO_DATE(#{dateselected}, 'YYYY-MM-DD'),
+		ATTRIBUTE4 = 'MH_START'                                          
+		WHERE PROJECTNO = #{project_no}
+		AND ACTIVITYCODE = #{activitycode}
+		AND ACTUALSTARTDATE IS NULL
+	</update>
+	
+	<select id="plmConfirmProcedure" parameterType="java.util.Map" statementType="CALLABLE">
+		{call PLM_DESIGN_MH_CLOSE_PROC
+			(
+				#{dateselected, mode=IN},
+				#{mh_close, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{number, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{loginId, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{resultFlag, mode=OUT, jdbcType=VARCHAR, javaType=string}
+			)
+		}
+	</select>
+	
+	<select id="selectAlreadyConfirm" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT CONFIRM_YN
+		FROM   PLM_DESIGN_MH
+		WHERE  EMPLOYEE_NO = #{employee_num}
+		AND    WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+		AND    ROWNUM = 1
+	</select>
+	
+	<select id="selectPlmDesignMhFactorUpdateTarget" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PROJECT_NO,
+		       DWG_CODE,
+		       SUM((TOTAL_MH - FOLLOWUP_MH) * MH_FACTOR) AS STD_MH,
+		       SUM(FOLLOWUP_MH * MH_FACTOR) AS FOLLOWUP_MH,
+		       SUM(TOTAL_MH * MH_FACTOR) AS TOTAL_MH
+		FROM   (SELECT PROJECT_NO,
+		               DWG_CODE,
+		               TOTAL_MH,
+		               FOLLOWUP_MH,
+		                       CASE
+		                         WHEN CAREER_MONTHS IS NULL THEN 1
+		                         ELSE (SELECT FACTOR_VALUE
+		                FROM   (SELECT CAREER_MONTH_FROM,
+		                               CAREER_MONTH_TO,
+		                               FACTOR_VALUE
+		                        FROM   PLM_DESIGN_MH_FACTOR A
+		                        WHERE  1 = 1
+		                        AND    A.CASE_NO = (SELECT VALUE
+		                                FROM   PLM_CODE_TBL A
+		                                WHERE  A.CATEGORY = 'MH_FACTOR'
+		                                AND    A.KEY = 'ACTIVE_CASE' ) )
+		                WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+		                AND    NVL(CAREER_MONTH_TO, 9999) >= CAREER_MONTHS )
+		                       END AS MH_FACTOR
+		        FROM   (SELECT A.PROJECT_NO,
+		                       A.DWG_CODE,
+		                       A.EMPLOYEE_NO,
+		                       A.WORK_DAY,
+		                       B.DESIGN_APPLY_DATE,
+		                       A.NORMAL_TIME + A.OVERTIME + A.SPECIAL_TIME AS TOTAL_MH,
+		                       DECODE(A.OP_CODE, '2A', A.NORMAL_TIME + A.OVERTIME + A.SPECIAL_TIME, '2B', A.NORMAL_TIME + A.OVERTIME + A.SPECIAL_TIME, 0) AS FOLLOWUP_MH,
+		                       B.POSITION,
+		                       ((TO_CHAR(A.WORK_DAY, 'YYYY') - TO_CHAR(B.DESIGN_APPLY_DATE, 'YYYY'))* 12 + (TO_CHAR(A.WORK_DAY, 'MM') - TO_CHAR(B.DESIGN_APPLY_DATE, 'MM'))) +
+		                                       CASE
+		                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+		                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') > 15 THEN 0
+		                                       END + NVL(ROUND(B.BEFORE_ENTRANCE_CAREER * 12, 0), 0) AS CAREER_MONTHS
+		                FROM   PLM_DESIGN_MH A,
+		                       CCC_SAWON B,
+		                       (SELECT PROJECT_NO,
+		                               DWG_CODE
+		                        FROM   PLM_DESIGN_MH
+		                        WHERE  1 = 1
+		                        AND    SUBSTR(DWG_CODE, 1, 1) &lt;&gt; '*'
+		                        AND    DWG_CODE IS NOT NULL
+		                        AND    EMPLOYEE_NO IN
+		                        (<foreach collection="designerIDList" item="item" separator=",">#{item.employee_num}</foreach>)
+		                        AND    WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+		                        GROUP BY PROJECT_NO, DWG_CODE ) C
+		                WHERE  1 = 1
+		                AND    A.CONFIRM_YN = 'Y'
+		                AND    A.EMPLOYEE_NO = B.EMPLOYEE_NUM
+		                AND    A.DWG_CODE = C.DWG_CODE
+		                AND    A.PROJECT_NO = C.PROJECT_NO ) )
+		GROUP BY PROJECT_NO, DWG_CODE 
+	</select>
+	
+	<select id="selectPlmDesignMhActionDateUpdateTarget"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PROJECT_NO,
+		       DWG_CODE,
+		       EVENT1,
+		       EVENT2,
+		       EVENT3
+		FROM   PLM_DESIGN_MH
+		WHERE  EMPLOYEE_NO IN (<foreach collection="designerIDList" item="item" separator=",">#{item.employee_num}</foreach>)
+		AND    WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+		AND    (EVENT1 IS NOT NULL
+		        OR     EVENT2 IS NOT NULL
+		        OR     EVENT3 IS NOT NULL) 
+	</select>
+	
+	<select id="selectPlmDesignDwStartAutoUpdateTarget"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.PROJECT_NO,
+		       B.ACTIVITYCODE
+		FROM   PLM_DESIGN_MH A,
+		       PLM_ACTIVITY B
+		WHERE  1 = 1
+		AND    EMPLOYEE_NO IN (<foreach collection="designerIDList" item="item" separator=",">#{item.employee_num}</foreach>)
+		AND    A.WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+		AND    A.CONFIRM_YN = 'Y'
+		AND    A.PROJECT_NO = B.PROJECTNO
+		AND    A.DWG_CODE || 'DW' = B.ACTIVITYCODE
+		AND    B.ACTUALSTARTDATE IS NULL
+		AND    NOT (B.DWGCATEGORY = 'B'
+		        AND    B.DWGTYPE = 'V')
+		AND    NOT EXISTS (SELECT *
+		        FROM   PLM_DESIGN_MH C
+		        WHERE  A.PROJECT_NO = C.PROJECT_NO
+		        AND    A.DWG_CODE = C.DWG_CODE
+		        AND    A.WORK_DAY > C.WORK_DAY )
+		GROUP BY A.EMPLOYEE_NO, A.PROJECT_NO, B.ACTIVITYCODE 
+	</select>
+	
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoItemDetail">
+	<select id="select" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT  x.item_code
+	                       , x.item_desc
+	                       , x.item_catalog
+	                       , x.ship_pattern ship_type
+	                       , x.uom
+	                       , x.item_weight
+	                       , x.item_oldcode
+	                       , x.attr1
+	                       , x.attr2
+	                       , x.attr3
+	                       , x.attr4
+	                       , x.attr5
+	                       , x.attr6
+	                       , x.attr7
+	                       , x.attr8
+	                       , x.attr9
+	                       , x.attr10
+	                       , x.attr11
+	                       , x.attr12
+	                       , x.attr13
+	                       , x.attr14
+	                       , x.attr15
+	                       , x.cable_length 
+	                       , x.cable_type 
+	                       , x.cable_outdia 
+	                       , x.can_size 
+	                       , x.stxsvr 
+	                       , x.thinner_code 
+	                       , x.stx_standard 
+	                       , x.paint_code
+	                       , x.item_category
+	                       , to_char( x.create_date, 'yyyy-mm-dd hh24:mi:ss' ) originated_date
+	                       , to_char( nvl( x.last_update_date, x.create_date ), 'yyyy-mm-dd hh24:mi:ss' ) modified_date
+	                       , stx_dis_short_emp_name_f( x.user_id ) originator 
+	                       , x.STATES_DESC AS states
+	                       ,STX_DIS_DWG_LIST_F(x.item_code) AS DRAW
+		  FROM STX_DIS_ITEM x
+		 WHERE ITEM_CODE = #{item_code}
+	</select>
+</mapper>

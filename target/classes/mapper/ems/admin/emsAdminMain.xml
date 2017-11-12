@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsAdminMain">
+
+	<select id="getSelectBoxDeptList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT A.DEPT_CODE AS SB_VALUE,
+		       A.DEPT_CODE || ' : ' || A.DEPT_NAME AS SB_NAME,
+		       CASE
+		         WHEN A.DEPT_CODE = #{sb_type} THEN
+		          'selected="selected"'
+		         ELSE
+		          ''
+		       END AS SB_SELECTED
+		  FROM STX_COM_INSA_DEPT@STXERP A
+		 WHERE DEPT_CODE IN
+		       (SELECT C.DEPTCODE
+		          FROM DCC_DEPTCODE@STXDP C
+		         WHERE C.DWGDEPTCODE IN
+		               (SELECT DWG_DEPT_CODE FROM PLM_VENDOR_DWG_PR_INFO@STXDP))
+		   AND A.USE_YN = 'Y'
+		 ORDER BY DEPT_CODE
+  	</select>
+  	
+  	<update id="emsAdminUpdateRevision">
+		UPDATE STX_EMS_POS_REVISION SET	
+		 		   IS_APPROVED = 'Y' 
+		 WHERE MASTER || DWG_NO || POS_REV IN (SELECT DISTINCT MASTER || DWG_NO || POS_REV FROM STX_EMS_PURCHASING Z WHERE ( 
+		<foreach collection="chkbox" item="item" separator=" OR ">
+		    EMS_PUR_NO = #{item}
+		</foreach>
+		)               
+		AND Z.APPROVED_BY  = #{loginId} 
+		)  
+  	</update>
+  	
+  	<select id="emsAdminEmailList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT A.USER_ID, SCIU.EP_MAIL || '@onestx.com' AS EP_MAIL
+		  FROM (SELECT DISTINCT STX_TBC_GET_DP_USER_F(PROJECT, DWG_NO) AS USER_ID
+		          FROM STX_EMS_PURCHASING@STXERP
+		         WHERE 1 = 1
+		           AND DWG_NO IN (
+		               <foreach collection="dwgNoArray" item="item" separator=",">
+		                   #{item}
+		               </foreach>
+		           )
+		           AND MASTER      = #{p_master}
+		           AND APPROVED_BY = #{loginId}
+		        UNION
+		        SELECT DISTINCT SEDM.BUYER AS USER_ID
+		          FROM STX_EMS_PURCHASING@STXERP SEP, STX_EMS_DB_MASTER@STXERP SEDM
+		         WHERE SEP.ITEM_CODE   = SEDM.ITEM_CODE
+		           AND SEP.DWG_NO      = SEDM.DWG_CODE
+		           AND DWG_NO IN (
+		           <foreach collection="dwgNoArray" item="item" separator=",">
+		               #{item}
+		           </foreach>
+		           ) 
+		           AND MASTER          = #{p_master} 
+		           AND SEP.APPROVED_BY = #{loginId} 
+		        UNION
+		        SELECT DECODE(F_FULL_LEAD_TIME,
+		                      NULL,
+		                      DECODE(N_FULL_LEAD_TIME,
+		                             NULL,
+		                             SUBSTR(SPPE.BUYER,
+		                                    LENGTH(SPPE.BUYER) - 5,
+		                                    LENGTH(SPPE.BUYER)),
+		                             SUBSTR(SPPE.N_BUYER,
+		                                    LENGTH(SPPE.N_BUYER) - 5,
+		                                    LENGTH(SPPE.N_BUYER))),
+		                      SUBSTR(SPPE.F_BUYER,
+		                             LENGTH(SPPE.F_BUYER) - 5,
+		                             LENGTH(SPPE.F_BUYER))) AS USER_ID
+		          FROM STX_PO_PROPERTY_TEMPLATE@STXERP SPPE,
+		               MTL_ITEM_CATALOG_GROUPS@STXERP  B
+		         WHERE SPPE.ITEM_CATALOG_GROUP_ID = B.ITEM_CATALOG_GROUP_ID
+		           AND B.SEGMENT1 = (SELECT SUBSTR(ITEM_CODE, 0, 5)
+		                               FROM STX_EMS_PURCHASING@STXERP
+		                              WHERE DWG_NO IN (
+		                                    <foreach collection="dwgNoArray" item="item" separator=",">
+		                                        #{item}
+		                                    </foreach>
+		                              )
+		                                AND MASTER      = #{p_master} 
+		                                AND APPROVED_BY = #{loginId} 
+		                                AND ROWNUM      = 1)) A
+		 INNER JOIN STX_COM_INSA_USER@STXERP SCIU
+		    ON A.USER_ID = SCIU.EMP_NO     
+  	</select>  	
+  	
+  	<select id="emsAdminInsertRset1" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT STX_STD_PLM_PO_REQUEST_S.NEXTVAL AS SEQ 
+		     , A.* 
+		  FROM (SELECT DISTINCT PROJECT 
+		             , DWG_NO 
+		        FROM STX_EMS_PURCHASING SEP 
+		          WHERE SEP.STATUS = 'R' 
+		           AND SEP.APPROVED_BY  = #{loginId}
+		           AND MASTER || DWG_NO IN (SELECT DISTINCT MASTER || DWG_NO FROM STX_EMS_PURCHASING Z WHERE STATUS = 'R' AND ( 
+		<foreach collection="chkbox" item="item" separator=" OR ">
+		  EMS_PUR_NO = #{item}
+		</foreach>
+		    ) )  
+		ORDER BY DWG_NO, PROJECT ASC ) A       
+  	</select>  	
+  	
+  	<select id="emsAdminInsertRset2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DISTINCT SEP.ITEM_CODE                                       AS ITEM_CODE 
+		      ,SEP.CREATED_BY                                               AS CREATED_BY 
+		      ,TO_CHAR(NVL(A.PERSON_ID, ''))                                AS PERSON_ID 
+		      ,TO_CHAR(NVL(A.USER_ID, ''))                                  AS USER_ID 
+		      ,TO_CHAR(MIS.INVENTORY_ITEM_ID)                               AS ITEM_ID 
+		      ,MIS.PRIMARY_UOM_CODE                                         AS UOM_CODE 
+		      ,STX_PO_BUYERID_FN(SEP.PROJECT, MIS.INVENTORY_ITEM_ID) AS BUYER_ID 
+		      ,TO_CHAR(PPA.PROJECT_ID)                                      AS PROJECT_ID
+		      ,PPA.ATTRIBUTE2                                               AS LOCATION_NAME         
+		      ,TO_CHAR(NVL((SELECT CASE WHEN SPEEV.EQUIP_DATE > SYSDATE+7 
+		                                THEN SPEEV.EQUIP_DATE 
+		                                ELSE SYSDATE+7 
+		                            END 
+		                      FROM STX_PO_EPMS_EVENT_V SPEEV
+		                     WHERE SEP.PROJECT        = SPEEV.PROJECT_NO(+) 
+		                       AND SEP.DWG_NO         = SPEEV.DWG_NO(+) 
+		                       AND ROWNUM = 1 ), SYSDATE+7), 'YYYY-MM-DD') AS EQUIP_DATE 
+		      ,(SELECT TO_CHAR(PT.TASK_ID)           
+		          FROM PA_TASKS        PT
+		              ,PA_PROJECTS_ALL PA 
+		         WHERE PT.PROJECT_ID  = PA.PROJECT_ID 
+		           AND PA.SEGMENT1 = SEP.PROJECT 
+		           AND TASK_NUMBER LIKE '01.01.S000' )                     AS TASK_ID 
+		      ,(SELECT ATTRIBUTE1  
+		          FROM PER_PEOPLE_F  
+		         WHERE PERSON_ID = A.PERSON_ID ) AS DEPT_ID 
+		      ,TO_CHAR(SEP.EA)                   AS EA
+		      ,PPA.PROJECT_STATUS_CODE         
+		  FROM STX_EMS_PURCHASING     SEP         
+		      ,MTL_SYSTEM_ITEMS_B     MIS 
+		      ,PA_PROJECTS_ALL        PPA 
+		      ,(SELECT PPF.PERSON_ID 
+		              ,FU.USER_ID 
+		              ,PPF.EMPLOYEE_NUMBER 
+		          FROM PER_PEOPLE_F PPF 
+		              ,FND_USER     FU 
+		         WHERE PPF.PERSON_ID = FU.EMPLOYEE_ID   
+		           AND PPF.EFFECTIVE_END_DATE > TRUNC(SYSDATE) 
+		           AND NVL(FU.END_DATE,SYSDATE) >= TRUNC(SYSDATE)) A 
+		 WHERE SEP.STATUS          = 'R' 
+		   AND SEP.APPROVED_BY     = #{loginId} 
+		   AND SEP.PROJECT         = #{project}
+		   AND SEP.DWG_NO          = #{dwg_no}
+		   AND SEP.CREATED_BY      = A.EMPLOYEE_NUMBER(+)         
+		   AND SEP.ITEM_CODE       = MIS.SEGMENT1 
+		   AND MIS.ORGANIZATION_ID = 82 
+		   AND SEP.PROJECT         = PPA.SEGMENT1(+)        
+  	</select>  	
+  	
+  	<insert id="emsAdminInsertRset3" parameterType="java.util.Map">
+  		 insert into po_requisitions_interface( last_updated_by 
+		                                      ,last_update_date
+		                                      ,last_update_login
+		                                      ,creation_date
+		                                      ,created_by
+		                                      ,item_id
+		                                      ,quantity
+		                                      ,need_by_date
+		                                      ,interface_source_code
+		                                      ,deliver_to_location_id
+		                                      ,destination_type_code
+		                                      ,preparer_id
+		                                      ,source_type_code
+		                                      ,authorization_status
+		                                      ,uom_code
+		                                      ,destination_organization_id
+		                                      ,autosource_flag
+		                                      ,org_id
+		                                      ,project_id
+		                                      ,task_id
+		                                      ,deliver_to_requestor_id
+		                                      ,unit_price
+		                                      ,charge_account_id
+		                                      ,header_description
+		                                      ,batch_id
+		                                      ,header_attribute4
+		                                      ,suggested_buyer_id  /* 구매담당자 ID */
+		                                      ,project_accounting_context )                       
+		values( #{user_id}                           /* vUserId */
+		       ,sysdate   
+		       ,-1   
+		       ,sysdate   
+		       ,#{user_id}                           /* vUserId */
+		       ,#{item_id}                           /* Item Id */
+		       ,#{ea}                                /* Quantity */
+		       ,to_date(#{equip_date},'yyyy-mm-dd')     /* vEquipDate */
+		       ,'EMS'                       
+		       ,DECODE(#{location_name},'부산',143,141) /* vLocationName */
+		       ,'INVENTORY'                       
+		       ,#{person_id}                         /* vPersonId */
+		       ,'VENDOR'   
+		       ,'APPROVED' 
+		       ,#{uom_cd}                            /* UOM */
+		       ,82 
+		       ,'P' 
+		       ,0 
+		       ,#{project_id}                        /*Project Id*/
+		       ,#{task_id}                           /*TASK*/
+		       ,#{person_id}                         /* vPersonId */
+		       ,0   
+		       ,1004   
+		       ,''  
+		       ,#{batch_id}                          /* vBatchId */
+		       ,#{dept_id}                           /* vDeptId */
+		       ,#{buyer_id}                          /* vBuyerId */
+		       ,DECODE(#{project_id},NULL,'N','Y')   /* vProjectId */
+		)
+  	</insert>
+  	
+	<select id="emsAdminInsertRset4"  statementType="CALLABLE" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_STD_EMS_PR_REQUEST_PROC (
+				p_pr_no					=> #{p_pr_no,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+				p_requisition_header_id	=> #{p_requisition_header_id,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+				P_ERROR_MSG				=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+				P_ERROR_CODE			=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+				p_organization_id		=> #{p_organization_id,jdbcType=NUMERIC},
+				p_batch_id				=> #{p_batch_id,jdbcType=VARCHAR},
+				p_user_id				=> #{p_user_id,jdbcType=NUMERIC},
+				p_source_type_code		=> #{p_source_type_code,jdbcType=VARCHAR})
+		}
+  	</select>  	
+  	
+  	<update id="emsAdminInsertRset5">
+		UPDATE STX_EMS_PURCHASING SET   
+		       PR_NO            = #{pr_no} 
+		      ,STATUS           = 'S'     
+		      ,PR_STATE         = 'C'     
+		      ,LAST_UPDATED_BY  = #{loginId} 
+		      ,LAST_UPDATE_DATE = SYSDATE     
+		      ,APPROVE_DATE      = SYSDATE     
+		 WHERE PROJECT      = #{project_id} 
+		   AND DWG_NO       = #{dwg_no} 
+		   AND APPROVED_BY  = #{loginId} 
+		   AND STATUS       = 'R' 
+  	</update>
+  	
+  	<select id="emsAdminDeleteRset1" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT STX_STD_PLM_PO_REQUEST_S.NEXTVAL AS SEQ 
+		     , A.* 
+		  FROM (SELECT DISTINCT PROJECT 
+		             , DWG_NO 
+		        FROM STX_EMS_PURCHASING SEP 
+		          WHERE SEP.STATUS = 'DR' 
+		           AND SEP.APPROVED_BY  = #{loginId}
+		           AND MASTER || DWG_NO IN (SELECT DISTINCT MASTER || DWG_NO FROM STX_EMS_PURCHASING Z WHERE STATUS = 'DR' AND ( 
+		<foreach collection="chkbox" item="item" separator=" OR ">
+		  EMS_PUR_NO = #{item}
+		</foreach>
+		    ) )  
+		ORDER BY DWG_NO, PROJECT ASC ) A       
+  	</select> 
+  	
+  	<update id="emsAdminDeleteRset3">
+  		UPDATE STX_EMS_PURCHASING
+		   SET STATUS = 'DS' 
+		 WHERE PROJECT     = #{project} 
+		   AND DWG_NO      = #{dwg_no}
+		   AND APPROVED_BY = #{loginId} 
+		   AND STATUS  = 'DR'
+  	</update>
+  	
+  	<update id="StatusChangeA">
+		UPDATE STX_EMS_PURCHASING@STXERP SET	
+		      STATUS = CASE  
+		              WHEN STATUS = 'R'  THEN 'A'  
+		              WHEN STATUS = 'DR' THEN 'S'  
+		            END         
+		    , PR_STATE = CASE  
+		              WHEN STATUS = 'R'  THEN ''  
+		              WHEN STATUS = 'DR' THEN PR_STATE  
+		              END         
+		    , APPROVED_BY = CASE  
+		                  WHEN STATUS = 'R'  THEN ''  
+		                  WHEN STATUS = 'DR' THEN APPROVED_BY  
+		                 END 
+		    , APPROVE_DATE     = SYSDATE 
+		    , LAST_UPDATED_BY  = #{loginId} 
+		    , LAST_UPDATE_DATE = SYSDATE 
+		 WHERE MASTER = #{p_master}
+		   AND DWG_NO = #{p_dwg_no} 
+		   AND (STATUS = 'R' OR STATUS = 'DR') 
+  	</update>
+  	
+  	<select id="emsAdminRefuseRset1" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DISTINCT STX_TBC_GET_DP_USER_F(PROJECT, DWG_NO) FIRST_USER
+		  FROM STX_EMS_PURCHASING@STXERP
+		 WHERE 1=1 
+		   AND MASTER = #{p_master}
+		   AND DWG_NO IN ( 
+		       <foreach collection="dwgNoArray" item="item" separator=",">
+		           #{item}
+		       </foreach>
+		   ) 
+		   AND STATUS IN ('R', 'DR')
+		   AND STX_TBC_GET_DP_USER_F(PROJECT, DWG_NO) IS NOT NULL
+  	</select>
+  	
+  	<select id="emsAdminRefuseRset2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DISTINCT DWG_NO 
+		  FROM STX_EMS_PURCHASING@STXERP
+		 WHERE 1=1  
+		   AND MASTER = #{p_master} 
+		   AND DWG_NO IN (
+		       <foreach collection="dwgNoArray" item="item" separator=",">
+		           #{item}
+		       </foreach>
+		   ) 
+		   AND CREATED_BY IN ( #{first_user} ) 
+  	</select>
+  	
+  	<select id="specDownloadFile" parameterType="java.util.Map" resultMap="fileMaps" >    
+		SELECT FILE_NAME
+		      ,FILE_BLOB      
+		  FROM STX_PO_EPMS_FILE             
+		 WHERE 1=1                       
+		   AND FILE_ID = #{p_file_id}         
+	</select> 
+	
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+		<result column="file_name"	 	property="file_name" />
+		<result column="file_blob" 		property="file_blob"  javaType="[B" jdbcType="BLOB" />
+	</resultMap> 
+
+</mapper>

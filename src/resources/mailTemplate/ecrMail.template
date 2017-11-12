@@ -1,0 +1,17 @@
+<font size=2><p><b>수고 많으십니다. </b></p></font>
+<font size=2><p><b> ECR NO  :  <a href="http://dims.stxons.com:8001/ecr.do?ecr_name=${main_code}&menu_id=M00034&mainType=N&popupDiv=Y&checkPopup=Y">${main_code}</a> 가 ${states_desc} 되었습니다. ${action} 바랍니다. </b></p></font>
+<font size=2><p><b> 사유 :  ${notify_msg} </b></p></font>
+<font size=2><p>&nbsp;--------------------- 아래-----------------------</p>
+&nbsp;&nbsp;&nbsp;&nbsp;- ECR NO : ${main_code}<br />
+&nbsp;&nbsp;&nbsp;&nbsp;- ECR Description :  ${ecr_description}<br />
+&nbsp;&nbsp;&nbsp;&nbsp;- ECR Based on :  ${ecr_based_on}
+
+<br />
+#foreach( $eco in $ecoList )
+	<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO NO : $eco.eco_code
+	<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO Description : $eco.eco_description
+	<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO 원인 CODE : $eco.eco_cause
+	<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO 작성자 : $eco.eco_created_by
+	<br />
+#end
+</font>

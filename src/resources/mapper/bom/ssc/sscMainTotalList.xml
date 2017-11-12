@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscMainTotalList">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="sscMainTotalList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_DIS_SSC_PKG.TOTAL_SELECT_PROC(
+					P_CHK_SERIES 		=>  #{p_chk_series},
+					P_DWG_NO 			=>  #{p_dwg_no},
+					P_BLOCK_NO 			=>  #{p_block_no},
+					P_STAGE_NO 			=>  #{p_stage_no},
+					P_STR_FLAG 			=>  #{p_str_flag},
+					P_DEPT_CODE 		=>  #{p_dept_code},
+					P_USER_ID 			=>  #{p_user_id}, 
+					P_MOTHER_CODE 		=>  #{p_mother_code},
+					P_ITEM_CODE 		=>  #{p_item_code},
+					P_ITEM_DESC 		=>  #{p_item_desc},
+					P_ITEM_TYPE_CD 		=>  #{p_item_type_cd},
+					P_ECO_NO 			=>  #{p_eco_no},
+					P_START_DATE 		=>  #{p_start_date},
+					P_END_DATE 			=>  #{p_end_date},
+					P_IS_ECO 			=>  #{p_is_eco},
+					P_RELEASE 			=>  #{p_release},
+					P_JOB_CD 			=>  #{p_job_cd},
+					P_STATE_FLAG 		=>  #{p_state_flag},
+					P_ERP_CHECK_TYPE 	=>  #{p_erp_check_type},
+					P_CURPAGENO 		=>  #{curPageNo},
+					P_PAGESIZE 			=>  #{pageSize},
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=sscMainListSU.procResultMap, mode=OUT}
+			)}
+	</select>
+
+</mapper>

@@ -1,0 +1,750 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PaintQuantity">
+  
+  <!-- searchPaintAllQuantity.xml로 이관 -->
+	<!--  <select id="selectAllQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+                             select project_no
+                                   ,revision
+                                   ,area_code
+                                   ,min(area_desc)
+                                    as area_desc  
+                               from stx_dis_pis_block
+                              where project_no = #{project_no}
+                                and revision   = #{revision}
+                              group by project_no, revision, area_code
+                             )
+	 select t21.*
+	  from (  
+	        select t20.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					select t10.*
+					      ,t11.item_desc
+					  from (
+					        select t1.project_no
+					              ,t1.revision
+					              ,t1.pattern_code
+					              ,t1.block_code
+					              ,t1.pe_code
+					              ,t1.pre_pe_code
+					              ,t1.area_code
+					              ,t3.area_desc
+					              ,t1.season_code
+					              ,t1.paint_count
+					              ,(case when t4.item_gbn = 1 then t1.paint_item
+					                                          else (select thinner_code
+					                                                  from stx_dis_item
+					                                                 where item_code = t1.paint_item 
+					                                                   and rownum = 1)
+					               end) as paint_item         
+					              ,(case when t4.item_gbn = 1 then t1.paint_dft 
+					                                          else null
+					               end) as paint_dft                         
+					              ,(case when t4.item_gbn = 1 then t1.paint_stage
+					                                          else null
+					               end) as paint_stage                           
+					              ,(case when t4.item_gbn = 1 then round(t1.paint_svr * 10 / t1.paint_dft, 3) 
+					                                          else null
+					               end) as tsr 
+					              ,t1.paint_svr
+					              ,(case when t4.item_gbn = 1 then t1.pre_loss
+					                                          else null
+					               end) as pre_loss                           
+					              ,(case when t4.item_gbn = 1 then t1.post_loss
+					                                          else null
+					               end) as post_loss                          
+					              ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.pre_loss)) 
+					                                          else null 
+					               end) as pre_loss_rate
+					              ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.post_loss)) 
+					                                          else null 
+					               end) as post_loss_rate
+					              ,(case when t4.item_gbn = 1 then t1.block_area
+					                                          else null 
+					               end) as block_area
+					              ,(case when t4.item_gbn = 1 then t1.pe_area
+					                                          else null 
+					               end) as pe_area
+					              ,(case when t4.item_gbn = 1 then t1.hull_area
+					                                          else null 
+					               end) as hull_area
+					              ,(case when t4.item_gbn = 1 then t1.quay_area
+					                                          else null 
+					               end) as quay_area
+					              ,(case when t4.item_gbn = 1 then t1.pre_pe_area 
+					                                          else null 
+					               end) as pre_pe_area
+					              ,(case when t4.item_gbn = 1 then t1.block_quantity
+					              							  else round(t1.block_quantity * 0.15, 3)
+					               end) as block_quantity 						  
+					              ,(case when t4.item_gbn = 1 then t1.pe_quantity
+					              							  else round(t1.pe_quantity * 0.15, 3)
+					               end) as pe_quantity 							  
+					              ,(case when t4.item_gbn = 1 then t1.hull_quantity
+					              							  else round(t1.hull_quantity * 0.15, 3)
+					               end) as hull_quantity 						  
+					              ,(case when t4.item_gbn = 1 then t1.quay_quantity
+					              							  else round(t1.quay_quantity * 0.15, 3)
+					               end) as quay_quantity
+					              ,(case when t4.item_gbn = 1 then t1.pre_pe_quantity
+					              							  else round(t1.pre_pe_quantity * 0.15, 3)
+					               end) as pre_pe_quantity	 							  
+					             
+					              ,t1.define_flag
+					              ,t1.block_define_flag
+					              ,t1.pe_define_flag
+					              ,t1.pre_pe_define_flag
+					              ,t1.hull_define_flag
+					              ,t1.quay_define_flag
+					              ,t4.item_gbn
+					          from stx_dis_pis_pattern_scheme  		t1
+					              ,temp_paint_block            		t3
+					              ,stx_dis_pis_pe              		t5
+					              ,(select 1 as item_gbn from dual
+					                union all
+					                select 2 as item_gbn from dual) t4       
+					         where t1.project_no  = #{project_no}
+					           and t1.revision    = #{revision}
+					           and t1.season_code = #{season_code}
+					           and t1.project_no  = t3.project_no
+					           and t1.revision    = t3.revision
+					           and t1.area_code   = t3.area_code
+					           and t1.project_no  = t5.project_no(+)
+					           and t1.revision    = t5.revision(+)
+					           and t1.block_code  = t5.block_code(+)
+					           <if test="block_code != null and block_code !='' ">
+							   and t1.block_code in ( ${block_code} )
+							   </if>
+							   
+							   <if test="area_code != null and area_code !='' ">
+							   and t1.area_code in ( ${area_code} )
+							   </if>	 
+					      )                            t10 
+					      ,stx_dis_item                t11
+					 where t10.paint_item = t11.item_code   
+					<if test="search_gbn == 'BLOCK'">
+					order by t10.project_no, t10.revision, t10.block_code, t10.area_code, t10.paint_count, t10.paint_item
+					</if>	
+					 
+					<if test="search_gbn == 'AREA'">
+					order by t10.project_no, t10.revision, t10.area_code, t10.block_code, t10.paint_count, t10.paint_item
+					</if>	
+					
+					<if test="search_gbn == null or search_gbn =='' ">
+					order by t10.project_no, t10.revision, t10.block_code, t10.pe_code, t10.area_code, t10.paint_count, t10.paint_item, t10.item_gbn
+					</if>	
+					 
+
+	   				) t20
+         	) t21
+  	  where page = #{curPageNo}   				  
+  	</select>-->
+  	
+  	<!-- searchPaintAllQuantity.xml로 이관 -->
+  	<!--  <select id="selectAllQuantityListCnt" parameterType="java.util.Map" resultType="int" >
+	 with temp_paint_block as (
+                             select project_no
+                                   ,revision
+                                   ,area_code
+                                   ,min(area_desc)
+                                    as area_desc  
+                               from stx_dis_pis_block
+                              where project_no = #{project_no}
+                                and revision   = #{revision}
+                              group by project_no, revision, area_code
+                             )
+	 select count(*) as cnt 
+	   from stx_dis_pis_pattern_scheme  	 t1
+           ,temp_paint_block            	 t3
+           ,stx_dis_pis_pe              	 t5
+           ,(select 1 as item_gbn from dual
+             union all
+             select 2 as item_gbn from dual) t4       
+      where t1.project_no  = #{project_no}
+        and t1.revision    = #{revision}
+        and t1.season_code = #{season_code}
+        and t1.project_no  = t3.project_no
+        and t1.revision    = t3.revision
+        and t1.area_code   = t3.area_code
+        and t1.project_no  = t5.project_no(+)
+        and t1.revision    = t5.revision(+)
+        and t1.block_code  = t5.block_code(+)
+        <if test="block_code != null and block_code !='' ">
+	    and t1.block_code in ( ${block_code} )
+	    </if>
+	   
+	    <if test="area_code != null and area_code !='' ">
+	    and t1.area_code in ( ${area_code} )
+	    </if>	 
+  	</select>-->
+  	
+  	<!-- allQuantityExcelExport.xml로 이관 -->
+  	<!--  <select id="selectAllQuantityListExport" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+                             select project_no
+                                   ,revision
+                                   ,area_code
+                                   ,min(area_desc)
+                                    as area_desc  
+                               from stx_dis_pis_block
+                              where project_no = #{project_no}
+                                and revision   = #{revision}
+                              group by project_no, revision, area_code
+                             )
+	
+	select t10.*
+	      ,t11.item_desc
+	  from (
+	        select t1.project_no
+	              ,t1.revision
+	              ,t1.pattern_code
+	              ,t1.block_code
+	              ,t5.pe_code
+	              ,t5.pre_pe_code
+	              ,t1.area_code
+	              ,t3.area_desc
+	              ,t1.season_code
+	              ,t1.paint_count
+	              ,(case when t4.item_gbn = 1 then t1.paint_item
+	                                          else (select thinner_code
+	                                                  from stx_dis_item
+	                                                 where item_code = t1.paint_item 
+	                                                   and rownum = 1)
+	               end) as paint_item         
+	              ,(case when t4.item_gbn = 1 then t1.paint_dft 
+	                                          else null
+	               end) as paint_dft                         
+	              ,(case when t4.item_gbn = 1 then t1.paint_stage
+	                                          else null
+	               end) as paint_stage                           
+	              ,(case when t4.item_gbn = 1 then round(t1.paint_svr * 10 / t1.paint_dft,3) 
+	                                          else null
+	               end) as tsr 
+	              ,t1.paint_svr
+	              ,(case when t4.item_gbn = 1 then t1.pre_loss
+	                                          else null
+	               end) as pre_loss                           
+	              ,(case when t4.item_gbn = 1 then t1.post_loss
+	                                          else null
+	               end) as post_loss                          
+	              ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.pre_loss)) 
+	                                          else null 
+	               end) as pre_loss_rate
+	              ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.post_loss)) 
+	                                          else null
+	               end) as post_loss_rate
+	              ,(case when t4.item_gbn = 1 then t1.block_area
+	                                          else null
+	               end) as block_area
+	              ,(case when t4.item_gbn = 1 then t1.pe_area
+	                                          else null 
+	               end) as pe_area
+	              ,(case when t4.item_gbn = 1 then t1.hull_area
+	                                          else null 
+	               end) as hull_area
+	              ,(case when t4.item_gbn = 1 then t1.quay_area
+	                                          else null 
+	               end) as quay_area
+	              ,(case when t4.item_gbn = 1 then t1.pre_pe_area 
+					                                          else null 
+				   end) as pre_pe_area
+	              ,(case when t4.item_gbn = 1 then t1.block_quantity
+	              							  else round(t1.block_quantity * 0.15, 3)
+	               end) as block_quantity 						  
+	              ,(case when t4.item_gbn = 1 then t1.pe_quantity
+	              							  else round(t1.pe_quantity * 0.15, 3)
+	               end) as pe_quantity 							  
+	              ,(case when t4.item_gbn = 1 then t1.hull_quantity
+	              							  else round(t1.hull_quantity * 0.15, 3)
+	               end) as hull_quantity 						  
+	              ,(case when t4.item_gbn = 1 then t1.quay_quantity
+	              							  else round(t1.quay_quantity * 0.15, 3)
+	               end) as quay_quantity							  
+	              ,(case when t4.item_gbn = 1 then t1.pre_pe_quantity
+										  	  else round(t1.pre_pe_quantity * 0.15, 3)
+				   end) as pre_pe_quantity	 		
+	              ,t4.item_gbn
+	          from stx_dis_pis_pattern_scheme  		t1
+	              ,temp_paint_block            		t3
+	              ,stx_dis_pis_pe              		t5
+	              ,(select 1 as item_gbn from dual
+	                union all
+	                select 2 as item_gbn from dual) t4       
+	         where t1.project_no  = #{project_no}
+	           and t1.revision    = #{revision}
+	           and t1.season_code = #{season_code}
+	           and t1.project_no  = t3.project_no
+	           and t1.revision    = t3.revision
+	           and t1.area_code   = t3.area_code
+	           and t1.project_no  = t5.project_no(+)
+	           and t1.revision    = t5.revision(+)
+	           and t1.block_code  = t5.block_code(+)
+	           <if test="block_code != null and block_code !='' ">
+			   and t1.block_code in ( ${block_code} )
+			   </if>
+			   
+			   <if test="area_code != null and area_code !='' ">
+			   and t1.area_code in ( ${area_code} )
+			   </if>	 
+	      )                            t10 
+	      ,stx_dis_item                t11
+	 where t10.paint_item = t11.item_code   
+	 order by t10.project_no, t10.revision, t10.block_code, t10.pe_code, t10.area_code, t10.paint_count, t10.paint_item, t10.item_gbn
+  	</select>-->
+  	
+  	<!-- allQuantityExcelExport.xml로 이관 -->
+  	<!--  <select id="selectAllQuantityListExport2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+                             select project_no
+                                   ,revision
+                                   ,area_code
+                                   ,min(area_desc)
+                                    as area_desc  
+                               from stx_dis_pis_block
+                              where project_no = #{project_no}
+                                and revision   = #{revision}
+                              group by project_no, revision, area_code
+                             )
+	select t12.*
+	  from ( 
+	        select t10.project_no
+	              ,t10.revision
+	              ,t10.block_code
+	              ,t10.item_gbn   
+	                      
+	              ,sum(t10.block_area) 	   as block_area     
+	              ,sum(t10.pe_area)    	   as pe_area 
+	              ,sum(t10.hull_area)  	   as hull_area
+	              ,sum(t10.quay_area)  	   as quay_area
+	                      
+	              ,sum(t10.block_quantity) as block_quantity
+	              ,sum(t10.pe_quantity)    as pe_quantity
+	              ,sum(t10.hull_quantity)  as hull_quantity
+	              ,sum(t10.quay_quantity)  as quay_quantity      
+	        from (
+	              select t1.project_no
+	                    ,t1.revision
+	                    ,t1.pattern_code
+	                    ,t1.block_code
+	                    ,t5.pe_code
+	                    ,t5.pre_pe_code
+	                    ,t1.area_code
+	                    ,t3.area_desc
+	                    ,t1.season_code
+	                    ,t1.paint_count
+	                    ,(case when t4.item_gbn = 1 then t1.paint_item
+	                                                else (select thinner_code
+	                                                        from stx_dis_item
+	                                                       where item_code = t1.paint_item 
+	                                                         and rownum = 1)
+	                     end) as paint_item         
+	                    ,(case when t4.item_gbn = 1 then t1.paint_dft 
+	                                                else null
+	                     end) as paint_dft                         
+	                    ,(case when t4.item_gbn = 1 then t1.paint_stage
+	                                                else null
+	                     end) as paint_stage                           
+	                    ,(case when t4.item_gbn = 1 then round(t1.paint_svr * 10 / t1.paint_dft,3) 
+	                                                else null
+	                     end) as tsr 
+	                    ,t1.paint_svr
+	                    ,(case when t4.item_gbn = 1 then t1.pre_loss
+	                                                else null
+	                     end) as pre_loss                           
+	                    ,(case when t4.item_gbn = 1 then t1.post_loss
+	                                                else null
+	                     end) as post_loss                          
+	                    ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.pre_loss)) 
+	                                                else null 
+	                     end) as pre_loss_rate
+	                    ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.post_loss)) 
+	                                                else null
+	                     end) as post_loss_rate
+	                    ,(case when t4.item_gbn = 1 then t1.block_area
+	                                                else null
+	                     end) as block_area
+	                    ,(case when t4.item_gbn = 1 then t1.pe_area
+	                                                else null 
+	                     end) as pe_area
+	                    ,(case when t4.item_gbn = 1 then t1.hull_area
+	                                                else null 
+	                     end) as hull_area
+	                    ,(case when t4.item_gbn = 1 then t1.quay_area
+	                                                else null 
+	                     end) as quay_area
+	                    ,(case when t4.item_gbn = 1 then 0 
+	                                                else null 
+	                     end) as pre_pe_area
+	                    ,(case when t4.item_gbn = 1 then t1.block_quantity
+			            						    else round(t1.block_quantity * 0.15, 3)
+			             end) as block_quantity 						  
+			            ,(case when t4.item_gbn = 1 then t1.pe_quantity
+			            						    else round(t1.pe_quantity * 0.15, 3)
+			             end) as pe_quantity 							  
+			            ,(case when t4.item_gbn = 1 then t1.hull_quantity
+			             							else round(t1.hull_quantity * 0.15, 3)
+			             end) as hull_quantity 						  
+			            ,(case when t4.item_gbn = 1 then t1.quay_quantity
+			            							else round(t1.quay_quantity * 0.15, 3)
+			             end) as quay_quantity							  
+	                    ,0 as pre_pe_quantity
+	                    ,t4.item_gbn
+	                from stx_dis_pis_pattern_scheme          t1
+	                    ,temp_paint_block                    t3
+	                    ,stx_dis_pis_pe                      t5
+	                    ,(select 1 as item_gbn from dual
+	                      union all
+	                      select 2 as item_gbn from dual) t4       
+	                where t1.project_no  = #{project_no}
+			          and t1.revision    = #{revision}
+			          and t1.season_code = #{season_code}
+			          and t1.project_no  = t3.project_no
+			          and t1.revision    = t3.revision
+			          and t1.area_code   = t3.area_code
+			          and t1.project_no  = t5.project_no(+)
+			          and t1.revision    = t5.revision(+)
+			          and t1.block_code  = t5.block_code(+)
+			          <if test="block_code != null and block_code !='' ">
+					  and t1.block_code in ( ${block_code} )
+					  </if>
+					   
+					  <if test="area_code != null and area_code !='' ">
+					  and t1.area_code in ( ${area_code} )
+					  </if>	 
+	                     
+	            )                            t10 
+	            ,stx_dis_item                t11
+	        where t10.paint_item = t11.item_code 
+	        group by t10.project_no, t10.revision, t10.block_code, t10.item_gbn ) t12
+	  order by t12.block_code, t12.item_gbn      
+  	</select> -->
+  	
+  	<!-- savePaintQuantity.xml로 이관 -->
+  	<!--  <update id="updatePaintQuantityBlockDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   = -1
+	      ,last_update_date  = sysdate
+	      ,block_define_flag = #{update_define_flag}
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}
+	   and block_define_flag = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>-->
+	
+	<!-- savePaintQuantity.xml로 이관 -->
+	<!--  <update id="updatePaintQuantityPEDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   = -1
+	      ,last_update_date  = sysdate
+	      ,pe_define_flag 	 = #{update_define_flag}
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}
+	   and pe_define_flag 	 = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>-->
+	
+	<!-- savePaintQuantity.xml로 이관 -->
+	<!--  <update id="updatePaintQuantityPrePEDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by    = -1
+	      ,last_update_date   = sysdate
+	      ,pre_pe_define_flag = #{update_define_flag}
+	 where project_no  		  = #{project_no}
+	   and revision    		  = #{revision}
+	   and season_code 		  = #{season_code}
+	   and pre_pe_define_flag = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>-->
+	
+	<!-- savePaintQuantity.xml로 이관 -->
+	<!--  <update id="updatePaintQuantityHullDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   = -1
+	      ,last_update_date  = sysdate
+	      ,hull_define_flag  = #{update_define_flag}
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}
+	   and hull_define_flag  = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>-->
+	
+	<!-- savePaintQuantity.xml로 이관 -->
+	<!--  <update id="updatePaintQuantityQuayDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   = -1
+	      ,last_update_date  = sysdate
+	      ,quay_define_flag  = #{update_define_flag}
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}
+	   and quay_define_flag  = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>-->
+	
+	<!-- savePaintQuantityTransfer.xml로 이관 -->
+	<!--  <update id="updatePrePEQuantityHalfTransfer">
+	update stx_dis_pis_pattern_scheme
+   	   set last_updated_by    		= -1
+		  ,last_update_date   		= sysdate
+	      ,pre_pe_area        		= nvl(pre_pe_area,0) + round(pe_area/2,3)
+	      ,pe_area            		= trunc(pe_area/2,3)
+	      ,pre_pe_quantity    		= nvl(pre_pe_quantity,0) + round(pe_quantity/2,3)
+	      ,pe_quantity        		= trunc(pe_quantity/2,3)
+	      ,pre_pe_theory_quantity 	= nvl(pre_pe_theory_quantity,0) + round(pe_theory_quantity/2,3)
+	      ,pe_theory_quantity   	= trunc(pe_theory_quantity/2,3)
+	      ,transfer_gbn				= 'Y'
+	 where project_no  		  = #{project_no}
+	   and revision    		  = #{revision}
+	   and season_code 		  = #{season_code}    
+	   and pre_pe_define_flag = 'N'
+	   and pe_define_flag 	  = 'N'
+	   and transfer_gbn	is null		
+	   and pre_pe_code  is not null  
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>-->
+	
+	<!-- savePaintQuantityTransfer.xml로 이관 -->
+	<!--  <update id="updatePrePEQuantityAllTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by    		= -1
+		  ,last_update_date   		= sysdate
+	      ,pre_pe_area        		= nvl(pre_pe_area,0) + round(pe_area,3)
+	      ,pe_area            		= 0
+	      ,pre_pe_quantity    		= nvl(pre_pe_quantity,0) + round(pe_quantity,3)
+	      ,pe_quantity        		= 0    
+	      ,pre_pe_theory_quantity 	= nvl(pre_pe_theory_quantity,0) + round(pe_theory_quantity,3)
+	      ,pe_theory_quantity   	= 0
+	 where project_no  		  = #{project_no}
+	   and revision    		  = #{revision}
+	   and season_code 		  = #{season_code}    
+	   and pre_pe_define_flag = 'N'
+	   and pe_define_flag 	  = 'N'
+	   and pre_pe_code is not null  
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>-->
+	
+	<!-- savePaintQuantityTransfer.xml로 이관 -->
+	<!--  <update id="updateHullQuantityAllTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   	= -1
+		  ,last_update_date  	= sysdate
+	      ,hull_area         	= nvl(hull_area,0) + round(pe_area,3)
+	      ,pe_area           	= 0
+	      ,hull_quantity     	= nvl(hull_quantity,0) + round(pe_quantity,3)
+	      ,pe_quantity       	= 0 
+	      ,hull_theory_quantity = nvl(hull_theory_quantity,0) + round(pe_theory_quantity,3)
+	      ,pe_theory_quantity   = 0
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}    
+	   and hull_define_flag  = 'N'
+	   and pe_define_flag 	 = 'N'
+	   and pe_code 			 = '00A'
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>-->
+	
+	<!-- savePaintQuantityTransfer.xml로 이관 -->
+	<!--  <update id="updateBlockQuantityAllTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   	= -1
+		  ,last_update_date  	= sysdate
+	      ,block_area         	= nvl(block_area,0) + round(pe_area,3)
+	      ,pe_area           	= 0
+	      ,block_quantity     	= nvl(block_quantity,0) + round(pe_quantity,3)
+	      ,pe_quantity       	= 0 
+	      ,block_theory_quantity = nvl(block_theory_quantity,0) + round(pe_theory_quantity,3)
+	      ,pe_theory_quantity   = 0
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}    
+	   and block_define_flag  = 'N'
+	   and pe_define_flag 	 = 'N'	   
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>	-->
+	
+	<!-- savePaintQuantity.xml로 이관 -->
+	<!--  <select id="selectBlockSeasonCodeCnt" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select project_no                                              
+	      , block_code                                           
+	      , nvl(max(cnt_season_blk),0)    as cnt_season_blk
+	      , nvl(max(cnt_season_pe),0)     as cnt_season_pe
+	      , nvl(max(cnt_season_pre_pe),0) as cnt_season_pre_pe
+	      , nvl(max(cnt_season_hull),0)   as cnt_season_hull
+	      , nvl(max(cnt_season_quay),0)   as cnt_season_quay
+	     
+	   from                                                      
+	       (                                                     
+	        select project_no
+	              ,block_code
+	              ,count(distinct season_code)  as cnt_season_blk
+	              ,null                         as cnt_season_pe
+	              ,null                         as cnt_season_pre_pe   
+	              ,null                         as cnt_season_hull
+	              ,null                         as cnt_season_quay
+	          from stx_dis_pis_pattern_scheme
+	         where project_no        = #{project_no}
+	           and revision          = #{revision}
+	           and block_quantity    <![CDATA[>]]> 0
+	           and block_define_flag = 'Y'
+	           
+	           <if test="block_code != null and block_code !='' ">
+			   and block_code in ( ${block_code} )
+			   </if>	   
+			   <if test="area_code != null and area_code !='' ">
+			   and area_code in ( ${area_code} )
+		   	   </if>
+	           	
+	         group by project_no, block_code
+	        having count(distinct season_code) <![CDATA[>]]> 1
+	        union all
+	        select project_no
+	              ,block_code
+	              ,null                        
+	              ,count(distinct season_code)  
+	              ,null                           
+	              ,null                         
+	              ,null                         
+	          from stx_dis_pis_pattern_scheme
+	         where project_no       = #{project_no}
+	           and revision         = #{revision}
+	           and pe_quantity      <![CDATA[>]]> 0
+	           and pe_define_flag   = 'Y'
+	           
+	           <if test="block_code != null and block_code !='' ">
+			   and block_code in ( ${block_code} )
+			   </if>	   
+			   <if test="area_code != null and area_code !='' ">
+			   and area_code in ( ${area_code} )
+		   	   </if>
+	           
+	         group by project_no, block_code
+	        having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,count(distinct season_code)                           
+	             ,null                         
+	             ,null                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and pre_pe_quantity    <![CDATA[>]]> 0
+	          and pre_pe_define_flag = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,null                        
+	             ,count(distinct season_code)                            
+	             ,null                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and hull_quantity      <![CDATA[>]]> 0
+	          and hull_define_flag   = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,null                        
+	             ,null                            
+	             ,count(distinct season_code)                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and quay_quantity      <![CDATA[>]]> 0
+	          and quay_define_flag   = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]>  1                      
+	       )                                                   
+	 group by project_no, block_code
+	 order by project_no, block_code	
+	</select>-->
+	
+</mapper>  	

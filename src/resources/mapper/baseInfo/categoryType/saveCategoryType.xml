@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveCategoryType">
+  
+   <select id="duplicate" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_sd_category_type t1
+	  where 1=1
+	    and t1.category_type = #{category_type} 
+  	</select>
+  	
+  	<insert id="insert" parameterType="java.util.Map">
+	 insert into stx_dis_sd_category_type 
+	 	(category_type
+	 	,category_type_desc
+	 	,category_type_mean
+	 	,enable_flag
+	 	,created_by
+	 	,creation_date
+	 	,last_updated_by
+	 	,last_update_date
+	 	)
+ 	 values
+ 	 	(#{category_type}
+ 	 	,#{category_type_desc}
+ 	 	,#{category_type_mean}
+  	  	,#{enable_flag}	
+ 	  	,#{loginId}
+ 	 	,SYSDATE
+ 	 	,#{loginId}
+ 	 	,SYSDATE
+ 	 	)
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+	 update stx_dis_sd_category_type
+	 		set 	category_type 		= #{category_type}
+	 		      ,category_type_desc	= #{category_type_desc}
+	 	    	  ,category_type_mean	= #{category_type_mean}
+				  ,enable_flag          = #{enable_flag}
+				  ,last_updated_by		= #{loginId}
+				  ,last_update_date		= SYSDATE
+	  		where category_type = #{category_type}
+	</update>
+	
+	<delete id="delete" parameterType="java.util.Map">
+		delete from stx_dis_sd_category_type
+			where category_type = #{category_type}
+	</delete>
+	
+	<insert id="insertFndFlexValues" parameterType="java.util.Map">
+	INSERT INTO FND_FLEX_VALUES@stxerp
+       (FLEX_VALUE_SET_ID,
+        FLEX_VALUE_ID,
+        FLEX_VALUE,
+        LAST_UPDATE_DATE,
+        LAST_UPDATED_BY,
+        CREATION_DATE,
+        CREATED_BY,        
+        LAST_UPDATE_LOGIN,     
+        ENABLED_FLAG,
+        SUMMARY_FLAG)
+	VALUES 
+	   (1007906,    -- STX_INV_CAT_VS1 : 고정
+	    FND_FLEX_VALUES_S.NEXTVAL@stxerp,
+	    #{category_type},
+	    SYSDATE,
+	    #{loginId},                  
+	    SYSDATE,              
+	    #{loginId},                      
+	    #{loginId},       
+	    'Y',
+	    'N')
+	</insert>
+	
+	<insert id="insertFndFlexValuesTl" parameterType="java.util.Map">
+	INSERT INTO FND_FLEX_VALUES_TL@stxerp
+       (FLEX_VALUE_ID,
+        LANGUAGE,
+        LAST_UPDATE_DATE,
+        LAST_UPDATED_BY,
+        CREATION_DATE,       
+        CREATED_BY,
+        LAST_UPDATE_LOGIN,
+        DESCRIPTION,
+        SOURCE_LANG,
+        FLEX_VALUE_MEANING )
+		SELECT B.FLEX_VALUE_ID
+		      ,'KO'
+		      ,SYSDATE
+		      ,#{loginId}
+		      ,SYSDATE
+		      ,#{loginId}
+		      ,#{loginId}
+		      ,#{category_type_desc}
+		      ,'KO'
+		      ,#{category_type}
+		  FROM FND_FLEX_VALUES@stxerp B
+		 WHERE B.FLEX_VALUE_SET_ID = 1007906
+		   AND B.FLEX_VALUE        = #{category_type}
+		 UNION ALL
+		SELECT B.FLEX_VALUE_ID
+		      ,'US'
+		      ,SYSDATE
+		      ,#{loginId}
+		      ,SYSDATE
+		      ,#{loginId}
+		      ,#{loginId}
+		      ,#{category_type_desc}
+		      ,'KO'
+		      ,#{category_type}
+		  FROM FND_FLEX_VALUES@stxerp B
+		 WHERE B.FLEX_VALUE_SET_ID = 1007906
+		   AND B.FLEX_VALUE        = #{category_type}
+	</insert>
+	
+	<select id="selectFndFlexValues" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select flex_value_id
+		  ,enabled_flag
+	  from fnd_flex_values@stxerp
+	 where flex_value_set_id = 1007906
+	   and flex_value		 = #{category_type}	  
+	</select>
+	
+	<update id="updateFndFlexValues" parameterType="java.util.Map">
+	UPDATE FND_FLEX_VALUES@stxerp
+	   SET ENABLED_FLAG       = #{enable_flag}
+	   	  ,LAST_UPDATE_DATE   = SYSDATE         
+	      ,LAST_UPDATED_BY    = #{loginId}
+	      ,LAST_UPDATE_LOGIN  = #{loginId}
+	 WHERE FLEX_VALUE_SET_ID  = 1007906
+	   AND FLEX_VALUE_ID      = #{flex_value_id}
+	</update>
+	
+	<update id="updateFndFlexValuesTl" parameterType="java.util.Map">
+	UPDATE FND_FLEX_VALUES_TL@stxerp
+	   SET DESCRIPTION 	      = #{category_type_desc}
+	      ,LAST_UPDATE_DATE   = SYSDATE         
+	      ,LAST_UPDATED_BY    = #{loginId}
+	      ,LAST_UPDATE_LOGIN  = #{loginId}
+	 WHERE FLEX_VALUE_ID	  = #{flex_value_id}
+	</update>
+
+	
+</mapper>

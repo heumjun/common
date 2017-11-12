@@ -1,0 +1,822 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="progressInputMain">
+	<select id="selectDpsProgressInputSearchList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DW.PROJECT_NO                                                                         AS PROJECT_NO
+		      ,DW.SABUN                                                                              AS SABUN
+		      ,DW.DEPTNAME                                                                           AS DEPTNAME
+		      ,DW.DEPTCODE                                                                           AS DEPTCODE
+		      ,DW.DWGCODE                                                                            AS DWGCODE
+		      ,DW.OUTSOURCINGYN                                                                      AS OUTSOURCINGYN
+		      ,DW.OUTSOURCING1                                                                       AS OUTSOURCING1
+		      ,DW.OUTSOURCING2                                                                       AS OUTSOURCING2
+		      ,DW.DWGTITLE                                                                           AS DWGTITLE
+		      ,DW.DW_PLAN_S                                                                          AS DW_PLAN_S
+		      ,DW.DW_PLAN_F                                                                          AS DW_PLAN_F
+		      ,DW.DW_ACT_S                                                                           AS DW_ACT_S
+		      ,DW.DW_ACT_F                                                                           AS DW_ACT_F
+		      ,DW.OW_PLAN_S                                                                          AS OW_PLAN_S
+		      ,DW.OW_PLAN_F                                                                          AS OW_PLAN_F
+		      ,DW.OW_ACT_S                                                                           AS OW_ACT_S
+		      ,DW.OW_ACT_F                                                                           AS OW_ACT_F
+		      ,DW.CL_PLAN_S                                                                          AS CL_PLAN_S
+		      ,DW.CL_PLAN_F                                                                          AS CL_PLAN_F
+		      ,DW.CL_ACT_S                                                                           AS CL_ACT_S
+		      ,DW.CL_ACT_F                                                                           AS CL_ACT_F
+		      ,DW.RF_PLAN_S                                                                          AS RF_PLAN_S
+		      ,DW.RF_ACT_S                                                                           AS RF_ACT_S
+		      ,DW.WK_PLAN_S                                                                          AS WK_PLAN_S
+		      ,DW.WK_ACT_S                                                                           AS WK_ACT_S
+		      ,DW.DWGZONE                                                                            AS DWGZONE
+		      ,DW.OUT_STD                                                                            AS OUT_STD
+		      ,DW.OUT_FOLLOWUP                                                                       AS OUT_FOLLOWUP
+		      ,DW.INTERNAL_STD                                                                       AS INTERNAL_STD
+		      ,DW.INTERNAL_FOLLOWUP                                                                  AS INTERNAL_FOLLOWUP
+		      ,DW.PLAN_STD                                                                           AS PLAN_STD
+		      ,DW.PLAN_FOLLOWUP                                                                      AS PLAN_FOLLOWUP
+		      ,DW.STD_TOTAL                                                                          AS STD_TOTAL
+		      ,DW.FOLLOWUP_TOTAL                                                                     AS FOLLOWUP_TOTAL
+		      ,DW.SABUN_NAME                                                                         AS NAME
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.DW_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS DW_PLAN_S_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.DW_PLAN_F,'YYYY-MM-DD'))), 1, 'Y', 'N') AS DW_PLAN_F_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.OW_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS OW_PLAN_S_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.OW_PLAN_F,'YYYY-MM-DD'))), 1, 'Y', 'N') AS OW_PLAN_F_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.CL_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS CL_PLAN_S_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.CL_PLAN_F,'YYYY-MM-DD'))), 1, 'Y', 'N') AS CL_PLAN_F_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.RF_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS RF_PLAN_S_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.WK_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS WK_PLAN_S_O
+		      ,CASE WHEN (DW.DEPLOY_DATE IS NULL) THEN NULL
+		       ELSE (F_GET_HARDCOPY_MAX_REV(DW.PROJECT_NO, SUBSTR(DW.ACTIVITYCODE, 1, 8), DW.DEPLOY_DATE))
+		       END                                                                                   AS MAX_REVISION
+		      ,TO_CHAR(DW.DEPLOY_DATE, 'YYYY-MM-DD')                                                 AS DEPLOY_DATE
+		      ,(SELECT A.DWG_REV AS DWG_REV                                                          
+		         FROM STX_DWG_DPS_REV_SELECT_V@STXERP A                                              
+		        WHERE A.MASTER_PROJECT_NO = DW.PROJECT_NO                                            
+		          AND A.DWG_NO_CONCAT     = SUBSTR(DW.ACTIVITYCODE, 1, 5)                            
+		          AND A.DWG_BLOCK         = SUBSTR(DW.ACTIVITYCODE, 6, 3) )                          AS DTS_RESULT
+			 --    ,F_GET_APS_ACTIVITY_CODE(DW.WK_DWG_CATEGROY, DW.WK_REFEVENT2, DW.PROJECT_NO)           AS ACTIVITY_DESC
+			 --  2017-08-07 수정
+			 ,CASE WHEN DW.DW_REFEVENT IS NOT NULL THEN F_GET_APS_ACTIVITY_CODE(DW.WK_DWG_CATEGROY, DW.DW_REFEVENT, DW.PROJECT_NO) 
+		           ELSE F_GET_APS_ACTIVITY_CODE(DW.WK_DWG_CATEGROY, DW.WK_REFEVENT2, DW.PROJECT_NO) END    AS ACTIVITY_DESC
+		     ,DW.DW_ATTRIBUTE4                                                                      AS DW_ATTRIBUTE4
+		     ,DW.DW_ATTRIBUTE5                                                                      AS DW_ATTRIBUTE5
+		     ,DW.OW_ATTRIBUTE4                                                                      AS OW_ATTRIBUTE4
+		     ,DW.OW_ATTRIBUTE5                                                                      AS OW_ATTRIBUTE5
+		     ,DW.CL_ATTRIBUTE4                                                                      AS CL_ATTRIBUTE4
+		     ,DW.CL_ATTRIBUTE5                                                                      AS CL_ATTRIBUTE5
+		     ,DW.RF_ATTRIBUTE4                                                                      AS RF_ATTRIBUTE4
+		     ,DW.RF_ATTRIBUTE5                                                                      AS RF_ATTRIBUTE5
+		     ,DW.WK_ATTRIBUTE4                                                                      AS WK_ATTRIBUTE4
+		     ,DW.WK_ATTRIBUTE5                                                                      AS WK_ATTRIBUTE5
+		     ,DW.SUB_SABUN                                                                          AS SUB_SABUN    
+		     ,DW.SUB_NAME                                                                           AS SUB_NAME 
+		FROM(   
+		      SELECT DW.PROJECT_NO
+		            ,DW.ACTIVITYCODE
+		            ,DW.SABUN
+		            ,DW.DEPTNAME
+		            ,DW.DEPTCODE
+		            ,DW.DWGCODE
+		            ,DW.DW_PLAN_S
+		            ,DW.DW_PLAN_F
+		            ,DW.DW_ACT_S
+		            ,DW.DW_ACT_F         
+		            ,DW.OUTSOURCINGYN
+		            ,DW.OUTSOURCING1
+		            ,DW.OUTSOURCING2
+		            ,DW.DWGTITLE 
+		            ,DW.DWGZONE       
+		            ,DW.OUT_STD
+		            ,DW.OUT_FOLLOWUP
+		            ,DW.INTERNAL_STD
+		            ,DW.INTERNAL_FOLLOWUP
+		            ,DW.PLAN_STD
+		            ,DW.PLAN_FOLLOWUP
+		            ,DW.STD_TOTAL
+		            ,DW.FOLLOWUP_TOTAL  
+		            ,DW.SABUN_NAME  
+		            ,DW.DTS_RESULT 
+		            ,DW.DW_ATTRIBUTE4
+		            ,DW.DW_ATTRIBUTE5
+		            ,DW.SUB_SABUN
+		            ,DW.SUB_NAME  
+		            ,DW.DEPLOY_DATE 
+		            ,DW.DW_REFEVENT
+		            ,DW.DW_REFDATE 
+		            ,SUBSTR(DW.OW_LIST, 1, INSTR(DW.OW_LIST, '@',1,1)-1)                                                         AS OW_PLAN_S
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,1)+1, INSTR(DW.OW_LIST,'@',1,2) - (INSTR(DW.OW_LIST,'@',1,1)+1))  AS OW_PLAN_F
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,2)+1, INSTR(DW.OW_LIST,'@',1,3) - (INSTR(DW.OW_LIST,'@',1,2)+1))  AS OW_ACT_S
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,3)+1, INSTR(DW.OW_LIST,'@',1,4) - (INSTR(DW.OW_LIST,'@',1,3)+1))  AS OW_ACT_F
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,4)+1, INSTR(DW.OW_LIST,'@',1,5) - (INSTR(DW.OW_LIST,'@',1,4)+1))  AS OW_DWG_CATEGROY
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,5)+1, INSTR(DW.OW_LIST,'@',1,6) - (INSTR(DW.OW_LIST,'@',1,5)+1))  AS OW_ATTRIBUTE4
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,6)+1, LENGTH(DW.OW_LIST) - (INSTR(DW.OW_LIST,'@',1,6)+1))         AS OW_ATTRIBUTE5 
+		            ,SUBSTR(DW.CL_LIST, 1, INSTR(DW.CL_LIST, '@',1,1)-1)                                                         AS CL_PLAN_S
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,1)+1, INSTR(DW.CL_LIST,'@',1,2) - (INSTR(DW.CL_LIST,'@',1,1)+1))  AS CL_PLAN_F
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,2)+1, INSTR(DW.CL_LIST,'@',1,3) - (INSTR(DW.CL_LIST,'@',1,2)+1))  AS CL_ACT_S
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,3)+1, INSTR(DW.CL_LIST,'@',1,4) - (INSTR(DW.CL_LIST,'@',1,3)+1))  AS CL_ACT_F
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,4)+1, INSTR(DW.CL_LIST,'@',1,5) - (INSTR(DW.CL_LIST,'@',1,4)+1))  AS CL_DWG_CATEGROY
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,5)+1, INSTR(DW.CL_LIST,'@',1,6) - (INSTR(DW.CL_LIST,'@',1,5)+1))  AS CL_ATTRIBUTE4
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,6)+1, LENGTH(DW.CL_LIST) - (INSTR(DW.CL_LIST,'@',1,6)+1))         AS CL_ATTRIBUTE5 
+		            ,SUBSTR(DW.RF_LIST, 1, INSTR(DW.RF_LIST, '@',1,1)-1)                                                         AS RF_PLAN_S
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,1)+1, INSTR(DW.RF_LIST,'@',1,2) - (INSTR(DW.RF_LIST,'@',1,1)+1))  AS RF_PLAN_F
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,2)+1, INSTR(DW.RF_LIST,'@',1,3) - (INSTR(DW.RF_LIST,'@',1,2)+1))  AS RF_ACT_S
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,3)+1, INSTR(DW.RF_LIST,'@',1,4) - (INSTR(DW.RF_LIST,'@',1,3)+1))  AS RF_ACT_F
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,4)+1, INSTR(DW.RF_LIST,'@',1,5) - (INSTR(DW.RF_LIST,'@',1,4)+1))  AS RF_DWG_CATEGROY
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,5)+1, INSTR(DW.RF_LIST,'@',1,6) - (INSTR(DW.RF_LIST,'@',1,5)+1))  AS RF_ATTRIBUTE4
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,6)+1, LENGTH(DW.RF_LIST) - (INSTR(DW.RF_LIST,'@',1,6)+1))         AS RF_ATTRIBUTE5  
+		            ,SUBSTR(DW.WK_LIST, 1, INSTR(DW.WK_LIST, '@',1,1)-1)                                                         AS WK_PLAN_S
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,1)+1, INSTR(DW.WK_LIST,'@',1,2) - (INSTR(DW.WK_LIST,'@',1,1)+1))  AS WK_PLAN_F
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,2)+1, INSTR(DW.WK_LIST,'@',1,3) - (INSTR(DW.WK_LIST,'@',1,2)+1))  AS WK_ACT_S
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,3)+1, INSTR(DW.WK_LIST,'@',1,4) - (INSTR(DW.WK_LIST,'@',1,3)+1))  AS WK_ACT_F
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,4)+1, INSTR(DW.WK_LIST,'@',1,5) - (INSTR(DW.WK_LIST,'@',1,4)+1))  AS WK_DWG_CATEGROY
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,5)+1, INSTR(DW.WK_LIST,'@',1,6) - (INSTR(DW.WK_LIST,'@',1,5)+1))  AS WK_REFEVENT2
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,6)+1, INSTR(DW.WK_LIST,'@',1,7) - (INSTR(DW.WK_LIST,'@',1,6)+1))  AS WK_ATTRIBUTE4
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,7)+1, INSTR(DW.WK_LIST,'@',1,8) - (INSTR(DW.WK_LIST,'@',1,7)+1))  AS WK_ATTRIBUTE5
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,8)+1, INSTR(DW.WK_LIST,'@',1,9) - (INSTR(DW.WK_LIST,'@',1,8)+1))  AS WK_OLD_REFEVENT
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,9)+1, INSTR(DW.WK_LIST,'@',1,10) - (INSTR(DW.WK_LIST,'@',1,9)+1)) AS WK_REFDATE
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,10)+1, LENGTH(DW.WK_LIST) - (INSTR(DW.WK_LIST,'@',1,10)+1))       AS WK_OLD_REFDATE 
+		        FROM ( 
+		               SELECT DW.PROJECTNO                                                AS PROJECT_NO
+		                     ,DW.ACTIVITYCODE                                             AS ACTIVITYCODE
+		                     ,DW.SABUN                                                    AS SABUN
+		                     ,DEPT.DWGDEPTNM                                              AS DEPTNAME
+		                     ,DEPT.DWGDEPTCODE                                            AS DEPTCODE
+		                     ,SUBSTR(DW.ACTIVITYCODE, 1, 8)                               AS DWGCODE
+		                     ,TO_CHAR(DW.PLANSTARTDATE, 'YYYY-MM-DD')                     AS DW_PLAN_S
+		                     ,TO_CHAR(DW.PLANFINISHDATE, 'YYYY-MM-DD')                    AS DW_PLAN_F
+		                     ,TO_CHAR(DW.ACTUALSTARTDATE, 'YYYY-MM-DD')                   AS DW_ACT_S
+		                     ,TO_CHAR(DW.ACTUALFINISHDATE, 'YYYY-MM-DD')                  AS DW_ACT_F         
+		                     ,DW.OUTSOURCINGYN                                            AS OUTSOURCINGYN
+		                     ,DW.OUTSOURCING1                                             AS OUTSOURCING1
+		                     ,DW.OUTSOURCING2                                             AS OUTSOURCING2
+		                     ,DW.DWGTITLE                                                 AS DWGTITLE 
+		                     ,DW.DWGZONE                                                  AS DWGZONE       
+		                     ,DW.ACTUALSTDMH_OUT                                          as OUT_STD
+		                     ,DW.ACTUALFOLLOWMH_OUT                                       as OUT_FOLLOWUP
+		                     ,DW.ACTUALSTDMH                                              as INTERNAL_STD
+		                     ,DW.ACTUALFOLLOWMH                                           as INTERNAL_FOLLOWUP
+		                     ,DW.PLANSTDMH                                                as PLAN_STD
+		                     ,DW.PLANFOLLOWMH                                             as PLAN_FOLLOWUP
+                             -- DW REFEVNET, DW REFDATE추가
+                             ,DW.REFEVENT                                                 AS DW_REFEVENT
+                             ,DW.REFDATE                                                  AS DW_REFDATE
+                             --------------------------------------------------------------------------------
+		                     ,(NVL(DW.ACTUALSTDMH, 0) + NVL(DW.ACTUALSTDMH_OUT, 0))       AS STD_TOTAL
+		                     ,(NVL(DW.ACTUALFOLLOWMH, 0) + NVL(DW.ACTUALFOLLOWMH_OUT, 0)) AS FOLLOWUP_TOTAL 
+		                     ,CASE WHEN (SELECT SAWON.NAME
+		                                   FROM CCC_SAWON SAWON
+		                                  WHERE SAWON.EMPLOYEE_NUM = DW.SABUN
+		                                 ) IS NULL THEN 
+		                                (SELECT A.SAWON_NAME
+		                                   FROM Z_DALIAN_SAWON_TO111231 A
+		                                  WHERE A.SAWON_ID = DW.SABUN
+		                                 )
+		                      ELSE (SELECT SAWON.NAME
+		                              FROM CCC_SAWON SAWON
+		                             WHERE SAWON.EMPLOYEE_NUM = DW.SABUN
+		                            )
+		                      END                                                           AS SABUN_NAME  
+		                     ,(SELECT A.DWG_REV AS DWG_REV
+		                       FROM   STX_DWG_DPS_REV_SELECT_V@STXERP A
+		                       WHERE  A.MASTER_PROJECT_NO = DW.PROJECTNO
+		                       AND    A.DWG_NO_CONCAT     = SUBSTR(DW.ACTIVITYCODE, 1, 5)
+		                       AND    A.DWG_BLOCK         = SUBSTR(DW.ACTIVITYCODE, 6, 3) ) AS DTS_RESULT 
+		                     ,DW.ATTRIBUTE4                                                 as DW_ATTRIBUTE4
+		                     ,DW.ATTRIBUTE5                                                 as DW_ATTRIBUTE5
+		                     ,DW.SUB_SABUN                                                  AS SUB_SABUN
+		                     ,(SELECT SAWON.NAME
+		                       FROM   CCC_SAWON SAWON
+		                       WHERE  SAWON.EMPLOYEE_NUM = DW.SUB_SABUN)                    AS SUB_NAME
+		                    ,(SELECT
+		                             MAX(REQUEST_DATE) AS DEPLOY_DATE
+		                        FROM PLM_HARDCOPY_DWG PHD
+		                       WHERE PHD.PROJECT_NO = DW.PROJECTNO
+		                         AND PHD.DWG_CODE   = SUBSTR(DW.ACTIVITYCODE, 1, 8)
+		                       )                                         AS DEPLOY_DATE
+		                    ,(SELECT TO_CHAR(A.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                             TO_CHAR(A.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                             TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                             TO_CHAR(A.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' || 
+		                             A.DWGCATEGORY                              || '@' ||
+		                             A.ATTRIBUTE4                               || '@' ||
+		                             A.ATTRIBUTE5       
+		                        FROM PLM_ACTIVITY A
+		                       WHERE A.WORKTYPE = 'OW' 
+		                         AND A.PROJECTNO = DW.PROJECTNO
+		                         AND A.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'OW'  
+		                     )   OW_LIST
+		                    ,(SELECT TO_CHAR(B.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                             TO_CHAR(B.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                             TO_CHAR(B.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                             TO_CHAR(B.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' ||  
+		                             B.DWGCATEGORY      || '@' ||
+		                             B.ATTRIBUTE4       || '@' ||
+		                             B.ATTRIBUTE5
+		                       FROM PLM_ACTIVITY B
+		                      WHERE B.WORKTYPE     = 'CL'
+		                        AND B.PROJECTNO    = DW.PROJECTNO
+		                        AND B.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'CL'   
+		                     )   CL_LIST
+		                    ,(SELECT TO_CHAR(C.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                             TO_CHAR(C.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                             TO_CHAR(C.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                             TO_CHAR(C.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' ||   
+		                             C.DWGCATEGORY      || '@' ||
+		                             C.ATTRIBUTE4       || '@' ||
+		                             C.ATTRIBUTE5
+		                        FROM PLM_ACTIVITY C
+		                       WHERE C.WORKTYPE = 'RF' 
+		                         AND C.PROJECTNO    = DW.PROJECTNO
+		                         AND C.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'RF'   
+		                     ) RF_LIST
+		                    ,(SELECT TO_CHAR(D.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                             TO_CHAR(D.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                             TO_CHAR(D.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                             TO_CHAR(D.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' ||    
+		                             D.DWGCATEGORY        || '@' ||
+		                             D.REFEVENT2          || '@' ||
+		                             D.ATTRIBUTE4         || '@' ||
+		                             D.ATTRIBUTE5         || '@' ||
+		                             D.OLD_REFEVENT       || '@' ||
+		                             TO_CHAR(D.REFDATE      ,'YYYY-MM-DD')  || '@' ||
+		                             TO_CHAR(D.OLD_REFDATE  ,'YYYY-MM-DD')      
+		                        FROM PLM_ACTIVITY D
+		                       WHERE D.WORKTYPE = 'WK' 
+		                         AND D.PROJECTNO    = DW.PROJECTNO
+		                         AND D.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'WK'   
+		                      ) WK_LIST
+		                FROM PLM_ACTIVITY    DW
+		                    ,DCC_DWGDEPTCODE DEPT  
+		                    ,(SELECT STATE
+		                     FROM   PLM_SEARCHABLE_PROJECT
+		                     WHERE  CATEGORY  = 'PROGRESS'
+		                     AND    PROJECTNO = #{projectInput} 
+		                     ) PP
+		                WHERE  DW.PROJECTNO   = #{projectInput}
+		                AND    DW.WORKTYPE    = 'DW' 
+		                AND    DW.DWGDEPTCODE = DEPT.DWGDEPTCODE(+)
+		                <if test="departmentList != null and departmentList != '' and departmentList neq 'all' ">
+		    				AND    DW.DWGDEPTCODE = (
+		    											SELECT E.DWGDEPTCODE 
+		    											FROM   DCC_DEPTCODE E 
+		    											WHERE  E.DEPTCODE=#{departmentList}
+		    										)
+						</if>
+		                AND    ( CASE WHEN PP.STATE = 'ALL' THEN ' ' ELSE DW.DWGCATEGORY END) = ( CASE WHEN PP.STATE = 'ALL' THEN ' ' ELSE PP.STATE END)
+		          ) DW 
+		      ) DW
+		      WHERE 1=1
+				<if test="designerList != null and designerList != ''">
+					AND    DW.SABUN = #{designerList}
+				</if>
+				<if test="drawingTitle != null and drawingTitle != ''">
+		    		AND    DW.DWGTITLE LIKE '%'||#{drawingTitle}||'%'
+				</if>
+				<if test="dateCondition != null and dateCondition != ''">
+		    		<if test="dateSelected_from != null and dateSelected_from != ''">
+		        		AND    ${dateCondition} >= TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')
+		    		</if>
+		    		<if test="dateSelected_to != null and dateSelected_to != ''">
+		        		AND    ${dateCondition} &lt;= TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		    		</if>
+				</if>
+				<if test="drawingNo != null and drawingNo != ''">
+		    		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) like #{drawingNo}
+				</if>           
+		 ORDER BY DW.DEPTCODE, DW.ACTIVITYCODE
+	</select>
+	
+	<!-- BOM수량, 현재일자/참조이벤트 OLD/NEW 적용 버전.. 아직 안쓰기에 주석
+	<select id="selectDpsProgressInputSearchList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DW.PROJECT_NO                                                                         AS PROJECT_NO
+		      ,DW.SABUN                                                                              AS SABUN
+		      ,DW.DEPTNAME                                                                           AS DEPTNAME
+		      ,DW.DEPTCODE                                                                           AS DEPTCODE
+		      ,DW.DWGCODE                                                                            AS DWGCODE
+		      ,DW.OUTSOURCINGYN                                                                      AS OUTSOURCINGYN
+		      ,DW.OUTSOURCING1                                                                       AS OUTSOURCING1
+		      ,DW.OUTSOURCING2                                                                       AS OUTSOURCING2
+		      ,DW.DWGTITLE                                                                           AS DWGTITLE
+		      ,DW.DW_PLAN_S                                                                          AS DW_PLAN_S
+		      ,DW.DW_PLAN_F                                                                          AS DW_PLAN_F
+		      ,DW.DW_ACT_S                                                                           AS DW_ACT_S
+		      ,DW.DW_ACT_F                                                                           AS DW_ACT_F
+		      ,DW.OW_PLAN_S                                                                          AS OW_PLAN_S
+		      ,DW.OW_PLAN_F                                                                          AS OW_PLAN_F
+		      ,DW.OW_ACT_S                                                                           AS OW_ACT_S
+		      ,DW.OW_ACT_F                                                                           AS OW_ACT_F
+		      ,DW.CL_PLAN_S                                                                          AS CL_PLAN_S
+		      ,DW.CL_PLAN_F                                                                          AS CL_PLAN_F
+		      ,DW.CL_ACT_S                                                                           AS CL_ACT_S
+		      ,DW.CL_ACT_F                                                                           AS CL_ACT_F
+		      ,DW.RF_PLAN_S                                                                          AS RF_PLAN_S
+		      ,DW.RF_ACT_S                                                                           AS RF_ACT_S
+		      ,DW.WK_PLAN_S                                                                          AS WK_PLAN_S
+		      ,DW.WK_ACT_S                                                                           AS WK_ACT_S
+		      ,DW.DWGZONE                                                                            AS DWGZONE
+		      ,DW.OUT_STD                                                                            AS OUT_STD
+		      ,DW.OUT_FOLLOWUP                                                                       AS OUT_FOLLOWUP
+		      ,DW.INTERNAL_STD                                                                       AS INTERNAL_STD
+		      ,DW.INTERNAL_FOLLOWUP                                                                  AS INTERNAL_FOLLOWUP
+		      ,DW.PLAN_STD                                                                           AS PLAN_STD
+		      ,DW.PLAN_FOLLOWUP                                                                      AS PLAN_FOLLOWUP
+		      ,DW.STD_TOTAL                                                                          AS STD_TOTAL
+		      ,DW.FOLLOWUP_TOTAL                                                                     AS FOLLOWUP_TOTAL
+		      ,DW.SABUN_NAME                                                                         AS NAME
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.DW_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS DW_PLAN_S_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.DW_PLAN_F,'YYYY-MM-DD'))), 1, 'Y', 'N') AS DW_PLAN_F_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.OW_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS OW_PLAN_S_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.OW_PLAN_F,'YYYY-MM-DD'))), 1, 'Y', 'N') AS OW_PLAN_F_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.CL_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS CL_PLAN_S_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.CL_PLAN_F,'YYYY-MM-DD'))), 1, 'Y', 'N') AS CL_PLAN_F_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.RF_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS RF_PLAN_S_O
+		      ,DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(TO_DATE(DW.WK_PLAN_S,'YYYY-MM-DD'))), 1, 'Y', 'N') AS WK_PLAN_S_O
+		      ,CASE WHEN (DW.DEPLOY_DATE IS NULL) THEN NULL
+		       ELSE (F_GET_HARDCOPY_MAX_REV(DW.PROJECT_NO, SUBSTR(DW.ACTIVITYCODE, 1, 8), DW.DEPLOY_DATE))
+		       END                                                                                   AS MAX_REVISION
+		      ,TO_CHAR(DW.DEPLOY_DATE, 'YYYY-MM-DD')                                                 AS DEPLOY_DATE
+		      ,(SELECT A.DWG_REV AS DWG_REV                                                          
+		         FROM STX_DWG_DPS_REV_SELECT_V@STXERP A                                              
+		        WHERE A.MASTER_PROJECT_NO = DW.PROJECT_NO                                            
+		          AND A.DWG_NO_CONCAT     = SUBSTR(DW.ACTIVITYCODE, 1, 5)                            
+		          AND A.DWG_BLOCK         = SUBSTR(DW.ACTIVITYCODE, 6, 3) )                          AS DTS_RESULT
+		      ,(SELECT ACTIVITYDESC                                                                  
+		         FROM APS_ACTIVITY_LIST_V AAL                                                        
+		        WHERE AAL.PROJECTNO = DW.PROJECT_NO                                                  
+		          AND AAL.ACTIVITYCODE = DW.WK_REFEVENT2                                             
+		          AND ROWNUM = 1)                                                                    AS NEW_ACTIVITY_DESC1
+		      ,CASE WHEN DW.WK_OLD_REFEVENT IS NOT NULL THEN 
+		           (SELECT AAL.ACTIVITYDESC
+		              FROM APS_ACTIVITY_LIST_V AAL
+		             WHERE AAL.PROJECTNO    = DW.PROJECT_NO
+		               AND AAL.ACTIVITYCODE = DW.WK_OLD_REFEVENT
+		               AND ROWNUM = 1)
+		       ELSE (SELECT ACTIVITYDESC
+		               FROM APS_ACTIVITY_LIST_V
+		              WHERE PROJECTNO    = DW.PROJECT_NO
+		                AND ACTIVITYCODE = DW.WK_REFEVENT2
+		                AND ROWNUM       = 1
+		            )
+		      END                                                                                   AS OLD_ACTIVITY_DESC1
+		     ,DW.WK_REFDATE                                                                         AS NEW_ACTIVITY_DESC2
+		     ,CASE WHEN DW.WK_OLD_REFDATE IS NOT NULL THEN DW.WK_OLD_REFDATE                        
+		      ELSE DW.WK_REFDATE                                                                    
+		      END                                                                                   AS OLD_ACTIVITY_DESC2
+		     ,TO_DATE(DW.WK_REFDATE,'YYYY-MM-DD') - TO_DATE(NVL(DW.WK_OLD_REFDATE, DW.WK_REFDATE),'YYYY-MM-DD')        
+		                                                                                            AS DIFF_DATE
+		     ,DW.DW_ATTRIBUTE4                                                                      AS DW_ATTRIBUTE4
+		     ,DW.DW_ATTRIBUTE5                                                                      AS DW_ATTRIBUTE5
+		     ,DW.OW_ATTRIBUTE4                                                                      AS OW_ATTRIBUTE4
+		     ,DW.OW_ATTRIBUTE5                                                                      AS OW_ATTRIBUTE5
+		     ,DW.CL_ATTRIBUTE4                                                                      AS CL_ATTRIBUTE4
+		     ,DW.CL_ATTRIBUTE5                                                                      AS CL_ATTRIBUTE5
+		     ,DW.RF_ATTRIBUTE4                                                                      AS RF_ATTRIBUTE4
+		     ,DW.RF_ATTRIBUTE5                                                                      AS RF_ATTRIBUTE5
+		     ,DW.WK_ATTRIBUTE4                                                                      AS WK_ATTRIBUTE4
+		     ,DW.WK_ATTRIBUTE5                                                                      AS WK_ATTRIBUTE5
+		     ,DW.SUB_SABUN                                                                          AS SUB_SABUN    
+		     ,DW.SUB_NAME                                                                           AS SUB_NAME     
+		     ,DW.SUM_BOM_QTY                                                                        AS SUM_BOM_QTY  
+		FROM(   
+		      SELECT DW.PROJECT_NO
+		            ,DW.ACTIVITYCODE
+		            ,DW.SABUN
+		            ,DW.DEPTNAME
+		            ,DW.DEPTCODE
+		            ,DW.DWGCODE
+		            ,DW.DW_PLAN_S
+		            ,DW.DW_PLAN_F
+		            ,DW.DW_ACT_S
+		            ,DW.DW_ACT_F         
+		            ,DW.OUTSOURCINGYN
+		            ,DW.OUTSOURCING1
+		            ,DW.OUTSOURCING2
+		            ,DW.DWGTITLE 
+		            ,DW.DWGZONE       
+		            ,DW.OUT_STD
+		            ,DW.OUT_FOLLOWUP
+		            ,DW.INTERNAL_STD
+		            ,DW.INTERNAL_FOLLOWUP
+		            ,DW.PLAN_STD
+		            ,DW.PLAN_FOLLOWUP
+		            ,DW.STD_TOTAL
+		            ,DW.FOLLOWUP_TOTAL  
+		            ,DW.SABUN_NAME  
+		            ,DW.DTS_RESULT 
+		            ,DW.DW_ATTRIBUTE4
+		            ,DW.DW_ATTRIBUTE5
+		            ,DW.SUB_SABUN
+		            ,DW.SUB_NAME
+		            ,DW.SUM_BOM_QTY     
+		            ,DW.DEPLOY_DATE 
+		            ,SUBSTR(DW.OW_LIST, 1, INSTR(DW.OW_LIST, '@',1,1)-1)                                                         AS OW_PLAN_S
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,1)+1, INSTR(DW.OW_LIST,'@',1,2) - (INSTR(DW.OW_LIST,'@',1,1)+1))  AS OW_PLAN_F
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,2)+1, INSTR(DW.OW_LIST,'@',1,3) - (INSTR(DW.OW_LIST,'@',1,2)+1))  AS OW_ACT_S
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,3)+1, INSTR(DW.OW_LIST,'@',1,4) - (INSTR(DW.OW_LIST,'@',1,3)+1))  AS OW_ACT_F
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,4)+1, INSTR(DW.OW_LIST,'@',1,5) - (INSTR(DW.OW_LIST,'@',1,4)+1))  AS OW_DWG_CATEGROY
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,5)+1, INSTR(DW.OW_LIST,'@',1,6) - (INSTR(DW.OW_LIST,'@',1,5)+1))  AS OW_ATTRIBUTE4
+		            ,SUBSTR(DW.OW_LIST, INSTR(DW.OW_LIST,'@',1,6)+1, LENGTH(DW.OW_LIST) - (INSTR(DW.OW_LIST,'@',1,6)+1))         AS OW_ATTRIBUTE5 
+		            ,SUBSTR(DW.CL_LIST, 1, INSTR(DW.CL_LIST, '@',1,1)-1)                                                         AS CL_PLAN_S
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,1)+1, INSTR(DW.CL_LIST,'@',1,2) - (INSTR(DW.CL_LIST,'@',1,1)+1))  AS CL_PLAN_F
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,2)+1, INSTR(DW.CL_LIST,'@',1,3) - (INSTR(DW.CL_LIST,'@',1,2)+1))  AS CL_ACT_S
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,3)+1, INSTR(DW.CL_LIST,'@',1,4) - (INSTR(DW.CL_LIST,'@',1,3)+1))  AS CL_ACT_F
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,4)+1, INSTR(DW.CL_LIST,'@',1,5) - (INSTR(DW.CL_LIST,'@',1,4)+1))  AS CL_DWG_CATEGROY
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,5)+1, INSTR(DW.CL_LIST,'@',1,6) - (INSTR(DW.CL_LIST,'@',1,5)+1))  AS CL_ATTRIBUTE4
+		            ,SUBSTR(DW.CL_LIST, INSTR(DW.CL_LIST,'@',1,6)+1, LENGTH(DW.CL_LIST) - (INSTR(DW.CL_LIST,'@',1,6)+1))         AS CL_ATTRIBUTE5 
+		            ,SUBSTR(DW.RF_LIST, 1, INSTR(DW.RF_LIST, '@',1,1)-1)                                                         AS RF_PLAN_S
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,1)+1, INSTR(DW.RF_LIST,'@',1,2) - (INSTR(DW.RF_LIST,'@',1,1)+1))  AS RF_PLAN_F
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,2)+1, INSTR(DW.RF_LIST,'@',1,3) - (INSTR(DW.RF_LIST,'@',1,2)+1))  AS RF_ACT_S
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,3)+1, INSTR(DW.RF_LIST,'@',1,4) - (INSTR(DW.RF_LIST,'@',1,3)+1))  AS RF_ACT_F
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,4)+1, INSTR(DW.RF_LIST,'@',1,5) - (INSTR(DW.RF_LIST,'@',1,4)+1))  AS RF_DWG_CATEGROY
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,5)+1, INSTR(DW.RF_LIST,'@',1,6) - (INSTR(DW.RF_LIST,'@',1,5)+1))  AS RF_ATTRIBUTE4
+		            ,SUBSTR(DW.RF_LIST, INSTR(DW.RF_LIST,'@',1,6)+1, LENGTH(DW.RF_LIST) - (INSTR(DW.RF_LIST,'@',1,6)+1))         AS RF_ATTRIBUTE5  
+		            ,SUBSTR(DW.WK_LIST, 1, INSTR(DW.WK_LIST, '@',1,1)-1)                                                         AS WK_PLAN_S
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,1)+1, INSTR(DW.WK_LIST,'@',1,2) - (INSTR(DW.WK_LIST,'@',1,1)+1))  AS WK_PLAN_F
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,2)+1, INSTR(DW.WK_LIST,'@',1,3) - (INSTR(DW.WK_LIST,'@',1,2)+1))  AS WK_ACT_S
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,3)+1, INSTR(DW.WK_LIST,'@',1,4) - (INSTR(DW.WK_LIST,'@',1,3)+1))  AS WK_ACT_F
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,4)+1, INSTR(DW.WK_LIST,'@',1,5) - (INSTR(DW.WK_LIST,'@',1,4)+1))  AS WK_DWG_CATEGROY
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,5)+1, INSTR(DW.WK_LIST,'@',1,6) - (INSTR(DW.WK_LIST,'@',1,5)+1))  AS WK_REFEVENT2
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,6)+1, INSTR(DW.WK_LIST,'@',1,7) - (INSTR(DW.WK_LIST,'@',1,6)+1))  AS WK_ATTRIBUTE4
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,7)+1, INSTR(DW.WK_LIST,'@',1,8) - (INSTR(DW.WK_LIST,'@',1,7)+1))  AS WK_ATTRIBUTE5
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,8)+1, INSTR(DW.WK_LIST,'@',1,9) - (INSTR(DW.WK_LIST,'@',1,8)+1))  AS WK_OLD_REFEVENT
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,9)+1, INSTR(DW.WK_LIST,'@',1,10) - (INSTR(DW.WK_LIST,'@',1,9)+1)) AS WK_REFDATE
+		            ,SUBSTR(DW.WK_LIST, INSTR(DW.WK_LIST,'@',1,10)+1, LENGTH(DW.WK_LIST) - (INSTR(DW.WK_LIST,'@',1,10)+1))       AS WK_OLD_REFDATE 
+		        FROM ( 
+		               SELECT DW.PROJECTNO                                                AS PROJECT_NO
+		                     ,DW.ACTIVITYCODE                                             AS ACTIVITYCODE
+		                     ,DW.SABUN                                                    AS SABUN
+		                     ,DEPT.DWGDEPTNM                                              AS DEPTNAME
+		                     ,DEPT.DWGDEPTCODE                                            AS DEPTCODE
+		                     ,SUBSTR(DW.ACTIVITYCODE, 1, 8)                               AS DWGCODE
+		                     ,TO_CHAR(DW.PLANSTARTDATE, 'YYYY-MM-DD')                     AS DW_PLAN_S
+		                     ,TO_CHAR(DW.PLANFINISHDATE, 'YYYY-MM-DD')                    AS DW_PLAN_F
+		                     ,TO_CHAR(DW.ACTUALSTARTDATE, 'YYYY-MM-DD')                   AS DW_ACT_S
+		                     ,TO_CHAR(DW.ACTUALFINISHDATE, 'YYYY-MM-DD')                  AS DW_ACT_F         
+		                     ,DW.OUTSOURCINGYN                                            AS OUTSOURCINGYN
+		                     ,DW.OUTSOURCING1                                             AS OUTSOURCING1
+		                     ,DW.OUTSOURCING2                                             AS OUTSOURCING2
+		                     ,DW.DWGTITLE                                                 AS DWGTITLE 
+		                     ,DW.DWGZONE                                                  AS DWGZONE       
+		                     ,DW.ACTUALSTDMH_OUT                                          as OUT_STD
+		                     ,DW.ACTUALFOLLOWMH_OUT                                       as OUT_FOLLOWUP
+		                     ,DW.ACTUALSTDMH                                              as INTERNAL_STD
+		                     ,DW.ACTUALFOLLOWMH                                           as INTERNAL_FOLLOWUP
+		                     ,DW.PLANSTDMH                                                as PLAN_STD
+		                     ,DW.PLANFOLLOWMH                                             as PLAN_FOLLOWUP
+		                     ,(NVL(DW.ACTUALSTDMH, 0) + NVL(DW.ACTUALSTDMH_OUT, 0))       AS STD_TOTAL
+		                     ,(NVL(DW.ACTUALFOLLOWMH, 0) + NVL(DW.ACTUALFOLLOWMH_OUT, 0)) AS FOLLOWUP_TOTAL 
+		                     ,CASE WHEN (SELECT SAWON.NAME
+		                                   FROM CCC_SAWON SAWON
+		                                  WHERE SAWON.EMPLOYEE_NUM = DW.SABUN
+		                                 ) IS NULL THEN 
+		                                (SELECT A.SAWON_NAME
+		                                   FROM Z_DALIAN_SAWON_TO111231 A
+		                                  WHERE A.SAWON_ID = DW.SABUN
+		                                 )
+		                      ELSE (SELECT SAWON.NAME
+		                              FROM CCC_SAWON SAWON
+		                             WHERE SAWON.EMPLOYEE_NUM = DW.SABUN
+		                            )
+		                      END                                                           AS SABUN_NAME  
+		                     ,(SELECT A.DWG_REV AS DWG_REV
+		                       FROM   STX_DWG_DPS_REV_SELECT_V@STXERP A
+		                       WHERE  A.MASTER_PROJECT_NO = DW.PROJECTNO
+		                       AND    A.DWG_NO_CONCAT     = SUBSTR(DW.ACTIVITYCODE, 1, 5)
+		                       AND    A.DWG_BLOCK         = SUBSTR(DW.ACTIVITYCODE, 6, 3) ) AS DTS_RESULT 
+		                     ,DW.ATTRIBUTE4                                                 as DW_ATTRIBUTE4
+		                     ,DW.ATTRIBUTE5                                                 as DW_ATTRIBUTE5
+		                     ,DW.SUB_SABUN                                                  AS SUB_SABUN
+		                     ,(SELECT SAWON.NAME
+		                       FROM   CCC_SAWON SAWON
+		                       WHERE  SAWON.EMPLOYEE_NUM = DW.SUB_SABUN)                    AS SUB_NAME
+		                     ,(SELECT SUM(BOM_QTY)
+		                       FROM   STX_TBC_SSC_HEAD@STXPLM A ,
+		                              STX_TBC_ECO@STXPLM B
+		                       WHERE  A.ECO_NO     = B.ECO_NO
+		                       AND    B.ECO_STATE  = 'R'
+		                       AND    A.ECO_NO IS NOT NULL
+		                       AND    A.PROJECT_NO = DW.PROJECTNO
+		                       AND    A.DWG_NO     = SUBSTR(DW.ACTIVITYCODE, 1, 8) 
+		                       )                                                            AS SUM_BOM_QTY     
+		                    ,(SELECT
+		                             REQUEST_DATE AS DEPLOY_DATE
+		                        FROM PLM_HARDCOPY_DWG PHD
+		                       WHERE PHD.PROJECT_NO = DW.PROJECTNO
+		                         AND PHD.DWG_CODE   = SUBSTR(DW.ACTIVITYCODE, 1, 8)
+		                         AND ROWNUM = 1  )                                         AS DEPLOY_DATE
+		                    ,(SELECT TO_CHAR(A.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                             TO_CHAR(A.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                             TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                             TO_CHAR(A.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' || 
+		                             A.DWGCATEGORY                              || '@' ||
+		                             A.ATTRIBUTE4                               || '@' ||
+		                             A.ATTRIBUTE5       
+		                        FROM PLM_ACTIVITY A
+		                       WHERE A.WORKTYPE = 'OW' 
+		                         AND A.PROJECTNO = DW.PROJECTNO
+		                         AND A.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'OW'  
+		                     )   OW_LIST
+		                    ,(SELECT TO_CHAR(B.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                             TO_CHAR(B.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                             TO_CHAR(B.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                             TO_CHAR(B.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' ||  
+		                             B.DWGCATEGORY      || '@' ||
+		                             B.ATTRIBUTE4       || '@' ||
+		                             B.ATTRIBUTE5
+		                       FROM PLM_ACTIVITY B
+		                      WHERE B.WORKTYPE     = 'CL'
+		                        AND B.PROJECTNO    = DW.PROJECTNO
+		                        AND B.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'CL'   
+		                     )   CL_LIST
+		                    ,(SELECT TO_CHAR(C.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                             TO_CHAR(C.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                             TO_CHAR(C.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                             TO_CHAR(C.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' ||   
+		                             C.DWGCATEGORY      || '@' ||
+		                             C.ATTRIBUTE4       || '@' ||
+		                             C.ATTRIBUTE5
+		                        FROM PLM_ACTIVITY C
+		                       WHERE C.WORKTYPE = 'RF' 
+		                         AND C.PROJECTNO    = DW.PROJECTNO
+		                         AND C.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'RF'   
+		                     ) RF_LIST
+		                    ,(SELECT TO_CHAR(D.PLANSTARTDATE, 'YYYY-MM-DD')     || '@' ||
+		                             TO_CHAR(D.PLANFINISHDATE, 'YYYY-MM-DD')    || '@' ||
+		                             TO_CHAR(D.ACTUALSTARTDATE, 'YYYY-MM-DD')   || '@' ||
+		                             TO_CHAR(D.ACTUALFINISHDATE, 'YYYY-MM-DD')  || '@' ||    
+		                             D.DWGCATEGORY        || '@' ||
+		                             D.REFEVENT2          || '@' ||
+		                             D.ATTRIBUTE4         || '@' ||
+		                             D.ATTRIBUTE5         || '@' ||
+		                             D.OLD_REFEVENT       || '@' ||
+		                             TO_CHAR(D.REFDATE      ,'YYYY-MM-DD')  || '@' ||
+		                             TO_CHAR(D.OLD_REFDATE  ,'YYYY-MM-DD')      
+		                        FROM PLM_ACTIVITY D
+		                       WHERE D.WORKTYPE = 'WK' 
+		                         AND D.PROJECTNO    = DW.PROJECTNO
+		                         AND D.ACTIVITYCODE = SUBSTR(DW.ACTIVITYCODE, 1, 8) || 'WK'   
+		                      ) WK_LIST
+		                FROM PLM_ACTIVITY    DW
+		                    ,DCC_DWGDEPTCODE DEPT  
+		                    ,(SELECT STATE
+		                     FROM   PLM_SEARCHABLE_PROJECT
+		                     WHERE  CATEGORY  = 'PROGRESS'
+		                     AND    PROJECTNO = #{projectInput} 
+		                     ) PP
+		                WHERE  DW.PROJECTNO   = #{projectInput}
+		                AND    DW.WORKTYPE    = 'DW' 
+		                AND    DW.DWGDEPTCODE = DEPT.DWGDEPTCODE(+)
+		                <if test="departmentList != null and departmentList != '' and departmentList neq 'all' ">
+		    				AND    DW.DWGDEPTCODE = (
+		    											SELECT E.DWGDEPTCODE 
+		    											FROM   DCC_DEPTCODE E 
+		    											WHERE  E.DEPTCODE=#{departmentList}
+		    										)
+						</if>
+		                AND    ( CASE WHEN PP.STATE = 'ALL' THEN ' ' ELSE DW.DWGCATEGORY END) = ( CASE WHEN PP.STATE = 'ALL' THEN ' ' ELSE PP.STATE END)
+		          ) DW 
+		      ) DW
+		      WHERE 1=1
+				<if test="designerList != null and designerList != ''">
+					AND    DW.SABUN = #{designerList}
+				</if>
+				<if test="drawingTitle != null and drawingTitle != ''">
+		    		AND    DW.DWGTITLE LIKE '%'||#{drawingTitle}||'%'
+				</if>
+				<if test="dateCondition != null and dateCondition != ''">
+		    		<if test="dateSelected_from != null and dateSelected_from != ''">
+		        		AND    ${dateCondition} >= TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')
+		    		</if>
+		    		<if test="dateSelected_to != null and dateSelected_to != ''">
+		        		AND    ${dateCondition} &lt;= TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		    		</if>
+				</if>
+				<if test="drawingNo != null and drawingNo != ''">
+		    		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) like #{drawingNo}
+				</if>           
+		 ORDER BY DW.DEPTCODE, DW.ACTIVITYCODE
+	</select> -->
+		
+	<!-- 창용차장님 쿼리 튜닝 전 <select id="selectDpsProgressInputSearchList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT 
+			   DW.PROJECTNO,
+		       DW.SABUN,
+		       DEPT.DWGDEPTNM AS DEPTNAME,
+		       DEPT.DWGDEPTCODE AS DEPTCODE,
+		       SUBSTR(DW.ACTIVITYCODE, 1, 8) AS DWGCODE,
+		       DW.OUTSOURCINGYN,
+		       DW.OUTSOURCING1,
+		       DW.OUTSOURCING2,
+		       DW.DWGTITLE,
+		       TO_CHAR(DW.PLANSTARTDATE, 'YYYY-MM-DD') AS DW_PLAN_S,
+		       TO_CHAR(DW.PLANFINISHDATE, 'YYYY-MM-DD') AS DW_PLAN_F,
+		       TO_CHAR(DW.ACTUALSTARTDATE, 'YYYY-MM-DD') AS DW_ACT_S,
+		       TO_CHAR(DW.ACTUALFINISHDATE, 'YYYY-MM-DD') AS DW_ACT_F,
+		       TO_CHAR(OW.PLANSTARTDATE, 'YYYY-MM-DD') AS OW_PLAN_S,
+		       TO_CHAR(OW.PLANFINISHDATE, 'YYYY-MM-DD') AS OW_PLAN_F,
+		       TO_CHAR(OW.ACTUALSTARTDATE, 'YYYY-MM-DD') AS OW_ACT_S,
+		       TO_CHAR(OW.ACTUALFINISHDATE, 'YYYY-MM-DD') AS OW_ACT_F,
+		       TO_CHAR(CL.PLANSTARTDATE, 'YYYY-MM-DD') AS CL_PLAN_S,
+		       TO_CHAR(CL.PLANFINISHDATE, 'YYYY-MM-DD') AS CL_PLAN_F,
+		       TO_CHAR(CL.ACTUALSTARTDATE, 'YYYY-MM-DD') AS CL_ACT_S,
+		       TO_CHAR(CL.ACTUALFINISHDATE, 'YYYY-MM-DD') AS CL_ACT_F,
+		       TO_CHAR(RF.PLANSTARTDATE, 'YYYY-MM-DD') AS RF_PLAN_S,
+		       TO_CHAR(RF.ACTUALSTARTDATE, 'YYYY-MM-DD') AS RF_ACT_S,
+		       TO_CHAR(WK.PLANSTARTDATE, 'YYYY-MM-DD') AS WK_PLAN_S,
+		       TO_CHAR(WK.ACTUALSTARTDATE, 'YYYY-MM-DD') AS WK_ACT_S,
+		       DW.DWGZONE,
+		       DW.ACTUALSTDMH_OUT as OUT_STD,
+		       DW.ACTUALFOLLOWMH_OUT as OUT_FOLLOWUP,
+		       DW.ACTUALSTDMH as INTERNAL_STD,
+		       DW.ACTUALFOLLOWMH as INTERNAL_FOLLOWUP,
+		       DW.PLANSTDMH as PLAN_STD,
+		       DW.PLANFOLLOWMH as PLAN_FOLLOWUP,
+		       (NVL(DW.ACTUALSTDMH, 0) + NVL(DW.ACTUALSTDMH_OUT, 0)) AS STD_TOTAL,
+		       (NVL(DW.ACTUALFOLLOWMH, 0) + NVL(DW.ACTUALFOLLOWMH_OUT, 0)) AS FOLLOWUP_TOTAL,
+		        (FOR DALIAN) 대련중공 설계인원의 공정조회 기능 부여 (* 임시기능)
+		       CASE
+		         WHEN (SELECT SAWON.NAME
+		        FROM   CCC_SAWON SAWON
+		        WHERE  SAWON.EMPLOYEE_NUM = DW.SABUN) IS NULL THEN (SELECT A.SAWON_NAME
+		        FROM   Z_DALIAN_SAWON_TO111231 A
+		        WHERE  A.SAWON_ID = DW.SABUN)
+		         ELSE (SELECT SAWON.NAME
+		        FROM   CCC_SAWON SAWON
+		        WHERE  SAWON.EMPLOYEE_NUM = DW.SABUN)
+		       END AS NAME,
+		       DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(DW.PLANSTARTDATE)), 1, 'Y', 'N') AS DW_PLAN_S_O,
+		       DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(DW.PLANFINISHDATE)), 1, 'Y', 'N') AS DW_PLAN_F_O,
+		       DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(OW.PLANSTARTDATE)), 1, 'Y', 'N') AS OW_PLAN_S_O,
+		       DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(OW.PLANFINISHDATE)), 1, 'Y', 'N') AS OW_PLAN_F_O,
+		       DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(CL.PLANSTARTDATE)), 1, 'Y', 'N') AS CL_PLAN_S_O,
+		       DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(CL.PLANFINISHDATE)), 1, 'Y', 'N') AS CL_PLAN_F_O,
+		       DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(RF.PLANSTARTDATE)), 1, 'Y', 'N') AS RF_PLAN_S_O,
+		       DECODE(SIGN(TRUNC(SYSDATE) - TRUNC(WK.PLANSTARTDATE)), 1, 'Y', 'N') AS WK_PLAN_S_O,
+		       CASE
+		         WHEN (HC.DEPLOY_DATE IS NULL) THEN NULL
+		         ELSE (F_GET_HARDCOPY_MAX_REV(DW.PROJECTNO, SUBSTR(DW.ACTIVITYCODE, 1, 8), HC.DEPLOY_DATE))
+		       END AS MAX_REVISION,
+		       TO_CHAR(HC.DEPLOY_DATE, 'YYYY-MM-DD') AS DEPLOY_DATE,
+		       (SELECT A.DWG_REV AS DWG_REV
+		        FROM   STX_DWG_DPS_REV_SELECT_V@STXERP A
+		        WHERE  A.MASTER_PROJECT_NO = DW.PROJECTNO
+		        AND    A.DWG_NO_CONCAT = SUBSTR(DW.ACTIVITYCODE, 1, 5)
+		        AND    A.DWG_BLOCK = SUBSTR(DW.ACTIVITYCODE, 6, 3) ) AS DTS_RESULT,
+		  (SELECT ACTIVITYDESC
+		        FROM   APS_ACTIVITY_LIST_V
+		        WHERE  PROJECTNO = WK.PROJECTNO
+		        AND    ACTIVITYCODE = WK.REFEVENT2
+		        AND    ROWNUM = 1) AS NEW_ACTIVITY_DESC1,
+		       CASE
+		         WHEN WK.OLD_REFEVENT IS NOT NULL THEN (SELECT ACTIVITYDESC
+		        FROM   APS_ACTIVITY_LIST_V
+		        WHERE  PROJECTNO = WK.PROJECTNO
+		        AND    ACTIVITYCODE = WK.OLD_REFEVENT
+		        AND    ROWNUM = 1)
+		         ELSE (SELECT ACTIVITYDESC
+		        FROM   APS_ACTIVITY_LIST_V
+		        WHERE  PROJECTNO = WK.PROJECTNO
+		        AND    ACTIVITYCODE = WK.REFEVENT2
+		        AND    ROWNUM = 1)
+		       END AS OLD_ACTIVITY_DESC1,
+		       TO_CHAR(WK.REFDATE, 'YYYY-MM-DD') AS NEW_ACTIVITY_DESC2,
+		       CASE
+		         WHEN WK.OLD_REFEVENT IS NOT NULL THEN TO_CHAR(WK.OLD_REFDATE, 'YYYY-MM-DD')
+		         ELSE TO_CHAR(WK.REFDATE, 'YYYY-MM-DD')
+		       END AS OLD_ACTIVITY_DESC2,
+		       WK.REFDATE - NVL(WK.OLD_REFDATE, WK.REFDATE) AS DIFF_DATE,
+		       DW.ATTRIBUTE4 as DW_ATTRIBUTE4,
+		       DW.ATTRIBUTE5 as DW_ATTRIBUTE5,
+		       OW.ATTRIBUTE4 as OW_ATTRIBUTE4,
+		       OW.ATTRIBUTE5 as OW_ATTRIBUTE5,
+		       CL.ATTRIBUTE4 as CL_ATTRIBUTE4,
+		       CL.ATTRIBUTE5 as CL_ATTRIBUTE5,
+		       RF.ATTRIBUTE4 as RF_ATTRIBUTE4,
+		       RF.ATTRIBUTE5 as RF_ATTRIBUTE5,
+		       WK.ATTRIBUTE4 as WK_ATTRIBUTE4,
+		       WK.ATTRIBUTE5 as WK_ATTRIBUTE5,
+		       DW.SUB_SABUN,
+		       (SELECT SAWON.NAME
+		        FROM   CCC_SAWON SAWON
+		        WHERE  SAWON.EMPLOYEE_NUM = DW.SUB_SABUN) AS SUB_NAME,
+		       (SELECT SUM(BOM_QTY)
+		        FROM   STX_TBC_SSC_HEAD@STXPLM A ,
+		               STX_TBC_ECO@STXPLM B
+		        WHERE  A.ECO_NO = B.ECO_NO
+		        AND    B.ECO_STATE = 'R'
+		        AND    A.ECO_NO IS NOT NULL
+		        AND    A.PROJECT_NO = DW.PROJECTNO
+		        AND    A.DWG_NO = SUBSTR(DW.ACTIVITYCODE, 1, 8) ) AS SUM_BOM_QTY
+		FROM   PLM_ACTIVITY DW,
+		       DCC_DWGDEPTCODE DEPT,
+		       (SELECT A.PROJECTNO,
+		               A.ACTIVITYCODE,
+		               A.PLANSTARTDATE,
+		               A.PLANFINISHDATE,
+		               A.ACTUALSTARTDATE,
+		               A.ACTUALFINISHDATE,
+		               A.DWGCATEGORY,
+		               A.ATTRIBUTE4,
+		               A.ATTRIBUTE5
+		        FROM   PLM_ACTIVITY A
+		        WHERE  A.WORKTYPE = 'OW' ) OW,
+		       (SELECT B.PROJECTNO,
+		               B.ACTIVITYCODE,
+		               B.PLANSTARTDATE,
+		               B.PLANFINISHDATE,
+		               B.ACTUALSTARTDATE,
+		               B.ACTUALFINISHDATE,
+		               B.DWGCATEGORY,
+		               B.ATTRIBUTE4,
+		               B.ATTRIBUTE5
+		        FROM   PLM_ACTIVITY B
+		        WHERE  B.WORKTYPE = 'CL' ) CL,
+		       (SELECT C.PROJECTNO,
+		               C.ACTIVITYCODE,
+		               C.PLANSTARTDATE,
+		               C.PLANFINISHDATE,
+		               C.ACTUALSTARTDATE,
+		               C.ACTUALFINISHDATE,
+		               C.DWGCATEGORY,
+		               C.ATTRIBUTE4,
+		               C.ATTRIBUTE5
+		        FROM   PLM_ACTIVITY C
+		        WHERE  C.WORKTYPE = 'RF' ) RF,
+		       (SELECT D.PROJECTNO,
+		               D.ACTIVITYCODE,
+		               D.PLANSTARTDATE,
+		               D.PLANFINISHDATE,
+		               D.ACTUALSTARTDATE,
+		               D.ACTUALFINISHDATE,
+		               D.DWGCATEGORY,
+		               D.REFEVENT2,
+		               D.ATTRIBUTE4,
+		               D.ATTRIBUTE5 ,
+		               D.OLD_REFEVENT,
+		               D.REFDATE,
+		               D.OLD_REFDATE
+		        FROM   PLM_ACTIVITY D
+		        WHERE  D.WORKTYPE = 'WK' ) WK,
+		       (SELECT PROJECT_NO,
+		               DWG_CODE,
+		               MAX(REQUEST_DATE) AS DEPLOY_DATE
+		        FROM   PLM_HARDCOPY_DWG
+		        GROUP BY PROJECT_NO, DWG_CODE ) HC,
+		       (SELECT STATE
+		        FROM   PLM_SEARCHABLE_PROJECT
+		        WHERE  CATEGORY = 'PROGRESS'
+		        AND    PROJECTNO = #{projectInput} ) PP
+		WHERE  DW.PROJECTNO = #{projectInput}
+		AND    DW.PROJECTNO = OW.PROJECTNO(+)
+		AND    DW.PROJECTNO = CL.PROJECTNO(+)
+		AND    DW.PROJECTNO = RF.PROJECTNO(+)
+		AND    DW.PROJECTNO = WK.PROJECTNO(+)
+		AND    DW.DWGDEPTCODE = DEPT.DWGDEPTCODE(+)
+		AND    DW.WORKTYPE = 'DW'
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(OW.ACTIVITYCODE(+), 1, 8)
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(CL.ACTIVITYCODE(+), 1, 8)
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(RF.ACTIVITYCODE(+), 1, 8)
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(WK.ACTIVITYCODE(+), 1, 8)
+		
+		<if test="departmentList != null and departmentList != '' and departmentList neq 'all' ">
+		    AND    DW.DWGDEPTCODE = (SELECT E.DWGDEPTCODE FROM   DCC_DEPTCODE E WHERE  E.DEPTCODE=#{departmentList})
+		</if>
+		<if test="designerList != null and designerList != ''">
+		    AND    DW.SABUN = #{designerList}
+		</if>
+		
+		<if test="drawingTitle != null and drawingTitle != ''">
+		    AND    DW.DWGTITLE LIKE '%'||#{drawingTitle}||'%'
+		</if>
+		
+		<if test="dateCondition != null and dateCondition != ''">
+		    <if test="dateSelected_from != null and dateSelected_from != ''">
+		        AND    ${dateCondition} >= TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')
+		    </if>
+		    <if test="dateSelected_to != null and dateSelected_to != ''">
+		        AND    ${dateCondition} &lt;= TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		    </if>
+		</if>
+		
+		<if test="drawingNo != null and drawingNo != ''">
+		    AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) like #{drawingNo}
+		</if>
+		AND    (
+		                       CASE
+		                         WHEN PP.STATE = 'ALL' THEN ' '
+		                         ELSE DW.DWGCATEGORY
+		                       END) = (
+		                       CASE
+		                         WHEN PP.STATE = 'ALL' THEN ' '
+		                         ELSE PP.STATE
+		                       END)
+		AND    DW.PROJECTNO = HC.PROJECT_NO(+)
+		AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = HC.DWG_CODE(+)
+		ORDER BY DW.DWGDEPTCODE, DW.ACTIVITYCODE
+	</select> -->
+
+</mapper>

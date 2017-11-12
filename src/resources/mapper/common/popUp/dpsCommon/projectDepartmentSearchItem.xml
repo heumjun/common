@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="projectDepartmentSearchItem">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DEPT_CODE,
+		       DEPT_NAME,
+		       UP_DEPT_NAME,
+		       DWG_DEPTCODE,
+		       ORDERNO
+		FROM   (SELECT A.DEPT_CODE AS DEPT_CODE,
+		               A.DEPT_NAME AS DEPT_NAME,
+		               (SELECT B.DEPT_NAME
+		                FROM   STX_COM_INSA_DEPT@STXERP B
+		                WHERE  B.DEPT_CODE = A.PARENT_CODE) AS UP_DEPT_NAME,
+		               B.DWGDEPTCODE AS DWG_DEPTCODE
+		        FROM   STX_COM_INSA_DEPT@STXERP A,
+		               DCC_DEPTCODE B
+		        WHERE  DEPT_CODE IN (SELECT DISTINCT(DEPT_CODE)
+		                FROM   CCC_SAWON
+		                WHERE  INPUT_MAN_HOUR_ENABLED = 'Y'
+		                AND    TERMINATION_DATE IS NULL )
+		        AND    A.DEPT_CODE = B.DEPTCODE(+) ) A,
+		       DCC_DWGDEPTCODE B
+		WHERE  A.DWG_DEPTCODE = B.DWGDEPTCODE(+)
+		<if test="loginUserInfo != null and loginUserInfo != ''">
+			 AND DEPT_CODE IN ( 
+			 <foreach collection="loginUserInfo.dept_code" item="item" separator=",">
+				'${item.dept_code}'
+			</foreach>
+			)
+		</if>
+		ORDER BY B.ORDERNO, A.DEPT_CODE 
+  	</select>
+  	
+</mapper>

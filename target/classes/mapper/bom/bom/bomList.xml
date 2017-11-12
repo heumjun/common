@@ -1,0 +1,886 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="bomList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+SELECT T2.*
+      FROM (SELECT T1.*
+                 , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+                    FROM (
+                           SELECT  BOM_ALL_LIST.MOTHER_CODE    AS MOTHER_CODE
+              ,BOM_ALL_LIST.LEVEL_NO      AS LEVEL_NO
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 1 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_1
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 2 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_2
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 3 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_3
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 4 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_4
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 5 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_5
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 6 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_6
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 7 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_7
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 8 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_8
+              ,CASE WHEN BOM_ALL_LIST.LEVEL_NO = 9 THEN BOM_ALL_LIST.ITEM_CODE ELSE NULL END LEVEL_9
+              ,BOM_ALL_LIST.ITEM_CODE     AS ITEM_CODE
+              ,SDI.ITEM_DESC              AS ITEM_DESC
+              ,SDI.UOM                    AS ITEM_UOM_CODE 
+              ,BOM_ALL_LIST.ITEM_CATALOG  AS ITEM_CATALOG 
+              ,BOM_ALL_LIST.DWG_NO        AS DWG_NO
+              ,BOM_ALL_LIST.BOM_QTY       AS BOM_QTY
+              ,BOM_ALL_LIST.EMP_NO        AS EMP_NO
+              ,BOM_ALL_LIST.ECO_NO        AS ECO_NO
+              ,BOM_ALL_LIST.BOM1          AS BOM1  
+              ,BOM_ALL_LIST.BOM2          AS BOM2  
+              ,BOM_ALL_LIST.BOM3          AS BOM3  
+              ,BOM_ALL_LIST.BOM4          AS BOM4  
+              ,BOM_ALL_LIST.BOM5          AS BOM5  
+              ,BOM_ALL_LIST.BOM6          AS BOM6  
+              ,BOM_ALL_LIST.BOM7          AS BOM7  
+              ,BOM_ALL_LIST.BOM8          AS BOM8  
+              ,BOM_ALL_LIST.BOM9          AS BOM9  
+              ,BOM_ALL_LIST.BOM10         AS BOM10 
+              ,BOM_ALL_LIST.BOM11         AS BOM11 
+              ,BOM_ALL_LIST.BOM12         AS BOM12 
+              ,BOM_ALL_LIST.BOM13         AS BOM13 
+              ,BOM_ALL_LIST.BOM14         AS BOM14 
+              ,BOM_ALL_LIST.BOM15         AS BOM15 
+          FROM (
+                 SELECT LEVEL                  AS LEVEL_NO
+                       ,BOM_LIST.MOTHER_CODE   AS MOTHER_CODE
+                       ,BOM_LIST.ITEM_CODE     AS ITEM_CODE 
+                       ,BOM_LIST.ITEM_CATALOG  AS ITEM_CATALOG 
+                       ,BOM_LIST.DWG_NO        AS DWG_NO
+                       ,BOM_LIST.BOM_QTY       AS BOM_QTY
+                       ,BOM_LIST.EMP_NO        AS EMP_NO
+                       ,BOM_LIST.ECO_NO        AS ECO_NO
+                       ,BOM_LIST.BOM1          AS BOM1  
+                       ,BOM_LIST.BOM2          AS BOM2  
+                       ,BOM_LIST.BOM3          AS BOM3  
+                       ,BOM_LIST.BOM4          AS BOM4  
+                       ,BOM_LIST.BOM5          AS BOM5  
+                       ,BOM_LIST.BOM6          AS BOM6  
+                       ,BOM_LIST.BOM7          AS BOM7  
+                       ,BOM_LIST.BOM8          AS BOM8  
+                       ,BOM_LIST.BOM9          AS BOM9  
+                       ,BOM_LIST.BOM10         AS BOM10 
+                       ,BOM_LIST.BOM11         AS BOM11 
+                       ,BOM_LIST.BOM12         AS BOM12 
+                       ,BOM_LIST.BOM13         AS BOM13 
+                       ,BOM_LIST.BOM14         AS BOM14 
+                       ,BOM_LIST.BOM15         AS BOM15 
+                  FROM (
+                  
+                        SELECT *
+                        FROM   (
+                                  SELECT SDB.MOTHER_CODE   AS MOTHER_CODE 
+                                        ,SDB.ITEM_CODE     AS ITEM_CODE
+                                        ,SDB.ITEM_CATALOG  AS ITEM_CATALOG 
+                                        ,''                AS DWG_NO
+                                        ,SDB.QTY           AS BOM_QTY
+                                        ,SDB.MODIFY_BY     AS EMP_NO
+                                        ,SDB.ECO_NO        AS ECO_NO
+                                        ,SDB.BOM1          AS BOM1  
+                                        ,SDB.BOM2          AS BOM2  
+                                        ,SDB.BOM3          AS BOM3  
+                                        ,SDB.BOM4          AS BOM4  
+                                        ,SDB.BOM5          AS BOM5  
+                                        ,SDB.BOM6          AS BOM6  
+                                        ,SDB.BOM7          AS BOM7  
+                                        ,SDB.BOM8          AS BOM8  
+                                        ,SDB.BOM9          AS BOM9  
+                                        ,SDB.BOM10         AS BOM10 
+                                        ,SDB.BOM11         AS BOM11 
+                                        ,SDB.BOM12         AS BOM12 
+                                        ,SDB.BOM13         AS BOM13 
+                                        ,SDB.BOM14         AS BOM14 
+                                        ,SDB.BOM15         AS BOM15 
+                                    FROM STX_DIS_USC_BOM         SDB 
+                                   WHERE SDB.PROJECT_NO    = #{p_project_no}
+                                     AND NOT EXISTS
+                                        (SELECT 1
+                                           FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+                                          WHERE SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+                                            AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+                                          )      
+                                  UNION ALL
+                                  SELECT SDBW.MOTHER_CODE   AS MOTHER_CODE 
+                                        ,SDBW.ITEM_CODE     AS ITEM_CODE
+                                        ,SDBW.ITEM_CATALOG  AS ITEM_CATALOG 
+                                        ,''                 AS DWG_NO
+                                        ,SDBW.QTY           AS BOM_QTY
+                                        ,SDBW.MODIFY_BY     AS EMP_NO
+                                        ,SDBW.ECO_NO        AS ECO_NO
+                                        ,SDBW.BOM1          AS BOM1  
+                                        ,SDBW.BOM2          AS BOM2  
+                                        ,SDBW.BOM3          AS BOM3  
+                                        ,SDBW.BOM4          AS BOM4  
+                                        ,SDBW.BOM5          AS BOM5  
+                                        ,SDBW.BOM6          AS BOM6  
+                                        ,SDBW.BOM7          AS BOM7  
+                                        ,SDBW.BOM8          AS BOM8  
+                                        ,SDBW.BOM9          AS BOM9  
+                                        ,SDBW.BOM10         AS BOM10 
+                                        ,SDBW.BOM11         AS BOM11 
+                                        ,SDBW.BOM12         AS BOM12 
+                                        ,SDBW.BOM13         AS BOM13 
+                                        ,SDBW.BOM14         AS BOM14 
+                                        ,SDBW.BOM15         AS BOM15
+                                    FROM STX_DIS_USC_BOM_WORK    SDBW
+                                   WHERE SDBW.PROJECT_NO    = #{p_project_no}
+                               )
+                        WHERE  'Y' = #{p_admin_yn}
+                        UNION ALL
+                        SELECT *
+                        FROM   (
+                                  SELECT SDB.MOTHER_CODE   AS MOTHER_CODE 
+                                        ,SDB.ITEM_CODE     AS ITEM_CODE
+                                        ,SDB.ITEM_CATALOG  AS ITEM_CATALOG 
+                                        ,''                AS DWG_NO
+                                        ,SDB.QTY           AS BOM_QTY
+                                        ,SDB.MODIFY_BY     AS EMP_NO
+                                        ,SDB.ECO_NO        AS ECO_NO
+                                        ,SDB.BOM1          AS BOM1  
+                                        ,SDB.BOM2          AS BOM2  
+                                        ,SDB.BOM3          AS BOM3  
+                                        ,SDB.BOM4          AS BOM4  
+                                        ,SDB.BOM5          AS BOM5  
+                                        ,SDB.BOM6          AS BOM6  
+                                        ,SDB.BOM7          AS BOM7  
+                                        ,SDB.BOM8          AS BOM8  
+                                        ,SDB.BOM9          AS BOM9  
+                                        ,SDB.BOM10         AS BOM10 
+                                        ,SDB.BOM11         AS BOM11 
+                                        ,SDB.BOM12         AS BOM12 
+                                        ,SDB.BOM13         AS BOM13 
+                                        ,SDB.BOM14         AS BOM14 
+                                        ,SDB.BOM15         AS BOM15 
+                                    FROM STX_DIS_USC_BOM         SDB 
+                                   WHERE SDB.PROJECT_NO    = #{p_project_no}
+                                     AND NOT EXISTS
+                                        (SELECT 1
+                                           FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+                                          WHERE SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+                                            AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+                                          )
+                                     AND SDB.ITEM_CATALOG != 'V72'      
+                                  UNION ALL
+                                  SELECT SDBW.MOTHER_CODE   AS MOTHER_CODE 
+                                        ,SDBW.ITEM_CODE     AS ITEM_CODE
+                                        ,SDBW.ITEM_CATALOG  AS ITEM_CATALOG 
+                                        ,''                 AS DWG_NO
+                                        ,SDBW.QTY           AS BOM_QTY
+                                        ,SDBW.MODIFY_BY     AS EMP_NO
+                                        ,SDBW.ECO_NO        AS ECO_NO
+                                        ,SDBW.BOM1          AS BOM1  
+                                        ,SDBW.BOM2          AS BOM2  
+                                        ,SDBW.BOM3          AS BOM3  
+                                        ,SDBW.BOM4          AS BOM4  
+                                        ,SDBW.BOM5          AS BOM5  
+                                        ,SDBW.BOM6          AS BOM6  
+                                        ,SDBW.BOM7          AS BOM7  
+                                        ,SDBW.BOM8          AS BOM8  
+                                        ,SDBW.BOM9          AS BOM9  
+                                        ,SDBW.BOM10         AS BOM10 
+                                        ,SDBW.BOM11         AS BOM11 
+                                        ,SDBW.BOM12         AS BOM12 
+                                        ,SDBW.BOM13         AS BOM13 
+                                        ,SDBW.BOM14         AS BOM14 
+                                        ,SDBW.BOM15         AS BOM15
+                                    FROM STX_DIS_USC_BOM_WORK    SDBW
+                                   WHERE SDBW.PROJECT_NO    = #{p_project_no}
+                                     AND SDBW.ITEM_CATALOG != 'V72'
+                                    UNION ALL
+                                  SELECT DUB.ITEM_CODE     AS MOTHER_CODE
+                                      ,V.ITEM_CODE       AS ITEM_CODE
+                                      ,V.ITEM_CATALOG    AS ITEM_CATALOG
+                                      ,''                AS DWG_NO
+                                      ,V.QTY             AS BOM_QTY
+                                      ,V.EMP_NO          AS EMP_NO
+                                      ,V.ECO_NO          AS ECO_NO
+                                      ,V.BOM1            AS BOM1  
+                                      ,V.BOM2            AS BOM2  
+                                      ,V.BOM3            AS BOM3  
+                                      ,V.BOM4            AS BOM4  
+                                      ,V.BOM5            AS BOM5  
+                                      ,V.BOM6            AS BOM6  
+                                      ,V.BOM7            AS BOM7  
+                                      ,V.BOM8            AS BOM8  
+                                      ,V.BOM9            AS BOM9  
+                                      ,V.BOM10           AS BOM10 
+                                      ,V.BOM11           AS BOM11 
+                                      ,V.BOM12           AS BOM12 
+                                      ,V.BOM13           AS BOM13 
+                                      ,V.BOM14           AS BOM14 
+                                      ,V.BOM15           AS BOM15 
+                                  FROM   STX_DIS_USC_BOM DUB
+                                      ,(
+                                          SELECT DUB1.ITEM_CODE
+                                                ,DUB1.PROJECT_NO
+                                                ,DUB1.UPPER_BLOCK AS BLOCK_NO
+                                                ,DUB1.ITEM_CATALOG
+                                                ,DUB1.QTY
+                                                ,DUB1.MODIFY_BY AS EMP_NO
+                                                ,DUB1.ECO_NO    AS ECO_NO
+                                                ,DUB1.BOM1          AS BOM1  
+                                                ,DUB1.BOM2          AS BOM2  
+                                                ,DUB1.BOM3          AS BOM3  
+                                                ,DUB1.BOM4          AS BOM4  
+                                                ,DUB1.BOM5          AS BOM5  
+                                                ,DUB1.BOM6          AS BOM6  
+                                                ,DUB1.BOM7          AS BOM7  
+                                                ,DUB1.BOM8          AS BOM8  
+                                                ,DUB1.BOM9          AS BOM9  
+                                                ,DUB1.BOM10         AS BOM10 
+                                                ,DUB1.BOM11         AS BOM11 
+                                                ,DUB1.BOM12         AS BOM12 
+                                                ,DUB1.BOM13         AS BOM13 
+                                                ,DUB1.BOM14         AS BOM14 
+                                                ,DUB1.BOM15         AS BOM15
+                                          FROM   STX_DIS_USC_BOM DUB1
+                                          WHERE  DUB1.PROJECT_NO = #{p_project_no}
+                                          AND    DUB1.ITEM_CATALOG = 'V72'
+                                          AND NOT EXISTS
+                                                (SELECT 1
+                                                   FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+                                                  WHERE DUB1.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+                                                    AND DUB1.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+                                                  )
+                                          UNION ALL
+                                          SELECT DUB1.ITEM_CODE
+                                                ,DUB1.PROJECT_NO
+                                                ,DUB1.UPPER_BLOCK AS BLOCK_NO
+                                                ,DUB1.ITEM_CATALOG
+                                                ,DUB1.QTY
+                                                ,DUB1.MODIFY_BY AS EMP_NO
+                                                ,DUB1.ECO_NO    AS ECO_NO
+                                                ,DUB1.BOM1          AS BOM1  
+                                                ,DUB1.BOM2          AS BOM2  
+                                                ,DUB1.BOM3          AS BOM3  
+                                                ,DUB1.BOM4          AS BOM4  
+                                                ,DUB1.BOM5          AS BOM5  
+                                                ,DUB1.BOM6          AS BOM6  
+                                                ,DUB1.BOM7          AS BOM7  
+                                                ,DUB1.BOM8          AS BOM8  
+                                                ,DUB1.BOM9          AS BOM9  
+                                                ,DUB1.BOM10         AS BOM10 
+                                                ,DUB1.BOM11         AS BOM11 
+                                                ,DUB1.BOM12         AS BOM12 
+                                                ,DUB1.BOM13         AS BOM13 
+                                                ,DUB1.BOM14         AS BOM14 
+                                                ,DUB1.BOM15         AS BOM15
+                                         FROM   STX_DIS_USC_BOM_WORK DUB1
+                                          WHERE  DUB1.PROJECT_NO = #{p_project_no}
+                                          AND    DUB1.ITEM_CATALOG = 'V72'
+                                       ) V
+                                  WHERE  DUB.PROJECT_NO = V.PROJECT_NO
+                                  AND    DUB.BLOCK_NO = V.BLOCK_NO
+                                  AND    DUB.MOTHER_CATALOG = 'S00'
+                                  AND    DUB.ITEM_CATALOG IN ('OP0','OD0','OQ0')
+                               )
+                        WHERE  'N' = #{p_admin_yn} 
+                          UNION ALL
+                          SELECT SDP.JOB_CD        AS MOTHER_CODE 
+                                ,SDP.MOTHER_CODE   AS ITEM_CODE
+                                ,SDP.ITEM_CATALOG  AS ITEM_CATALOG 
+                                ,SDP.DWG_NO        AS DWG_NO
+                                ,1                 AS BOM_QTY
+                                ,SDP.CREATE_BY     AS EMP_NO
+                                ,SDP.ECO_NO        AS ECO_NO
+                                ,SDP.BLOCK_NO      AS BOM1  
+                                ,SDP.STR_FLAG      AS BOM2  
+                                ,SDP.STAGE_NO      AS BOM3  
+                                ,NULL              AS BOM4  
+                                ,NULL              AS BOM5  
+                                ,NULL              AS BOM6  
+                                ,NULL              AS BOM7  
+                                ,NULL              AS BOM8  
+                                ,NULL              AS BOM9  
+                                ,NULL              AS BOM10 
+                                ,NULL              AS BOM11 
+                                ,NULL              AS BOM12 
+                                ,NULL              AS BOM13 
+                                ,NULL              AS BOM14 
+                                ,NULL              AS BOM15
+                          FROM STX_DIS_PENDING          SDP 
+                         WHERE SDP.PROJECT_NO   = #{p_project_no} 
+                           AND NOT EXISTS
+                               (SELECT 1
+                                  FROM STX_DIS_PENDING_WORK SDPW
+                                 WHERE SDP.PROJECT_NO = SDPW.PROJECT_NO
+                                   AND SDP.JOB_CD     = SDPW.JOB_CD
+                                   AND SDP.MOTHER_CODE= SDPW.MOTHER_CODE
+                                )
+                        UNION ALL
+                          SELECT SDP.JOB_CD        AS MOTHER_CODE 
+                                ,SDP.MOTHER_CODE   AS ITEM_CODE
+                                ,SDP.ITEM_CATALOG  AS ITEM_CATALOG 
+                                ,SDP.DWG_NO        AS DWG_NO
+                                ,1                 AS BOM_QTY
+                                ,SDP.CREATE_BY     AS EMP_NO
+                                ,SDP.ECO_NO        AS ECO_NO
+                                ,SDP.BLOCK_NO      AS BOM1  
+                                ,SDP.STR_FLAG      AS BOM2  
+                                ,SDP.STAGE_NO      AS BOM3  
+                                ,NULL              AS BOM4  
+                                ,NULL              AS BOM5  
+                                ,NULL              AS BOM6  
+                                ,NULL              AS BOM7  
+                                ,NULL              AS BOM8  
+                                ,NULL              AS BOM9  
+                                ,NULL              AS BOM10 
+                                ,NULL              AS BOM11 
+                                ,NULL              AS BOM12 
+                                ,NULL              AS BOM13 
+                                ,NULL              AS BOM14 
+                                ,NULL              AS BOM15
+                          FROM STX_DIS_PENDING_WORK     SDP 
+                         WHERE SDP.PROJECT_NO   = #{p_project_no} 
+                        UNION ALL
+                        SELECT A.MOTHER_CODE            AS MOTHER_CODE 
+                              ,A.ITEM_CODE              AS ITEM_CODE
+                              ,A.ITEM_CATALOG           AS ITEM_CATALOG
+                              ,A.DWG_NO                 AS DWG_NO
+                              ,A.BOM_QTY                AS BOM_QTY
+                              ,A.CREATE_BY              AS EMP_NO
+                              ,A.ECO_NO                 AS ECO_NO
+                              ,A.BOM1                   AS BOM1
+                              ,A.BOM2                   AS BOM2
+                              ,A.BOM3                   AS BOM3
+                              ,A.BOM4                   AS BOM4
+                              ,A.BOM5                   AS BOM5
+                              ,A.BOM6                   AS BOM6
+                              ,A.BOM7                   AS BOM7
+                              ,A.BOM8                   AS BOM8
+                              ,A.BOM9                   AS BOM9
+                              ,A.BOM10                  AS BOM10
+                              ,A.BOM11                  AS BOM11
+                              ,A.BOM12                  AS BOM12
+                              ,A.BOM13                  AS BOM13
+                              ,A.BOM14                  AS BOM14
+                              ,A.BOM15                  AS BOM15
+                          FROM STX_DIS_SSC_HEAD A 
+                         WHERE A.PROJECT_NO    = #{p_project_no}
+                           AND NOT EXISTS
+                               (SELECT 1
+                                  FROM STX_DIS_SSC_HEAD_WORK B
+                                 WHERE A.SSC_SUB_ID = B.SSC_SUB_ID
+                               )
+                        UNION ALL
+                        SELECT A.MOTHER_CODE            AS MOTHER_CODE 
+                              ,A.ITEM_CODE              AS ITEM_CODE
+                              ,A.ITEM_CATALOG           AS ITEM_CATALOG
+                              ,A.DWG_NO                 AS DWG_NO
+                              ,A.BOM_QTY                AS BOM_QTY
+                              ,A.MODIFY_BY              AS EMP_NO
+                              ,A.ECO_NO                 AS ECO_NO
+                              ,A.BOM1                   AS BOM1
+                              ,A.BOM2                   AS BOM2
+                              ,A.BOM3                   AS BOM3
+                              ,A.BOM4                   AS BOM4
+                              ,A.BOM5                   AS BOM5
+                              ,A.BOM6                   AS BOM6
+                              ,A.BOM7                   AS BOM7
+                              ,A.BOM8                   AS BOM8
+                              ,A.BOM9                   AS BOM9
+                              ,A.BOM10                  AS BOM10
+                              ,A.BOM11                  AS BOM11
+                              ,A.BOM12                  AS BOM12
+                              ,A.BOM13                  AS BOM13
+                              ,A.BOM14                  AS BOM14
+                              ,A.BOM15                  AS BOM15
+                          FROM STX_DIS_SSC_HEAD_WORK A 
+                         WHERE A.PROJECT_NO    = #{p_project_no} 
+                        UNION ALL
+                        SELECT A.MOTHER_CODE            AS MOTHER_CODE 
+                              ,A.ITEM_CODE              AS ITEM_CODE
+                              ,A.ITEM_CATALOG           AS ITEM_CATALOG
+                              ,''                       AS DWG_NO
+                              ,A.BOM_QTY                AS BOM_QTY
+                              ,A.MODIFY_BY              AS EMP_NO
+                              ,A.ECO_NO                 AS ECO_NO
+                              ,A.BOM1                   AS BOM1
+                              ,A.BOM2                   AS BOM2
+                              ,A.BOM3                   AS BOM3
+                              ,A.BOM4                   AS BOM4
+                              ,A.BOM5                   AS BOM5
+                              ,A.BOM6                   AS BOM6
+                              ,A.BOM7                   AS BOM7
+                              ,A.BOM8                   AS BOM8
+                              ,A.BOM9                   AS BOM9
+                              ,A.BOM10                  AS BOM10
+                              ,A.BOM11                  AS BOM11
+                              ,A.BOM12                  AS BOM12
+                              ,A.BOM13                  AS BOM13
+                              ,A.BOM14                  AS BOM14
+                              ,A.BOM15                  AS BOM15
+                          FROM STX_DIS_RAWLEVEL A 
+                         WHERE A.PROJECT_NO    = #{p_project_no}
+                           AND NOT EXISTS
+                               (SELECT 1
+                                  FROM STX_DIS_RAWLEVEL_WORK B
+                                 WHERE A.SSC_SUB_ID = B.SSC_SUB_ID
+                               )
+                        UNION ALL
+                        SELECT A.MOTHER_CODE            AS MOTHER_CODE 
+                              ,A.ITEM_CODE              AS ITEM_CODE
+                              ,A.ITEM_CATALOG           AS ITEM_CATALOG
+                              ,''                       AS DWG_NO
+                              ,A.BOM_QTY                AS BOM_QTY
+                              ,A.MODIFY_BY              AS EMP_NO
+                              ,A.ECO_NO                 AS ECO_NO
+                              ,A.BOM1                   AS BOM1
+                              ,A.BOM2                   AS BOM2
+                              ,A.BOM3                   AS BOM3
+                              ,A.BOM4                   AS BOM4
+                              ,A.BOM5                   AS BOM5
+                              ,A.BOM6                   AS BOM6
+                              ,A.BOM7                   AS BOM7
+                              ,A.BOM8                   AS BOM8
+                              ,A.BOM9                   AS BOM9
+                              ,A.BOM10                  AS BOM10
+                              ,A.BOM11                  AS BOM11
+                              ,A.BOM12                  AS BOM12
+                              ,A.BOM13                  AS BOM13
+                              ,A.BOM14                  AS BOM14
+                              ,A.BOM15                  AS BOM15
+                          FROM STX_DIS_RAWLEVEL_WORK A 
+                         WHERE A.PROJECT_NO    = #{p_project_no} 
+                       ) BOM_LIST
+                       <if test='p_item_code != ""'>
+                        <!-- START WITH  BOM_LIST.ITEM_CODE = #{p_item_code} -->
+                        START WITH  BOM_LIST.MOTHER_CODE LIKE '%' || REPLACE(#{p_item_code}, '*', '%') || '%'
+                        </if>
+                        <if test='p_item_code == ""'>
+                         START WITH  BOM_LIST.MOTHER_CODE = #{p_project_no}
+                        </if>
+                        CONNECT BY PRIOR  BOM_LIST.ITEM_CODE = BOM_LIST.MOTHER_CODE
+                     )                     BOM_ALL_LIST
+                     ,STX_DIS_ITEM         SDI
+             WHERE  BOM_ALL_LIST.ITEM_CODE = SDI.ITEM_CODE
+             <if test='p_level != ""'>
+             AND BOM_ALL_LIST.LEVEL_NO <![CDATA[<]]>= #{p_level}
+             </if>
+             ) T1 
+       ) T2
+      WHERE PAGE = #{curPageNo}
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT  COUNT(*) AS CNT 
+          FROM (
+                 SELECT LEVEL                  AS LEVEL_NO
+                       ,BOM_LIST.MOTHER_CODE   AS MOTHER_CODE
+                       ,BOM_LIST.ITEM_CODE     AS ITEM_CODE 
+                       ,BOM_LIST.ITEM_CATALOG  AS ITEM_CATALOG 
+                       ,BOM_LIST.DWG_NO        AS DWG_NO
+                       ,BOM_LIST.BOM_QTY       AS BOM_QTY
+                       ,BOM_LIST.EMP_NO        AS EMP_NO
+                       ,BOM_LIST.ECO_NO        AS ECO_NO
+                       ,BOM_LIST.BOM1          AS BOM1  
+                       ,BOM_LIST.BOM2          AS BOM2  
+                       ,BOM_LIST.BOM3          AS BOM3  
+                       ,BOM_LIST.BOM4          AS BOM4  
+                       ,BOM_LIST.BOM5          AS BOM5  
+                       ,BOM_LIST.BOM6          AS BOM6  
+                       ,BOM_LIST.BOM7          AS BOM7  
+                       ,BOM_LIST.BOM8          AS BOM8  
+                       ,BOM_LIST.BOM9          AS BOM9  
+                       ,BOM_LIST.BOM10         AS BOM10 
+                       ,BOM_LIST.BOM11         AS BOM11 
+                       ,BOM_LIST.BOM12         AS BOM12 
+                       ,BOM_LIST.BOM13         AS BOM13 
+                       ,BOM_LIST.BOM14         AS BOM14 
+                       ,BOM_LIST.BOM15         AS BOM15 
+                  FROM (
+                  
+                        SELECT *
+                        FROM   (
+                                  SELECT SDB.MOTHER_CODE   AS MOTHER_CODE 
+                                        ,SDB.ITEM_CODE     AS ITEM_CODE
+                                        ,SDB.ITEM_CATALOG  AS ITEM_CATALOG 
+                                        ,''                AS DWG_NO
+                                        ,SDB.QTY           AS BOM_QTY
+                                        ,SDB.MODIFY_BY     AS EMP_NO
+                                        ,SDB.ECO_NO        AS ECO_NO
+                                        ,SDB.BOM1          AS BOM1  
+                                        ,SDB.BOM2          AS BOM2  
+                                        ,SDB.BOM3          AS BOM3  
+                                        ,SDB.BOM4          AS BOM4  
+                                        ,SDB.BOM5          AS BOM5  
+                                        ,SDB.BOM6          AS BOM6  
+                                        ,SDB.BOM7          AS BOM7  
+                                        ,SDB.BOM8          AS BOM8  
+                                        ,SDB.BOM9          AS BOM9  
+                                        ,SDB.BOM10         AS BOM10 
+                                        ,SDB.BOM11         AS BOM11 
+                                        ,SDB.BOM12         AS BOM12 
+                                        ,SDB.BOM13         AS BOM13 
+                                        ,SDB.BOM14         AS BOM14 
+                                        ,SDB.BOM15         AS BOM15 
+                                    FROM STX_DIS_USC_BOM         SDB 
+                                   WHERE SDB.PROJECT_NO    = #{p_project_no}
+                                     AND NOT EXISTS
+                                        (SELECT 1
+                                           FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+                                          WHERE SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+                                            AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+                                          )      
+                                  UNION ALL
+                                  SELECT SDBW.MOTHER_CODE   AS MOTHER_CODE 
+                                        ,SDBW.ITEM_CODE     AS ITEM_CODE
+                                        ,SDBW.ITEM_CATALOG  AS ITEM_CATALOG 
+                                        ,''                 AS DWG_NO
+                                        ,SDBW.QTY           AS BOM_QTY
+                                        ,SDBW.MODIFY_BY     AS EMP_NO
+                                        ,SDBW.ECO_NO        AS ECO_NO
+                                        ,SDBW.BOM1          AS BOM1  
+                                        ,SDBW.BOM2          AS BOM2  
+                                        ,SDBW.BOM3          AS BOM3  
+                                        ,SDBW.BOM4          AS BOM4  
+                                        ,SDBW.BOM5          AS BOM5  
+                                        ,SDBW.BOM6          AS BOM6  
+                                        ,SDBW.BOM7          AS BOM7  
+                                        ,SDBW.BOM8          AS BOM8  
+                                        ,SDBW.BOM9          AS BOM9  
+                                        ,SDBW.BOM10         AS BOM10 
+                                        ,SDBW.BOM11         AS BOM11 
+                                        ,SDBW.BOM12         AS BOM12 
+                                        ,SDBW.BOM13         AS BOM13 
+                                        ,SDBW.BOM14         AS BOM14 
+                                        ,SDBW.BOM15         AS BOM15
+                                    FROM STX_DIS_USC_BOM_WORK    SDBW
+                                   WHERE SDBW.PROJECT_NO    = #{p_project_no}
+                               )
+                        WHERE  'Y' = #{p_admin_yn}
+                        UNION ALL
+                        SELECT *
+                        FROM   (
+                                  SELECT SDB.MOTHER_CODE   AS MOTHER_CODE 
+                                        ,SDB.ITEM_CODE     AS ITEM_CODE
+                                        ,SDB.ITEM_CATALOG  AS ITEM_CATALOG 
+                                        ,''                AS DWG_NO
+                                        ,SDB.QTY           AS BOM_QTY
+                                        ,SDB.MODIFY_BY     AS EMP_NO
+                                        ,SDB.ECO_NO        AS ECO_NO
+                                        ,SDB.BOM1          AS BOM1  
+                                        ,SDB.BOM2          AS BOM2  
+                                        ,SDB.BOM3          AS BOM3  
+                                        ,SDB.BOM4          AS BOM4  
+                                        ,SDB.BOM5          AS BOM5  
+                                        ,SDB.BOM6          AS BOM6  
+                                        ,SDB.BOM7          AS BOM7  
+                                        ,SDB.BOM8          AS BOM8  
+                                        ,SDB.BOM9          AS BOM9  
+                                        ,SDB.BOM10         AS BOM10 
+                                        ,SDB.BOM11         AS BOM11 
+                                        ,SDB.BOM12         AS BOM12 
+                                        ,SDB.BOM13         AS BOM13 
+                                        ,SDB.BOM14         AS BOM14 
+                                        ,SDB.BOM15         AS BOM15 
+                                    FROM STX_DIS_USC_BOM         SDB 
+                                   WHERE SDB.PROJECT_NO    = #{p_project_no}
+                                     AND NOT EXISTS
+                                        (SELECT 1
+                                           FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+                                          WHERE SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+                                            AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+                                          )
+                                     AND SDB.ITEM_CATALOG != 'V72'      
+                                  UNION ALL
+                                  SELECT SDBW.MOTHER_CODE   AS MOTHER_CODE 
+                                        ,SDBW.ITEM_CODE     AS ITEM_CODE
+                                        ,SDBW.ITEM_CATALOG  AS ITEM_CATALOG 
+                                        ,''                 AS DWG_NO
+                                        ,SDBW.QTY           AS BOM_QTY
+                                        ,SDBW.MODIFY_BY     AS EMP_NO
+                                        ,SDBW.ECO_NO        AS ECO_NO
+                                        ,SDBW.BOM1          AS BOM1  
+                                        ,SDBW.BOM2          AS BOM2  
+                                        ,SDBW.BOM3          AS BOM3  
+                                        ,SDBW.BOM4          AS BOM4  
+                                        ,SDBW.BOM5          AS BOM5  
+                                        ,SDBW.BOM6          AS BOM6  
+                                        ,SDBW.BOM7          AS BOM7  
+                                        ,SDBW.BOM8          AS BOM8  
+                                        ,SDBW.BOM9          AS BOM9  
+                                        ,SDBW.BOM10         AS BOM10 
+                                        ,SDBW.BOM11         AS BOM11 
+                                        ,SDBW.BOM12         AS BOM12 
+                                        ,SDBW.BOM13         AS BOM13 
+                                        ,SDBW.BOM14         AS BOM14 
+                                        ,SDBW.BOM15         AS BOM15
+                                    FROM STX_DIS_USC_BOM_WORK    SDBW
+                                   WHERE SDBW.PROJECT_NO    = #{p_project_no}
+                                     AND SDBW.ITEM_CATALOG != 'V72'
+                                    UNION ALL
+                                  SELECT DUB.ITEM_CODE     AS MOTHER_CODE
+                                      ,V.ITEM_CODE       AS ITEM_CODE
+                                      ,V.ITEM_CATALOG    AS ITEM_CATALOG
+                                      ,''                AS DWG_NO
+                                      ,V.QTY             AS BOM_QTY
+                                      ,V.EMP_NO          AS EMP_NO
+                                      ,V.ECO_NO          AS ECO_NO
+                                      ,V.BOM1            AS BOM1  
+                                      ,V.BOM2            AS BOM2  
+                                      ,V.BOM3            AS BOM3  
+                                      ,V.BOM4            AS BOM4  
+                                      ,V.BOM5            AS BOM5  
+                                      ,V.BOM6            AS BOM6  
+                                      ,V.BOM7            AS BOM7  
+                                      ,V.BOM8            AS BOM8  
+                                      ,V.BOM9            AS BOM9  
+                                      ,V.BOM10           AS BOM10 
+                                      ,V.BOM11           AS BOM11 
+                                      ,V.BOM12           AS BOM12 
+                                      ,V.BOM13           AS BOM13 
+                                      ,V.BOM14           AS BOM14 
+                                      ,V.BOM15           AS BOM15 
+                                  FROM   STX_DIS_USC_BOM DUB
+                                      ,(
+                                          SELECT DUB1.ITEM_CODE
+                                                ,DUB1.PROJECT_NO
+                                                ,DUB1.UPPER_BLOCK AS BLOCK_NO
+                                                ,DUB1.ITEM_CATALOG
+                                                ,DUB1.QTY
+                                                ,DUB1.MODIFY_BY AS EMP_NO
+                                                ,DUB1.ECO_NO    AS ECO_NO
+                                                ,DUB1.BOM1          AS BOM1  
+                                                ,DUB1.BOM2          AS BOM2  
+                                                ,DUB1.BOM3          AS BOM3  
+                                                ,DUB1.BOM4          AS BOM4  
+                                                ,DUB1.BOM5          AS BOM5  
+                                                ,DUB1.BOM6          AS BOM6  
+                                                ,DUB1.BOM7          AS BOM7  
+                                                ,DUB1.BOM8          AS BOM8  
+                                                ,DUB1.BOM9          AS BOM9  
+                                                ,DUB1.BOM10         AS BOM10 
+                                                ,DUB1.BOM11         AS BOM11 
+                                                ,DUB1.BOM12         AS BOM12 
+                                                ,DUB1.BOM13         AS BOM13 
+                                                ,DUB1.BOM14         AS BOM14 
+                                                ,DUB1.BOM15         AS BOM15
+                                          FROM   STX_DIS_USC_BOM DUB1
+                                          WHERE  DUB1.PROJECT_NO = #{p_project_no}
+                                          AND    DUB1.ITEM_CATALOG = 'V72'
+                                          AND NOT EXISTS
+                                                (SELECT 1
+                                                   FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+                                                  WHERE DUB1.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+                                                    AND DUB1.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+                                                  )
+                                          UNION ALL
+                                          SELECT DUB1.ITEM_CODE
+                                                ,DUB1.PROJECT_NO
+                                                ,DUB1.UPPER_BLOCK AS BLOCK_NO
+                                                ,DUB1.ITEM_CATALOG
+                                                ,DUB1.QTY
+                                                ,DUB1.MODIFY_BY AS EMP_NO
+                                                ,DUB1.ECO_NO    AS ECO_NO
+                                                ,DUB1.BOM1          AS BOM1  
+                                                ,DUB1.BOM2          AS BOM2  
+                                                ,DUB1.BOM3          AS BOM3  
+                                                ,DUB1.BOM4          AS BOM4  
+                                                ,DUB1.BOM5          AS BOM5  
+                                                ,DUB1.BOM6          AS BOM6  
+                                                ,DUB1.BOM7          AS BOM7  
+                                                ,DUB1.BOM8          AS BOM8  
+                                                ,DUB1.BOM9          AS BOM9  
+                                                ,DUB1.BOM10         AS BOM10 
+                                                ,DUB1.BOM11         AS BOM11 
+                                                ,DUB1.BOM12         AS BOM12 
+                                                ,DUB1.BOM13         AS BOM13 
+                                                ,DUB1.BOM14         AS BOM14 
+                                                ,DUB1.BOM15         AS BOM15
+                                         FROM   STX_DIS_USC_BOM_WORK DUB1
+                                          WHERE  DUB1.PROJECT_NO = #{p_project_no}
+                                          AND    DUB1.ITEM_CATALOG = 'V72'
+                                       ) V
+                                  WHERE  DUB.PROJECT_NO = V.PROJECT_NO
+                                  AND    DUB.BLOCK_NO = V.BLOCK_NO
+                                  AND    DUB.MOTHER_CATALOG = 'S00'
+                                  AND    DUB.ITEM_CATALOG IN ('OP0','OD0','OQ0')
+                               )
+                        WHERE  'N' = #{p_admin_yn} 
+                          UNION ALL
+                          SELECT SDP.JOB_CD        AS MOTHER_CODE 
+                                ,SDP.MOTHER_CODE   AS ITEM_CODE
+                                ,SDP.ITEM_CATALOG  AS ITEM_CATALOG 
+                                ,SDP.DWG_NO        AS DWG_NO
+                                ,1                 AS BOM_QTY
+                                ,SDP.CREATE_BY     AS EMP_NO
+                                ,SDP.ECO_NO        AS ECO_NO
+                                ,SDP.BLOCK_NO      AS BOM1  
+                                ,SDP.STR_FLAG      AS BOM2  
+                                ,SDP.STAGE_NO      AS BOM3  
+                                ,NULL              AS BOM4  
+                                ,NULL              AS BOM5  
+                                ,NULL              AS BOM6  
+                                ,NULL              AS BOM7  
+                                ,NULL              AS BOM8  
+                                ,NULL              AS BOM9  
+                                ,NULL              AS BOM10 
+                                ,NULL              AS BOM11 
+                                ,NULL              AS BOM12 
+                                ,NULL              AS BOM13 
+                                ,NULL              AS BOM14 
+                                ,NULL              AS BOM15
+                          FROM STX_DIS_PENDING          SDP 
+                         WHERE SDP.PROJECT_NO   = #{p_project_no} 
+                           AND NOT EXISTS
+                               (SELECT 1
+                                  FROM STX_DIS_PENDING_WORK SDPW
+                                 WHERE SDP.PROJECT_NO = SDPW.PROJECT_NO
+                                   AND SDP.JOB_CD     = SDPW.JOB_CD
+                                   AND SDP.MOTHER_CODE= SDPW.MOTHER_CODE
+                                )
+                        UNION ALL
+                          SELECT SDP.JOB_CD        AS MOTHER_CODE 
+                                ,SDP.MOTHER_CODE   AS ITEM_CODE
+                                ,SDP.ITEM_CATALOG  AS ITEM_CATALOG 
+                                ,SDP.DWG_NO        AS DWG_NO
+                                ,1                 AS BOM_QTY
+                                ,SDP.CREATE_BY     AS EMP_NO
+                                ,SDP.ECO_NO        AS ECO_NO
+                                ,SDP.BLOCK_NO      AS BOM1  
+                                ,SDP.STR_FLAG      AS BOM2  
+                                ,SDP.STAGE_NO      AS BOM3  
+                                ,NULL              AS BOM4  
+                                ,NULL              AS BOM5  
+                                ,NULL              AS BOM6  
+                                ,NULL              AS BOM7  
+                                ,NULL              AS BOM8  
+                                ,NULL              AS BOM9  
+                                ,NULL              AS BOM10 
+                                ,NULL              AS BOM11 
+                                ,NULL              AS BOM12 
+                                ,NULL              AS BOM13 
+                                ,NULL              AS BOM14 
+                                ,NULL              AS BOM15
+                          FROM STX_DIS_PENDING_WORK     SDP 
+                         WHERE SDP.PROJECT_NO   = #{p_project_no} 
+                        UNION ALL
+                        SELECT A.MOTHER_CODE            AS MOTHER_CODE 
+                              ,A.ITEM_CODE              AS ITEM_CODE
+                              ,A.ITEM_CATALOG           AS ITEM_CATALOG
+                              ,A.DWG_NO                 AS DWG_NO
+                              ,A.BOM_QTY                AS BOM_QTY
+                              ,A.CREATE_BY              AS EMP_NO
+                              ,A.ECO_NO                 AS ECO_NO
+                              ,A.BOM1                   AS BOM1
+                              ,A.BOM2                   AS BOM2
+                              ,A.BOM3                   AS BOM3
+                              ,A.BOM4                   AS BOM4
+                              ,A.BOM5                   AS BOM5
+                              ,A.BOM6                   AS BOM6
+                              ,A.BOM7                   AS BOM7
+                              ,A.BOM8                   AS BOM8
+                              ,A.BOM9                   AS BOM9
+                              ,A.BOM10                  AS BOM10
+                              ,A.BOM11                  AS BOM11
+                              ,A.BOM12                  AS BOM12
+                              ,A.BOM13                  AS BOM13
+                              ,A.BOM14                  AS BOM14
+                              ,A.BOM15                  AS BOM15
+                          FROM STX_DIS_SSC_HEAD A 
+                         WHERE A.PROJECT_NO    = #{p_project_no}
+                           AND NOT EXISTS
+                               (SELECT 1
+                                  FROM STX_DIS_SSC_HEAD_WORK B
+                                 WHERE A.SSC_SUB_ID = B.SSC_SUB_ID
+                               )
+                        UNION ALL
+                        SELECT A.MOTHER_CODE            AS MOTHER_CODE 
+                              ,A.ITEM_CODE              AS ITEM_CODE
+                              ,A.ITEM_CATALOG           AS ITEM_CATALOG
+                              ,A.DWG_NO                 AS DWG_NO
+                              ,A.BOM_QTY                AS BOM_QTY
+                              ,A.MODIFY_BY              AS EMP_NO
+                              ,A.ECO_NO                 AS ECO_NO
+                              ,A.BOM1                   AS BOM1
+                              ,A.BOM2                   AS BOM2
+                              ,A.BOM3                   AS BOM3
+                              ,A.BOM4                   AS BOM4
+                              ,A.BOM5                   AS BOM5
+                              ,A.BOM6                   AS BOM6
+                              ,A.BOM7                   AS BOM7
+                              ,A.BOM8                   AS BOM8
+                              ,A.BOM9                   AS BOM9
+                              ,A.BOM10                  AS BOM10
+                              ,A.BOM11                  AS BOM11
+                              ,A.BOM12                  AS BOM12
+                              ,A.BOM13                  AS BOM13
+                              ,A.BOM14                  AS BOM14
+                              ,A.BOM15                  AS BOM15
+                          FROM STX_DIS_SSC_HEAD_WORK A 
+                         WHERE A.PROJECT_NO    = #{p_project_no} 
+                        UNION ALL
+                        SELECT A.MOTHER_CODE            AS MOTHER_CODE 
+                              ,A.ITEM_CODE              AS ITEM_CODE
+                              ,A.ITEM_CATALOG           AS ITEM_CATALOG
+                              ,''                       AS DWG_NO
+                              ,A.BOM_QTY                AS BOM_QTY
+                              ,A.MODIFY_BY              AS EMP_NO
+                              ,A.ECO_NO                 AS ECO_NO
+                              ,A.BOM1                   AS BOM1
+                              ,A.BOM2                   AS BOM2
+                              ,A.BOM3                   AS BOM3
+                              ,A.BOM4                   AS BOM4
+                              ,A.BOM5                   AS BOM5
+                              ,A.BOM6                   AS BOM6
+                              ,A.BOM7                   AS BOM7
+                              ,A.BOM8                   AS BOM8
+                              ,A.BOM9                   AS BOM9
+                              ,A.BOM10                  AS BOM10
+                              ,A.BOM11                  AS BOM11
+                              ,A.BOM12                  AS BOM12
+                              ,A.BOM13                  AS BOM13
+                              ,A.BOM14                  AS BOM14
+                              ,A.BOM15                  AS BOM15
+                          FROM STX_DIS_RAWLEVEL A 
+                         WHERE A.PROJECT_NO    = #{p_project_no}
+                           AND NOT EXISTS
+                               (SELECT 1
+                                  FROM STX_DIS_RAWLEVEL_WORK B
+                                 WHERE A.SSC_SUB_ID = B.SSC_SUB_ID
+                               )
+                        UNION ALL
+                        SELECT A.MOTHER_CODE            AS MOTHER_CODE 
+                              ,A.ITEM_CODE              AS ITEM_CODE
+                              ,A.ITEM_CATALOG           AS ITEM_CATALOG
+                              ,''                       AS DWG_NO
+                              ,A.BOM_QTY                AS BOM_QTY
+                              ,A.MODIFY_BY              AS EMP_NO
+                              ,A.ECO_NO                 AS ECO_NO
+                              ,A.BOM1                   AS BOM1
+                              ,A.BOM2                   AS BOM2
+                              ,A.BOM3                   AS BOM3
+                              ,A.BOM4                   AS BOM4
+                              ,A.BOM5                   AS BOM5
+                              ,A.BOM6                   AS BOM6
+                              ,A.BOM7                   AS BOM7
+                              ,A.BOM8                   AS BOM8
+                              ,A.BOM9                   AS BOM9
+                              ,A.BOM10                  AS BOM10
+                              ,A.BOM11                  AS BOM11
+                              ,A.BOM12                  AS BOM12
+                              ,A.BOM13                  AS BOM13
+                              ,A.BOM14                  AS BOM14
+                              ,A.BOM15                  AS BOM15
+                          FROM STX_DIS_RAWLEVEL_WORK A 
+                         WHERE A.PROJECT_NO    = #{p_project_no} 
+                       ) BOM_LIST
+                       <if test='p_item_code != ""'>
+                        <!-- START WITH  BOM_LIST.ITEM_CODE = #{p_item_code} -->
+                        START WITH  BOM_LIST.MOTHER_CODE LIKE '%' || REPLACE(#{p_item_code}, '*', '%') || '%'
+                        </if>
+                        <if test='p_item_code == ""'>
+                         START WITH  BOM_LIST.MOTHER_CODE = #{p_project_no}
+                        </if>
+                        CONNECT BY PRIOR  BOM_LIST.ITEM_CODE = BOM_LIST.MOTHER_CODE
+                     )                     BOM_ALL_LIST
+                     ,STX_DIS_ITEM         SDI
+             WHERE  BOM_ALL_LIST.ITEM_CODE = SDI.ITEM_CODE
+             <if test='p_level != ""'>
+             AND BOM_ALL_LIST.LEVEL_NO <![CDATA[<]]>= #{p_level}
+             </if>
+  	</select>
+
+</mapper>

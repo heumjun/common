@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="projectMgntExcelExport">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 
+					 SELECT SDP.PROJECT_NO
+		                       , SDP.MODEL_NO
+		                       , SDM.DESCRIPTION         AS MODEL_DESC
+		                       , '...' as model_popup
+		                       , SDP.MARKETING_TEXT 
+		                       , SDP.STXSITE 
+		                       , SDP.REPRESENTATIVE_PRO_NUM 
+		                       , SDP.REPRESENTATIVE_PRO_YN
+		                       , SDP.REPRESENTATIVE_PRO_YN AS REPRESENTATIVE_PRO_YN_CHANGED
+		                       , SDP.PIS_REPRESENTATIVE_PRO_NUM
+		                       , SDP.SERIES 
+		                       , SDP.REFERENCE_PRO_NUM 
+		                       , SDP.FLAG 
+		                       , SDP.BUYER 
+		                       , SDP.ENABLE_FLAG
+		                       , SDP.ENABLE_FLAG as enable_flag_changed
+		                       , SDP.paint_new_rule_flag
+		                       , SDP.paint_new_rule_flag as paint_new_rule_flag_changed
+		                       , (SELECT x.sd_desc AS text
+	                                FROM stx_dis_sd_code x
+	                               WHERE x.sd_type = 'CLASS'
+	                                 AND x.enable_flag = 'Y'
+	                               	 AND x.sd_code = SDP.CLASS1) as CLASS1
+	                           , (SELECT x.sd_desc AS text
+	                                FROM stx_dis_sd_code x
+	                               WHERE x.sd_type = 'CLASS'
+	                                 AND x.enable_flag = 'Y'
+	                               	 AND x.sd_code = SDP.CLASS2) as CLASS2
+		                       , SDP.supply_enable_flag
+		                       , SDP.supply_enable_flag as supply_enable_flag_changed
+		                       , SDP.supply_close_flag
+		                       , SDP.supply_close_flag as supply_close_flag_changed
+		                       , SDP.dl_flag
+		                       , SDP.dl_flag as dl_flag_changed
+		                    FROM STX_DIS_PROJECT SDP
+		                        ,STX_DIS_MODEL   SDM
+		                   WHERE SDP.MODEL_NO = SDM.MODEL_NO  
+		                  <if test="p_project_no != null and p_project_name !='' ">
+		                     AND SDP.PROJECT_NO LIKE #{p_project_no,jdbcType=VARCHAR} || '%'
+		                  </if>
+		                  <if test="p_model_no != null and p_model_no !='' ">
+		                  	 AND SDP.MODEL_NO LIKE #{p_model_no,jdbcType=VARCHAR} || '%'
+		                  </if>
+		                  <if test="p_representative_pro_num != null and p_representative_pro_num !='' ">
+		                  	 AND SDP.REPRESENTATIVE_PRO_NUM LIKE #{p_representative_pro_num,jdbcType=VARCHAR} || '%'
+		                  </if>
+		                  <if test="p_pis_representative_pro_num != null and p_pis_representative_pro_num !='' ">
+		                  	 AND SDP.PIS_REPRESENTATIVE_PRO_NUM LIKE #{p_pis_representative_pro_num,jdbcType=VARCHAR} || '%'
+		                  </if>
+		                  <if test="p_enable_flag != null and p_enable_flag !='' and p_enable_flag != 'ALL' ">
+		                  	 AND SDP.ENABLE_FLAG = #{p_enable_flag,jdbcType=VARCHAR}
+		                  </if>
+		                     ORDER BY SDP.PROJECT_NO
+	  
+  	</select>
+</mapper>

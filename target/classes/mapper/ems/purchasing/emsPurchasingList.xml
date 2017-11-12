@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsPurchasingList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT T2.* 
+	FROM ( 
+	SELECT T1.* 
+	     , COUNT(*) OVER() AS CNT  
+	     , FLOOR((ROWNUM - 1) / #{rows} + 1 ) AS PAGE 
+	     , BOM_EA || '/' || EMS_EA AS BOM_STATE
+	FROM 
+	( 
+	SELECT /*+ LEADING(SEP) INDEX(SEP STX_EMS_PURCHASING_N1 ) USE_NL(SEP MSI IU IU_A) */
+	      SEP.EMS_PUR_NO 
+	    , SEP.STATUS 
+	    , SEP.REV 
+	    , SEP.MASTER 
+	    , SEP.PROJECT 
+	    , SEP.DWG_NO 
+	    , SEP.MIDDLE_CODE 
+	    , (SELECT LINE_DESC 
+		       FROM STX_DT_MAT_BASE_LIST_V 
+		      WHERE LINE_CODE = SEP.MIDDLE_CODE 
+		  	    AND LIST_TYPE = 'U' 
+			    AND EXISTS_FLAG = 'Y' 
+			    AND ROWNUM = 1 
+		    ) MIDDLENAME 
+		  , (SELECT PA.DWGTITLE 
+		       FROM DPM_ACTIVITY@STXDP PA  
+		      WHERE PA.CASENO = '1'  
+		        AND PA.ACTIVITYCODE LIKE SEP.DWG_NO || '%'  
+		        AND PA.PROJECTNO = SEP.PROJECT                  
+		        AND ROWNUM = 1 ) AS DWG_DESC 
+	    , SEP.ITEM_CODE 
+	    , MSI.DESCRIPTION AS ITEM_DESC 
+	    , SEP.EA 				
+	    , CASE 
+	 	        WHEN (SELECT FILE_ID 
+	                 FROM STX_EMS_POS_REVISION
+	              WHERE MASTER = SEP.MASTER 
+	              AND DWG_NO = SEP.DWG_NO 
+	              AND POS_REV = SEP.POS_REV) != 0 
+	         THEN 'Y' 
+	           ELSE 'N' 
+	       END AS POS 
+	    , SEP.PR_STATE 
+	    , TO_CHAR(SEP.PR_NO) AS PR_NO 
+	    , DECODE(STX_EMS_GET_PO_NO_F(TO_CHAR(SEP.PR_NO)),NULL,'N','','N','Y') AS PO_STATE 
+	    , NVL((SELECT 'Y' 
+	             FROM STX_PO_EPMS_SPEC_REVIEW SPESR 
+	                 ,STX_EMS_DB_MASTER       SEDM 
+	            WHERE SEDM.ITEM_CODE       = SEP.ITEM_CODE 
+	              AND SPESR.PROJECT_NO     = SEP.MASTER 
+	              AND SPESR.EQUIPMENT_NAME = SEDM.EQUIP_NAME 
+	              AND SPESR.ACT_FROM       = '조달' 
+	              AND SPESR.ACT_TO         = '설계' 
+	              AND SPESR.ACT_COMMENT   != 'POS' 
+	              AND ROWNUM = 1),'N' ) SPEC_STATE 
+	    , NVL((SELECT SUM(A.EA) 
+	             FROM STX_EMS_PURCHASING A 
+	            WHERE A.ITEM_CODE = SEP.ITEM_CODE 
+	              AND A.PROJECT = SEP.PROJECT 
+	              AND A.STATUS = 'S'   
+	              AND STX_EMS_GET_PO_NO_F(TO_CHAR(A.PR_NO)) IS NOT NULL   
+	              AND A.DWG_NO = SEP.DWG_NO ),0)  AS EMS_EA 
+	    , NVL((SELECT SUM(BOM_QTY) 
+	             FROM STX_DIS_SSC_HEAD@STXDIS
+	            WHERE 1 = 1
+	              AND PROJECT_NO = SEP.PROJECT
+	              AND ITEM_CODE = SEP.ITEM_CODE),0) AS BOM_EA
+	    , SEP.REMARK
+	    , (SELECT FILE_ID FROM STX_EMS_POS_REVISION WHERE MASTER = SEP.MASTER AND DWG_NO = SEP.DWG_NO AND POS_REV = SEP.POS_REV) AS FILE_ID 
+	    , (SELECT POS_TYPE FROM STX_EMS_POS_REVISION WHERE MASTER = SEP.MASTER AND DWG_NO = SEP.DWG_NO AND POS_REV = SEP.POS_REV) AS POS_TYPE 
+	    , IU.DEPT_CODE AS DP_DEPT_CODE
+	    , IU_C.DEPT_CODE AS CREATED_BY_DEPT 
+	    , IU.DEPT_NAME 
+	    , IU_A.USER_NAME AS APPROVED_BY 
+	    , IU.EMP_NO AS DP_USER_ID 
+	    , IU.USER_NAME AS DP_USER_NAME 
+	    , SEP.CREATED_BY AS CREATE_USER_ID 
+	    , (SELECT SUBSTR(SPPE.BUYER, 0 ,INSTR(SPPE.BUYER,',',1,1) - 1) BUYER 
+	       FROM STX_PO_PROPERTY_TEMPLATE SPPE 
+	          , MTL_ITEM_CATALOG_GROUPS B  
+	      WHERE SPPE.ITEM_CATALOG_GROUP_ID = B.ITEM_CATALOG_GROUP_ID   
+	        AND B.SEGMENT1 = SUBSTR(SEP.ITEM_CODE,0,INSTR(SEP.ITEM_CODE,'-')-1)) OBTAIN_BY 
+	    , TO_CHAR(SEP.CREATION_DATE, 'YY-MM-DD') CREATION_DATE 
+	    , STX_EMS_GET_VENDOR_SITE_F(TO_CHAR(SEP.PR_NO)) AS CORP_NAME   
+	    FROM STX_EMS_PURCHASING SEP 
+	       , STX_COM_INSA_USER  IU 
+	       , STX_COM_INSA_USER  IU_A 
+	       , STX_COM_INSA_USER  IU_C 
+	       , STX_EMS_DB_MASTER  SEDM 
+	       , MTL_SYSTEM_ITEMS_B MSI 
+	       , PLM_ACTIVITY@STXDP DPA 
+	       <!-- ,(SELECT COLUMN_VALUE PROJECT_NO    
+               FROM TABLE( STX_FN_SPLIT(#{p_chk_series}, ',' ) )  /*조회조건 */       
+            )                          SLP -->
+	   WHERE 1=1 
+	     AND SEP.APPROVED_BY     = IU_A.EMP_NO(+) 
+	     AND SEP.CREATED_BY      = IU_C.EMP_NO(+) 
+	     AND MSI.ORGANIZATION_ID = 82 
+	     AND SEP.ITEM_CODE       = SEDM.ITEM_CODE(+) 
+	     AND DPA.SABUN = IU.EMP_NO(+) 
+	     AND DPA.WORKTYPE(+) = 'DW' 
+	     AND SEP.MASTER = DPA.PROJECTNO(+)
+	     AND SEP.DWG_NO = SUBSTR(DPA.ACTIVITYCODE(+), 1, 8) 
+	     AND MSI.SEGMENT1        = SEP.ITEM_CODE 
+	     <!-- AND SLP.PROJECT_NO = SEP.PROJECT -->
+	 ORDER BY CASE WHEN SEP.STATUS = 'A' THEN 1 
+	               WHEN SEP.STATUS = 'D' THEN 2 
+	               WHEN SEP.STATUS = 'R' THEN 3 
+	               WHEN SEP.STATUS = 'S' THEN 5 
+	               WHEN SEP.STATUS = 'DR' THEN 4 
+	               WHEN SEP.STATUS = 'DS' THEN 6 
+	           END ASC 
+	        , SEP.DWG_NO, SEP.MASTER, SEP.PROJECT, SEP.ITEM_CODE 
+	) t1  
+	  WHERE 1=1 
+	<if test="p_master != null and !p_master.equalsIgnoreCase('') and !p_master.equalsIgnoreCase('null') and !p_master.equalsIgnoreCase('*')">
+ 	    AND MASTER	 = #{p_master}
+	</if>
+	
+	  	
+	<if test="p_dwg_desc != null and !p_dwg_desc.equalsIgnoreCase('') and !p_dwg_desc.equalsIgnoreCase('null') and !p_dwg_desc.equalsIgnoreCase('*') ">
+	    AND DWG_DESC LIKE #{p_dwg_desc} || '%'
+	</if>  
+	<if test="p_dept != null and !p_dept.equalsIgnoreCase('') and !p_dept.equalsIgnoreCase('null') and !p_dept.equalsIgnoreCase('*') and !p_dept.equalsIgnoreCase('ALL') and !(user_id.equalsIgnoreCase('196137') || user_id.equalsIgnoreCase('195128'))">
+	    AND (DP_DEPT_CODE LIKE #{p_dept} || '%' OR CREATED_BY_DEPT LIKE #{p_dept} || '%')
+	</if>  
+	<if test="p_project != null and !p_project.equalsIgnoreCase('') and !p_project.equalsIgnoreCase('null') and !p_project.equalsIgnoreCase('*')">
+ 	    AND PROJECT = #{p_project}
+	</if>
+	<if test="p_middle_name != null and !p_middle_name.equalsIgnoreCase('') and !p_middle_name.equalsIgnoreCase('null') and !p_middle_name.equalsIgnoreCase('*')">
+	    AND MIDDLE_NAME  LIKE #{p_middle_name} || '%'
+	</if>
+	<if test="p_item_code != null and !p_item_code.equalsIgnoreCase('') and !p_item_code.equalsIgnoreCase('null')">
+	    AND ITEM_CODE  LIKE #{p_item_code} || '%'
+	</if>
+	<if test="p_dwg_no != null and !p_dwg_no.equalsIgnoreCase('') and !p_dwg_no.equalsIgnoreCase('null')">
+	    AND DWG_NO LIKE #{p_dwg_no} || '%'
+	</if>
+	<if test="p_pr_state != null and !p_pr_state.equalsIgnoreCase('') and !p_pr_state.equalsIgnoreCase('null') and !p_pr_state.equalsIgnoreCase('*')">
+	    AND PR_STATE  = #{p_pr_state}
+	</if>
+	<if test="p_pr_no != null and !p_pr_no.equalsIgnoreCase('') and !p_pr_no.equalsIgnoreCase('null')">
+	    AND PR_NO LIKE #{p_pr_no} || '%'
+	</if>
+	<if test="p_bom != null and !p_bom.equalsIgnoreCase('') and !p_bom.equalsIgnoreCase('null') and !p_bom.equalsIgnoreCase('*')">
+		AND (CASE WHEN EMS_EA - BOM_EA  > 0 THEN 'Y' ELSE 'N' END) = #{p_bom}
+	</if>
+	<if test="p_spec_state != null and !p_spec_state.equalsIgnoreCase('') and !p_spec_state.equalsIgnoreCase('null') and !p_spec_state.equalsIgnoreCase('*')">
+	    AND SPEC_STATE  = #{p_spec_state}
+	</if>
+	<if test="p_po_state != null and !p_po_state.equalsIgnoreCase('') and !p_po_state.equalsIgnoreCase('null') and !p_po_state.equalsIgnoreCase('*')">
+	    AND PO_STATE  = #{p_po_state}
+	</if>
+	<if test="p_status != null and !p_status.equalsIgnoreCase('') and !p_status.equalsIgnoreCase('null') and !p_status.equalsIgnoreCase('*')">
+	    AND STATUS  = #{p_status}
+	</if>
+	
+	) t2
+	where page = #{page}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	SELECT COUNT(*) AS CNT
+	FROM ( 
+		SELECT /*+ LEADING(SEP) INDEX(SEP STX_EMS_PURCHASING_N1 ) USE_NL(SEP MSI IU IU_A) */ 
+		SEP.EMS_PUR_NO 
+	    , SEP.STATUS 
+	    , SEP.REV 
+	    , SEP.MASTER 
+	    , SEP.PROJECT 
+	    , SEP.DWG_NO 
+	    , SEP.MIDDLE_CODE 
+	    , (SELECT LINE_DESC 
+		       FROM STX_DT_MAT_BASE_LIST_V 
+		      WHERE LINE_CODE = SEP.MIDDLE_CODE 
+		  	    AND LIST_TYPE = 'U' 
+			    AND EXISTS_FLAG = 'Y' 
+			    AND ROWNUM = 1 
+		    ) MIDDLENAME 
+		  , (SELECT PA.DWGTITLE 
+		       FROM DPM_ACTIVITY@STXDP PA  
+		      WHERE PA.CASENO = '1'  
+		        AND PA.ACTIVITYCODE LIKE SEP.DWG_NO || '%'  
+		        AND PA.PROJECTNO = SEP.PROJECT                  
+		        AND ROWNUM = 1 ) AS DWG_DESC 
+	    , SEP.ITEM_CODE 
+	    , MSI.DESCRIPTION AS ITEM_DESC 
+	    , SEP.EA 				
+	    , CASE 
+	 	        WHEN (SELECT FILE_ID 
+	                 FROM STX_EMS_POS_REVISION
+	              WHERE MASTER = SEP.MASTER 
+	              AND DWG_NO = SEP.DWG_NO 
+	              AND POS_REV = SEP.POS_REV) != 0 
+	         THEN 'Y' 
+	           ELSE 'N' 
+	       END AS POS 
+	    , SEP.PR_STATE 
+	    , TO_CHAR(SEP.PR_NO) AS PR_NO 
+	    , DECODE(STX_EMS_GET_PO_NO_F(TO_CHAR(SEP.PR_NO)),NULL,'N','','N','Y') AS PO_STATE 
+	    , NVL((SELECT 'Y' 
+	             FROM STX_PO_EPMS_SPEC_REVIEW SPESR 
+	                 ,STX_EMS_DB_MASTER       SEDM 
+	            WHERE SEDM.ITEM_CODE       = SEP.ITEM_CODE 
+	              AND SPESR.PROJECT_NO     = SEP.MASTER 
+	              AND SPESR.EQUIPMENT_NAME = SEDM.EQUIP_NAME 
+	              AND SPESR.ACT_FROM       = '조달' 
+	              AND SPESR.ACT_TO         = '설계' 
+	              AND SPESR.ACT_COMMENT   != 'POS' 
+	              AND ROWNUM = 1),'N' ) SPEC_STATE 
+	    , NVL((SELECT SUM(A.EA) 
+	             FROM STX_EMS_PURCHASING A 
+	            WHERE A.ITEM_CODE = SEP.ITEM_CODE 
+	              AND A.PROJECT = SEP.PROJECT 
+	              AND A.STATUS = 'S'   
+	              AND STX_EMS_GET_PO_NO_F(TO_CHAR(A.PR_NO)) IS NOT NULL   
+	              AND A.DWG_NO = SEP.DWG_NO ),0)  AS EMS_EA 
+	    , NVL((SELECT SUM(BOM_QTY) 
+	             FROM STX_DIS_SSC_HEAD@STXDIS
+	            WHERE ITEM_TYPE_CD = 'EQ' 
+	              AND PROJECT_NO = SEP.PROJECT 
+	              AND DWG_NO = SEP.DWG_NO 
+	              AND ITEM_CODE = SEP.ITEM_CODE),0) AS BOM_EA 
+	    , SEP.REMARK 
+	    , (SELECT FILE_ID FROM STX_EMS_POS_REVISION WHERE MASTER = SEP.MASTER AND DWG_NO = SEP.DWG_NO AND POS_REV = SEP.POS_REV) AS FILE_ID 
+	    , (SELECT POS_TYPE FROM STX_EMS_POS_REVISION WHERE MASTER = SEP.MASTER AND DWG_NO = SEP.DWG_NO AND POS_REV = SEP.POS_REV) AS POS_TYPE 
+	    , IU.DEPT_CODE AS DP_DEPT_CODE
+	    , IU_C.DEPT_CODE AS CREATED_BY_DEPT 
+	    , IU.DEPT_NAME 
+	    , IU_A.USER_NAME AS APPROVED_BY 
+	    , IU.EMP_NO AS DP_USER_ID 
+	    , IU.USER_NAME AS DP_USER_NAME 
+	    , SEP.CREATED_BY AS CREATE_USER_ID 
+	    , (SELECT SUBSTR(SPPE.BUYER, 0 ,INSTR(SPPE.BUYER,',',1,1) - 1) BUYER 
+	       FROM STX_PO_PROPERTY_TEMPLATE SPPE 
+	          , MTL_ITEM_CATALOG_GROUPS B  
+	      WHERE SPPE.ITEM_CATALOG_GROUP_ID = B.ITEM_CATALOG_GROUP_ID   
+	        AND B.SEGMENT1 = SUBSTR(SEP.ITEM_CODE,0,INSTR(SEP.ITEM_CODE,'-')-1)) OBTAIN_BY 
+	    , TO_CHAR(SEP.CREATION_DATE, 'YY-MM-DD') CREATION_DATE 
+  
+	  FROM STX_EMS_PURCHASING SEP 
+	     , STX_COM_INSA_USER  IU 
+	     , STX_COM_INSA_USER  IU_A 
+	     , STX_COM_INSA_USER  IU_C 
+	     , STX_EMS_DB_MASTER  SEDM 
+	     , MTL_SYSTEM_ITEMS_B MSI 
+	     , PLM_ACTIVITY@STXDP DPA 
+	     <!-- ,(SELECT COLUMN_VALUE PROJECT_NO    
+             FROM TABLE( STX_FN_SPLIT(#{p_chk_series}, ',' ) )  /*조회조건 */       
+          )                          SLP -->
+	 WHERE 1=1 
+	   AND SEP.APPROVED_BY     = IU_A.EMP_NO(+) 
+	   AND SEP.CREATED_BY      = IU_C.EMP_NO(+) 
+	   AND MSI.ORGANIZATION_ID = 82 
+	   AND SEP.ITEM_CODE       = SEDM.ITEM_CODE(+) 
+	   AND DPA.SABUN = IU.EMP_NO(+) 
+	   AND DPA.WORKTYPE(+) = 'DW' 
+	   AND SEP.MASTER = DPA.PROJECTNO(+)
+	   AND SEP.DWG_NO = SUBSTR(DPA.ACTIVITYCODE(+), 1, 8) 
+	   AND MSI.SEGMENT1        = SEP.ITEM_CODE 
+	   <!-- AND SLP.PROJECT_NO = SEP.PROJECT --> 
+	   )
+	   where 1=1
+	   
+	<if test="p_master != null and !p_master.equalsIgnoreCase('') and !p_master.equalsIgnoreCase('null') and !p_master.equalsIgnoreCase('*')">
+ 	    AND MASTER	 = #{p_master}
+	</if>   
+	
+	<if test="p_dwg_desc != null and !p_dwg_desc.equalsIgnoreCase('') and !p_dwg_desc.equalsIgnoreCase('null') and !p_dwg_desc.equalsIgnoreCase('*') ">
+	    AND DWG_DESC LIKE #{p_dwg_desc} || '%'
+	</if>      
+	<if test="p_dept != null and !p_dept.equalsIgnoreCase('') and !p_dept.equalsIgnoreCase('null') and !p_dept.equalsIgnoreCase('*') and !p_dept.equalsIgnoreCase('ALL') and !(user_id.equalsIgnoreCase('196137') || user_id.equalsIgnoreCase('195128'))">
+	    AND (DP_DEPT_CODE LIKE #{p_dept} || '%' OR CREATED_BY_DEPT LIKE #{p_dept} || '%')
+	</if>  
+	<if test="p_project != null and !p_project.equalsIgnoreCase('') and !p_project.equalsIgnoreCase('null') and !p_project.equalsIgnoreCase('*')">
+		AND PROJECT = #{p_project}
+	</if>
+	<if test="p_middle_name != null and !p_middle_name.equalsIgnoreCase('') and !p_middle_name.equalsIgnoreCase('null') and !p_middle_name.equalsIgnoreCase('*')">
+	    AND MIDDLE_NAME  LIKE #{p_middle_name} || '%'
+	</if>
+	<if test="p_item_code != null and !p_item_code.equalsIgnoreCase('') and !p_item_code.equalsIgnoreCase('null')">
+	    AND ITEM_CODE  LIKE #{p_item_code} || '%'
+	</if>
+	<if test="p_dwg_no != null and !p_dwg_no.equalsIgnoreCase('') and !p_dwg_no.equalsIgnoreCase('null')">
+	    AND DWG_NO LIKE #{p_dwg_no} || '%'
+	</if>
+	<if test="p_pr_state != null and !p_pr_state.equalsIgnoreCase('') and !p_pr_state.equalsIgnoreCase('null') and !p_pr_state.equalsIgnoreCase('*')">
+	    AND PR_STATE  = #{p_pr_state}
+	</if>
+	<if test="p_pr_no != null and !p_pr_no.equalsIgnoreCase('') and !p_pr_no.equalsIgnoreCase('null')">
+	    AND PR_NO LIKE #{p_pr_no} || '%'
+	</if>
+	<if test="p_bom != null and !p_bom.equalsIgnoreCase('') and !p_bom.equalsIgnoreCase('null') and !p_bom.equalsIgnoreCase('*')">
+		AND (CASE WHEN EMS_EA - BOM_EA  > 0 THEN 'Y' ELSE 'N' END) = #{p_bom}
+	</if>
+	<if test="p_spec_state != null and !p_spec_state.equalsIgnoreCase('') and !p_spec_state.equalsIgnoreCase('null') and !p_spec_state.equalsIgnoreCase('*')">
+	    AND SPEC_STATE  = #{p_spec_state}
+	</if>
+	<if test="p_po_state != null and !p_po_state.equalsIgnoreCase('') and !p_po_state.equalsIgnoreCase('null') and !p_po_state.equalsIgnoreCase('*')">
+	    AND PO_STATE  = #{p_po_state}
+	</if>
+	<if test="p_status != null and !p_status.equalsIgnoreCase('') and !p_status.equalsIgnoreCase('null') and !p_status.equalsIgnoreCase('*')">
+	    AND STATUS  = #{p_status}
+	</if>
+	</select>
+	
+</mapper>

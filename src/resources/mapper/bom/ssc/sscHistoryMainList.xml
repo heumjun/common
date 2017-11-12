@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscHistoryMainList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( SELECT A.PROJECT_NO
+					      ,A.ITEM_TYPE_CD
+					      ,A.STATE_FLAG
+					      ,A.DWG_NO
+					      ,A.MOTHER_CODE
+					      ,A.ITEM_CODE
+					      ,A.BOM_QTY
+					      ,CASE WHEN A.BOM5 IS NOT NULL AND A.STATE_FLAG != 'D' THEN A.BOM5 || ' -> ' || A.MOTHER_CODE 
+					            ELSE ''
+					       END AS MOVE_LOG
+					      ,A.DEPT_CODE
+					      ,B.DEPT_NAME
+					      ,A.CREATE_BY
+					      ,B.USER_NAME
+					      ,TO_CHAR(A.CREATE_DATE,'YYYY-MM-DD  HH:MI:SS') AS CREATE_DATE
+					      ,A.ECO_NO
+					  FROM STX_DIS_SSC_HEAD_ACT     A
+					      ,STX_COM_INSA_USER@STXERP B
+					      ,(SELECT COLUMN_VALUE PROJECT_NO    
+					          FROM TABLE( STX_FN_SPLIT(#{p_chk_series,jdbcType=VARCHAR}, ',') )         
+					       )                        C
+					 WHERE A.CREATE_BY = B.EMP_NO
+					   AND A.PROJECT_NO = C.PROJECT_NO
+					   AND A.ITEM_CODE = #{p_item_code,jdbcType=VARCHAR}
+					<if test="p_dwg_no != null and p_dwg_no !='' ">
+					   AND A.DWG_NO LIKE REPLACE(#{p_dwg_no,jdbcType=VARCHAR}, '*', '%')
+					</if>   
+					<if test="p_state_flag != 'ALL' ">
+					   AND A.STATE_FLAG = #{p_state_flag,jdbcType=VARCHAR}
+					</if>  
+					<if test="p_mother_code != null and p_mother_code !='' ">
+					   AND A.MOTHER_CODE LIKE REPLACE(#{p_mother_code,jdbcType=VARCHAR}, '*', '%')
+					</if>   
+					<if test="p_start_date != null and p_start_date !='' ">
+					   AND A.CREATE_DATE >= TO_DATE(#{p_start_date,jdbcType=VARCHAR},'YYYY-MM-DD')
+					</if>   
+					<if test="p_end_date != null and p_end_date !='' ">
+					   AND A.CREATE_DATE <![CDATA[<]]>  TO_DATE(#{p_end_date,jdbcType=VARCHAR},'YYYY-MM-DD')+1
+					</if>   
+					<if test="p_eco_no != null and p_eco_no !='' ">
+					   AND A.ECO_NO LIKE REPLACE(#{p_eco_no,jdbcType=VARCHAR}, '*', '%')
+					</if>   
+					ORDER BY A.PROJECT_NO, A.CREATE_DATE DESC
+	              ) t1
+	      ) t2
+	 where page = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+	SELECT COUNT(*) AS CNT
+	  FROM STX_DIS_SSC_HEAD_ACT     A
+	      ,STX_COM_INSA_USER@STXERP B
+	      ,(SELECT COLUMN_VALUE PROJECT_NO    
+	          FROM TABLE( STX_FN_SPLIT(#{p_chk_series,jdbcType=VARCHAR}, ',') )         
+	       )                        C
+	 WHERE A.CREATE_BY = B.EMP_NO
+	   AND A.PROJECT_NO = C.PROJECT_NO
+	   AND A.ITEM_CODE = #{p_item_code,jdbcType=VARCHAR}
+	<if test="p_dwg_no != null and p_dwg_no !='' ">
+	   AND A.DWG_NO LIKE REPLACE(#{p_dwg_no,jdbcType=VARCHAR}, '*', '%')
+	</if>   
+	<if test="p_state_flag != 'ALL' ">
+	   AND A.STATE_FLAG = #{p_state_flag,jdbcType=VARCHAR}
+	</if>  
+	<if test="p_mother_code != null and p_mother_code !='' ">
+	   AND A.MOTHER_CODE LIKE REPLACE(#{p_mother_code,jdbcType=VARCHAR}, '*', '%')
+	</if>   
+	<if test="p_start_date != null and p_start_date !='' ">
+	   AND A.CREATE_DATE >= TO_DATE(#{p_start_date,jdbcType=VARCHAR},'YYYY-MM-DD')
+	</if>   
+	<if test="p_end_date != null and p_end_date !='' ">
+	   AND A.CREATE_DATE <![CDATA[<]]>  TO_DATE(#{p_end_date,jdbcType=VARCHAR},'YYYY-MM-DD')+1
+	</if>   
+	<if test="p_eco_no != null and p_eco_no !='' ">
+	   AND A.ECO_NO LIKE REPLACE(#{p_eco_no,jdbcType=VARCHAR}, '*', '%')
+	</if>   
+  	</select> 
+  	
+</mapper>

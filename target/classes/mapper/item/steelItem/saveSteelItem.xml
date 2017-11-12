@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveSteelItem">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="update" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_ITEM_PKG.stx_dis_steel_item_proc(
+					 #{project_no}
+				   , #{block_no}
+				   , #{tpi_item_catalog_code}
+				   , #{class}
+				   , #{grade}
+				   , #{thickness1}
+				   , #{thickness2}
+				   , #{breadth1}
+				   , #{breadth2}
+				   , #{length}
+				   , #{unit_weight}
+				   , #{quantity}
+				   , #{weight}
+				   , #{group_system}
+				   , #{req_line_id}
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{item_code, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+</mapper>

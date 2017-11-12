@@ -1,0 +1,1871 @@
+@CHARSET "UTF-8";
+
+/* @import url('http://api.mobilis.co.kr/webfonts/v2/css/NanumGothicWeb'); */
+
+/* @import url(http://fonts.googleapis.com/earlyaccess/nanumgothic.css); */
+@font-face {
+	font-family: 'NanumGothic';
+	src: url("./NanumGothic.eot");
+}
+
+@font-face {
+	font-family: 'NanumGothic';
+	src: url("./NanumGothic.woff");
+}
+
+body {
+	font-size: 9pt;
+	font-family: 돋움, 'dotum';
+	/*	font-family:'NanumGothic'; */
+	font-weight: 400;
+	width: 100%;
+	margin: 0;
+	padding: 0px;
+	word-break: break-all;
+	border: none;
+	overflow-y: auto;
+	overflow-x: hidden;
+	text-align: left;
+	letter-spacing: -0.03em;
+}
+
+input {
+	vertical-align: baseline;
+}
+
+img {
+	border: none;
+}
+
+a {
+	font-size: 1em;
+	color: #333333;
+	text-decoration: none;
+}
+
+a:link {
+	font-size: 1em;
+	color: #555555;
+	text-decoration: none;
+}
+
+a:visited {
+	font-size: 1em;
+	color: #555555;
+	text-decoration: none;
+}
+
+a:hover {
+	font-size: 1em;
+	color: #468BE1;
+	text-decoration: underline;
+}
+
+label {
+	cursor: pointer;
+	color: #333333;
+	text-decoration: none;
+}
+
+label:link, label:visited {
+	color: #333333;
+	text-decoration: none;
+}
+
+label:hover, label:active, label:focus {
+	color: #468BE1;
+}
+
+input[type=checkbox], input[type=radio], input[type=image] {
+	border: none !important
+}
+
+td input[type=button], input[type=text] {
+	vertical-align: middle;
+}
+
+div input[type=button], input[type=text] {
+	vertical-align: middle;
+}
+
+/*.header {position:relative; min-width:1490px; height:60px; margin:0 0 10px 0px; width: expression(this.width < 1490 ? 1490: true); border:1px red #ccc;}*/
+.header {
+	position: relative;
+	width: 98%;
+	min-width: 1250px;
+	margin: 0 0 10px 0px;
+	border: 1px red #ccc;
+}
+
+.pendingheader {
+	position: relative;
+	min-width: 1390px;
+	height: 70px;
+	margin: 0 0 10px 0px;
+	width: expression(this.width < 1380 ? 1490 : true);
+}
+
+.pendingpopupheader {
+	position: relative;
+	width: 98%;
+	height: 70px;
+	margin: 0 0 10px 0px;
+}
+/*
+.header {position:relative; min-height:80px; margin:0 0 10px 0px;}
+*/
+
+/*input[type=button] {border:1px solid #888; padding-top:2px; background-color:#D4DFF3; }*/
+.CommonArea {
+	position: relative;
+	min-width: 1250px;
+	width: 98%;
+}
+
+.popupCommonArea {
+	position: relative;
+	width: 98%;
+}
+
+.pendingCommonArea {
+	position: relative;
+	min-width: 1380px;
+}
+
+.pendingPopupCommonArea {
+	position: relative;
+	width: 98%;
+}
+
+.loadingBar {
+	position: relative;
+	text-align: center;
+	height: 30px;
+	margin-top: 6px;
+	display: none;
+	width: 100%;
+	clear: both;
+}
+
+.loadingBoxArea {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	left: 0;
+	top: 0;
+	filter: alpha(opacity : '30');
+	background-color: black;
+	display: none;
+}
+
+.loadingProgress {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url('/images/ajax-loader-3.gif');
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.ajax_loader {
+	background: url("./images/spinner_squares_circle.gif") no-repeat center center transparent;
+	width: 100%;
+	height: 100%;
+}
+
+.blue-loader .ajax_loader {
+	background: url("./images/ajax-loader-3.gif") no-repeat center center transparent;
+}
+
+.commonSeries {
+	padding-left: 4px;
+	padding-top: 4px;
+	border: 1px solid #999999;
+	height: 28px;
+}
+
+.mainBodyScroll {
+	overflow-x: auto;
+	width: 100%;
+}
+
+.pagingArea {
+	width: 100%;
+	text-align: center;
+	margin-top: 10px;
+}
+
+.bomTotalCntArea {
+	font-weight: bold;
+}
+
+.bomTotalCnt {
+	color: red;
+	font-size: 14pt;
+	font-weight: bold;
+}
+
+.ui-autocomplete {
+	max-height: 200px;
+	overflow-y: auto;
+	/* prevent horizontal scrollbar */
+	overflow-x: hidden;
+}
+
+.headerAct {
+	position: relative;
+	width: 1300px;
+	height: 120px;
+	margin: 0 0 10px 4px;
+}
+
+.headerAct .searchArea {
+	position: relative;
+	width: 200px;
+	float: left;
+	height: 140px;
+	margin: 0;
+	padding: 12px 0px 5px 0px;
+}
+
+.headerAct .searchArea .searchDetail {
+	padding: 3px 0 0 0;
+	float: right;
+	margin: 0 10px 0 0;
+	font-weight: bold;
+}
+
+.headerAct .searchArea .searchDetail .selectbox1 {
+	width: 106px;
+	background-color: #FFE0C0;
+}
+
+.headerAct .searchArea .searchDetail .selectbox2 {
+	width: 106px;
+}
+
+.headerAct .searchArea .commonInput {
+	width: 100px;
+}
+
+.headerAct .searchArea .commonInput1 {
+	width: 100px;
+	background-color: #FFE0C0;
+}
+
+.headerAct .searchArea2 {
+	position: relative;
+	width: 270px;
+	float: left;
+	height: 120px;
+	margin: 0;
+	padding: 10px 0px 0px 160px;
+}
+
+.headerAct .searchArea2 .searchDetail2 {
+	padding: 3px 0 0 0;
+	float: right;
+	margin: 0 10px 0 0;
+	font-weight: bold;
+}
+
+.headerAct .searchArea2 .searchDetail2 .button1 {
+	cursor: hand;
+	width: 208px;
+}
+
+.headerAct .searchArea2 .searchDetail3 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 20px;
+	font-weight: bold;
+}
+
+.headerAct .searchArea2 .searchDetail4 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 35px;
+	font-weight: bold;
+}
+
+.headerAct .searchArea2 .commonInput2 {
+	width: 100px;
+}
+
+.headerAct .buttonArea {
+	position: relative;
+	width: 100px;
+	float: left;
+	height: 120px;
+	padding: 14px 0px 0px 265px;
+}
+
+.headerAct .buttonArea2 {
+	position: relative;
+	width: 200px;
+	float: left;
+	height: 100px;
+	padding: 14px 0px 0px 0px;
+}
+
+.headerAct .buttonArea2 .button1 {
+	cursor: hand;
+	width: 80px;
+	height: 110px;
+}
+
+.headerAct .buttonArea .btnLeft {
+	width: 220px;
+	height: 26px;
+	float: left;
+	padding: 0px 0px 5px 0px;
+}
+
+.headerAct .buttonArea input {
+	width: 70px;
+	height: 20px;
+	cursor: pointer;
+	margin-bottom: 8px;
+}
+
+.headerAct .buttonArea .ECOLabel {
+	width: 66px;
+	height: 17px;
+	padding: 2px 0px 0px 2px;
+	font-weight: bold;
+	text-align: center;
+}
+
+.headerAct .buttonArea .ECOInput {
+	width: 142px;
+	height: 17px;
+	padding: 2px 0px 0px 2px;
+	cursor: text;
+}
+
+.headerAct .buttonArea .button1 {
+	width: 220px;
+}
+
+.headerAct .buttonArea .button2 {
+	width: 71px;
+}
+
+.headerAct .buttonArea .button3 {
+	width: 71px;
+	float: right;
+}
+
+.contentAct {
+	position: relative;
+	margin-left: 18px;
+	width: 1300px;
+	text-align: center;
+}
+
+.headerJob {
+	position: relative;
+	width: 1520px;
+	height: 140px;
+	margin: 0 0 10px 4px;
+}
+
+.headerJob .searchArea {
+	position: relative;
+	width: 210px;
+	float: left;
+	height: 215px;
+	margin: 0;
+	padding: 12px 0px 0px 15px;
+}
+
+.headerJob .searchArea .searchDetail {
+	padding: 3px 0 0 0;
+	float: right;
+	margin: 0 10px 0 0;
+	font-weight: bold;
+}
+
+.headerJob .searchArea .searchDetail .selectbox1 {
+	width: 106px;
+	background-color: #FFE0C0;
+}
+
+.headerJob .searchArea .searchDetail .selectbox2 {
+	width: 106px;
+}
+
+.headerJob .searchArea .commonInput {
+	width: 100px;
+}
+
+.headerJob .searchArea .discriptionInput {
+	width: 216px;
+}
+
+.headerJob .searchArea2 {
+	position: relative;
+	width: 430px;
+	float: left;
+	height: 120px;
+	margin: 0;
+	padding: 10px 0px 0px 6px;
+}
+
+.headerJob .searchArea2 .searchDetail2 {
+	padding: 3px 0 0 0px;
+	float: right;
+	margin: 0 10px 0 0;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .searchDetail2 .button1 {
+	cursor: hand;
+	width: 208px;
+}
+
+.headerJob .searchArea2 .searchDetail3 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 16px;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .searchDetail4 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 24px;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .searchDetail5 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 36px;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .searchDetail6 {
+	padding: 3px 0 0 0;
+	float: left;
+	margin: 0 10px 0 46px;
+	font-weight: bold;
+}
+
+.headerJob .searchArea2 .commonInput2 {
+	width: 101px;
+}
+
+.headerJob .searchArea3 {
+	position: relative;
+	width: 50px;
+	float: left;
+	height: 40px;
+	margin: 0;
+	padding: 29px 10px 0px 150px;
+}
+
+.headerJob .searchArea3 .commonInput3 {
+	float: left;
+	width: 60px;
+	height: 35px;
+	text-align: center;
+	vertical-align: middle;
+	line-height: 35px;
+	font-weight: bold;
+	font-size: 15px;
+	background-color: #FFE0C0;
+}
+
+.headerJob .buttonArea {
+	position: relative;
+	width: 100px;
+	float: left;
+	height: 120px;
+	padding: 14px 0px 0px 240px;
+}
+
+.headerJob .buttonArea .btnLeft {
+	width: 220px;
+	height: 26px;
+	float: left;
+	padding: 0px 0px 5px 0px;
+}
+
+.headerJob .buttonArea .btnLeft .button1 {
+	width: 220px;
+}
+
+.headerJob .buttonArea .btnLeft .button2 {
+	width: 71px;
+}
+
+.headerJob .buttonArea .btnLeft .button3 {
+	width: 71px;
+	float: right;
+}
+
+.headerJob .buttonArea input {
+	width: 70px;
+	height: 20px;
+	cursor: pointer;
+	margin-bottom: 8px;
+}
+
+.headerJob .buttonArea .ECOLabel {
+	width: 66px;
+	height: 17px;
+	padding: 2px 0px 0px 2px;
+	font-weight: bold;
+	text-align: center;
+}
+
+.headerJob .buttonArea .ECOInput {
+	width: 142px;
+	height: 17px;
+	padding: 2px 0px 0px 2px;
+	cursor: text;
+}
+
+.headerJob .buttonArea2 {
+	position: relative;
+	width: 200px;
+	float: left;
+	height: 100px;
+	padding: 14px 0px 0px 0px;
+}
+
+.headerJob .buttonArea2 .button1 {
+	cursor: hand;
+	width: 80px;
+	height: 134px;
+}
+
+.contentJob {
+	position: relative;
+	margin-left: 18px;
+	width: 1520px;
+	text-align: center;
+}
+
+/* DWG 조회 조건 style  */
+.mainDiv {
+	display: block;
+	float: none;
+	width: 98%;
+	min-height: 550px;
+	background: url(./images/main/ct_bg.gif) repeat-x left top;
+	padding-left: 2px;
+}
+
+.mainDiv2 {
+	display: block;
+	float: none;
+	min-width: 1024px;
+	min-height: 550px;
+}
+
+.topMain {
+	width: 97.1%;
+	margin-top: 10px;
+	height: 45px;
+	padding: 5px 10px;
+	vertical-align: middle;
+	line-height: 45px;
+}
+
+.topMain input {
+	border: 1px solid #c9c9c9;
+}
+
+.subtitle {
+	width: 97%;
+	height: 20px;
+	font-size: 14pt;
+	font-weight: 700;
+	color: #000;
+	background: url(./images/main/icon1.gif) no-repeat 9px 23px;
+	letter-spacing: 0em;
+	padding-left: 35px;
+	padding-bottom: 10px;
+	padding-top: 7px;
+	line-height: 40px;
+	vertical-align: middle;
+	border-bottom: 1px solid #cdcdcd;
+}
+
+.sc_name {
+	font-weight: bold;
+	padding-left: 10px;
+	background: url(./images/main/icon04.gif) no-repeat left 3px;
+}
+/*.sc_name {display:inline-block; font-weight:bold; width:75px; height:35px; padding-left:10px; font-size:0.91em; background:url(./images/main/name_bg.gif) no-repeat left 10px;}*/
+
+/*.subtitle {height: 30px; font-size: 15pt; font-weight: bold; color: #3471B3; background-image: url("../images/subtitle_circle.png"); background-position: left center; background-repeat: no-repeat; padding-left: 24px; line-height: 30px; vertical-align: middle;}*/
+.conSearch {
+	display: inline;
+	width: 98%;
+}
+
+.conSearch td input[type=text] {
+	width: 100px;
+}
+
+.conSearch .spanMargin {
+	margin-left: 8px;
+}
+
+.conSearch .textBox {
+	width: 50px;
+}
+
+.conSearch .required {
+	background-color: #FFFFA2;
+	font-family: '돋움';
+	text-transform: uppercase;
+}
+
+.conSearch .notdisabled {
+	background-color: #DADADA;
+	text-transform: uppercase;
+}
+
+.button {
+	float: right;
+	margin: 0 10px 0 0;
+	display: inline;
+}
+
+.content {
+	margin-top: 10px;
+}
+
+.topMain .conSearch .toUpper {
+	width: 100px;
+	text-transform: uppercase;
+}
+
+.handcursor {
+	cursor: pointer;
+	text-decoration: underline;
+	color: blue
+}
+
+.grid_popup_btn {
+	cursor: pointer;
+	background-color: pink;
+}
+
+.conCaption25 {
+	position: relative;
+	width: 25px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption30 {
+	position: relative;
+	width: 30px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption35 {
+	position: relative;
+	width: 35px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption40 {
+	position: relative;
+	width: 40px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption45 {
+	position: relative;
+	width: 45px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption50 {
+	position: relative;
+	width: 50px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption60 {
+	position: relative;
+	width: 60px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption65 {
+	position: relative;
+	width: 65px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption70 {
+	position: relative;
+	width: 70px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption80 {
+	position: relative;
+	width: 80px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption90 {
+	position: relative;
+	width: 90px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption100 {
+	position: relative;
+	width: 100px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption120 {
+	position: relative;
+	width: 120px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conCaption150 {
+	position: relative;
+	width: 150px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput30 {
+	position: relative;
+	width: 30px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput40 {
+	position: relative;
+	width: 40px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput50 {
+	position: relative;
+	width: 50px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput60 {
+	position: relative;
+	width: 60px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput70 {
+	position: relative;
+	width: 70px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput80 {
+	position: relative;
+	width: 80px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput90 {
+	position: relative;
+	width: 90px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput100 {
+	position: relative;
+	width: 100px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput120 {
+	position: relative;
+	width: 120px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput130 {
+	position: relative;
+	width: 130px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput150 {
+	position: relative;
+	width: 150px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput160 {
+	position: relative;
+	width: 160px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput170 {
+	position: relative;
+	width: 170px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput180 {
+	position: relative;
+	width: 180px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput190 {
+	position: relative;
+	width: 190px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput200 {
+	position: relative;
+	width: 200px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput210 {
+	position: relative;
+	width: 210px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput220 {
+	position: relative;
+	width: 220px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput230 {
+	position: relative;
+	width: 230px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput250 {
+	position: relative;
+	width: 250px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput300 {
+	position: relative;
+	width: 300px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput320 {
+	position: relative;
+	width: 320px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conInput400 {
+	position: relative;
+	width: 400px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption25 {
+	position: relative;
+	width: 25px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption30 {
+	position: relative;
+	width: 30px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption35 {
+	position: relative;
+	width: 35px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption40 {
+	position: relative;
+	width: 40px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption45 {
+	position: relative;
+	width: 45px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption50 {
+	position: relative;
+	width: 50px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption60 {
+	position: relative;
+	width: 60px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption65 {
+	position: relative;
+	width: 65px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption70 {
+	position: relative;
+	width: 70px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption80 {
+	position: relative;
+	width: 80px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption90 {
+	position: relative;
+	width: 90px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption100 {
+	position: relative;
+	width: 100px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption120 {
+	position: relative;
+	width: 120px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconCaption150 {
+	position: relative;
+	width: 150px;
+	height: 22px;
+	text-align: right;
+	float: left;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput30 {
+	position: relative;
+	width: 30px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput40 {
+	position: relative;
+	width: 40px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput50 {
+	position: relative;
+	width: 50px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput60 {
+	position: relative;
+	width: 60px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput70 {
+	position: relative;
+	width: 70px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput80 {
+	position: relative;
+	width: 80px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput90 {
+	position: relative;
+	width: 90px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput100 {
+	position: relative;
+	width: 100px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput120 {
+	position: relative;
+	width: 120px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput130 {
+	position: relative;
+	width: 130px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput150 {
+	position: relative;
+	width: 150px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput160 {
+	position: relative;
+	width: 160px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput170 {
+	position: relative;
+	width: 170px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput180 {
+	position: relative;
+	width: 180px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput190 {
+	position: relative;
+	width: 190px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput200 {
+	position: relative;
+	width: 200px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput210 {
+	position: relative;
+	width: 210px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput220 {
+	position: relative;
+	width: 220px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput230 {
+	position: relative;
+	width: 230px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput250 {
+	position: relative;
+	width: 250px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput300 {
+	position: relative;
+	width: 300px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput320 {
+	position: relative;
+	width: 320px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.LconInput400 {
+	position: relative;
+	width: 400px;
+	height: 22px;
+	float: left;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption25 {
+	position: relative;
+	width: 25px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption30 {
+	position: relative;
+	width: 30px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption35 {
+	position: relative;
+	width: 35px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption40 {
+	position: relative;
+	width: 40px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption45 {
+	position: relative;
+	width: 45px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption50 {
+	position: relative;
+	width: 50px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption60 {
+	position: relative;
+	width: 60px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption65 {
+	position: relative;
+	width: 65px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption70 {
+	position: relative;
+	width: 70px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption80 {
+	position: relative;
+	width: 80px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption90 {
+	position: relative;
+	width: 90px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption100 {
+	position: relative;
+	width: 100px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption120 {
+	position: relative;
+	width: 120px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption125 {
+	position: relative;
+	width: 125px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconCaption150 {
+	position: relative;
+	width: 150px;
+	height: 22px;
+	text-align: right;
+	float: right;
+	padding-right: 3px;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput30 {
+	position: relative;
+	width: 30px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput40 {
+	position: relative;
+	width: 40px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput50 {
+	position: relative;
+	width: 50px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput60 {
+	position: relative;
+	width: 60px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput70 {
+	position: relative;
+	width: 70px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput80 {
+	position: relative;
+	width: 80px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput90 {
+	position: relative;
+	width: 90px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput100 {
+	position: relative;
+	width: 100px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput120 {
+	position: relative;
+	width: 120px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput130 {
+	position: relative;
+	width: 130px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput150 {
+	position: relative;
+	width: 150px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput160 {
+	position: relative;
+	width: 160px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput170 {
+	position: relative;
+	width: 170px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput180 {
+	position: relative;
+	width: 180px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput190 {
+	position: relative;
+	width: 190px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput200 {
+	position: relative;
+	width: 200px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput210 {
+	position: relative;
+	width: 210px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput220 {
+	position: relative;
+	width: 220px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput230 {
+	position: relative;
+	width: 230px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput250 {
+	position: relative;
+	width: 250px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput300 {
+	position: relative;
+	width: 300px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput320 {
+	position: relative;
+	width: 320px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.RconInput400 {
+	position: relative;
+	width: 400px;
+	height: 22px;
+	float: right;
+	padding-bottom: 3px;
+	line-height: 22px;
+	vertical-align: middle;
+}
+
+.conBr {
+	position: relative;
+	width: 100%;
+	float: left;
+}

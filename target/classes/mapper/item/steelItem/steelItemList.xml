@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="steelItemList">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_ITEM_PKG.stx_dis_steel_info_proc(
+					 #{p_project_no}
+				   , #{p_block_no}
+				   , #{curPageNo}
+				   , #{pageSize}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{totCnt, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{vcursor, mode=OUT, jdbcType=CURSOR, javaType=ResultSet	, resultMap=uscActivityStdList.procResultMap})
+			}
+	</select> 
+</mapper>  	

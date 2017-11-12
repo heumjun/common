@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveRoleByUser">
+  	
+  	<!-- insert 전 중복 체크 -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT count(*) as cnt
+		  FROM STX_DIS_USER_MENU
+		 WHERE EMP_NO = #{loginId}
+		   AND MENU_ID = #{menu_id}
+  	</select>
+  	
+ 	<insert id="insert" parameterType="java.util.Map">
+ 		INSERT
+		  INTO STX_DIS_USER_MENU (EMP_NO, MENU_ID, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3, ATTRIBUTE4, ATTRIBUTE5, ATTRIBUTE6, ATTRIBUTE7, ATTRIBUTE8, ATTRIBUTE9, ATTRIBUTE10, NOTE, CREATE_BY, CREATE_DATE, MODIFY_BY, MODIFY_DATE)
+		VALUES(#{emp_no}
+		     , #{menu_id}
+		     , #{attribute1}
+		     , #{attribute2}
+		     , #{attribute3}
+		     , #{attribute4}
+		     , #{attribute5}
+		     , #{attribute6}
+		     , #{attribute7}
+		     , #{attribute8}
+		     , #{attribute9}
+		     , #{attribute10}
+		     , #{note}
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE STX_DIS_USER_MENU
+		   SET ATTRIBUTE1 = #{attribute1}
+		     , ATTRIBUTE2 = #{attribute2}
+		     , ATTRIBUTE3 = #{attribute3}
+		     , ATTRIBUTE4 = #{attribute4}
+		     , ATTRIBUTE5 = #{attribute5}
+		     , ATTRIBUTE6 = #{attribute6}
+		     , ATTRIBUTE7 = #{attribute7}
+		     , ATTRIBUTE8 = #{attribute8}
+		     , ATTRIBUTE9 = #{attribute9}
+		     , ATTRIBUTE10 = #{attribute10}
+		     , NOTE = #{note}
+		     , MODIFY_BY = #{loginId}
+		     , MODIFY_DATE = SYSDATE
+		 WHERE EMP_NO = #{emp_no}
+		   AND MENU_ID = #{menu_id}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  		DELETE FROM STX_DIS_USER_MENU
+		 WHERE EMP_NO = #{emp_no}
+		   AND MENU_ID = #{menu_id}
+  	</delete>
+</mapper>

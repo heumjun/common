@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectDWGEcoReceiver">
+  	<select id="select" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT *
+	  FROM (SELECT SDER.RECEIVER_ID
+	             , NVL(SDER.DESCRIPTION, '') AS DESCRIPTION
+	             , NVL(SDER.CAUSEDEPT, '')   AS CAUSEDEPT
+	             , NVL(SDER.WORK_STAGE, '')  AS WORK_STAGE
+	             , NVL(SDER.WORK_TIME, '')   AS WORK_TIME
+	             , NVL(SDER.USER_LIST, '')   AS USER_LIST
+	             , NVL(SDER.ITEM_ECO_NO, '') AS ITEM_ECO_NO
+	             , NVL(SDER.ECR_NO, '')      AS ECR_NO
+	             , NVL(SDER.ECO_EA, '')      AS ECO_EA
+	          FROM STX_DWG_ECO_RECEIVER@STXERP SDER
+	         WHERE SDER.MASTER_PROJECT_NO = #{h_ShipNo}
+	           AND SDER.DWG_NO            = #{h_DwgNo}
+	           AND SDER.REV_NO            = #{dwg_rev}
+	         ORDER BY LAST_UPDATE_DATE DESC
+	       )
+	 WHERE ROWNUM = 1
+  	</select>
+  	
+</mapper>

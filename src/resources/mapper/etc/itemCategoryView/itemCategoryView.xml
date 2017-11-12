@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="itemCategoryView">
+
+	<select id="selectItemCategoryViewCatalog" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT CATEGORY_CODE,                     
+			       CATALOG_CODE,                      
+			       ITEM_LIST_CODE,                    
+			       ITEM_LIST_DESC,                    
+			       L_CATALOG_CODE,                    
+			       L_CATALOG_DESC,                    
+			       M_CATALOG_CODE,                    
+			       M_CATALOG_DESC,                    
+			       S_CATALOG_CODE,                    
+			       S_CATALOG_DESC,                    
+			       UOM_CODE,                          
+			       ELE_NAME_1,                        
+			       ELE_NAME_2,                        
+			       ELE_NAME_3,                        
+			       ELE_NAME_4,                        
+			       ELE_NAME_5,                        
+			       ELE_NAME_6,                        
+			       ELE_NAME_7,                        
+			       ELE_NAME_8,                        
+			       ELE_NAME_9,                        
+			       ELE_NAME_10,                       
+			       ELE_NAME_11,                       
+			       ELE_NAME_12,                       
+			       ELE_NAME_13,                       
+			       ELE_NAME_14,                       
+			       ELE_NAME_15,                       
+			       DISABLE_CODE,                      
+			       SORT_TYPE,                         
+			       FULL_LEAD_TIME,                    
+			       SP_FULL_LEAD_TIME,                 
+			       MRP_PLANNING_DESC,                 
+			       MRP_PLANNING_CODE,                 
+			       SP_MRP_PLANNING_DESC,              
+			       SP_MRP_PLANNING_CODE,              
+			       DWG_FLAG                           
+              FROM STX_STD_EP_LIST_V                 
+             WHERE 1=1      
+             <if test=" sort_type != 'ALL' ">
+             	AND SORT_TYPE = #{sort_type}
+             </if>   
+             <if test=" catalog_name != null and catalog_name != '' ">
+             	AND ( L_CATALOG_DESC like '%'||#{catalog_name}||'%'
+		                   OR M_CATALOG_DESC like '%'||#{catalog_name}||'%'   
+		                   OR S_CATALOG_DESC like '%'||#{catalog_name}||'%'
+		                   OR CATALOG_CODE like '%'||#{catalog_name}||'%' )   
+             </if>                         
+
+	</select>
+	
+	<select id="selectItemCategoryViewCategory" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT *  FROM STX_STD_EP_CATEGORY_LIST_V 
+	</select>
+	
+	<select id="selectItemCategoryViewType" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT *  FROM STX_STD_EP_ITEM_TYPE_LIST_V 
+	</select>
+	
+	<select id="selectItemCategoryViewTemplate" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TEMPLATE_GROUP,TEMPLATE_CODE_NAME,TEMPLATE_CODE_VALUE
+			 FROM STX_STD_EP_ITEM_TEMPLATE_V 
+			 WHERE TEMPLATE_ID = #{template_name}
+	</select>
+	
+	<select id="selectItemCategoryViewTemplateCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT * FROM STX_STD_EP_TEMPLATE_CODE_V 
+	</select>
+	
+	<select id="selectItemCategoryViewList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT * FROM STX_STD_EP_ITEM_LIST_V 
+		WHERE 1=1
+			AND ITEM_TYPE=#{select_type}
+	</select>
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoIsAuthApprove">
+
+	<select id="select" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT DECODE(count(*),1,'Y','N')     AS  is_auth_approve
+	  FROM stx_dis_statereq SDS
+	 WHERE SDS.state_flag = 'N'
+	   AND SDS.referrers  = 'N' 
+	   AND SDS.MAIN_CODE  = #{main_code,jdbcType=VARCHAR}
+	   AND SDS.EMP_NO     = #{loginId,jdbcType=VARCHAR}
+	   and rownum =1
+	   AND EXISTS
+	       (
+	         SELECT 1
+	           FROM STX_DIS_ENG_CHANGE_ORDER SDECO
+	          WHERE SDECO.eng_change_order_code = SDS.MAIN_CODE
+	            AND SDECO.LOCKER_BY             = SDS.EMP_NO 
+	         UNION ALL
+	         SELECT 1
+	           FROM STX_DIS_ENG_CHANGE_REQ  SDECR
+	          WHERE SDECR.ENG_CHANGE_REQ_CODE   = SDS.MAIN_CODE
+	            AND SDECR.LOCKER_BY             = SDS.EMP_NO
+	       )  
+	</select>
+  	
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="updateUserControl">
+  	<update id="update" parameterType="java.util.Map">
+		UPDATE STX_DIS_USER
+		   SET MULTI_MENU_YN = #{controlFlag}
+		 WHERE EMP_NO = #{emp_no}
+	</update>
+  	
+</mapper>

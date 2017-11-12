@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ModelMgnt">
+<!-- modelMgntList.xml로 이관 -->
+	<!-- <select id="selectModelMgntList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( SELECT 
+	                   B.MAIN_NAME AS MODEL_NAME 
+	              	 , A.MODEL_CODE 
+				     , A.CATEGORY 
+				     , A.SHIP_TYPE 
+				     , ( SELECT SDSC.SD_DESC
+				           FROM STX_DIS_SD_CODE SDSC
+				          WHERE SDSC.SD_TYPE = 'SHIP_TYPE'
+				            AND SDSC.SD_CODE = A.SHIP_TYPE
+				       ) AS SHIP_TYPE_DESC
+				     , '...' AS SHIP_TYPE_POPUP
+				     , A.DESCRIPTION 
+				     , A.MARKETING_NAME 
+				     , A.MARKETING_TEXT 
+				     , A.REPRESENTATIVES_EMP_NO 
+				     , A.INTENDED_CARGO 
+				     , A.BULK_HEAD_CODE 
+				     , A.ICE_CLASS_CODE 
+				     , A.CARGO_PUMP_CODE 
+					 , A.SEGREGATION_CODE 
+					 , A.CARGO_HOLD_CODE 
+					 , A.CAPACITY 
+					 , A.CLASS as class_code
+					 , A.CLASS2 as class_code2
+					 , A.GT 
+					 , A.PRINCIPAL_PARTICULARS 
+					 , A.BOW_THRUSTER_CODE 
+					 , A.ENABLE_FLAG
+					 , A.ENABLE_FLAG as enable_flag_changed
+				     , A.LAST_UPDATED_DATE					     
+				     , (SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE A.LAST_UPDATED_BY = EMP_NO) AS CREATED_NAME
+				     , A.SPEED AS SPEED
+				FROM STX_DIS_MODEL A
+				INNER JOIN STX_DIS_MAIN B ON A.MODEL_CODE = B.MAIN_CODE
+				 order by B.MAIN_NAME
+		  ) t1
+  			) t2
+ 	where page = #{curPageNo} 
+  	</select>
+  	
+  	<select id="selectModelMgntTotalList" parameterType="java.util.Map" resultType="String">
+	SELECT count(*) as cnt 
+	  FROM STX_DIS_MODEL A
+     INNER JOIN STX_DIS_MAIN B ON A.MODEL_CODE = B.MAIN_CODE
+  	</select> -->
+  	
+  	<select id="selectModelCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT SD_CODE AS VALUE 
+     	 , SD_DESC AS TEXT
+  	  FROM STX_DIS_SD_CODE 
+ 	 WHERE SD_TYPE = #{codeType} 	
+  	</select>
+  	
+  	<!-- saveModelMgnt.xml 로 이관  -->
+  	<!-- <select id="duplicate" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT B.MAIN_NAME AS MODEL_NAME 
+	           , A.MODEL_CODE 
+	     , A.CATEGORY 
+	     , A.SHIP_TYPE 
+	     , A.DESCRIPTION 
+	     , A.MARKETING_NAME 
+	     , A.MARKETING_TEXT 
+	     , A.REPRESENTATIVES_EMP_NO 
+	     , A.INTENDED_CARGO 
+	     , A.BULK_HEAD_CODE 
+	     , A.ICE_CLASS_CODE 
+	     , A.CARGO_PUMP_CODE 
+		 , A.SEGREGATION_CODE 
+		 , A.CARGO_HOLD_CODE 
+		 , A.CAPACITY 
+		 , A.GT 
+		 , A.PRINCIPAL_PARTICULARS 
+		 , A.BOW_THRUSTER_CODE 
+		 , A.ENABLE_FLAG
+	     , A.LAST_UPDATED_DATE
+	     , A.CLASS
+	     , (SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE A.LAST_UPDATED_BY = EMP_NO) AS CREATED_NAME
+	  FROM STX_DIS_MODEL A
+	INNER JOIN STX_DIS_MAIN B ON A.MODEL_CODE = B.MAIN_CODE
+	     WHERE B.MAIN_NAME = #{model_name}
+  	</select>
+  	
+  	<select id="saveModel" statementType="CALLABLE" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+  	{ call stx_dis_model_pkg.model_save_proc(p_action_type            => #{p_action_type},
+                                             p_model_name             => #{p_model_name},
+                                             p_model_code             => #{p_model_code},
+                                             p_category               => #{p_category},
+                                             p_ship_type              => #{p_ship_type},
+                                             p_description            => #{p_description},
+                                             p_marketing_name         => #{p_marketing_name},
+                                             p_marketing_text         => #{p_marketing_text},
+                                             p_representatives_emp_no => #{p_representatives_emp_no},
+                                             p_intended_cargo         => #{p_intended_cargo},
+                                             p_bulk_head_code         => #{p_bulk_head_code},
+                                             p_ice_class_code         => #{p_ice_class_code},
+                                             p_cargo_pump_code        => #{p_cargo_pump_code},
+                                             p_segregation_code       => #{p_segregation_code},
+                                             p_cargo_hold_code        => #{p_cargo_hold_code},
+                                             p_capacity               => #{p_capacity},
+                                             p_gt                     => #{p_gt},
+                                             p_principal_particulars  => #{p_principal_particulars},
+                                             p_bow_thruster_code      => #{p_bow_thruster_code},
+                                             p_enable_flag            => #{p_enable_flag},
+                                             p_class                  => #{p_class},
+                                             p_class2                 => #{p_class2},
+                                             p_speed                  => #{p_speed},
+                                             p_loginid                => #{p_loginid},
+                                             p_error_msg              => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                             p_error_code             => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+  	</select> -->
+	
+	<select id="selectModelShipType" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT SDSC.SD_CODE
+	      ,SDSC.SD_DESC
+	  FROM STX_DIS_SD_CODE SDSC
+	 WHERE SDSC.SD_TYPE     = 'SHIP_TYPE'
+	   AND SDSC.ENABLE_FLAG = 'Y'
+	   AND SDSC.ATTRIBUTE1  = #{p_ship_category}
+	 ORDER BY SDSC.SD_CODE
+	</select>
+	
+	<select id="selectModel" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT SDMDL.MODEL_CODE    AS MODEL
+	      ,SDM.MAIN_NAME       AS MODEL_DESC
+	  FROM STX_DIS_MODEL SDMDL
+	      ,STX_DIS_MAIN  SDM
+	 WHERE SDMDL.MODEL_CODE = SDM.MAIN_CODE
+	   AND SDM.MAIN_TYPE    = 'MODEL'
+	   AND SDM.MAIN_NAME    LIKE #{p_model,jdbcType=VARCHAR} || '%'
+	 ORDER BY SDM.MAIN_NAME
+	</select>
+</mapper>

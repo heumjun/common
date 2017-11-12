@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ecrEcoMappingExcelExport">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 
+	 WITH ta AS (
+	    SELECT x.sd_code     as states_code
+	          ,X.ORDER_BY    as no
+	          ,x.sd_meaning  as states_var1
+	          ,x.sd_meaning  as states_description
+	      FROM stx_dis_sd_code x
+	     WHERE x.sd_type = 'ECRBASED'
+		  )
+		, tb AS (
+		    SELECT sdeb.main_states_code                                                                as states_code
+		         , listagg( sdeb.sub_states_code , ', ' ) WITHIN GROUP( ORDER BY sdeb.sub_states_code ) as stype
+		      FROM stx_dis_ecr_based sdeb  
+		         , ta                y
+		     WHERE sdeb.main_states_code = y.states_code  
+		     GROUP BY sdeb.main_states_code
+		  ) 
+		, tc AS 
+		(
+		 SELECT sdeb.main_states_code      as main_states_code
+		      , sdsc.attribute1            as states_type
+		   FROM stx_dis_ecr_based  sdeb
+		       ,stx_dis_sd_code    sdsc
+		 where sdeb.sub_states_code = sdsc.sd_code
+		   and sdsc.sd_type         = 'CAUSE'
+		  GROUP BY sdeb.main_states_code 
+		         , sdsc.attribute1  
+		)
+		( 
+          SELECT states_code
+           , no
+           , states_var1
+           , NVL( states_description, states_var1 ) states_description
+           , ltype related_eco_type
+           , ltype
+           , stype
+           , action
+          FROM ( SELECT a.states_code
+                    , a.no
+                    , a.states_var1
+                    , a.states_description
+                    , ( SELECT listagg( c.states_type, ', ' ) WITHIN GROUP( ORDER BY c.states_type )
+                          FROM tc c
+                         WHERE c.main_states_code = a.states_code ) ltype
+                    , b.stype
+                    , '...' action
+                 FROM ta a
+                    , tb b
+                WHERE a.states_code = b.states_code(+)
+                ORDER BY a.no
+             )
+         )
+
+  	</select>
+
+</mapper>

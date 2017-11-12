@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveSpstSubBom">
+	<insert id="insertSpstBomTemp" parameterType="java.util.Map">
+		INSERT
+		  INTO STX_DIS_SPST_BOM_TEMP(SHIP_TYPE , LEVEL_NO , MOTHER_CATALOG , ITEM_CATALOG , ATTRIBUTE01 , ATTRIBUTE02 , ATTRIBUTE03 , ATTRIBUTE04 , ATTRIBUTE05 , ATTRIBUTE06 , ATTRIBUTE07 , ATTRIBUTE08 , ATTRIBUTE09 , ATTRIBUTE10 , ATTRIBUTE11 , ATTRIBUTE12 , ATTRIBUTE13 , ATTRIBUTE14 , ATTRIBUTE15 , WBS_SUB_MOTHER_ID , WBS_SUB_ITEM_ID , CREATE_BY , CREATE_DATE , MODIFY_BY , MODIFY_DATE)
+		VALUES (#{ship_type}
+		     , #{level_no}
+		     , #{mother_catalog}
+		     , #{item_catalog}
+		     , #{item_attribute01}
+		     , #{item_attribute02}
+		     , #{item_attribute03}
+		     , #{item_attribute04}
+		     , #{item_attribute05}
+		     , #{item_attribute06}
+		     , #{item_attribute07}
+		     , #{item_attribute08}
+		     , #{item_attribute09}
+		     , #{item_attribute10}
+		     , #{item_attribute11}
+		     , #{item_attribute12}
+		     , #{item_attribute13}
+		     , #{item_attribute14}
+		     , #{item_attribute15}
+		     , #{wbs_sub_mother_id}
+		     , stx_dis_wbs_sub_item_seq_id.nextval
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE)
+	</insert>
+	<delete id="deleteSpstBomTemp" parameterType="java.util.Map">
+		DELETE FROM STX_DIS_SPST_BOM_TEMP
+		 WHERE WBS_SUB_ITEM_ID = #{wbs_sub_item_id}
+	</delete>
+	<update id="updateSpstBomTemp" parameterType="java.util.Map">
+		UPDATE STX_DIS_SPST_BOM_TEMP
+		   SET MOTHER_CATALOG = #{mother_catalog}
+		     , ITEM_CATALOG = #{item_catalog}
+		     , ATTRIBUTE01 = #{item_attribute01}
+		     , ATTRIBUTE02 = #{item_attribute02}
+		     , ATTRIBUTE03 = #{item_attribute03}
+		     , ATTRIBUTE04 = #{item_attribute04}
+		     , ATTRIBUTE05 = #{item_attribute05}
+		     , ATTRIBUTE06 = #{item_attribute06}
+		     , ATTRIBUTE07 = #{item_attribute07}
+		     , ATTRIBUTE08 = #{item_attribute08}
+		     , ATTRIBUTE09 = #{item_attribute09}
+		     , ATTRIBUTE10 = #{item_attribute10}
+		     , ATTRIBUTE11 = #{item_attribute11}
+		     , ATTRIBUTE12 = #{item_attribute12}
+		     , ATTRIBUTE13 = #{item_attribute13}
+		     , ATTRIBUTE14 = #{item_attribute14}
+		     , ATTRIBUTE15 = #{item_attribute15}
+		     , MODIFY_BY = #{loginId}
+		     , MODIFY_DATE = SYSDATE
+		 WHERE WBS_SUB_ITEM_ID = #{wbs_sub_item_id}
+	</update>
+</mapper>

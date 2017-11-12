@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoPaintLossCode">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select t1.order_seq
+	      ,t1.loss_code
+	      ,t1.loss_desc
+	      ,TRANSLATE(t1.set_name, '0123456789'||t1.set_name, '0123456789') as set_name_num
+	      ,t1.set_name
+	      ,t1.paint_count
+	      ,t1.pre_loss
+	      ,t1.post_loss
+	      ,round(t1.pre_loss_rate)
+	       as pre_loss_rate 
+	      ,round(t1.post_loss_rate)
+	        as post_loss_rate 
+	      ,t1.paint_type
+	      ,t1.stage_desc
+	      ,t1.remark
+	  from stx_dis_pis_loss t1
+	 where 1=1
+	   and t1.loss_code = #{lossCode}
+	 order by t1.loss_code, t1.loss_desc, cast(set_name_num as int), t1.paint_count    				  
+  	</select>
+  	
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="searchPatternPaintArea">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+	                         select project_no
+	                               ,revision
+	                               ,area_code
+	                               ,min(area_desc)
+	                                as area_desc  
+	                           from stx_dis_pis_block
+	                          where project_no = #{project_no} 
+	                            and revision   = #{revision}
+	                          group by project_no, revision, area_code
+	                         )
+	select t1.project_no
+	      ,t1.revision
+	      ,t1.pattern_code
+	      ,t1.area_code
+	      ,t3.area_desc
+	      ,t3.loss_code 
+	      ,(select zone_code
+	          from stx_dis_pis_zone
+	         where project_no = t1.project_no
+	           and revision	  = t1.revision	
+	           and area_code  = t1.area_code) as zone_code       				
+	      ,cast(t1.rowid as char(18))  		  as pattern_rowid      
+	  from stx_dis_pis_pattern_area t1
+	      ,temp_paint_block         t2
+	      ,stx_dis_pis_area         t3
+	 where t1.project_no    =  t2.project_no
+	   and t1.revision      =  t2.revision
+	   and t1.area_code     =  t2.area_code
+	   and t2.area_code     =  t3.area_code(+)
+	   and t1.project_no    =  #{project_no}                     
+	   and t1.revision      =  #{revision}
+	   and t1.pattern_code  =  #{pattern_code}
+  	 order by area_code 
+ 	</select> 	
+</mapper>

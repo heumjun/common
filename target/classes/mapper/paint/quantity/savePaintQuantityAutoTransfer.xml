@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintQuantityAutoTransfer">
+  
+	<update id="updateBlockQuantityAllAutoTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   	= #{loginId}
+		  ,last_update_date  	= sysdate
+	      ,block_area         	= nvl(block_area,0) + round(pe_area,3)
+	      ,pe_area           	= 0
+	      ,block_quantity     	= nvl(block_quantity,0) + round(pe_quantity,3)
+	      ,pe_quantity       	= 0 
+	      ,block_theory_quantity = nvl(block_theory_quantity,0) + round(pe_theory_quantity,3)
+	      ,pe_theory_quantity   = 0
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}    
+	   and block_define_flag = 'N'
+	   and pre_pe_define_flag = 'N'
+	   and pe_define_flag 	 = 'N'
+	   and hull_define_flag  = 'N'
+	   and quay_define_flag  = 'N'
+	   and block_code not like '9%'
+	   and block_code in ( select block_code
+                             from stx_dis_pis_pe
+                            where project_no = #{project_no}
+                             and revision = #{revision}
+                             and trans_block_flag='Y')	   
+	</update>	
+	
+	
+	<update id="updateHullorQuayQuantityAutoTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   	= #{loginId}
+		  ,last_update_date  	= sysdate	      
+          ,hull_area            = (case when nvl(hull_quantity,0) <![CDATA[>]]> 0 then nvl(hull_area,0) + round(pe_area,3)
+                                        else hull_area
+                                   end)
+          ,quay_area            = (case when nvl(hull_quantity,0) &lt;= 0 then nvl(quay_area,0) + round(pe_area,3)
+                                        else quay_area
+                                   end)
+	      ,pe_area           	= 0          
+          ,hull_quantity        = (case when nvl(hull_quantity,0) <![CDATA[>]]> 0 then nvl(hull_quantity,0) + round(pe_quantity,3)
+                                        else hull_quantity
+                                   end)
+          ,quay_quantity        = (case when nvl(hull_quantity,0) &lt;= 0 then nvl(quay_quantity,0) + round(pe_quantity,3)
+                                        else quay_quantity
+                                   end)
+	      ,pe_quantity        	= 0          
+          ,hull_theory_quantity = (case when nvl(hull_quantity,0) <![CDATA[>]]> 0 then nvl(hull_theory_quantity,0) + round(pe_theory_quantity,3)
+                                        else hull_theory_quantity
+                                   end)
+          ,quay_theory_quantity = (case when nvl(hull_quantity,0) &lt;= 0 then nvl(quay_theory_quantity,0) + round(pe_theory_quantity,3)
+                                        else quay_theory_quantity
+                                   end)
+	      ,pe_theory_quantity   = 0   
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code} 
+	   and block_define_flag = 'N'
+	   and pre_pe_define_flag = 'N'
+	   and pe_define_flag 	 = 'N'
+	   and hull_define_flag  = 'N'
+	   and quay_define_flag  = 'N'
+	   and block_code not like '9%'	   
+       and pe_quantity <![CDATA[>]]> 0	     			
+	</update>
+	
+	<update id="updatePrePEQuantityHalfAutoTransfer">
+	update stx_dis_pis_pattern_scheme
+   	   set last_updated_by    		= #{loginId}
+		  ,last_update_date   		= sysdate
+	      ,pre_pe_area        		= nvl(pre_pe_area,0) + round(pe_area/2,3)
+	      ,pe_area            		= trunc(pe_area/2,3)
+	      ,pre_pe_quantity    		= nvl(pre_pe_quantity,0) + round(pe_quantity/2,3)
+	      ,pe_quantity        		= trunc(pe_quantity/2,3)
+	      ,pre_pe_theory_quantity 	= nvl(pre_pe_theory_quantity,0) + round(pe_theory_quantity/2,3)
+	      ,pe_theory_quantity   	= trunc(pe_theory_quantity/2,3)
+	      ,transfer_gbn				= 'Y'
+	 where project_no  		  = #{project_no}
+	   and revision    		  = #{revision}
+	   and season_code 		  = #{season_code}  
+	   and block_define_flag = 'N'
+	   and pre_pe_define_flag = 'N'
+	   and pe_define_flag 	 = 'N'
+	   and hull_define_flag  = 'N'
+	   and quay_define_flag  = 'N'	   
+	   and block_code not like '9%'
+	   and transfer_gbn	is null		
+	   and pre_pe_code  is not null
+	</update>   
+	
+	
+	<update id="updatePrePEQuantityAllAutoTransfer">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by    		= #{loginId}
+		  ,last_update_date   		= sysdate
+	      ,pre_pe_area        		= nvl(pre_pe_area,0) + round(pe_area,3)
+	      ,pe_area            		= 0
+	      ,pre_pe_quantity    		= nvl(pre_pe_quantity,0) + round(pe_quantity,3)
+	      ,pe_quantity        		= 0    
+	      ,pre_pe_theory_quantity 	= nvl(pre_pe_theory_quantity,0) + round(pe_theory_quantity,3)
+	      ,pe_theory_quantity   	= 0
+          ,transfer_gbn             = ''
+	 where project_no  		  = #{project_no}
+	   and revision    		  = #{revision}
+	   and season_code 		  = #{season_code}    
+	   and block_define_flag = 'N'
+	   and pre_pe_define_flag = 'N'
+	   and pe_define_flag 	 = 'N'
+	   and hull_define_flag  = 'N'
+	   and quay_define_flag  = 'N'	   
+	   and block_code not like '9%'
+	   and pre_pe_code is not null  
+       and pe_code   in    (select pe_code
+                              from
+                               (  select b.pe_code
+                                        ,sum(case when pe_code is not null then 1 else 0 end)     as pe_row_cnt
+                                        ,sum(case when pre_pe_code is not null then 1 else 0 end) as pre_pe_row_cnt
+                                        ,count(distinct pre_pe_code)                              as pre_pe_cnt
+                                   from stx_dis_pis_pe b
+                                   where b.project_no = #{project_no}
+                                     and b.revision   = #{revision}
+                                   group by b.project_no, b.revision, b.pe_code)
+                              where pe_row_cnt = pre_pe_row_cnt
+                                and pre_pe_cnt = 1 )                          
+	</update>
+
+	
+
+</mapper>

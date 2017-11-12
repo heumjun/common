@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingNewPosList">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="emsPurchasingPosList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_POS_SELECT_PROC(
+					P_MASTER 				=> #{p_master			}, 
+					P_DWG_NO 				=> #{p_dwg_no			}, 
+					P_CURPAGENO 			=> #{curPageNo			}, 
+					P_PAGESIZE 				=> #{pageSize			}, 
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}, 
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 				=> #{p_refer,			jdbcType=CURSOR,  javaType=ResultSet, resultMap=popUpPurchasingNewPosList.procResultMap, mode=OUT})}
+	</select>	
+	
+	<insert id="emsPurchasingPosChkProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_POS_PURCHASING_CHECK_PROC  (
+					P_MASTER 				=> #{p_master			},
+					P_DWG_NO 				=> #{p_dwg_no			},
+					P_POS_REV 				=> #{p_pos_rev			},
+					P_USER_ID 				=> #{loginId			},   
+					P_WORK_KEY     			=> #{p_session_id		}, 
+					P_EMS_PUR_NO			=> #{p_ems_pur_no		}, 
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}, 
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+	<insert id="emsPurchasingPosInsertProc"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_POS_INSERT_PROC (
+					P_MASTER 				=> #{master},
+					P_DWG_NO 				=> #{dwg_no},
+					P_POS_REV 				=> #{pos_rev},
+					P_POS_TYPE 				=> #{pos_type},
+					P_ITEM_TYPE 			=> #{item_type},
+					P_CAUSE_DEPT 			=> #{cause_dept},
+					P_IS_COST 				=> #{is_cost},
+					P_EXTRA_COST 			=> #{extra_cost},
+					P_FILE_ID 				=> #{file_id},
+					P_REMARK 				=> #{remark},
+					P_USER_ID 				=> #{p_user_id},
+					P_CONFIRM_FLAG 			=> #{chk_state},
+					P_WORK_KEY     			=> #{p_session_id		}, 
+					P_CALLBACK				=> #{p_callback},
+					P_CALLBACKMSG			=> #{p_callbackmsg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+	
+</mapper>

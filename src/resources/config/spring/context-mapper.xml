@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	
+	
+	<!-- DIS 세션  -->
+	<bean id="disSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="disSqlSession" />
+	</bean>
+	<bean id="disSqlSession" class="stxship.dis.common.Factory.RefreshableSqlSessionFactoryBean">
+		<property name="dataSource" ref="disSource" />
+		<property name="mapperLocations" value="classpath:/mapper/**/*.xml" />
+	</bean>
+	
+	
+	
+	<!-- ERP 세션  -->
+	<bean id="erpSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="erpSqlSession" />
+	</bean>
+	<bean id="erpSqlSession" class="stxship.dis.common.Factory.RefreshableSqlSessionFactoryBean">
+		<property name="dataSource" ref="erpSource" />
+		<property name="mapperLocations">
+		<array>
+			
+			<value>classpath:/mapper/ems/partList/emsPartListMain.xml</value>
+			<value>classpath:/mapper/ems/admin/emsAdminMain.xml</value>
+			<value>classpath:/mapper/ems/admin/emsAdminList.xml</value>
+			<value>classpath:/mapper/ems/purchasing/emsPurchasingMain.xml</value>
+			<value>classpath:/mapper/ems/purchasing/emsPurchasingList.xml</value>
+			<value>classpath:/mapper/ems/purchasing/emsPurchasingExcelExport.xml</value>
+			<value>classpath:/mapper/ems/purchasing/popUp/popUpPurchasingDpList.xml</value>
+			<!-- emsNew 관련 운영 반영시 주석 START-->
+			<value>classpath:/mapper/ems/adminNew/emsAdminNewMain.xml</value>
+			<value>classpath:/mapper/ems/adminNew/popUp/popUpAdminNewSpecList.xml</value>
+			<value>classpath:/mapper/ems/purchasingNew/emsPurchasingNewMain.xml</value>
+			<value>classpath:/mapper/ems/purchasingNew/popUp/popUpPurchasingNewModifyList.xml</value>
+			<value>classpath:/mapper/ems/purchasingNew/popUp/popUpPurchasingNewDeleteList.xml</value>
+			<value>classpath:/mapper/ems/purchasingNew/popUp/popUpPurchasingNewPosList.xml</value>
+			<value>classpath:/mapper/ems/purchasingNew/popUp/popUpPurchasingNewAddList.xml</value>
+			<value>classpath:/mapper/ems/purchasingNew/popUp/popUpPurchasingNewSpecList.xml</value> 
+			<!-- emsNew 관련 운영 반영시 주석 END -->
+			<value>classpath:/mapper/ems/dbMaster/*.xml</value>
+			<value>classpath:/mapper/ems/dbMaster/popUp/*.xml</value>
+			<value>classpath:/mapper/paint/pr/saveCreatePaintPR.xml</value>
+			<value>classpath:/mapper/baseInfo/updateItemAttribute/updatePlmErpDB.xml</value>
+			<value>classpath:/mapper/etc/standartInfoTrans/saveStandardInfoTrans.xml</value>
+			<value>classpath:/mapper/etc/itemStandardView/*.xml</value>
+			<value>classpath:/mapper/etc/itemStandardUpload/*.xml</value>
+			<value>classpath:/mapper/etc/itemCategoryView/*.xml</value>
+			<value>classpath:/mapper/etc/documentView/*.xml</value>
+			<value>classpath:/mapper/etc/systemStandardView/*.xml</value>
+			
+			<value>classpath:/mapper/wps/**/*.xml</value>
+		</array>
+		</property>
+	</bean>
+	
+	<!-- SDPS 세션  -->
+	<bean id="dpsSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="dpsSqlSession" />
+	</bean>
+	<bean id="dpsSqlSession" class="stxship.dis.common.Factory.RefreshableSqlSessionFactoryBean">
+		<property name="dataSource" ref="dpsSource" />
+		<property name="mapperLocations">
+			<array>
+				<value>classpath:/mapper/buyerClass/**/*.xml</value>
+				<value>classpath:/mapper/common/dpsCommon.xml</value>
+				<value>classpath:/mapper/common/popUp/dpsCommon/*.xml</value>
+				<value>classpath:/mapper/dps/**/*.xml</value>
+				<value>classpath:/mapper/comment/**/*.xml</value>
+			</array>
+		</property>
+	</bean>
+	
+	<!-- PLM 세션  -->
+	<!-- <bean id="plmSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="plmSqlSession" />
+	</bean>
+	<bean id="plmSqlSession" class="stxship.dis.common.Factory.RefreshableSqlSessionFactoryBean">
+		<property name="dataSource" ref="plmSource" />
+		<property name="mapperLocations" value="classpath:/mapper/etc/standartInfoTrans/*.xml" />
+	</bean> -->
+</beans>
+
+

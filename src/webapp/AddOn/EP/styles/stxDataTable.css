@@ -1,0 +1,118 @@
+.td_header
+{
+	position: relative;
+	font-size: 8pt;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	top: expression(this.offsetParent.firstChild.scrollTop);
+	color: white;
+	vertical-align: middle;
+	text-align: center;
+	padding: 0px, 6px, 0px, 6px;
+	font-weight: bold;
+	background:#336699;
+	height: 25;
+	z-index:20;
+}
+.td_header_fix
+{
+	position: relative;
+	top: expression(this.offsetParent.firstChild.scrollTop);
+	left: expression(this.offsetParent.firstChild.scrollLeft);
+	font-size: 8pt;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	color: white;
+	vertical-align: middle;
+	text-align: center;
+	padding: 0px, 6px, 0px, 6px;
+	font-weight: bold;
+	background:#336699;
+	height: 30;
+	z-index:30;
+}
+.data_fix
+{
+	position: relative;
+	left: expression(this.offsetParent.firstChild.scrollLeft);
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	font-size: 8pt;
+	z-index:10;
+	height: 30;
+	font-weight: bold;
+}
+.data
+{
+	font-size: 8pt;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	height: 30;
+	z-index:5;
+}
+.hintstyle 
+{   
+	position:absolute; 
+	word-break:break-all;        
+	background:#EEEEEE;   
+	border:1px solid black;   
+	padding:2px;   
+}
+
+tr.odd_Select { 
+	background-color: #efd6d1;
+}
+
+tr.even_Select { 
+	/*background-color: #e1aea4; */
+	background-color: #efd6d1;
+}
+
+tr.even_group { 
+	/*background-color: #e1aea4; */
+	background-color: #eeeeee;
+}
+
+tr.odd_group { 
+	background-color: #dddfff;
+}
+
+tr.even_group_Select { 
+	/*background-color: #e1aea4; */
+	background-color: #efd6d1;
+}
+
+tr.odd_group_Select { 
+	background-color: #efd6d1;
+}
+
+td.buttonField { background-color: #ffffff;}
+
+/* Default State Appearance */
+td.stateName { background-color: #96bbe8; color: black; height: 9px; }
+
+/* State Highlight Appearance */
+td.stateNameHighlight { background-color: #006699; color: white; height: 9px; }
+
+/* State Shadow Appearance */
+td.shadow { background-color: #999999;}
+
+.inputtrans
+{
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	font-size: 8pt;
+	background-color:transparent;
+	overflow-x:auto;
+	overflow-y:auto;
+    border:1px solid #990000 ;
+}
+
+.buttonNew
+{
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	font-size: 8pt;
+	color:white;
+	background-color:#CC3D3D;
+	font-weight: bold ;
+    border:1px solid #CC3D3D ;
+} 
+
+.buttonNew:hover {
+	color: #ff0
+}

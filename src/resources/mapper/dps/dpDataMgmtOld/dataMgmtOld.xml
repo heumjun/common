@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dataMgmtOld">
+	<select id="selectDataMgmtList"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT
+				   PROJECT_NO,
+			       WORKDAY,
+			       EMPLOYEE_NO,
+			       EMP_NAME,
+			       DEPT_CODE,
+			       DEPT_NAME,
+			       DWG_CODE,
+			       OP_CODE,
+			       ROUND(DIRECT_MH * MH_FACTOR, 1) AS DIRECT_MH,
+			       ROUND(DIST_MH * MH_FACTOR, 1) AS DIST_MH,
+			       DECODE(PROJECT_GBN, 'P', '공사시수', '비공사시수') AS PROJECT_GBN,
+			       ROUND(NORMAL_TIME * MH_FACTOR, 1) AS NORMAL_TIME_FACTOR,
+			       ROUND(OVERTIME * MH_FACTOR, 1) AS OVER_TIME_FACTOR,
+			       ROUND(SPECIAL_TIME * MH_FACTOR, 1) AS SPECIAL_TIME_FACTOR
+			FROM   (SELECT 
+						   PROJECT_NO,
+			               WORKDAY,
+			               EMPLOYEE_NO,
+			               NVL(EMP_NAME, (SELECT B.USER_NAME
+			                        FROM   STX_COM_INSA_USER@STXERP B
+			                        WHERE  B.EMP_NO = EMPLOYEE_NO)) AS EMP_NAME,
+			               DEPT_CODE,
+			               DEPT_NAME,
+			               DWG_CODE,
+			               OP_CODE,
+			               DIRECT_MH,
+			               DIST_MH,
+			               PROJECT_GBN,
+			               NORMAL_TIME,
+			               OVERTIME,
+			               SPECIAL_TIME,
+			               CASE
+			                         WHEN CAREER_MONTHS IS NULL THEN 1
+			                         ELSE (SELECT FACTOR_VALUE
+			                FROM   (SELECT CAREER_MONTH_FROM,
+			                               CAREER_MONTH_TO,
+			                               FACTOR_VALUE
+			                        FROM   PLM_DESIGN_MH_FACTOR
+			                        WHERE  1 = 1
+			                        AND    CASE_NO = #{factorCaseList} )
+			                WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+			                AND    NVL(CAREER_MONTH_TO, 9999) >= CAREER_MONTHS )
+			                       END AS MH_FACTOR
+			        FROM   (SELECT A.PROJECT_NO,
+			                       TO_CHAR(A.WORK_DAY, 'YYYY-MM-DD') AS WORKDAY,
+			                       A.EMPLOYEE_NO,
+			                       (SELECT C.NAME
+			                        FROM   CCC_SAWON C
+			                        WHERE  C.EMPLOYEE_NUM = A.EMPLOYEE_NO) AS EMP_NAME,
+			                       A.DEPT_CODE,
+			                       (SELECT B.DEPT_NAME
+			                        FROM   STX_COM_INSA_DEPT@STXERP B
+			                        WHERE  B.DEPT_CODE = A.DEPT_CODE) AS DEPT_NAME,
+			                       A.DWG_CODE,
+			                       A.OP_CODE,
+			                       A.DIRECT_MH,
+			                       A.DIST_MH,
+			                       A.PROJECT_GBN,
+			                       A.NORMAL_TIME,
+			                       A.OVERTIME,
+			                       A.SPECIAL_TIME,
+			                       B.POSITION,
+			                       ((TO_CHAR(A.WORK_DAY, 'YYYY') - TO_CHAR(B.DESIGN_APPLY_DATE, 'YYYY'))* 12 + (TO_CHAR(A.WORK_DAY, 'MM') - TO_CHAR(B.DESIGN_APPLY_DATE, 'MM'))) +
+			                                       CASE
+			                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+			                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') > 15 THEN 0
+			                                       END + NVL(ROUND(B.BEFORE_ENTRANCE_CAREER * 12, 0), 0) AS CAREER_MONTHS
+			                FROM   PLM_DESIGN_MH_CLOSE A,
+			                       CCC_SAWON B
+			                WHERE  1 = 1
+			                AND    A.EMPLOYEE_NO = B.EMPLOYEE_NUM(+)
+			                AND    A.OP_CODE &lt;&gt; 'D1Z'
+						<if test="opCode != null and opCode != ''">
+						    AND    A.OP_CODE IN (#{opCode})
+						</if>
+						<if test="drawingNo != null and drawingNo != ''">
+							AND    A.DWG_CODE LIKE #{drawingNo}
+						</if>
+						<if test="designerList != null and designerList != ''">
+						    AND    A.EMPLOYEE_NO = #{designerList}
+						</if>
+						<if test="causeDeptList != null and causeDeptList != ''">
+						    AND    CAUSE_DEPART = #{causeDeptList}
+						</if>		            
+						<if test="departmentList != null and departmentList.size > 0">
+						    AND    A.DEPT_CODE IN (<foreach collection="departmentList" item="item" separator=",">
+													#{item}
+													</foreach>)
+						</if>
+						<if test="projectList != null and projectList.size > 0">
+						    AND    A.PROJECT_NO IN (<foreach collection="projectList" item="item" separator=",">
+													#{item}
+													</foreach>)
+						</if>
+			                AND    A.WORK_DAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD') ))
+			             ORDER BY WORKDAY, DEPT_CODE, EMPLOYEE_NO, PROJECT_NO, DWG_CODE, OP_CODE
+	</select>
+</mapper>

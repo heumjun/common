@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectPermission">
+  	<select id="select" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		 SELECT	*
+  		   FROM stx_dwg_mail_confirm_user_v@stxerp
+  		  WHERE emp_no = #{p_userId}
+  		    AND dwgdeptcode = #{dept}
+  	</select>
+</mapper>

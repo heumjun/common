@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoECORelated">
+	
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select 
+			SDECO.ENG_CHANGE_ORDER_CODE                          AS MAIN_CODE,
+			SDECO.ENG_CHANGE_ORDER_CODE                          AS MAIN_NAME,
+			SDECO.ENG_CHANGE_ORDER_DESC                          AS MAIN_DESCRIPTION,
+			--m.revisions_no,
+			SDSC.SD_DESC                                         AS STATES_DESC,
+			SDECO.CREATE_BY										 AS CREATED_BY,
+			to_char(SDECO.CREATE_DATE,'YYYY-MM-DD')   as created_date,
+			--m.user_group,
+           (SELECT  SUBSTR(XMLAGG(XMLELEMENT(ENG_CHANGE_REQ_CODE,'|' || ENG_CHANGE_REQ_CODE) order by ENG_CHANGE_REQ_CODE).extract('//text()'), 2) AS ENG_CHANGE_REQ_CODE
+                                 FROM STX_DIS_ENG_REL        T
+                                     ,STX_DIS_ENG_CHANGE_REQ R
+                                WHERE T.MAIN_CODE = SDECO.ENG_CHANGE_ORDER_CODE
+                                  AND T.SUB_CODE  = R.ENG_CHANGE_REQ_CODE
+                                  AND T.ENG_TYPE  = 'ECR'
+						) as eng_change_name,
+
+	        SDSC_CA.SD_DESC                                          AS COUSE_DESC,
+            SDECO.ENG_CHANGE_ORDER_CAUSE                             AS ECO_CAUSE,
+	        DECODE(SDECO.PERMANENT_TEMPORARY_FLAG,5,'영구',7,'잠정') AS PERMANENT_TEMPORARY_FLAG,
+	        SDECO.ENG_ECO_PROJECT                                    AS ENG_ECO_PROJECT ,
+	        SDECO.ENG_ECO_PROJECT                                    AS ENG_ECO_PROJECT_CODE ,
+	        <!--STX_DIS_SHORT_EMP_NAME_F(SDECO.DESIGN_ENGINEER)          AS DESIGN_ENGINEER,
+          	STX_DIS_SHORT_EMP_NAME_F(SDECO.MANUFACTURING_ENGINEER)   AS MANUFACTURING_ENGINEER,-->
+          	STX_DIS_GET_USER_NAME_F(SDECO.DESIGN_ENGINEER)           AS DESIGN_ENGINEER,
+          	STX_DIS_GET_USER_NAME_F(SDECO.MANUFACTURING_ENGINEER)    AS MANUFACTURING_ENGINEER,
+          	SCID.DEPT_NAME                                           AS USER_GROUP_NAME,
+            SCID.DEPT_CODE                                           AS USER_GROUP,
+            SDECO.DESIGN_ENGINEER                                    AS DESIGN_ENGINEER_EMP_NO,
+            SDECO.MANUFACTURING_ENGINEER                             AS MANUFACTURING_ENGINEER_EMP_NO		
+		FROM STX_DIS_ENG_CHANGE_ORDER SDECO
+            ,STX_DIS_SD_CODE          SDSC
+            ,STX_DIS_SD_CODE          SDSC_CA
+            ,STX_COM_INSA_USER@STXERP SCID
+            ,STX_COM_INSA_DEPT@STXERP SCIP
+	      WHERE SDECO.STATES_CODE            = SDSC.SD_CODE(+)     
+            AND SDECO.CREATE_BY              = SCID.EMP_NO
+            AND SCID.DEPT_CODE               = SCIP.DEPT_CODE
+            AND SDECO.ENG_CHANGE_ORDER_CAUSE = SDSC_CA.SD_CODE(+)
+            AND SDSC_CA.SD_TYPE(+)           = 'CAUSE'
+            AND SDSC.SD_TYPE                 = 'ECO_STATES'
+		    <!-- AND SDECO.PERMANENT_TEMPORARY_FLAG = '5' -->
+		
+		<if test="main_name != null and main_name !='' ">
+            AND SDECO.ENG_CHANGE_ORDER_CODE like REPLACE(#{main_name}, '*', '%') ||'%' <!--  eco 번호  검색-->
+		</if>
+		
+				
+		<if test="created_by != null and created_by !='' ">
+			AND SDECO.CREATE_BY = #{created_by} <!--  작성자 검색-->
+		</if>
+		
+		<if test="created_date_start != null and created_date_start !='' "> <!--  작성 날자로 검색  -->
+			<![CDATA[
+			AND SDECO.CREATE_DATE >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' )
+			]]>
+		</if>
+		
+		<if test="created_date_end != null and created_date_end !='' "> <!--  작성 날자로 검색  -->
+			<![CDATA[
+			AND SDECO.CREATE_DATE <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+			]]>
+		</if>
+		
+		<if test="sd_code_find != null and sd_code_find !='' "> <!--  수정 날자로 검색 -->
+			<![CDATA[
+			AND SDECO.LAST_UPDATE_DATE >= TO_DATE(#{modified_date},'YYYY-MM-DD') 
+			]]>
+		</if>
+		
+		<if test="modified_date != null and modified_date !='' "> <!--  수정 날자로 검색 -->
+			<![CDATA[
+			AND SDECO.LAST_UPDATE_DATE <= TO_DATE(#{modified_date},'YYYY-MM-DD') + 1
+			]]>
+		</if>
+		
+		<if test="user_group != null and user_group !='' ">
+			AND SCID.DEPT_CODE = #{user_group} <!--  그룹 검색-->
+		</if>
+		
+		<if test='save == "bomAddEco" '>
+			AND SDSC.SD_CODE = 'CREATE'
+		</if>
+	 	order by created_date desc
+
+  	</select>
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpInputProjectSelectedNInvaildItemSave">
+  	<update id="update" parameterType="java.util.Map">
+		UPDATE PLM_USER_PROJECT A SET A.END_DATE = NULL WHERE A.EMPLOYEE_NO = #{employee_id} AND A.PROJECT_NO = #{projectno}
+  	</update>
+  	
+  	<insert id="insert" parameterType="java.util.Map">
+	  	INSERT
+		INTO   PLM_USER_PROJECT A
+		SELECT #{employee_id},
+		       #{projectno},
+		       SYSDATE,
+		       NULL,
+		       SYSDATE,
+		       #{employee_id},
+		       SYSDATE,
+		       #{employee_id}
+		FROM   DUAL
+		WHERE  NOT EXISTS(SELECT 1
+		        FROM   PLM_USER_PROJECT B
+		        WHERE  B.EMPLOYEE_NO = #{employee_id}
+		        and    B.PROJECT_NO = #{projectno} ) 
+  	</insert>
+  	
+  	<update id="init" parameterType="java.util.Map">
+	  	UPDATE PLM_USER_PROJECT A
+		SET    A.END_DATE = SYSDATE -1
+		WHERE  A.EMPLOYEE_NO = #{employee_id}
+		AND    (A.END_DATE IS NULL
+		        OR     A.END_DATE >= SYSDATE)
+  	</update>
+</mapper>

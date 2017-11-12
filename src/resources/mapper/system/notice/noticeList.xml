@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="noticeList">
+  	<!-- 프로그램관리 조회버튼 클릭시 SQL Mapping -->
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T2.*
+		  FROM (SELECT T1.*
+		             , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM (SELECT A.SEQ
+						     , A.SUBJECT
+						     , A.CONTENTS
+						     , A.READ_COUNT
+						     , A.CREATE_BY
+						     , B.NAME AS CREATE_BY_NAME
+						     , TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD') AS CREATE_DATE
+		                     , A.MODIFY_BY
+		                     , TO_CHAR(A.MODIFY_DATE, 'YYYY-MM-DD') AS MODIFY_DATE
+		                     , A.NOTIFY_YN
+		                     , TO_CHAR(A.START_DATE, 'YYYY-MM-DD') AS START_DATE
+		                     , TO_CHAR(A.END_DATE, 'YYYY-MM-DD') AS END_DATE
+		                     , A.FILENAME
+						  FROM STX_DIS_NOTICE A
+						     , STX_DIS_USER B
+						 WHERE A.CREATE_BY = B.EMP_NO
+						 ORDER BY A.MODIFY_DATE DESC, A.SEQ DESC ) T1 ) T2
+		 WHERE PAGE = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT
+		  FROM STX_DIS_NOTICE A
+		     , STX_DIS_USER B
+		 WHERE A.CREATE_BY = B.EMP_NO
+  	</select>
+
+</mapper>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveJobItem">
+	<select id="duplicateBom" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT *
+		  FROM STX_DIS_USC_BOM
+		 WHERE MOTHER_CODE = #{mother_code}
+		   AND ITEM_CODE = #{item_code}
+		   AND PROJECT_NO = #{project_no}			 
+	</select>
+	
+	<select id="duplicateBomWork" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT *
+		  FROM STX_DIS_USC_BOM_WORK
+		 WHERE MOTHER_CODE = #{mother_code}
+		   AND ITEM_CODE = #{item_code}		 
+		   AND PROJECT_NO = #{project_no}	
+	</select>
+	
+	<delete id="deleteBomWork" parameterType="java.util.Map">
+		DELETE FROM STX_DIS_USC_BOM_WORK
+		 WHERE MOTHER_CODE = #{mother_code}
+		   AND ITEM_CODE = #{item_code}
+		   AND PROJECT_NO = #{project_no}
+	</delete>
+	<insert id="copyToBomWorkFromBom" parameterType="java.util.Map">
+		INSERT
+		  INTO STX_DIS_USC_BOM_WORK(MOTHER_CODE, ITEM_CODE, PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, MOTHER_CATALOG, ITEM_CATALOG, ECO_NO, QTY, BOM1, BOM2, BOM3, BOM4, BOM5, BOM6, BOM7, BOM8, BOM9, BOM10, BOM11, BOM12, BOM13, BOM14, BOM15, CREATE_BY, CREATE_DATE, MODIFY_BY, MODIFY_DATE, STATE_FLAG, PAINT_BOM_SEQ)
+		SELECT MOTHER_CODE
+		     , ITEM_CODE
+		     , PROJECT_NO
+		     , AREA
+		     , BLOCK_NO
+		     , STR_FLAG
+		     , MOTHER_CATALOG
+		     , ITEM_CATALOG
+		     , #{eco_no}		     
+		     , QTY		     
+		     , BOM1
+		     , BOM2
+		     , BOM3
+		     , BOM4
+		     , BOM5
+		     , BOM6
+		     , BOM7
+		     , BOM8
+		     , BOM9
+		     , BOM10
+		     , BOM11
+		     , BOM12
+		     , BOM13
+		     , BOM14
+		     , BOM15
+		     , #{loginid} AS CREATE_BY
+		     , SYSDATE AS CREATE_DATE
+		     , #{loginid} AS MODIFY_BY
+		     , SYSDATE AS MODIFY_DATE
+		     , 'D' AS STATES
+		     , STX_DIS_PAINT_BOM_SEQ.NEXTVAL 
+		  FROM STX_DIS_USC_BOM
+		 WHERE MOTHER_CODE = #{mother_code}
+		   AND ITEM_CODE = #{item_code}		
+		   AND PROJECT_NO = #{project_no}  
+	</insert>
+	<update id="updateBomWork" parameterType="java.util.Map">
+		UPDATE STX_DIS_USC_BOM_WORK
+		   SET ECO_NO = #{eco_no}
+		   	 , BOM1 = #{bom1}
+			 , BOM2 = #{bom2}
+			 , BOM3 = #{bom3}
+			 , BOM4 = #{bom4}
+			 , BOM5 = #{bom5}
+			 , BOM6 = #{bom6}
+			 , BOM7 = #{bom7}
+			 , BOM8 = #{bom8}
+			 , BOM9 = #{bom9}
+			 , BOM10 = #{bom10}
+			 , BOM11 = #{bom11}
+			 , BOM12 = #{bom12}
+			 , BOM13 = #{bom13}
+			 , BOM14 = #{bom14}
+			 , BOM15 = #{bom15}
+			 , QTY = #{qty}
+			 , STATE_FLAG = 'C'
+		     , MODIFY_BY = #{loginid}
+		     , MODIFY_DATE = SYSDATE
+		 WHERE MOTHER_CODE = #{mother_code}
+		   AND ITEM_CODE = #{item_code}	
+		   AND PROJECT_NO = #{project_no} 
+	</update>
+	
+	<update id="updateBomWork_A_state" parameterType="java.util.Map">
+		UPDATE STX_DIS_USC_BOM_WORK
+		   SET ECO_NO = #{eco_no}
+		   	 , BOM1 = #{bom1}
+			 , BOM2 = #{bom2}
+			 , BOM3 = #{bom3}
+			 , BOM4 = #{bom4}
+			 , BOM5 = #{bom5}
+			 , BOM6 = #{bom6}
+			 , BOM7 = #{bom7}
+			 , BOM8 = #{bom8}
+			 , BOM9 = #{bom9}
+			 , BOM10 = #{bom10}
+			 , BOM11 = #{bom11}
+			 , BOM12 = #{bom12}
+			 , BOM13 = #{bom13}
+			 , BOM14 = #{bom14}
+			 , BOM15 = #{bom15}
+			 , QTY = #{qty}
+			 , STATE_FLAG = 'A'
+		     , MODIFY_BY = #{loginid}
+		     , MODIFY_DATE = SYSDATE
+		 WHERE MOTHER_CODE = #{mother_code}
+		   AND ITEM_CODE = #{item_code}	
+		   AND PROJECT_NO = #{project_no} 
+	</update>	
+</mapper>

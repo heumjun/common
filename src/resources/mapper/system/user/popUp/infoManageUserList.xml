@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoManageUserList">  	
+  	
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT A.EMP_NO
+		     , A.USER_NAME AS NAME
+		     , A.USER_ENG_NAME
+		     , A.DEPT_CODE
+		     , A.DEPT_NAME
+		     , A.POSITION_CODE
+		     , A.POSITION_NAME
+		     , A.JOB_COD
+		     , A.JOB_NAM
+		     , A.JIK_COD
+		     , A.JIK_NAM
+		     , A.INS_DATE
+		     , A.DEL_DATE
+		     , A.TEL_NO
+		     , A.CEL_NO
+		     , A.EP_MAIL
+		     , STX_COM_EN_DECODE_PKG.DECRYPT@STXHR(A.JUMIN_NO) AS JUMIN_NO
+		     , A.SEX_CD
+		     , A.YEAR_CHA
+		     , A.EMP_KIND_CD
+		     , A.EMP_KIND_NM
+		     , A.EMP_KIND_SUB_CD
+		     , A.EMP_KIND_SUB_NM
+		     , A.WORK_AREA_CD
+		     , A.WORK_AREA_NM
+		     , A.JIKMU_COD
+		     , A.JIKMU_NAM
+		     , A.AFFAIRS_NAM
+		     , A.JIKGAN_NAM
+		     , A.ATTRIBUTE1
+		     , A.ATTRIBUTE2
+		     , A.ATTRIBUTE3
+		     , A.ATTRIBUTE4
+		     , A.ATTRIBUTE5
+		     , A.ATTRIBUTE6
+		     , A.ATTRIBUTE7
+		     , A.ATTRIBUTE8
+		     , A.ATTRIBUTE9
+		     , A.ATTRIBUTE10
+		     , A.IN_UP_FLAG
+		     , A.INSERT_DATE
+		     , A.UPDATE_DATE
+		     , A.BIRTH_DAY
+		  FROM STX_COM_INSA_USER@STXERP A
+		 WHERE A.DEL_DATE IS NULL
+		 <if test="p_name != null">
+		   AND A.USER_NAME LIKE '%'||#{p_name}||'%'
+		 </if>
+		   AND NOT EXISTS (SELECT EMP_NO FROM STX_DIS_USER B WHERE A.EMP_NO = B.EMP_NO)
+		 ORDER BY A.EMP_KIND_CD, A.DEPT_NAME, A.POSITION_CODE, A.USER_NAME
+  	</select>
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT
+		  FROM STX_COM_INSA_USER@STXERP A
+		 WHERE A.DEL_DATE IS NULL
+		 <if test="p_name != null">
+		   AND A.USER_NAME LIKE '%'||#{p_name}||'%'
+		 </if>
+		   AND NOT EXISTS (SELECT EMP_NO FROM STX_DIS_USER B WHERE A.EMP_NO = B.EMP_NO)
+  	</select>
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectPaintPlanCodeList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+
+	select t1.*
+	  from (
+	        
+	        <if test="selected_tab == 'blockPaintPlan' or selected_tab == 'blockPaintAreaList'  or selected_tab == 'all' ">
+	        select distinct
+	               'BLOCK'      as gbn
+	               ,block_code	as discription
+	               ,block_code  as code 
+	          from stx_dis_pis_block
+	         where project_no = #{project_no} 
+	           and revision   = #{revision} 
+	        </if>
+	           
+	        <if test="selected_tab == 'all' ">
+	        union all
+	        </if>
+	        
+	        <if test="selected_tab == 'pePaintPlan' or selected_tab == 'pePaintAreaList' or selected_tab == 'all' ">
+	        select distinct
+	               'PE'         as gbn
+	              ,pe_code		as discription
+	              ,pe_code      as code 
+	          from stx_dis_pis_pe
+	         where project_no = #{project_no} 
+	           and revision   = #{revision}   
+	        </if>
+	        
+	        <if test="selected_tab == 'all' ">
+	        union all
+	        </if>
+	        
+	        <if test="selected_tab == 'hullPaintPlan' or selected_tab == 'hullPaintAreaList' or selected_tab == 'all' ">
+	        select distinct   
+	               'HULL'       as gbn
+	              ,zone_code	as discription 
+	              ,zone_code    as code
+	          from stx_dis_pis_zone   
+	         where project_no = #{project_no} 
+	           and revision   = #{revision}   
+	        </if> 
+	        
+	        <if test="selected_tab == 'all' ">
+	        union all
+	        </if>
+	        
+	        <if test="selected_tab == 'quayPaintPlan' or selected_tab == 'quayPaintAreaList' or selected_tab == 'all' ">
+	        SELECT 'QUAY' AS GBN 
+			       ,QUAY  AS DISCRIPTION
+			       ,QUAY  AS CODE
+			    from stx_dis_pis_zone   
+	         where project_no = #{project_no} 
+	           and revision   = #{revision}
+	          GROUP BY QUAY
+	        </if> 
+	        
+	        <if test="selected_tab == 'prePEPaintPlan' ">
+	        select distinct   
+	               'PRE PE'       						as gbn
+	              ,pre_pe_code							as discription 
+	              ,pre_pe_code    						as code
+	          from stx_dis_pis_pe   
+	         where project_no  = #{project_no} 
+	           and revision    = #{revision}  
+	           and pre_pe_code is not null 
+	        </if> 
+	        
+	         ) t1
+	         where t1.code is not null
+	 order by t1.gbn, t1.code    
+			  
+  	</select>
+</mapper>  	

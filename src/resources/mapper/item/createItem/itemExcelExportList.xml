@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="itemExcelExportList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select  cb.catalog_code  												  									 as catalog_code
+	       ,'WEIGHT'         												  									 as weight
+	       ,'OLD_ITEM_CODE'  												  									 as old_item_code
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '01', cb.attribute_name))),null) as attr01
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '02', cb.attribute_name))),null) as attr02
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '03', cb.attribute_name))),null) as attr03
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '04', cb.attribute_name))),null) as attr04
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '05', cb.attribute_name))),null) as attr05
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '06', cb.attribute_name))),null) as attr06
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '07', cb.attribute_name))),null) as attr07
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '08', cb.attribute_name))),null) as attr08
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '09', cb.attribute_name))),null) as attr09
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '10', cb.attribute_name))),null) as attr10
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '11', cb.attribute_name))),null) as attr11
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '12', cb.attribute_name))),null) as attr12
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '13', cb.attribute_name))),null) as attr13
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '14', cb.attribute_name))),null) as attr14
+	       ,nvl(max (decode(cb.attribute_type, 'ITEM',decode(cb.attribute_code, '15', cb.attribute_name))),null) as attr15
+	              
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '01', cb.attribute_name))),null) as add_attr01
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '02', cb.attribute_name))),null) as add_attr02
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '03', cb.attribute_name))),null) as add_attr03
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '04', cb.attribute_name))),null) as add_attr04
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '05', cb.attribute_name))),null) as add_attr05
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '06', cb.attribute_name))),null) as add_attr06
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '07', cb.attribute_name))),null) as add_attr07
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '08', cb.attribute_name))),null) as add_attr08
+	       ,nvl(max (decode(cb.attribute_type, 'ADDITEM',decode(cb.attribute_code, '09', cb.attribute_name))),null) as add_attr09
+	  from stx_dis_sd_catalog_attribute cb
+	 where cb.attribute_type = 'ITEM'
+	 <if test="catalog_code != null and catalog_code !='' ">
+	   and cb.catalog_code   = #{catalog_code}	
+	 </if>
+	 group by cb.catalog_code
+  	</select>
+</mapper>

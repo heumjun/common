@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpApproveEmpNoList">
+  
+  	<!-- 부서 팝업 -->
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT t2.*
+		  FROM ( SELECT t1.* 
+		              , FLOOR( ( rownum - 1 ) / #{pageSize} + 1 ) AS page
+		           FROM ( SELECT x.emp_no
+		                       , x.user_name
+		                       , x.position_name
+		                       , x.dept_name
+		                       , x.dept_code
+		                    FROM stx_com_insa_user@stxerp x
+		                        <!-- ,STX_DIS_USER SDU -->
+		                   WHERE <!-- X.EMP_NO = SDU.EMP_NO
+		                     AND SDU.USE_YN = 'Y' 
+		                     AND--> x.del_date IS NULL
+		                     <!-- AND x.emp_kind_cd IN ( '01', '02', '04' ) /* 01 임원 02 연봉직 03 일반직 04 전문직 05 계약직 07 파견직 */ -->
+		<if test=' sel_condition.equalsIgnoreCase("empno") and txt_condition !=null '>
+		                     AND x.emp_no LIKE UPPER( #{txt_condition} ) || '%'
+		                   ORDER BY x.emp_no
+		</if>
+		<if test=' sel_condition.equalsIgnoreCase("empname") and txt_condition !=null '>
+		                     AND x.user_name LIKE #{txt_condition} || '%'
+		                   ORDER BY x.user_name
+		</if>
+		<if test=' sel_condition.equalsIgnoreCase("deptname") and txt_condition !=null '>
+		                     AND x.dept_name LIKE #{txt_condition} || '%'
+		                   ORDER BY x.dept_name
+		</if>
+		                ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+  	</select>
+  	
+    <select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) cnt
+		  FROM stx_com_insa_user@stxerp x
+		                        <!-- ,STX_DIS_USER SDU -->
+		                   WHERE <!-- X.EMP_NO = SDU.EMP_NO
+		                     AND SDU.USE_YN = 'Y' 
+		                     AND--> x.del_date IS NULL
+		                     <!-- AND x.emp_kind_cd IN ( '01', '02', '04' ) /* 01 임원 02 연봉직 03 일반직 04 전문직 05 계약직 07 파견직 */ -->
+		<if test=' sel_condition.equalsIgnoreCase("empno") and txt_condition !=null '>
+           AND x.emp_no LIKE UPPER( #{txt_condition} ) || '%'
+		</if>
+		<if test=' sel_condition.equalsIgnoreCase("empname") and txt_condition !=null '>
+           AND x.user_name LIKE #{txt_condition} || '%'
+		</if>
+		<if test=' sel_condition.equalsIgnoreCase("deptname") and txt_condition !=null '>
+		   AND x.dept_name LIKE #{txt_condition} || '%'
+		</if>
+    </select>
+</mapper>
+  	

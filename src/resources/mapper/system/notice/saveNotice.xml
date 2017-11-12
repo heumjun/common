@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveNotice">
+	
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+		<result column="FILENAME"	 	property="FILENAME" />
+		<result column="BLOBDATA" 		property="BLOBDATA"  javaType="[B" jdbcType="BLOB" />
+	</resultMap>
+
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*) AS CNT
+		  FROM STX_DIS_NOTICE A
+		     , STX_DIS_USER B
+		 WHERE A.CREATE_BY = B.EMP_NO
+		   AND A.SEQ = #{seq}
+  	</select>
+  	
+ 	<insert id="insert" parameterType="java.util.Map">
+		INSERT
+		  INTO STX_DIS_NOTICE(SEQ, SUBJECT, CONTENTS, READ_COUNT, CREATE_BY, CREATE_DATE, MODIFY_BY, MODIFY_DATE, NOTIFY_YN, START_DATE, END_DATE, FILENAME, FILECONTENTTYPE, BLOBDATA )
+		VALUES((SELECT NVL(MAX(SEQ), 0) + 1 FROM STX_DIS_NOTICE)
+		     , #{p_subject}
+		     , #{p_contents}
+		     , 0
+		     , #{loginId}
+		     , SYSDATE 
+		     , #{loginId}
+		     , SYSDATE
+		     , #{p_notify_yn}
+		     , #{p_start_date}
+		     , #{p_end_date}
+		     , #{filename}
+		     , #{filecontenttype}
+		     , #{blobdata}
+		     )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE STX_DIS_NOTICE
+		   SET SUBJECT = #{subject}
+		     , CONTENTS = #{contents}
+		     , MODIFY_BY = #{loginId}
+		     , MODIFY_DATE = SYSDATE
+		     , NOTIFY_YN = #{notify_yn}
+		     , START_DATE =  #{start_date}
+		     , END_DATE =  #{end_date}
+		 WHERE SEQ = #{seq}
+	</update>
+	
+	<update id="updateReadCount" parameterType="java.util.Map">
+		UPDATE STX_DIS_NOTICE
+		   SET READ_COUNT = READ_COUNT + 1
+		 WHERE SEQ = #{seq}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  		DELETE FROM STX_DIS_NOTICE
+		 WHERE SEQ = #{seq}
+  	</delete>
+  	
+  	<update id="insertFileInfo" parameterType="java.util.Map">
+  		UPDATE STX_DIS_NOTICE 
+  		SET FILENAME = #{filename, jdbcType=VARCHAR}
+	        , FILECONTENTTYPE = #{filecontenttype, jdbcType=VARCHAR}
+	        , BLOBDATA = #{blobdata}
+		WHERE SEQ = #{p_seq}                    
+	</update>
+	
+	<select id="noticeFileDownload" parameterType="java.util.Map" resultMap="fileMaps">
+		 SELECT FILENAME, BLOBDATA        
+          FROM STX_DIS_NOTICE                    
+         WHERE seq = #{p_seq, jdbcType=VARCHAR}              
+	</select>
+  	
+</mapper>

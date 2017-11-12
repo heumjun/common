@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="progressDeviationMainGrid">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT C.PROJECTNO ,
+			       C.SABUN ,
+			       C.DWGDEPTCODENM as DEPTNAME ,
+			       C.DWGDEPTCODE AS DEPTCODE ,
+			       C.DWGNO AS DWGCODE ,
+			       C.OUTSOURCINGYN ,
+			       C.OUTSOURCING1 ,
+			       C.OUTSOURCING2 ,
+			       C.DWGTITLE ,
+			       C.DW_PLANSTART AS DW_PLAN_S ,
+			       C.DW_PLANFINISH AS DW_PLAN_F ,
+			       C.DW_ACTIONSTART AS DW_ACT_S ,
+			       DECODE(C.DW_ACTIONSTART,NULL,'N','Y') AS DW_ACT_S_CHECK,
+			       C.DW_ACTIONFINISH AS DW_ACT_F ,
+			       DECODE(C.DW_ACTIONFINISH,NULL,'N','Y') AS DW_ACT_F_CHECK,
+			       C.OW_PLANSTART AS OW_PLAN_S ,
+			       C.OW_PLANFINISH AS OW_PLAN_F ,
+			       C.OW_ACTIONSTART AS OW_ACT_S ,
+			       DECODE(C.OW_ACTIONSTART,NULL,'N','Y') AS OW_ACT_S_CHECK,
+			       C.OW_ACTIONFINISH AS OW_ACT_F ,
+			       DECODE(C.OW_ACTIONFINISH,NULL,'N','Y') AS OW_ACT_F_CHECK,
+			       C.CL_PLANSTART AS CL_PLAN_S ,
+			       C.CL_PLANFINISH AS CL_PLAN_F ,
+			       C.CL_ACTIONSTART AS CL_ACT_S ,
+			       DECODE(C.CL_ACTIONSTART,NULL,'N','Y') AS CL_ACT_S_CHECK,
+			       C.CL_ACTIONFINISH AS CL_ACT_F ,
+			       DECODE(C.CL_ACTIONFINISH,NULL,'N','Y') AS CL_ACT_F_CHECK,
+			       C.RF_PLANSTART AS RF_PLAN_S ,
+			       C.RF_ACTIONSTART AS RF_ACT_S ,
+			       DECODE(C.RF_ACTIONSTART,NULL,'N','Y') AS RF_ACT_S_CHECK,
+			       C.WK_PLANSTART AS WK_PLAN_S ,
+			       C.WK_ACTIONSTART AS WK_ACT_S ,
+			       DECODE(C.WK_ACTIONSTART,NULL,'N','Y') AS WK_ACT_S_CHECK                                                                                
+			       ,C.DWGZONE            AS  DWGZONE                                                                                
+			       ,(SELECT DELAYREASON FROM PLM_ACTIVITY_DEVIATION                                                      
+			          WHERE PROJECTNO = C.PROJECTNO AND DWGNO = C.DWGNO) AS DELAYREASON                                  
+			       ,(SELECT TO_CHAR(RESOLVEPLANDATE, 'YYYY-MM-DD')                                                       
+			           FROM PLM_ACTIVITY_DEVIATION                                                                       
+			          WHERE PROJECTNO = C.PROJECTNO AND DWGNO = C.DWGNO) AS RESOLVEPLANDATE                              
+			       ,(SELECT TO_CHAR(REQUIREDDATE, 'YYYY-MM-DD')                                                          
+			           FROM PLM_ACTIVITY_DEVIATION                                                                       
+			          WHERE PROJECTNO = C.PROJECTNO AND DWGNO = C.DWGNO) AS REQUIREDDATE                                 
+			       ,(SELECT DELAYREASON_DESC FROM PLM_ACTIVITY_DEVIATION                                                 
+			          WHERE PROJECTNO = C.PROJECTNO AND DWGNO = C.DWGNO) AS DELAYREASON_DESC                             
+			       ,(SELECT SAWON.NAME FROM CCC_SAWON SAWON WHERE SAWON.EMPLOYEE_NUM = C.SABUN)                          
+			        AS NAME,                                                                                             
+			       DECODE(SIGN(TRUNC(SYSDATE)-TRUNC(TO_DATE(C.DW_PLANSTART,'YYYY-MM-DD'))), 1, 'Y', 'N') AS DW_PLAN_S_O, 
+			       DECODE(SIGN(TRUNC(SYSDATE)-TRUNC(TO_DATE(C.DW_PLANFINISH,'YYYY-MM-DD'))), 1, 'Y', 'N') AS DW_PLAN_F_O,
+			       DECODE(SIGN(TRUNC(SYSDATE)-TRUNC(TO_DATE(C.OW_PLANSTART,'YYYY-MM-DD'))), 1, 'Y', 'N') AS OW_PLAN_S_O, 
+			       DECODE(SIGN(TRUNC(SYSDATE)-TRUNC(TO_DATE(C.OW_PLANFINISH,'YYYY-MM-DD'))), 1, 'Y', 'N') AS OW_PLAN_F_O,
+			       DECODE(SIGN(TRUNC(SYSDATE)-TRUNC(TO_DATE(C.CL_PLANSTART,'YYYY-MM-DD'))), 1, 'Y', 'N') AS CL_PLAN_S_O, 
+			       DECODE(SIGN(TRUNC(SYSDATE)-TRUNC(TO_DATE(C.CL_PLANFINISH,'YYYY-MM-DD'))), 1, 'Y', 'N') AS CL_PLAN_F_O,
+			       DECODE(SIGN(TRUNC(SYSDATE)-TRUNC(TO_DATE(C.RF_PLANSTART,'YYYY-MM-DD'))), 1, 'Y', 'N') AS RF_PLAN_S_O, 
+			       DECODE(SIGN(TRUNC(SYSDATE)-TRUNC(TO_DATE(C.WK_PLANSTART,'YYYY-MM-DD'))), 1, 'Y', 'N') AS WK_PLAN_S_O,
+			       'R' as OPER
+			                                                                                                             
+			  FROM (SELECT   A.PROJECTNO                                                                                 
+			                 ,F_GET_DWGDEPT_INFO('', A.DWGDEPTCODE,'') AS DWGDEPTCODENM                                  
+			                 ,A.DWGDEPTCODE                                                                              
+			                 ,SUBSTR(A.ACTIVITYCODE, 1, 8) AS DWGNO                                                      
+			                 ,A.DWGZONE                                                                                  
+			                 ,A.DWGCATEGORY                                                                              
+			                 ,A.DWGTYPE                                                                                  
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'DW'                                                            
+			                           THEN DECODE(NVL(A.OUTSOURCINGYN, 'N'), 'N', ' ', NVL(A.OUTSOURCINGYN, 'N')) END)  
+			                  AS OUTSOURCINGYN                                                                           
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'DW'                                                            
+			                           THEN DECODE(NVL(A.OUTSOURCING1, 'N'), 'N', ' ', NVL(A.OUTSOURCING1, 'N'))  END)   
+			                  AS OUTSOURCING1                                                                            
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'DW'                                                            
+			                           THEN DECODE(NVL(A.OUTSOURCING2, 'N'), 'N', ' ', NVL(A.OUTSOURCING2, 'N')) END)    
+			                  AS OUTSOURCING2                                                                            
+			                 ,A.DWGTITLE                                                                                 
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'DW' THEN A.SABUN END) AS SABUN                                 
+			                                                                                                             
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'DW' THEN TO_CHAR(A.PLANSTARTDATE, 'YYYY-MM-DD') END)           
+			                  AS DW_PLANSTART                                                                            
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'DW' THEN TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD') END)         
+			                  AS DW_ACTIONSTART                                                                          
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'DW' THEN TO_CHAR(A.PLANFINISHDATE, 'YYYY-MM-DD') END)          
+			                  AS DW_PLANFINISH                                                                           
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'DW' THEN TO_CHAR(A.ACTUALFINISHDATE, 'YYYY-MM-DD') END)        
+			                  AS DW_ACTIONFINISH                                                                         
+			                                                                                                             
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'OW' THEN TO_CHAR(A.PLANSTARTDATE, 'YYYY-MM-DD') END)           
+			                  AS OW_PLANSTART                                                                            
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'OW' THEN TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD') END)         
+			                  AS OW_ACTIONSTART                                                                          
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'OW' THEN TO_CHAR(A.PLANFINISHDATE, 'YYYY-MM-DD') END)          
+			                  AS OW_PLANFINISH                                                                           
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'OW' THEN TO_CHAR(A.ACTUALFINISHDATE, 'YYYY-MM-DD') END)        
+			                  AS OW_ACTIONFINISH                                                                         
+			                                                                                                             
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'CL' THEN TO_CHAR(A.PLANSTARTDATE, 'YYYY-MM-DD') END)           
+			                  AS CL_PLANSTART                                                                            
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'CL' THEN TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD') END)         
+			                  AS CL_ACTIONSTART                                                                          
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'CL' THEN TO_CHAR(A.PLANFINISHDATE, 'YYYY-MM-DD') END)          
+			                  AS CL_PLANFINISH                                                                           
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'CL' THEN TO_CHAR(A.ACTUALFINISHDATE, 'YYYY-MM-DD') END)        
+			                  AS CL_ACTIONFINISH                                                                         
+			                                                                                                             
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'RF' THEN TO_CHAR(A.PLANSTARTDATE, 'YYYY-MM-DD') END)           
+			                  AS RF_PLANSTART                                                                            
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'RF' THEN TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD') END)         
+			                  AS RF_ACTIONSTART                                                                          
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'RF' THEN TO_CHAR(A.PLANFINISHDATE, 'YYYY-MM-DD') END)          
+			                  AS RF_PLANFINISH                                                                           
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'RF' THEN TO_CHAR(A.ACTUALFINISHDATE, 'YYYY-MM-DD') END)        
+			                  AS RF_ACTIONFINISH                                                                         
+			                                                                                                             
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'WK' THEN TO_CHAR(A.PLANSTARTDATE, 'YYYY-MM-DD') END)           
+			                  AS WK_PLANSTART                                                                            
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'WK' THEN TO_CHAR(A.ACTUALSTARTDATE, 'YYYY-MM-DD') END)         
+			                  AS WK_ACTIONSTART                                                                          
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'WK' THEN TO_CHAR(A.PLANFINISHDATE, 'YYYY-MM-DD') END)          
+			                  AS WK_PLANFINISH                                                                           
+			                 ,MAX(CASE WHEN A.WORKTYPE = 'WK' THEN TO_CHAR(A.ACTUALFINISHDATE, 'YYYY-MM-DD') END)        
+			                  AS WK_ACTIONFINISH                                                                         
+			                                                                                                             
+			            FROM PLM_ACTIVITY  A                                                                             
+			           WHERE 1=1                                                                                         
+			             AND A.PROJECTNO IN (<foreach collection="projectList" item="item" separator=",">
+												#{item}
+											</foreach>)                                                      
+			             AND (CASE WHEN NVL(#{departmentList},' ') = ' ' THEN ' '                                           
+			                      ELSE  A.DWGDEPTCODE  END) = NVL((SELECT MAX(E.DWGDEPTCODE)                    
+			                                                                  FROM DCC_DEPTCODE E                        
+			                      										      WHERE E.DEPTCODE=#{departmentList}), ' ')  
+			             AND (CASE WHEN NVL(#{designerList},' ') = ' ' THEN ' '                                            
+			                      ELSE A.SABUN END) = NVL(#{designerList}, ' ')                            
+			           GROUP BY  A.PROJECTNO                                                                             
+			                    ,SUBSTR(A.ACTIVITYCODE, 1, 8)                                                            
+			                    ,A.DWGCATEGORY                                                                           
+			                    ,A.DWGTYPE                                                                               
+			                    ,A.DWGDEPTCODE                                                                           
+			                    ,A.DWGZONE                                                                               
+			                    ,A.DWGTITLE) C                                                                           
+			WHERE (0 &lt; (CASE WHEN NVL(#{bDS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE &lt;&gt; 'V' AND C.DW_PLANSTART IS NOT NULL                                     
+			                       AND C.DW_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+								   AND C.DW_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+									AND C.DW_ACTIONSTART IS NULL
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+									AND ((C.DW_ACTIONSTART is null)                          					
+									or (C.DW_ACTIONSTART is not null and to_date(C.DW_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.DW_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{bDF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE &lt;&gt; 'V' AND C.DW_PLANFINISH IS NOT NULL                                    
+			                       AND C.DW_PLANFINISH &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+								   AND C.DW_PLANFINISH >=  #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+								   AND C.DW_ACTIONFINISH IS NULL
+			</if>                                                                
+			<if test="searchAll != null and searchAll != 'true'">
+									AND ((C.DW_ACTIONFINISH is null)                          					
+									or (C.DW_ACTIONFINISH is not null and to_date(C.DW_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.DW_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{bOS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE &lt;&gt; 'V' AND C.OW_PLANSTART IS NOT NULL                                     
+			                       AND C.OW_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+								   AND C.OW_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+									AND C.OW_ACTIONSTART IS NULL
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.OW_ACTIONSTART is null)                          					
+			              		or (C.OW_ACTIONSTART is not null and to_date(C.OW_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.OW_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{bOF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE &lt;&gt; 'V' AND C.OW_PLANFINISH IS NOT NULL                                    
+			                       AND C.OW_PLANFINISH &lt;= #{dateSelected_to}                                         
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.OW_PLANFINISH &gt;= #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                	   AND C.OW_ACTIONFINISH IS NULL                                                         
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.OW_ACTIONFINISH is null)                          					
+			              		or (C.OW_ACTIONFINISH is not null and to_date(C.OW_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.OW_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+                                   AND C.OW_PLANSTART &lt;&gt; C.OW_PLANFINISH THEN 1                                          
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{bCS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE &lt;&gt; 'V' AND C.CL_PLANSTART IS NOT NULL                                     
+			                       AND C.CL_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.CL_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                	   AND C.CL_ACTIONSTART IS NULL                                                   
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.CL_ACTIONSTART is null)                          					
+			              		or (C.CL_ACTIONSTART is not null and to_date(C.CL_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.CL_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{bCF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE &lt;&gt; 'V' AND C.CL_PLANFINISH IS NOT NULL                                    
+			                       AND C.CL_PLANFINISH &lt;= #{dateSelected_to}                                         
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.CL_PLANFINISH &gt;= #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                	   AND C.CL_ACTIONFINISH IS NULL                                                         
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.CL_ACTIONFINISH is null)                          					
+			              		or (C.CL_ACTIONFINISH is not null and to_date(C.CL_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.CL_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+                                   AND C.CL_PLANSTART &lt;&gt; C.CL_PLANFINISH THEN 1                                          
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{bRF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE &lt;&gt; 'V' AND C.RF_PLANSTART IS NOT NULL                                     
+			                       AND C.RF_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.RF_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                		AND C.RF_ACTIONSTART IS NULL                                                  
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.RF_ACTIONSTART is null)                          					
+			              		or (C.RF_ACTIONSTART is not null and to_date(C.RF_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.RF_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{bWK,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE &lt;&gt; 'V' AND C.WK_PLANSTART IS NOT NULL                                     
+			                       AND C.WK_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.WK_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                	   AND C.WK_ACTIONSTART IS NULL                                                   
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.WK_ACTIONSTART is null)                          					
+			              		or (C.WK_ACTIONSTART is not null and to_date(C.WK_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.WK_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			                                                                                                             
+			       OR                                                                                                    
+			       0 &lt; (CASE WHEN NVL(#{mDS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                    
+			                      AND DWGTYPE = 'V' AND C.DW_PLANSTART IS NOT NULL                                       
+			                      AND C.DW_PLANSTART &lt;= #{dateSelected_to}                                           
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                      AND C.DW_PLANSTART &gt;= #{dateSelected_from}                                           
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			               		  AND C.DW_ACTIONSTART IS NULL                                                    
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.DW_ACTIONSTART is null)                          					
+			              		or (C.DW_ACTIONSTART is not null and to_date(C.DW_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.DW_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{mDF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                   
+			                       AND DWGTYPE = 'V' AND C.DW_PLANFINISH IS NOT NULL                                     
+			                       AND C.DW_PLANFINISH &lt;= #{dateSelected_to}                                         
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.DW_PLANFINISH &gt;= #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                	   AND C.DW_ACTIONFINISH IS NULL                                                 
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.DW_ACTIONFINISH is null)                          					
+			              		or (C.DW_ACTIONFINISH is not null and to_date(C.DW_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.DW_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{mOS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                  
+			                       AND DWGTYPE = 'V' AND C.OW_PLANSTART IS NOT NULL                                      
+			                       AND C.OW_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.OW_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                	   AND C.OW_ACTIONSTART IS NULL                                                  
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.OW_ACTIONSTART is null)                          					
+			              		or (C.OW_ACTIONSTART is not null and to_date(C.OW_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.OW_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{mOF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                  
+			                       AND DWGTYPE = 'V' AND C.OW_PLANFINISH IS NOT NULL                                     
+			                       AND C.OW_PLANFINISH &lt;= #{dateSelected_to}                                         
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.OW_PLANFINISH &gt;= #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                	   AND C.OW_ACTIONFINISH IS NULL                                                         
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.OW_ACTIONFINISH is null)                          					
+			              		or (C.OW_ACTIONFINISH is not null and to_date(C.OW_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.OW_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+                                   AND C.OW_PLANSTART &lt;&gt; C.OW_PLANFINISH THEN 1                                          
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{mCS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                  
+			                       AND DWGTYPE = 'V' AND C.CL_PLANSTART IS NOT NULL                                      
+			                       AND C.CL_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.CL_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                AND C.CL_ACTIONSTART IS NULL                                                   
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.CL_ACTIONSTART is null)                          					
+			              		or (C.CL_ACTIONSTART is not null and to_date(C.CL_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.CL_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{mCF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                  
+			                       AND DWGTYPE = 'V' AND C.CL_PLANFINISH IS NOT NULL                                     
+			                       AND C.CL_PLANFINISH &lt;= #{dateSelected_to}                                         
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.CL_PLANFINISH &gt;= #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                		AND C.CL_ACTIONFINISH IS NULL                                                         
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.CL_ACTIONFINISH is null)                          					
+			              		or (C.CL_ACTIONFINISH is not null and to_date(C.CL_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.CL_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+                                   AND C.CL_PLANSTART &lt;&gt; C.CL_PLANFINISH THEN 1                                          
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{mRF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                  
+			             AND DWGTYPE = 'V' AND C.RF_PLANSTART IS NOT NULL                                                
+			             AND C.RF_PLANSTART &lt;= #{dateSelected_to}                                                    
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			             AND C.RF_PLANSTART &gt;= #{dateSelected_from}                                                    
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			      		AND C.RF_ACTIONSTART IS NULL                                                             
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.RF_ACTIONSTART is null)                          					
+			              		or (C.RF_ACTIONSTART is not null and to_date(C.RF_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.RF_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{mWK,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'B'                  
+			                  AND DWGTYPE = 'V' AND C.WK_PLANSTART IS NOT NULL                                           
+			                  AND C.WK_PLANSTART &lt;= #{dateSelected_to}                                               
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                  AND C.WK_PLANSTART &gt;= #{dateSelected_from}                                               
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			          		 AND C.WK_ACTIONSTART IS NULL                                                        
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.WK_ACTIONSTART is null)                          					
+			              		or (C.WK_ACTIONSTART is not null and to_date(C.WK_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.WK_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			                                                                                                             
+			       OR                                                                                                    
+			       0 &lt; (CASE WHEN NVL(#{pDS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'P'                   
+			                      AND C.DW_PLANSTART IS NOT NULL                                                         
+			                      AND C.DW_PLANSTART &lt;= #{dateSelected_to}                                           
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                      AND C.DW_PLANSTART &gt;= #{dateSelected_from}                                           
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			               	      AND C.DW_ACTIONSTART IS NULL                                                    
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.DW_ACTIONSTART is null)                          					
+			              		or (C.DW_ACTIONSTART is not null and to_date(C.DW_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.DW_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{pDF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'P'                  
+			                       AND C.DW_PLANFINISH IS NOT NULL                                                       
+			                       AND C.DW_PLANFINISH &lt;= #{dateSelected_to}                                         
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.DW_PLANFINISH &gt;= #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                	   AND C.DW_ACTIONFINISH IS NULL                                                  
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.DW_ACTIONFINISH is null)                          					
+			              		or (C.DW_ACTIONFINISH is not null and to_date(C.DW_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.DW_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{pOS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'P'                  
+			                       AND C.OW_PLANSTART IS NOT NULL                                                        
+			                       AND C.OW_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.OW_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                		AND C.OW_ACTIONSTART IS NULL                                                   
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.OW_ACTIONSTART is null)                          					
+			              		or (C.OW_ACTIONSTART is not null and to_date(C.OW_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.OW_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{pOF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'P'                  
+			                       AND C.OW_PLANFINISH IS NOT NULL                                                       
+			                       AND C.OW_PLANFINISH &lt;= #{dateSelected_to}                                         
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.OW_PLANFINISH &gt;= #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                		AND C.OW_ACTIONFINISH IS NULL                                                         
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.OW_ACTIONFINISH is null)                          					
+			              		or (C.OW_ACTIONFINISH is not null and to_date(C.OW_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.OW_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+                                   AND C.OW_PLANSTART &lt;&gt; C.OW_PLANFINISH THEN 1                                          
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{pCS,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'P'                  
+			                       AND C.CL_PLANSTART IS NOT NULL                                                        
+			                       AND C.CL_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.CL_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                		AND C.CL_ACTIONSTART IS NULL                                                  
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.CL_ACTIONSTART is null)                          					
+			              		or (C.CL_ACTIONSTART is not null and to_date(C.CL_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.CL_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{pCF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'P'                  
+			                       AND C.CL_PLANFINISH IS NOT NULL                                                       
+			                       AND C.CL_PLANFINISH &lt;= #{dateSelected_to}                                         
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.CL_PLANFINISH &gt;= #{dateSelected_from}                                         
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                		AND C.CL_ACTIONFINISH IS NULL                                                         
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.CL_ACTIONFINISH is null)                          					
+			              		or (C.CL_ACTIONFINISH is not null and to_date(C.CL_PLANFINISH,'yyyy-mm-dd') &lt; to_date(C.CL_ACTIONFINISH,'yyyy-mm-dd')))   	
+			</if>
+                                   AND C.CL_ACTIONSTART &lt;&gt; C.CL_ACTIONSTART THEN 1                                          
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{pRF,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'P'                  
+			                       AND C.RF_PLANSTART IS NOT NULL                                                        
+			                       AND C.RF_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.RF_PLANSTART &gt;= #{dateSelected_from}                  
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                		AND C.RF_ACTIONSTART IS NULL                                                   
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.RF_ACTIONSTART is null)                          					
+			              		or (C.RF_ACTIONSTART is not null and to_date(C.RF_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.RF_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       OR                                                                                                    
+			        0 &lt; (CASE WHEN NVL(#{pWK,jdbcType=VARCHAR}, 'N') = 'Y' AND C.DWGCATEGORY = 'P'                  
+			                       AND C.WK_PLANSTART IS NOT NULL                                                        
+			                       AND C.WK_PLANSTART &lt;= #{dateSelected_to}                                          
+			<if test="dateSelected_from != null and dateSelected_from != ''">
+			                       AND C.WK_PLANSTART &gt;= #{dateSelected_from}                                          
+			</if>
+			<if test="searchComplete != null and searchComplete != 'true'">
+			                		AND C.WK_ACTIONSTART IS NULL                                                
+			</if>
+			<if test="searchAll != null and searchAll != 'true'">
+			              AND ((C.WK_ACTIONSTART is null)                          					
+			              		or (C.WK_ACTIONSTART is not null and to_date(C.WK_PLANSTART,'yyyy-mm-dd') &lt; to_date(C.WK_ACTIONSTART,'yyyy-mm-dd')))   	
+			</if>
+			                       THEN 1                                                   	
+			                  ELSE 0                                                                                     
+			              END)                                                                                           
+			       )                                                                                                     
+			 ORDER BY C.PROJECTNO, F_GET_DWGDEPT_ORDER('',C.DWGDEPTCODE)                                                 
+		
+	</select>
+</mapper>

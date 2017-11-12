@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="commentReceipt">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_DIS_COMMENT_PKG.RECEIPT_SELECT_PROC(
+				P_CHK_SERIES				=> #{p_chk_series}
+				, P_RECEIPT_NO				=> #{p_receipt_no}
+				, P_ISSUER					=> #{p_issuer}
+				, P_SUBJECT					=> #{p_subject}
+				, P_RECEIPT_TEAM_CODE 		=> #{p_receipt_team_code}
+				, P_RECEIPT_DEPT_CODE 		=> #{p_receipt_dept_code}
+				, P_DWG_NO					=> #{p_dwg_no}
+				, P_ISSUE_DATE_FROM 		=> #{p_issue_date_from}
+				, P_ISSUE_DATE_TO			=> #{p_issue_date_to}
+				, P_RECEIPT_STATUS 			=> #{p_receipt_status}
+				, P_REPLY 					=> #{p_reply}
+				, P_DELAY 					=> #{p_delay}
+				, P_CURPAGENO 				=> #{curPageNo}
+				, P_PAGESIZE 				=> #{pageSize}
+				, P_ERROR_CODE 				=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_REFER 					=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=commentReceipt.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	<select id="popUpReceiptTeamList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT AA.RECEIPT_NO
+			      ,AA.RECEIPT_ID  
+			      ,AA.PROJECT_NO 
+			      ,AA.DOC_TYPE_DESC 
+			      ,AA.DOC_TYPE 
+			      ,AA.ISSUER_DESC 
+			      ,AA.ISSUER 
+			      ,AA.SUBJECT 
+			      ,AA.ISSUE_DATE 
+			      ,AA.COM_NO 
+			      ,AA.RECEIPT_TEAM_NAME 
+			      ,AA.RECEIPT_TEAM_CODE
+			      ,NVL((SELECT 'N' 
+			              FROM STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD
+			                  ,STX_DIS_COMMENT_RECEIPT_DWG    SDCRDW
+			                  ,STX_DIS_COMMENT_SUB            SDCSB 
+			             WHERE SDCRD.RECEIPT_ID        = AA.RECEIPT_ID
+			               AND SDCRD.RECEIPT_TEAM_CODE = AA.RECEIPT_TEAM_CODE
+			               AND SDCRD.RECEIPT_DETAIL_ID = SDCRDW.RECEIPT_DETAIL_ID
+			               AND SDCSB.PROJECT_NO        = AA.PROJECT_NO
+			               AND SDCSB.DWG_NO            = SDCRDW.DWG_NO
+			               AND SDCSB.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID
+			               AND ROWNUM = 1), 
+			           'Y')                      AS DELETE_ENABLE_FLAG 
+			  FROM (
+			        SELECT SDCS.RECEIPT_NO                        AS RECEIPT_NO
+			              ,SDCS.RECEIPT_ID                        AS RECEIPT_ID  
+			              ,SDCS.PROJECT_NO                        AS PROJECT_NO 
+			              ,SDSC.SD_DESC                           AS DOC_TYPE_DESC 
+			              ,SDCS.DOC_TYPE                          AS DOC_TYPE 
+			              ,SDSC_ISSUER.SD_DESC                    AS ISSUER_DESC 
+			              ,SDCS.ISSUER                            AS ISSUER 
+			              ,SDCS.SUBJECT                           AS SUBJECT 
+			              ,TO_CHAR(SDCS.ISSUE_DATE, 'YYYY-MM-DD') AS ISSUE_DATE 
+			              ,SDCS.COM_NO                            AS COM_NO 
+			              ,SDDD_TEAM.DWGDEPTNM                    AS RECEIPT_TEAM_NAME 
+			              ,SDCRD.RECEIPT_TEAM_CODE                AS RECEIPT_TEAM_CODE
+			         FROM STX_DIS_COMMENT_RECEIPT_LIST SDCS, 
+			               STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD,  
+			               STX_DIS_SD_CODE SDSC, 
+			               STX_DIS_SD_CODE SDSC_ISSUER, 
+			               STX_DIS_DWGDEPTCODE SDDD_TEAM 
+			         WHERE SDCS.DOC_TYPE = SDSC.SD_CODE 
+			           AND SDSC.SD_TYPE = 'COMMENT_DOC_TYPE' 
+			           AND SDCS.ISSUER = SDSC_ISSUER.SD_CODE 
+			           AND SDSC_ISSUER.SD_TYPE     = 'COMMENT_ISSUER_TYPE' 
+			           AND SDCS.RECEIPT_ID         = SDCRD.RECEIPT_ID 
+			           AND SDCRD.RECEIPT_TEAM_CODE = SDDD_TEAM.DWGDEPTCODE(+) 
+			           AND SDCRD.RECEIPT_ID        = #{p_receipt_id, jdbcType = VARCHAR}
+			        GROUP BY  SDCS.RECEIPT_NO                       
+			                 ,SDCS.RECEIPT_ID                       
+			                 ,SDCS.PROJECT_NO                       
+			                 ,SDSC.SD_DESC                          
+			                 ,SDCS.DOC_TYPE                         
+			                 ,SDSC_ISSUER.SD_DESC                   
+			                 ,SDCS.ISSUER                           
+			                 ,SDCS.SUBJECT                          
+			                 ,TO_CHAR(SDCS.ISSUE_DATE, 'YYYY-MM-DD')
+			                 ,SDCS.COM_NO                           
+			                 ,SDDD_TEAM.DWGDEPTNM                   
+			                 ,SDCRD.RECEIPT_TEAM_CODE
+			        ) AA
+	</select>
+	
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+	        <result column="DOCUMENT_NAME"	 	property="DOCUMENT_NAME" />
+	        <result column="DOCUMENT_DATA" 		property="DOCUMENT_DATA"  javaType="[B" jdbcType="BLOB" />
+	</resultMap>
+	
+	<select id="commentReceiptFileDownload" parameterType="java.util.Map" resultMap="fileMaps">
+		 SELECT DOCUMENT_NAME, DOCUMENT_DATA        
+		   FROM STX_DIS_COMMENT_DOC                    
+          WHERE LIST_ID = #{p_receipt_id, jdbcType=VARCHAR}  
+            AND DOC_TYPE = 'R'         
+	</select>
+	
+	<select id="commentReceiptTeamDelete"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_DEPT_DEL_PROC(
+       			P_RECEIPT_ID 				=> #{p_receipt_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_RECEIPT_TEAM_CODE 		=> #{p_receipt_team_code, 		jdbcType=VARCHAR,	mode=IN}
+				, P_ERROR_CODE 				=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	
+	<select id="commentReceiptTeamInsert"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_DEPT_ADD_PROC(
+       			P_RECEIPT_ID 				=> #{p_receipt_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_RECEIPT_TEAM_CODE 		=> #{p_receipt_team_code, 		jdbcType=VARCHAR,	mode=IN}
+				, P_RECEIPT_TEAM_NAME 		=> #{p_receipt_team_name, 		jdbcType=VARCHAR,	mode=IN}
+				, P_USER_ID 				=> #{p_user_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_ERROR_CODE 				=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	
+	<select id="commentReceiptUserApplyAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_DEPT_USER_PROC(
+       			  P_ACTION_TYPE 			=> #{p_action_type, 			jdbcType=VARCHAR,	mode=IN}
+       			, P_RECEIPT_ID 				=> #{p_receipt_id, 				jdbcType=VARCHAR,	mode=IN}
+       			, P_RECEIPT_TEAM_CODE 		=> #{p_receipt_team_code, 		jdbcType=VARCHAR,	mode=IN}
+       			, P_RECEIPT_DETAIL_ID 		=> #{p_receipt_detail_id, 		jdbcType=VARCHAR,	mode=INOUT}
+				, P_RECEIPT_DEPT_CODE 		=> #{p_receipt_dept_code, 		jdbcType=VARCHAR,	mode=IN}
+				, P_RECEIPT_USER_ID 		=> #{p_receipt_user_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_USER_ID 				=> #{p_user_id, 				jdbcType=VARCHAR,	mode=IN}
+				, P_ERROR_CODE 				=> #{p_error_code,      		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	<select id="receiptApplyHeadInProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_APPLY_HEAD_IN_PROC(
+				P_USER_ID 					=> #{p_user_id, 			jdbcType=VARCHAR,	mode=IN}
+				, P_MAIL_COMMENT 			=> #{p_mail_comment, 		jdbcType=VARCHAR,	mode=IN}
+				, P_MAIL_ID 				=> #{p_mail_id,      		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_CODE 				=> #{p_error_code,      	jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       	jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	<select id="receiptApplyListInProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_APPLY_LIST_IN_PROC(
+       			P_MAIL_ID 					=> #{p_mail_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_LIST_ID 				=> #{p_list_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_TEAM_CODE 				=> #{p_team_code, 		jdbcType=VARCHAR,	mode=IN}
+				, P_USER_ID 				=> #{p_user_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_ERROR_CODE 				=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	<select id="receiptApplyEtcInProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_APPLY_ETC_IN_PROC(
+       			P_MAIL_ID 					=> #{p_mail_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_ETC_USER_ID 			=> #{p_etc_user_id, 	jdbcType=VARCHAR,	mode=IN}
+				, P_USER_ID 				=> #{p_user_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_ERROR_CODE 				=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	<select id="mailSendProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.MAIL_SEND_PROC(
+       			P_MAIL_ID 					=> #{p_mail_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_ERROR_CODE 				=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	
+	<select id="commentReceiptDwgApplyAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_DEPT_DWG_PROC(
+       			  P_ACTION_TYPE 			=> #{p_action_type, 			jdbcType=VARCHAR,	mode=IN}
+       			, P_RECEIPT_DETAIL_ID 		=> #{p_receipt_detail_id, 		jdbcType=VARCHAR,	mode=IN}
+				, P_RECEIPT_DEPT_CODE 		=> #{p_receipt_dept_code, 		jdbcType=VARCHAR,	mode=IN}
+				, P_DWG_NO 					=> #{p_dwg_no, 					jdbcType=VARCHAR,	mode=IN}
+				, P_USER_ID 				=> #{p_user_id, 				jdbcType=VARCHAR,	mode=IN}
+				, P_ERROR_CODE 				=> #{p_error_code,      		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+	
+	<select id="commentReceiptDelete"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_DEL_PROC(
+       			  P_RECEIPT_ID 			=> #{p_receipt_id, 			jdbcType=VARCHAR,	mode=IN}
+				, P_ERROR_CODE 			=> #{p_error_code,      	jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 			=> #{p_error_msg,       	jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+		)}
+	</select>
+
+</mapper>

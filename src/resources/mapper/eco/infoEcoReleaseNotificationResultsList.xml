@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoEcoReleaseNotificationResultsList">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		select 
+		  a.emp_no,
+	      a.user_name,
+	      a.position_name, 
+	      a.dept_name,
+	      a.ep_mail,
+	      s.state_req_code
+		from stx_dis_statereq s, stx_com_insa_user@stxerp a
+		where s.main_code = #{main_code}
+		and a.emp_no = s.emp_no(+)
+		and s.state_type='NOTIFI'
+  	</select>
+  	
+</mapper>

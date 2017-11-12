@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpProjectDataERPIFFSMainGrid">
+	<select id="list" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.PROJECT_NO,
+		       A.WTIME,
+		       A.WTIME_F,
+		       B.QTY2 AS ERP_WTIME_F,
+		       TO_CHAR(B.CREATION_DATE, 'YYYY/MM/DD') AS ERP_CREATE_DATE
+		FROM   (SELECT PROJECT_NO,
+		               ROUND(SUM(WTIME), 1) AS WTIME,
+		               ROUND(SUM(WTIME_F), 1) AS WTIME_F
+		        FROM   (SELECT PROJECT_NO,
+		                       EMPLOYEE_NO,
+		                       SUM(DIRECT_MH + DIST_MH) AS WTIME,
+		                       SUM((DIRECT_MH * MH_FACTOR) + (DIST_MH * MH_FACTOR)) AS WTIME_F
+		                FROM   (SELECT PROJECT_NO,
+		                               DIRECT_MH,
+		                               DIST_MH,
+		                               EMPLOYEE_NO,
+		                                                       CASE
+		                                                         WHEN CAREER_MONTHS IS NULL THEN 1
+		                                                         ELSE (SELECT FACTOR_VALUE
+		                                FROM   (SELECT CAREER_MONTH_FROM,
+		                                               CAREER_MONTH_TO,
+		                                               FACTOR_VALUE
+		                                        FROM   PLM_DESIGN_MH_FACTOR
+		                                        WHERE  1 = 1
+		                                        AND    CASE_NO = #{factorCaseList} )
+		                                WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+		                                AND    NVL(CAREER_MONTH_TO, 9999) &gt;= CAREER_MONTHS )
+		                                                       END AS MH_FACTOR
+		                        FROM   (SELECT A.EMPLOYEE_NO,
+		                                       A.PROJECT_NO,
+		                                       A.DIRECT_MH,
+		                                       A.DIST_MH,
+		                                       ((TO_CHAR(A.WORK_DAY, 'YYYY') - TO_CHAR(B.DESIGN_APPLY_DATE, 'YYYY'))* 12 + (TO_CHAR(A.WORK_DAY, 'MM') - TO_CHAR(B.DESIGN_APPLY_DATE, 'MM'))) +
+		                                                                       CASE
+		                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+		                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &gt; 15 THEN 0
+		                                                                       END + NVL(ROUND(B.BEFORE_ENTRANCE_CAREER * 12, 0), 0) AS CAREER_MONTHS
+		                                FROM   PLM_DESIGN_MH_CLOSE A,
+		                                       CCC_SAWON B
+		                                WHERE  A.EMPLOYEE_NO = B.EMPLOYEE_NUM(+)
+		                                AND    A.WORK_DAY &gt;= TO_DATE(#{dateFrom}, 'YYYY-MM-DD')
+		                                AND    A.WORK_DAY &lt; TO_DATE(#{dateTo}, 'YYYY-MM-DD')) )
+		                GROUP BY PROJECT_NO, EMPLOYEE_NO )
+		        GROUP BY PROJECT_NO
+		        ORDER BY PROJECT_NO ) A,
+		       STX_PA_CST_MASTER_INFO@STXERP B
+		WHERE  A.PROJECT_NO = B.PROJECT_NAME_S(+)
+		AND    B.COLLECTION_CODE(+) = 'PLM_J_01'
+		AND    B.UNIT_SEGMENT(+) =  #{targetSelect}
+		AND    B.CURRENT_MONTH(+) = substr(#{dateFrom},0,6)
+		ORDER BY A.PROJECT_NO 
+	</select>
+</mapper>

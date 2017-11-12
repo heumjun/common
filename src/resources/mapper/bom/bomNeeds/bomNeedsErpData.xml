@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="bomNeedsErpData">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SIPV.PR_NO                     AS PR_NO 
+		      ,SIPV.PR_QUANTITY               AS PR_QUANTITY		 
+		      ,SIPV.PO_NO                     AS PO_NO		 
+		      ,SIPV.PO_QUANTITY_ORDERED       AS PO_QUANTITY_ORDERED		 
+		      ,TO_CHAR(SIPV.PO_CREATION_DATE, 'YYYY-MM-DD')   AS PO_CREATION_DATE		 
+		      ,(SELECT SCID.DEPT_NAME		 
+		          FROM PER_PEOPLE_F@STXERP      PPF		 
+		             , STX_COM_INSA_USER        SCIU		 
+		             , STX_COM_INSA_DEPT@STXERP SCID		 
+		         WHERE PPF.FIRST_NAME = SCIU.EMP_NO		 
+		           AND SCIU.DEPT_CODE = SCID.DEPT_CODE		 
+		           AND PPF.PERSON_ID  = SIPV.PO_AGENT_ID		 
+		           AND ROWNUM         = 1)    AS PO_AGENT_DEPT_DISP		 
+		      ,(SELECT LAST_NAME		 
+		          FROM PER_PEOPLE_F@STXERP      PPF		 
+		         WHERE PERSON_ID = SIPV.PO_AGENT_ID		 
+		           AND ROWNUM    = 1)         AS PO_AGENT_DISP	
+		      , (SELECT VENDOR_SITE_CODE_ALT		 
+		          FROM PO_VENDOR_SITES_ALL@STXERP		 
+		         WHERE VENDOR_SITE_ID = SIPV.PO_VENDOR_SITE_ID
+		           AND ROWNUM         = 1)    AS PO_VENDOR_SITE_CODE_ALT		 
+		      ,TO_CHAR(SIPV.SCM_MAKE_PLANING_DATE, 'YYYY-MM-DD')   AS SCM_MAKE_PLANING_DATE		 
+		      ,TO_CHAR(SIPV.SCM_MAKE_START_DATE, 'YYYY-MM-DD')   AS SCM_MAKE_START_DATE		 
+		      ,TO_CHAR(SIPV.SCM_PAINT_START_DATE, 'YYYY-MM-DD')   AS SCM_PAINT_START_DATE		 
+		      ,TO_CHAR(SIPV.SCM_DELIVER_SCH_DATE, 'YYYY-MM-DD')   AS SCM_DELIVER_SCH_DATE		 
+		      ,(SELECT SPLD.MEANING		 
+		          FROM STX_PO_LOOKUP_DTL@STXERP  SPLD		 
+		         WHERE SPLD.LOOKUP_CODE = SIPV.SCM_WORK_STATUS		 
+		           AND SPLD.LOOKUP_TYPE = 'SCM_VENDOR_PROGRESS_STATUS'		 
+		           AND ROWNUM           = 1)  AS SCM_WORK_STATUS_DISP		 
+		      ,TO_CHAR(SIPV.PAINTING_MOVE_DATE, 'YYYY-MM-DD')   AS PAINTING_MOVE_DATE		 
+		      ,SIPV.PO_QUANTITY_DELIVERED     AS PO_QUANTITY_DELIVERED		 
+		      ,TO_CHAR(SIPV.RCV_TRANSACTION_DATE, 'YYYY-MM-DD')   AS RCV_TRANSACTION_DATE		 
+		      ,TO_CHAR(SIPV.RCV_CREATION_DATE, 'YYYY-MM-DD')   AS RCV_CREATION_DATE		 
+		      ,(SELECT DESCRIPTION		 
+		          FROM FND_USER@STXERP	 
+		         WHERE USER_ID = SIPV.RCV_CREATED_BY		 
+		           AND ROWNUM  = 1)           AS RCV_CREATED_BY_DISP
+		  FROM STX_DIS_ERP_INV_PMT_PR  SIPV	
+		      ,STX_DIS_ERP_INV_PMT     SIPP	 
+		 WHERE SIPV.PROJECT_ID      	= SIPP.PROJECT_ID
+		   AND SIPV.PRIMARY_ITEM_ID     = SIPP.PRIMARY_ITEM_ID
+		   AND SIPV.ITEM_ID		      	= SIPP.ITEM_ID
+		   AND SIPP.PROJECT_NO      	= #{project_no}		 
+		   AND SIPP.PRIMARY_ITEM_CODE   = #{job_cd}		 
+		   AND SIPP.ITEM_CODE           = #{item_code}
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT
+		  FROM STX_DIS_ERP_INV_PMT_PR  SIPV	
+		      ,STX_DIS_ERP_INV_PMT     SIPP	 
+		 WHERE SIPV.PROJECT_ID      	= SIPP.PROJECT_ID
+		   AND SIPV.PRIMARY_ITEM_ID     = SIPP.PRIMARY_ITEM_ID
+		   AND SIPV.ITEM_ID		      	= SIPP.ITEM_ID
+		   AND SIPP.PROJECT_NO      	= #{project_no}		 
+		   AND SIPP.PRIMARY_ITEM_CODE   = #{job_cd}		 
+		   AND SIPP.ITEM_CODE           = #{item_code}
+	</select>
+
+</mapper>

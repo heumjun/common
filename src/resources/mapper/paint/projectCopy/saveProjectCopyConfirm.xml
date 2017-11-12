@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveProjectCopyConfirm">
+  
+	
+  
+  	<select id="selectFromCopyListCnt" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from (
+	        
+	        <if test="sel_condition == 'block' or sel_condition == 'all' ">
+	        select distinct
+	               'BLOCK'      as gbn
+	               ,null			as team_count
+	               ,block_code  as code 
+	          from stx_dis_pis_block
+	         where project_no = #{from_project_no} 
+			   and revision   = #{from_revision}  
+	        </if>
+	           
+	        <if test="sel_condition == 'all' ">
+	        union all
+	        </if>
+	        
+	        <if test="sel_condition == 'pe' or sel_condition == 'all' ">
+	        select distinct
+	               'PE'         as gbn
+	              ,null			as team_count 
+	              ,pe_code      as code 
+	          from stx_dis_pis_pe
+	         where project_no = #{from_project_no} 
+			   and revision   = #{from_revision}  
+	        </if>
+	        
+	        <if test="sel_condition == 'all' ">
+	        union all
+	        </if>
+	        
+	        <if test="sel_condition == 'zone' or sel_condition == 'all' ">
+	        select distinct   
+	               'ZONE'       as gbn
+	              ,null			as team_count  
+	              ,zone_code    as code
+	          from stx_dis_pis_zone   
+	         where project_no = #{from_project_no} 
+			   and revision   = #{from_revision}  
+	        </if> 
+	        
+	        <if test="sel_condition == 'all' ">
+	        union all
+	        </if>
+	        
+	        <if test="sel_condition == 'pattern' or sel_condition == 'all' ">
+	        select distinct
+	               'PATTERN'    as gbn
+	              ,null			as team_count  
+	              ,pattern_code as code
+	          from stx_dis_pis_pattern           
+	         where project_no = #{from_project_no} 
+			   and revision   = #{from_revision}  
+	        </if>  
+	        
+	        <if test="sel_condition == 'all' ">
+	        union all
+	        </if>
+	        
+	        <if test="sel_condition == 'outfitting' or sel_condition == 'all' ">
+	        select distinct
+			       'OUTFITTING'     as gbn
+			      ,t1.team_count	as team_count 
+			      ,(select states_description  
+			          from stx_dis_states_mgnt
+			         where states_main_category = 'PAINT'
+			           and states_type          = 'PAINT TEAM'
+			           and states_var1          = t1.team_count
+			           and rownum               = 1)
+			                        as code       
+			  from stx_dis_pis_outfitting t1           
+	         where project_no = #{from_project_no} 
+			   and revision   = #{from_revision}  
+	        </if>  
+	        
+	        <if test="sel_condition == 'all' ">
+	        union all
+	        </if>
+	        
+	        <if test="sel_condition == 'cosmetic' or sel_condition == 'all' ">
+	         select distinct
+			       'COSMETIC'      as gbn
+			       ,t1.team_count  as team_count
+			       ,(select states_description  
+			          from stx_dis_states_mgnt
+			         where states_main_category = 'PAINT'
+			           and states_type          = 'PAINT TEAM2'
+			           and states_var1          = t1.team_count
+			           and rownum               = 1)
+			                        as code       
+			  from stx_dis_pis_cosmetic t1           
+			 where project_no = #{from_project_no} 
+			   and revision   = #{from_revision}  
+	        </if>  
+	         ) t1  
+  	</select>
+  	
+  	<select id="selectExistToBlock" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt 
+  	  from stx_dis_pis_block
+ 	 where project_no = #{to_project_no}
+   	   and revision   = #{to_revision}
+   	   and block_code = #{code}
+	</select>
+	
+	<insert id="insertCopyBlock" parameterType="java.util.Map" >
+	insert into stx_dis_pis_block
+		( project_no     
+		 ,revision
+		 ,block_code
+		 ,area_code
+		 ,area_desc
+		 ,area
+		 ,created_by
+		 ,creation_date
+		 ,last_updated_by
+		 ,last_update_date
+		)
+		select  #{to_project_no} 
+		       ,#{to_revision}
+		       ,block_code
+		       ,area_code
+		       ,area_desc
+		       ,area
+		       ,-1
+		       ,sysdate
+		       ,-1
+		       ,sysdate
+		  from stx_dis_pis_block
+		 where project_no = #{from_project_no}
+		   and revision   = #{from_revision}
+		   and block_code = #{code}
+	</insert>
+	
+	<select id="selectExistToPE" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_pe 
+	 where project_no = #{to_project_no}
+   	   and revision   = #{to_revision}
+   	   and pe_code 	  = #{code}
+	</select>
+	
+	<insert id="insertCopyPE" parameterType="java.util.Map" >
+	insert into stx_dis_pis_pe
+		( project_no     
+		 ,revision
+		 ,pe_code
+		 ,block_code
+		 ,pre_pe_code
+		 ,created_by
+		 ,creation_date
+		 ,last_updated_by
+		 ,last_update_date
+		 ,trans_block_flag
+		)
+		select  #{to_project_no} 
+		       ,#{to_revision}
+		       ,pe_code
+			   ,block_code
+			   ,pre_pe_code
+		       ,-1
+		       ,sysdate
+		       ,-1
+		       ,sysdate
+		       ,trans_block_flag
+		  from stx_dis_pis_pe
+		 where project_no = #{from_project_no}
+		   and revision   = #{from_revision}
+		   and pe_code 	  = #{code}
+	</insert>
+	
+	<select id="selectExistBlockFromToPE" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_pe t1
+	 where t1.project_no  = #{from_project_no}
+	   and t1.revision    = #{from_revision}
+	   and t1.pe_code     = #{code}
+	   and exists (select '1'
+	                 from stx_dis_pis_pe
+	                where project_no = #{to_project_no}
+	                  and revision   = #{to_revision}
+	                  and pe_code    = t1.pe_code
+	                  and block_code = t1.block_code)
+	</select>
+	
+	<select id="selectExistToZone" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_zone
+	 where project_no = #{to_project_no}
+   	   and revision   = #{to_revision}
+   	   and zone_code  = #{code}
+	</select>
+	
+	<insert id="insertCopyZone" parameterType="java.util.Map" >
+	insert into stx_dis_pis_zone
+		( project_no     
+		 ,revision
+		 ,zone_code
+		 ,area_code
+		 ,quay
+		 ,created_by
+		 ,creation_date
+		 ,last_updated_by
+		 ,last_update_date
+		 ,area_master
+		 ,area_group
+		)
+		select  #{to_project_no} 
+		       ,#{to_revision}
+		       ,zone_code
+			   ,area_code
+			   ,quay
+		       ,-1
+		       ,sysdate
+		       ,-1
+		       ,sysdate
+		       ,area_master
+		       ,area_group
+		  from stx_dis_pis_zone
+		 where project_no = #{from_project_no}
+		   and revision   = #{from_revision}
+		   and zone_code  = #{code}
+	</insert>
+	
+	<select id="selectExistAreaFromToZone" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_zone t1
+	 where t1.project_no  = #{from_project_no}
+	   and t1.revision    = #{from_revision}
+	   and t1.zone_code   = #{code}
+	   and exists (select '1'
+                 	 from stx_dis_pis_zone
+                	where project_no = #{to_project_no}
+                  	  and revision   = #{to_revision}
+                  	  and zone_code  = t1.zone_code
+                  	  and area_code  = t1.area_code)
+	</select>
+	
+	<select id="selectExistToPattern" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_pattern      
+	 where project_no   = #{to_project_no}
+   	   and revision     = #{to_revision}
+   	   and pattern_code = #{code}
+	</select>
+	
+	<insert id="insertCopyPatternCode" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern
+	   (
+		  project_no
+	     ,revision
+	     ,pattern_code
+	     ,define_flag
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   values
+	   (
+	     #{to_project_no}
+	    ,#{to_revision}
+	    ,#{code}
+	    ,'N'
+	    ,-1
+	    ,sysdate
+	    ,-1
+	    ,sysdate     
+	   )
+	</insert>
+	
+	<insert id="insertCopyPatternItem" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern_item
+	   (
+		  project_no
+	     ,revision
+	     ,pattern_code
+		 ,paint_count
+		 ,paint_item
+		 ,paint_dft
+		 ,paint_stage
+		 ,paint_svr
+		 ,season_code
+		 ,pre_loss
+		 ,post_loss
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   select  #{to_project_no} 
+		      ,#{to_revision}
+		      ,pattern_code
+		      ,paint_count
+		      ,paint_item
+		      ,paint_dft
+		      ,paint_stage
+		      ,paint_svr
+		      ,season_code
+		      ,pre_loss
+		      ,post_loss
+		      ,-1
+		      ,sysdate
+		      ,-1
+		      ,sysdate
+		 from stx_dis_pis_pattern_item
+		where project_no 	= #{from_project_no}
+		  and revision   	= #{from_revision}
+		  and pattern_code  = #{code}
+	</insert>
+	
+	<insert id="insertCopyPatternArea" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern_area
+	   (
+		  project_no
+	     ,revision
+	     ,pattern_code
+		 ,area_code
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   select  #{to_project_no} 
+		      ,#{to_revision}
+		      ,pattern_code
+		      ,area_code
+		      ,-1
+		      ,sysdate
+		      ,-1
+		      ,sysdate
+		 from stx_dis_pis_pattern_area
+		where project_no 	= #{from_project_no}
+		  and revision   	= #{from_revision}
+		  and pattern_code  = #{code}
+	</insert>
+	
+	<select id="selectExistToCosmetic" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_cosmetic
+	 where project_no = #{to_project_no}
+   	   and revision   = #{to_revision}
+   	   and team_count = #{team_count}
+	</select>
+	
+	<insert id="insertCopyCosmetic" parameterType="java.util.Map">
+	insert into stx_dis_pis_cosmetic
+	   (
+		  project_no
+	     ,revision
+	     ,team_count
+		 ,paint_gbn
+		 ,paint_item
+		 ,quantity
+		 ,theory_quantity
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   select  #{to_project_no} 
+		      ,#{to_revision}
+		      ,team_count
+			  ,'ETC' 				as paint_gbn
+			  ,paint_item			as paint_item
+			  ,sum(quantity)        as quantity
+        	  ,sum(theory_quantity) as theory_quantity
+		      ,-1
+		      ,sysdate
+		      ,-1
+		      ,sysdate
+		 from stx_dis_pis_cosmetic
+		where project_no 	= #{from_project_no}
+		  and revision   	= #{from_revision}
+		  and team_count    = #{team_count}
+		group by project_no, revision, team_count, paint_item  
+	</insert>
+	
+	<insert id="insertCopyCosmeticArea" parameterType="java.util.Map">
+	insert into stx_dis_pis_cosmetic_area
+	   (
+		  project_no
+	     ,revision
+	     ,team_count
+		 ,area
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   select  #{to_project_no} 
+		      ,#{to_revision}
+		      ,team_count
+		      ,area
+		      ,-1
+		      ,sysdate
+		      ,-1
+		      ,sysdate
+		 from stx_dis_pis_cosmetic_area
+		where project_no 	= #{from_project_no}
+		  and revision   	= #{from_revision}
+		  and team_count    = #{team_count}
+	</insert>
+	
+	<select id="selectExistToOutfitting" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_outfitting
+	 where project_no = #{to_project_no}
+   	   and revision   = #{to_revision}
+   	   and team_count = #{team_count}
+	</select>
+	
+	<insert id="insertCopyOutfitting" parameterType="java.util.Map">
+	insert into stx_dis_pis_outfitting
+	   (
+		  project_no
+	     ,revision
+	     ,team_count
+		 ,paint_gbn
+		 ,paint_item
+		 ,quantity
+		 ,theory_quantity
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   select  #{to_project_no} 
+		      ,#{to_revision}
+		      ,team_count
+			  ,'ETC' 				as paint_gbn
+			  ,paint_item			as paint_item
+			  ,sum(quantity)        as quantity
+        	  ,sum(theory_quantity) as theory_quantity
+		      ,-1
+		      ,sysdate
+		      ,-1
+		      ,sysdate
+		 from stx_dis_pis_outfitting
+		where project_no 	= #{from_project_no}
+		  and revision   	= #{from_revision}
+		  and team_count    = #{team_count}
+		group by project_no, revision, team_count, paint_item  
+	</insert>
+	
+	<insert id="insertCopyOutfittingArea" parameterType="java.util.Map">
+	insert into stx_dis_pis_outfitting_area
+	   (
+		  project_no
+	     ,revision
+	     ,team_count
+		 ,area
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   select  #{to_project_no} 
+		      ,#{to_revision}
+		      ,team_count
+		      ,area
+		      ,-1
+		      ,sysdate
+		      ,-1
+		      ,sysdate
+		 from stx_dis_pis_outfitting_area
+		where project_no 	= #{from_project_no}
+		  and revision   	= #{from_revision}
+		  and team_count    = #{team_count}
+	</insert>
+	
+</mapper>  	

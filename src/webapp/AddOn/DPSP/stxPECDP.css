@@ -1,0 +1,301 @@
+<style type="text/css">
+<!--
+
+body
+{
+	background-color: #D8D8D8;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	font-size: 8pt;
+	line-height: 150%;
+}
+
+td
+{
+	font-size: 9pt;
+	vertical-align: middle;
+}
+
+.button_simple
+{
+	font-size: 9pt;
+	font-weight: bold;
+	height: 26px;
+	width: 70px;
+}
+
+.button_simple2
+{
+	font-size: 9pt;
+	height: 22px;
+	width: 60px;
+}
+
+.button_simple3
+{
+	font-size: 9pt;
+	height: 22px;
+	width: 80px;
+}
+
+.td_standard
+{
+	font-size: 9pt;
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.td_standardBold
+{
+	font-size: 9pt;
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-weight: bold;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.td_standardLeft
+{
+	font-size: 9pt;
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	vertical-align: middle;
+	text-align: left;
+}
+
+.td_standardRight
+{
+	font-size: 9pt;
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	vertical-align: middle;
+	text-align: right;
+	padding-right: 3px;
+}
+
+.td_standardRightBoldBorder
+{
+	font-size: 9pt;
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	vertical-align: middle;
+	text-align: right;
+	padding-right: 1px;
+	border: #000000 1px solid;
+	font-weight: bold;
+}
+
+.td_standardLeftBold
+{
+	font-size: 9pt;
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-weight: bold;
+	vertical-align: middle;
+	text-align: left;
+}
+
+.td_standardSmall
+{
+	font-size: 8pt;
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.td_smallLRMargin
+{
+	font-size: 8pt;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	vertical-align: middle;
+	text-align: center;
+	padding: 0px, 6px, 0px, 6px;
+}
+
+.td_smallLRMarginBlue
+{
+	font-size: 8pt;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	color: #00008b;
+	vertical-align: middle;
+	text-align: center;
+	padding: 0px, 6px, 0px, 6px;
+}
+
+.td_smallLRMarginYellowBack
+{
+	font-size: 8pt;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	vertical-align: middle;
+	text-align: center;
+	padding: 0px, 6px, 0px, 6px;
+	background-color: #ffffe0;
+}
+
+.td_smallYellowBack
+{
+	font-size: 8pt;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	vertical-align: middle;
+	text-align: center;
+	background-color: #ffffe0;
+}
+
+.td_standardSmallYellowBack
+{
+	font-size: 8pt;
+	font-family: Verdana, Arial, Helvetica, µ¸¿ò, ±¼¸²;
+	vertical-align: middle;
+	text-align: center;
+	background-color: #ffffe0;
+}
+
+.td_title
+{
+	background-color: #0000ff;
+	font-size: 11pt;
+	font-weight: bold;
+	color: #ffffff;
+	text-align: center;
+}
+
+.td_timeselect
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 9pt;
+	font-weight: bold;
+	text-align: center;
+}
+
+.td_timeselect2
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 10pt;
+	font-weight: bold;
+	text-align: center;
+	cursor: hand;
+	border-right-width: 2px;
+	border-right-style: solid;
+	border-right-color: black;
+}
+
+.td_timeselect2_1
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 9pt;
+	font-weight: bold;
+	text-align: center;
+	cursor: hand;
+}
+
+.td_timeselect3
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 9pt;
+	text-align: center;
+	cursor: hand;
+	border-right-width: 2px;
+	border-right-style: solid;
+	border-right-color: black;
+}
+
+.td_timeselect3_1
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 9pt;
+	text-align: center;
+	cursor: hand;
+}
+
+.td_timeselect4
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 9pt;
+	font-weight: bold;
+	text-align: center;
+	cursor: hand;
+	color: #0000ff;
+}
+
+.td_timeselect4_1
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 10pt;
+	font-weight: bold;
+	text-align: center;
+	cursor: hand;
+	color: #ff0000;
+}
+
+.td_personselect
+{
+	font-size: 9pt;
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	vertical-align: middle;
+	text-align: center;
+	cursor: hand;
+}
+
+.td_opselect
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 9pt;
+	text-align: center;
+	cursor: hand;
+}
+
+.input_small
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 8pt;
+}
+
+.input_noBorder
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 8pt;
+	border: 0;
+}
+
+.input_noBorder2
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 9pt;
+	border: 1;
+	background-color:#ffd700;
+	text-align:center;
+}
+
+.input_noBorder3
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 10pt;
+	border: 1;
+	background-color:#ffffa0;
+	text-align:center;
+	vertical-align:middle;
+}
+
+.input_noBorder4
+{
+	font-family: µ¸¿ò, ±¼¸², Verdana, Arial, Helvetica;
+	font-size: 10pt;
+	border: 1;
+	background-color:#ffffe0;
+	text-align:center;
+	vertical-align:middle;
+}
+
+.td_keyEvent
+{
+	font-size: 8pt;
+	font-family: ±¼¸², µ¸¿ò, Verdana, Arial, Helvetica;
+	vertical-align: bottom;
+}
+
+td.td_labelRequired 
+{ 
+	background-color: #dadada; 
+	color: #990000; 
+	font-weight: bold; 
+	height: 24px; 
+}
+
+-->
+</style>

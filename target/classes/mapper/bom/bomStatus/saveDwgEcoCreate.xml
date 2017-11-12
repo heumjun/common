@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveDwgEcoCreate">
+	<select id="insertEcoHead" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_info_usc_pkg.eco_head_insert_proc(p_error_code             => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                     p_error_msg              => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                     p_eco_no                 => #{p_eco_no,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                     p_eco_cause_code         => #{p_eco_cause_code},
+                                                     p_manufacturing_engineer => #{p_manufacturing_engineer},
+                                                     p_login_id               => #{p_login_id},
+                                                     p_main_description       => #{p_main_description},
+                                                     p_eng_change_req_name    => #{p_eng_change_req_name})
+	}
+	</select>
+</mapper>

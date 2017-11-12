@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPartFamilyDescList">
+    <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select pf.part_family_code
+	      ,pf.part_family_desc
+	  from stx_dis_sd_part_family pf
+	 where pf.enable_flag = 'Y'
+	   and pf.part_family_desc like #{p_code_find} || '%'
+	 order by pf.part_family_code    	
+  	</select>
+</mapper>

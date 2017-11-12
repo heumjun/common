@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="catalogExcelImport">  	
+	<delete id="deleteCatalogAttrExist" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attr_upload
+	      where catalog_code   = #{catalog_code} 
+	</delete>
+  	<insert id="insertCatalogAttrUpload" parameterType="java.util.Map">
+	 
+	     insert into stx_dis_sd_catalog_attr_upload
+	       ( catalog_code
+	        ,attribute_type
+	        ,attribute_code
+	        ,attribute_name
+	        ,attribute_data_type
+	        ,assy_attribute_code
+	        ,attribute_data_min
+	        ,attribute_data_max
+	        ,value_code
+	        ,value_name
+	        ,assy_value_code
+	        ,created_by
+	        ,creation_date
+	        ,last_updated_by
+	        ,last_update_date 
+	       )
+	       values
+	       (
+	         upper( #{catalog_code} )
+	        ,upper( #{attribute_type} )
+	        ,upper( #{attribute_code} )
+	        ,upper( #{attribute_name} )
+	        ,upper( #{attribute_data_type} )
+	        ,upper( #{assy_attribute_code} )
+	        ,#{attribute_data_min}
+	        ,#{attribute_data_max}
+	        ,upper( #{value_code} )
+	        ,upper( #{value_name} )
+	        ,upper( #{assy_value_code} )
+	        ,-1
+	        ,sysdate
+	        ,-1
+	        ,sysdate
+	       )
+	</insert>
+	<!--사용안되고있음  -->
+	<insert id="insertCatalogAttrUpload2" parameterType="java.util.Map">
+	 merge into  stx_dis_sd_catalog_attr_upload t1
+	       using dual
+	          on (	  t1.catalog_code   = upper( #{catalog_code} )
+	          	  and t1.attribute_type = upper( #{attribute_type} ) 
+	          	  and t1.attribute_code = upper( #{attribute_code} ) 
+	          	  and t1.value_code 	= upper( #{value_code} )
+	          	  )
+	  when not matched then
+	  
+		  insert  
+		       ( t1.catalog_code
+		        ,t1.attribute_type
+		        ,t1.attribute_code
+		        ,t1.attribute_name
+		        ,t1.attribute_data_type
+		        ,t1.assy_attribute_code
+		        ,t1.attribute_data_min
+		        ,t1.attribute_data_max
+		        ,t1.value_code
+		        ,t1.value_name
+		        ,t1.assy_value_code
+		        ,t1.created_by
+		        ,t1.creation_date
+		        ,t1.last_updated_by
+		        ,t1.last_update_date 
+		       )
+		       values
+		       (
+		         upper( #{catalog_code} )
+		        ,upper( #{attribute_type} )
+		        ,upper( #{attribute_code} )
+		        ,upper( #{attribute_name} )
+		        ,upper( #{attribute_data_type} )
+		        ,upper( #{assy_attribute_code} )
+		        ,#{attribute_data_min}
+		        ,#{attribute_data_max}
+		        ,upper( #{value_code} )
+		        ,upper( #{value_name} )
+		        ,upper( #{assy_value_code} )
+		        ,-1
+		        ,sysdate
+		        ,-1
+		        ,sysdate
+		       )
+	</insert>
+ 	
+  	<select id="procedureCatalogCheck"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_dis_sd_catalog_check_proc(p_err_msg => #{p_err_msg,jdbcType=VARCHAR,mode=OUT},
+                                         p_err_code => #{p_err_code,jdbcType=VARCHAR,mode=OUT},
+                                         p_catalog_code => #{p_catalog_code,jdbcType=VARCHAR,mode=IN})
+	                                              
+	}
+	</select>
+	
+  	<select id="procedureCatalogUpload" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+  	{ call stx_dis_sd_catalog_upload_proc(p_err_msg => #{p_err_msg,jdbcType=VARCHAR,mode=OUT},
+                                         p_err_code => #{p_err_code,jdbcType=VARCHAR,mode=OUT},
+                                         p_catalog_code => #{p_catalog_code,jdbcType=VARCHAR,mode=IN})
+	                                              
+	}
+  	</select>
+</mapper>

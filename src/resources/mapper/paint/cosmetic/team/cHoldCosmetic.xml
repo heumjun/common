@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cHoldCosmetic">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with temp_exposedeck as (
+	                           select  t1.paint_count           as paint_count
+	                                  ,(case when t4.item_gbn = 1 then t1.paint_item
+	                                                              else (select thinner_code
+	                                                                      from stx_dis_item
+	                                                                     where item_code = t1.paint_item 
+                                                                           and rownum = 1)
+                                        end)                    as paint_item         
+                                      ,t4.item_gbn              as item_gbn
+                                      ,round((t1.paint_svr*10)/t1.paint_dft, 3)
+                                                                as paint_tsr
+                                      ,(nvl(decode(t1.block_define_flag,'Y',t1.block_area,0),0) + nvl(decode(t1.pe_define_flag,'Y',t1.pe_area,0),0) 
+                                        + nvl(decode(t1.pre_pe_define_flag,'Y',t1.pre_pe_area,0),0) + nvl(decode(t1.hull_define_flag,'Y',t1.hull_area,0),0) 
+                                        + nvl(decode(t1.quay_define_flag,'Y',t1.quay_area,0),0))
+                                                                as paint_area                                
+                                  from stx_dis_pis_pattern_scheme         t1
+						              ,(select b1.project_no ,
+						                       b1.revision ,
+						                       b1.area_code ,
+						                       min(b2.area_desc) as area_desc
+						                from   stx_dis_pis_block b1
+						                      ,stx_dis_pis_area  b2
+						                where  b1.project_no = #{project_no}
+						                  and  b1.revision   = #{revision}
+						                  and  b1.area_code  = b2.area_code
+						                group by b1.project_no, b1.revision, b1.area_code
+						                ) t3                                  
+                                      ,stx_dis_pis_pe                      t5
+                                      ,(select 1 as item_gbn from dual
+                                        union all
+                                        select 2 as item_gbn from dual) t4       
+                                  where t1.project_no  = #{project_no}
+                                    and t1.revision    = #{revision}
+                                    and t1.project_no  = t3.project_no
+                                    and t1.revision    = t3.revision
+                                    and t1.area_code   = t3.area_code
+                                    and t1.project_no  = t5.project_no(+)
+                                    and t1.revision    = t5.revision(+)
+                                    and t1.block_code  = t5.block_code(+)
+                                    and t3.area_desc   like '%C/HOLD W&#38;OH%'      
+                                )
+
+    select max(area_desc) as area_desc
+       , max(paint_count) as paint_count 
+       , paint_item
+       , max(item_desc) as item_desc 
+       , max(theory_quantity) as theory_quantity
+       , quantity as quantity 
+       , min(chk) as chk
+       , decode(min(chk),'삭제',1,2) as ob 
+   from (                            
+                                
+                                
+    select t11.area_desc
+          ,t11.paint_count
+          ,t11.paint_item
+          ,t11.theory_quantity||'' as theory_quantity
+          ,(case when t11.item_gbn = 1 then ceil((((t11.paint_area * 0.3) / paint_tsr) * 1.75)/t12.can_size) * t12.can_size
+                                       else ceil(((((t11.paint_area * 0.3) / paint_tsr) * 1.75) * 0.15)/t12.can_size) * t12.can_size
+           end)                       
+           as quantity
+          ,t12.item_desc
+          ,(case when (select count(*) as cnt
+	                         from stx_dis_pis_cosmetic
+	                        where project_no   = #{project_no}
+	                          and revision     = #{revision}
+	                          and team_count   = #{team_count}
+	                          and paint_gbn    = #{paint_gbn}
+	                          and paint_item   = t11.paint_item) > 0 then '─'
+	                                                                 else '+'
+	       end)              as chk  
+      from (   
+             select  'C/HOLD W&#38;OH'  		as area_desc
+                    ,'FINAL'            		as paint_count
+                    
+                    ,t10.item_gbn       		as item_gbn
+                    ,t10.paint_item     		as paint_item
+                  
+                    ,sum(paint_area)    		as paint_area
+                    ,max(paint_tsr)     		as paint_tsr
+                    ,0                  		as theory_quantity
+                from temp_exposedeck             t10 
+               where t10.paint_count = (select max(paint_count) 
+                                          from temp_exposedeck
+                                         where paint_item = t10.paint_item)  
+               group by t10.item_gbn, t10.paint_item  
+            )                           t11
+           ,stx_dis_item                t12 
+     where t11.paint_item = t12.item_code        
+                 
+     union all
+select '' as area_desc
+       ,'' as paint_count
+       , t1.paint_item
+       
+	   ,''                  as theory_quantity
+	   ,t1.quantity
+	   ,t2.item_desc
+	   ,(case when 'Y' = 'Y' and nvl('',' ')  <![CDATA[<>]]>  'D' then '삭제' else null end) as chk
+ from stx_dis_pis_cosmetic t1
+	      ,stx_dis_item           t2
+	
+ where project_no     = #{project_no}
+	  
+ and revision       = #{revision}
+	  
+ and team_count     = #{team_count}
+	  
+ and paint_gbn      =  #{paint_gbn}  
+	  
+ and t1.paint_item  = t2.item_code)
+ 
+ GROUP BY paint_item, quantity
+ order by ob, to_char(TRANSLATE(paint_count, '0123456789'||paint_count, '0123456789'), '00000'), PAINT_ITEM
+  	</select>
+</mapper>

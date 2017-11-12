@@ -1,0 +1,373 @@
+<%@page import="java.util.*"%>
+
+
+<%!
+	private static String getComboBoxOptionDisplay(ArrayList mlOptionList,String sValue)
+	{
+		String sReturn = "";
+		try{
+			for(int index=0;index<mlOptionList.size();index++)
+			{
+				Map mapOption = (Map)mlOptionList.get(index);
+				if((mapOption.get("VALUE")).equals(sValue))
+				{
+					sReturn = (String)mapOption.get("DISPLAY");
+					break;
+				}
+			}
+		} catch(Exception e)
+		{
+			sReturn = "";
+		}
+		return sReturn;
+	}
+
+	private static String checkBoxRenderer(ArrayList slList,String sName,String sDefaultValue)
+	{
+		StringBuffer sbHtml = new StringBuffer();
+		sbHtml.append("");
+		try{
+			for(int index=0;index<slList.size();index++)
+			{
+				String sValue = (String)slList.get(index);
+				String sChecked = "";
+				if(sValue != null && sValue.equals(sDefaultValue))
+				{
+					sChecked = "checked";
+				}
+				sbHtml.append("<input type=\"checkbox\" value=\""+sValue+"\" "+sChecked+" name=\""+sName+"\" name=\"chk"+sValue+"\" > "+sValue+"\n");
+			}
+		} catch(Exception e)
+		{
+			return "";
+		}
+		return sbHtml.toString();
+	}
+	
+	private static String comboBoxOptionRenderer(ArrayList mlOptionList)
+	{
+		return comboBoxOptionRenderer(mlOptionList,null);
+	}
+	
+	private static String comboBoxOptionRenderer(ArrayList mlOptionList,String sDefaultValue)
+	{
+		StringBuffer sbHtml = new StringBuffer();
+		sbHtml.append("");
+		try{
+			sbHtml.append("<option>&nbsp;</option> \n");
+			for(int index=0;index<mlOptionList.size();index++)
+			{
+				Map mapOption = (Map)mlOptionList.get(index);
+				String sDisplay = (String)mapOption.get("DISPLAY");
+				String sValue = (String)mapOption.get("VALUE");
+				String sSelected = "";
+				if(sDefaultValue != null && sDefaultValue.equals(sValue))
+				{
+					sSelected = "selected";
+				}
+				sbHtml.append("<option value=\""+sValue+"\" "+sSelected+" >"+sDisplay+"</option> \n");
+			}
+		} catch(Exception e)
+		{
+			return "<option>Some Error Occur</option>";
+		}
+		return sbHtml.toString();
+	}
+	
+	private static String comboBoxOptionRendererNoBlank(ArrayList mlOptionList,String sDefaultValue)
+	{
+		StringBuffer sbHtml = new StringBuffer();
+		sbHtml.append("");
+		try{
+			for(int index=0;index<mlOptionList.size();index++)
+			{
+				Map mapOption = (Map)mlOptionList.get(index);
+				String sDisplay = (String)mapOption.get("DISPLAY");
+				String sValue = (String)mapOption.get("VALUE");
+				String sSelected = "";
+				if(sDefaultValue != null && sDefaultValue.equals(sValue))
+				{
+					sSelected = "selected";
+				}
+				sbHtml.append("<option value=\""+sValue+"\" "+sSelected+" >"+sDisplay+"</option> \n");
+			}
+		} catch(Exception e)
+		{
+			return "<option>Some Error Occur</option>";
+		}
+		return sbHtml.toString();
+	}
+	
+	
+	private static String toJS(Object oInput)
+	{
+		String sReturn="";
+		if(oInput != null)
+		{
+			sReturn = (String)oInput;
+			sReturn = sReturn.replaceAll("'","");
+			sReturn = sReturn.replaceAll("&","");
+			sReturn = sReturn.replaceAll("\"","\\\"");
+		}
+		return sReturn;
+	}
+	private static String setNoBrRenderer(Object oInput,String sWidth)
+	{
+		StringBuffer sbHtml = new StringBuffer();
+		sbHtml.append("<nobr style=\"white-space:nowrap;overflow:hidden;text-overflow:ellipsis; width:"+sWidth+"px;\">");
+		if(oInput != null)sbHtml.append(oInput);
+		sbHtml.append("</nobr>");
+		return sbHtml.toString();
+	}
+	
+	private static String setNumberFormatRenderer(String sNum,int iStandard)
+	{
+		String sReturn = "";
+		try{
+			int iNum = Integer.parseInt(sNum);
+			if(iNum > iStandard)
+			{
+				for(int index=1;;index++)
+				{
+					if(iNum >= iStandard)
+					{
+						int remain = iNum%iStandard;
+						iNum = (iNum - remain)/iStandard;
+						String sRemain = remain + "";
+						if(sRemain.length() < 3)
+						{
+							if(sRemain.length()==2)sRemain = "0" + sRemain;
+							if(sRemain.length()==1)sRemain = "00" + sRemain;
+						}
+						if(sReturn.equals(""))
+						{
+							sReturn = sRemain + "";
+						} else {
+							sReturn = sRemain + "," + sReturn;
+						}
+					} else {
+						if(sReturn.equals(""))
+						{
+							sReturn = iNum + "";
+						} else {
+							sReturn = iNum + "," + sReturn;
+						}
+						break;
+					}
+				}
+			} else {
+				sReturn = sNum;
+			}
+		} catch (Exception e)
+		{
+			if(sNum != null && sNum.equals(""))
+			{
+				sReturn = "";
+			} else {
+				sReturn = "Format Error("+sNum+")";
+			}
+		}
+		return sReturn;
+	}
+	
+	private static ArrayList setButtonRenderer(ArrayList mlButton,String sButtonName, String sFunction)
+	{
+		return setButtonRenderer(mlButton,sButtonName,sFunction,true);
+	}
+	
+	private static ArrayList setButtonRenderer(ArrayList mlButton,String sButtonName, String sFunction, boolean separator)
+	{
+		Map mapButton = new HashMap();
+		mapButton.put("type","button");
+		mapButton.put("display",sButtonName);
+		mapButton.put("function",sFunction);
+		mapButton.put("separator",separator+"");
+		mlButton.add(mapButton);
+		return mlButton;
+	}
+	
+	private static ArrayList setTextBoxRenderer(ArrayList mlButton,String boxId, String size )
+	{
+		Map mapButton = new HashMap();
+		mapButton.put("type","textbox");
+		mapButton.put("size",size);
+		mapButton.put("id",boxId);
+		mlButton.add(mapButton);
+		return mlButton;
+	}
+	
+	private static ArrayList setHtmlRenderer(ArrayList mlButton,String html)
+	{
+		Map mapButton = new HashMap();
+		mapButton.put("type","html");
+		mapButton.put("html",html);
+		mlButton.add(mapButton);
+		return mlButton;
+	}
+	
+	private static String setPageHeaderRenderer(String sTitle,ArrayList mlButton)
+	{
+		StringBuffer sbHtml = new StringBuffer();
+		sbHtml.append("<script language=\"javascript\" type=\"text/javascript\" src=\"scripts/stxHeader.js\"></script> \n");
+		sbHtml.append("<table border=\"0\" cellspacing=\"1\" cellpadding=\"0\" width=\"100%\"> \n");
+		sbHtml.append("    <tr> \n");
+		sbHtml.append("		<td width=\"99%\"> \n");
+		sbHtml.append("			<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"> \n");
+		sbHtml.append("				<tr> \n");
+		sbHtml.append("					<td class=\"pageBorder\"><img src=\"../common/images/utilSpacer.gif\" width=\"1\" height=\"1\" alt=\"\"></td> \n");
+		sbHtml.append("				</tr> \n");
+		sbHtml.append("			</table> \n");
+		sbHtml.append("			<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"> \n");
+		sbHtml.append("				<tr> \n");
+		sbHtml.append("					<td width=\"1%\" nowrap><span class=\"pageHeader\">&nbsp;"+sTitle+"</span> \n");
+		sbHtml.append("					</td> \n");
+		sbHtml.append("					<td> \n");
+		sbHtml.append("						<div id=\"imgProgressDiv\">&nbsp;<img src=\"../common/images/utilProgressSummary.gif\" width=\"34\" height=\"28\" name=\"progress\" align=absmiddle>&nbsp;<i></i></div> \n");
+		sbHtml.append("					</td> \n");
+		sbHtml.append("					<td width=\"1%\"> \n");
+		sbHtml.append("						<img src=\"../common/images/utilSpacer.gif\" width=\"1\" height=\"28\" border=\"0\" alt=\"\" vspace=\"6\"> \n");
+		sbHtml.append("					</td> \n");
+		sbHtml.append("				</tr> \n");
+		sbHtml.append("			</table> \n");
+		sbHtml.append("		</td> \n");
+		sbHtml.append("   </tr> \n");
+		sbHtml.append("    <tr> \n");
+		sbHtml.append("	    <td align=\"right\"> \n");
+		sbHtml.append("	    	<div class=\"toolbar-container\"><div id=\"divToolbar\" class=\"toolbar-frame\"> \n");
+		sbHtml.append("	    		<table> \n");
+		sbHtml.append("	    			<tbody> \n");
+		sbHtml.append("	    			<tr> \n");
+		for(int index=0;index<mlButton.size();index++)
+		{
+			Map mapButton = (HashMap)mlButton.get(index);
+			
+			String type = (String)mapButton.get("type");
+			if(type.equals("button"))
+			{
+				if(((String)mapButton.get("separator")).equals("true"))sbHtml.append("	    				<td><div class=\"separator\"></div></td>  \n");
+				sbHtml.append("						<td class=\"text-button\" onclick=\""+mapButton.get("function")+";\" onmouseover=\"fnBtnEvent(this,'mouseover')\" onmousedown=\"fnBtnEvent(this,'mousedown')\" onmouseout=\"fnBtnEvent(this,'mouseout')\" onmouseup=\"fnBtnEvent(this,'mouseup')\"> \n");
+				sbHtml.append("							"+mapButton.get("display")+" \n");
+				sbHtml.append("						</td>  \n");
+			} else if(type.equals("textbox"))
+			{
+				sbHtml.append("						<td><input type='text' id='"+mapButton.get("id")+"' size='"+mapButton.get("size")+"' value='' ></td>  \n");
+			} else if(type.equals("html"))
+			{
+				sbHtml.append("	    				<td><div class=\"separator\"></div></td> \n");
+				sbHtml.append("						<td> \n");
+				sbHtml.append(mapButton.get("html"));
+				sbHtml.append("						</td>  \n");
+			}
+		}
+		sbHtml.append("					</tr> \n");
+		sbHtml.append("					</tbody> \n");
+		sbHtml.append("				</table> \n");
+		sbHtml.append("	    	</div></div> \n");
+		sbHtml.append("    	</td> \n");
+		sbHtml.append("    </tr> \n");
+		sbHtml.append(" </table>");
+		return sbHtml.toString();
+	}
+	
+	private static ArrayList setFooterButtonRenderer(ArrayList mlButton,String sButtonName, String sFunction, String sImage)
+	{
+		Map mapButton = new HashMap();
+		mapButton.put("display",sButtonName);
+		mapButton.put("function",sFunction);
+		mapButton.put("image",sImage);
+		mlButton.add(mapButton);
+		return mlButton;
+	}
+	
+	private static String setPageFooterRenderer(ArrayList mlButton)
+	{
+		StringBuffer sbHtml = new StringBuffer();
+		
+		sbHtml.append("<table width=\"100%\" border=\"0\" align=\"center\" cellspacing=\"0\" cellpadding=\"0\"> \n");
+		sbHtml.append("<tr> \n");
+		sbHtml.append("	<td align=\"right\"> \n");
+		sbHtml.append("		<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\"> \n");
+		sbHtml.append("  			<tr> \n");
+		sbHtml.append("            	<td>&nbsp;&nbsp;</td> \n");
+		
+		for(int index=0;index<mlButton.size();index++)
+		{
+			Map mapButton = (HashMap)mlButton.get(index); 
+			if(index!=0)
+			{
+				sbHtml.append("                <td>&nbsp;&nbsp;</td> \n");
+			}
+			sbHtml.append("                <td><a href=\"javascript:"+mapButton.get("function")+"\"><img border=\"0\" alt=\""+mapButton.get("display")+"\" src=\""+mapButton.get("image")+"\"></a></td> \n");
+			sbHtml.append("                <td nowrap>&nbsp;<a href=\"javascript:"+mapButton.get("function")+"\" class=\"button\">"+mapButton.get("display")+"</a></td> \n");
+		}
+		sbHtml.append("      		</tr> \n");
+		sbHtml.append("    	</table> \n");
+		sbHtml.append("	</td> \n");
+		sbHtml.append("</tr> \n");
+		sbHtml.append("</table> \n");
+		
+		
+		
+		return sbHtml.toString();
+	}
+	private static String setListPaging(int iTotalSize,int pageSize,int currentPage)
+	{
+		int iStart = pageSize * currentPage + 1;
+		int iEnd = pageSize * (currentPage  + 1);
+		
+		if(iTotalSize/pageSize == currentPage)iEnd = iTotalSize;
+		
+		StringBuffer sbHtml = new StringBuffer();
+		sbHtml.append("<table id=\"pagingTbl\" width=\"100%\">");
+		sbHtml.append("<tr>");
+		sbHtml.append("<td class=\"requiredNotice\" align=\"center\" nowrap >Total : "+iTotalSize+"("+iStart+"~"+iEnd+")&nbsp;&nbsp;Paging&nbsp;");
+		sbHtml.append("<select name=\""+currentPage+"\" onchange=\"parent.headerFrame.fnSearch(this.value)\">");
+		for(int index=0;index<=iTotalSize/pageSize;index++)
+		{
+			String sSelected = "";
+			if(currentPage==index)
+			{
+				sSelected = "selected";
+			}
+			sbHtml.append("<option value=\""+index+"\" "+sSelected+" >" + (index + 1) + "</option>");
+		}
+		sbHtml.append("</select>");
+		sbHtml.append("</td>");
+		sbHtml.append("</tr>");
+		sbHtml.append("</table>");
+		return sbHtml.toString();
+	}
+	
+	private static String hiddenInputRowRenderer(Map mapRow,int index)
+	{
+		StringBuffer sbHtml = new StringBuffer();
+		Set setKey = mapRow.keySet();
+		Iterator itrKey = setKey.iterator();
+		
+		sbHtml.append("<input type=\"hidden\" name=\"rowIndex\" value=\""+index+"\" > \n");
+		while(itrKey.hasNext())
+		{
+			String sKey = (String)itrKey.next();
+			String sValue = (String)mapRow.get(sKey);
+			sbHtml.append("<input type=\"hidden\" name=\""+sKey+index+"\" value=\""+sValue+"\" > \n");
+		}
+		return sbHtml.toString();
+	}
+	
+	private static ArrayList convertOptionList(ArrayList mlList,String keyValue,String keyDisplay) throws Exception
+	{
+		ArrayList mlReturn = new ArrayList();
+		Iterator itrList = mlList.iterator();
+		while(itrList.hasNext())
+		{
+			Map mapInfo = (Map)itrList.next();
+			mapInfo.put("VALUE",mapInfo.get(keyValue));
+			mapInfo.put("DISPLAY",mapInfo.get(keyDisplay));
+			mlReturn.add(mapInfo);
+		}
+		return mlReturn;
+	}
+	
+	private static final String KEY_OPTION_DISP = "DISPLAY";
+	private static final String KEY_OPTION_VALUE = "VALUE";
+%>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="manageUserList">
+  	<!-- 프로그램관리 조회버튼 클릭시 SQL Mapping -->
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T2.*
+		  FROM (SELECT T1.*
+		             , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM (SELECT A.EMP_NO
+						     , A.USER_NAME AS NAME
+						     , A.USER_ENG_NAME
+						     , A.DEPT_CODE
+						     , A.DEPT_NAME
+						     , A.POSITION_CODE
+						     , A.POSITION_NAME
+						     , A.JOB_COD
+						     , A.JOB_NAM
+						     , A.JIK_COD
+						     , A.JIK_NAM
+						     , A.INS_DATE
+						     , A.DEL_DATE
+						     , A.TEL_NO
+						     , A.CEL_NO
+						     , A.EP_MAIL
+						     , STX_COM_EN_DECODE_PKG.DECRYPT@STXHR(JUMIN_NO) AS JUMIN_NO
+						     , A.SEX_CD
+						     , A.YEAR_CHA
+						     , A.EMP_KIND_CD
+						     , A.EMP_KIND_NM
+						     , A.EMP_KIND_SUB_CD
+						     , A.EMP_KIND_SUB_NM
+						     , A.WORK_AREA_CD
+						     , A.WORK_AREA_NM
+						     , A.JIKMU_COD
+						     , A.JIKMU_NAM
+						     , A.AFFAIRS_NAM
+						     , A.JIKGAN_NAM
+						     , A.ATTRIBUTE1
+						     , A.ATTRIBUTE2
+						     , A.ATTRIBUTE3
+						     , A.ATTRIBUTE4
+						     , A.ATTRIBUTE5
+						     , A.ATTRIBUTE6
+						     , A.ATTRIBUTE7
+						     , A.ATTRIBUTE8
+						     , A.ATTRIBUTE9
+						     , A.ATTRIBUTE10
+						     , A.IN_UP_FLAG
+						     , A.INSERT_DATE
+						     , A.UPDATE_DATE
+						     , A.BIRTH_DAY
+						     , C.PASSWORD
+		                     , C.AUTHOR_CODE
+		                     , C.ECR_EVALUATOR
+		                     , C.ECR_EVALUATOR AS ECR_EVALUATOR_CHANGED
+		                     , C.CREATE_BY
+		                     , C.CREATE_DATE
+		                     , C.MODIFY_BY
+		                     , C.MODIFY_DATE
+		                     , C.GROUP_ID
+		                     , C.USE_YN
+		                     , C.USE_YN AS USE_YN_CHANGED
+		                     , C.ECR_EVALUATOR_SITE
+		                     , C.ADMIN_YN
+		                     , C.ECO_AUTHOR_YN
+		                     , C.ECO_AUTHOR_YN AS ECO_AUTHOR_YN_CHANGED 
+						  FROM STX_COM_INSA_USER@STXERP A
+						     , STX_DIS_USER C
+						 WHERE A.EMP_NO = C.EMP_NO
+						   AND A.DEL_DATE IS NULL
+						 <if test='p_user_name != null and !p_user_name.equalsIgnoreCase("")'>
+						   AND A.USER_NAME LIKE '%'||#{p_user_name}||'%'
+						 </if>
+						 <if test='p_dept_name != null and !p_dept_name.equalsIgnoreCase("")'>
+						   AND A.DEPT_NAME LIKE '%'||#{p_dept_name}||'%'
+						 </if>
+						 <if test='p_author_name != null and !p_author_name.equalsIgnoreCase("")'>
+						 	AND SXT_DIS_GET_AUTHOR_NAME(C.AUTHOR_CODE) LIKE '%' || REPLACE(#{p_author_name}, '*', '%') || '%'
+						 </if>
+						 
+						 ORDER BY A.EMP_KIND_CD, A.DEPT_CODE, A.POSITION_CODE, A.USER_NAME) T1 ) T2
+		 WHERE PAGE = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT
+		  FROM STX_COM_INSA_USER@STXERP A
+		     , STX_DIS_USER C
+		 WHERE A.EMP_NO = C.EMP_NO
+		   AND A.DEL_DATE IS NULL
+		 <if test='p_user_name != null and !p_user_name.equalsIgnoreCase("")'>
+		   AND A.USER_NAME LIKE '%'||#{p_user_name}||'%'
+		 </if>
+		 <if test='p_dept_name != null and !p_dept_name.equalsIgnoreCase("")'>
+		   AND A.DEPT_NAME LIKE '%'||#{p_dept_name}||'%'
+		 </if>
+		 <if test='p_author_name != null and !p_author_name.equalsIgnoreCase("")'>
+		 	AND SXT_DIS_GET_AUTHOR_NAME(C.AUTHOR_CODE) LIKE '%' || REPLACE(#{p_author_name}, '*', '%') || '%'
+		 </if>
+  	</select>
+</mapper>

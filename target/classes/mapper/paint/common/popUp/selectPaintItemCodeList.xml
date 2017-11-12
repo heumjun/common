@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectPaintItemCodeList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+ select *
+ from(
+     select ROWNUM as rnum,
+            t.*
+       from ( 
+               select /*+ INDEX_ASC(stx_dis_item stx_dis_item_idx03) */ 
+                      sdi.item_code         as paint_code
+                     ,sdi.item_desc         as paint_desc
+                     ,sdi.stxsvr            as stxsvr
+                     ,nvl(sdi.can_size,0)   as can_size
+                 from stx_dis_item       sdi
+                     ,stx_dis_sd_catalog sdsc
+                where 1 = 1
+                  and sdi.item_catalog = sdsc.catalog_code
+                  and sdsc.paint_flag   = 'Y'
+                  <!-- and sdsc.job_flag     = 'N'
+                  and sdsc.wbs_flag     = 'N'
+                  and sdsc.wbs_sub_flag = 'N'
+                  and sdsc.pd_flag      = 'N' -->
+                  and sdi.item_code like #{item_code} || '%'
+                  and sdi.item_desc like '%' || #{item_desc} || '%' 
+                  and sdi.item_code like '4210%'
+                order by sdi.item_code
+           ) t
+         <![CDATA[
+     where ROWNUM <= (#{curPageNo}*#{pageSize}))
+      ]]>
+ where rnum >= (#{curPageNo}*#{pageSize}) - (#{pageSize}-1)     
+   </select>
+   
+   <select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+     <choose>
+     <when test='item_code == "" and item_desc==""'>
+      select 100000 as cnt from dual
+       </when>
+       <otherwise>
+       select count(*) as cnt
+         from stx_dis_item       sdi
+             ,stx_dis_sd_catalog sdsc
+       where 1 = 1
+         and sdi.item_catalog = sdsc.catalog_code
+         and sdsc.paint_flag   = 'Y'
+         <!-- and sdsc.job_flag     = 'N'
+         and sdsc.wbs_flag     = 'N'
+         and sdsc.wbs_sub_flag = 'N'
+         and sdsc.pd_flag      = 'N' -->
+         and sdi.item_code like #{item_code} || '%'
+         and sdi.item_desc like '%' || #{item_desc} || '%' 
+         and sdi.item_code like '4210%'
+       </otherwise>
+       </choose>
+    </select>
+
+</mapper>

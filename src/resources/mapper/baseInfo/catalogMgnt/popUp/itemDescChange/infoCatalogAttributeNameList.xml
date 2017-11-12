@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoCatalogAttributeNameList">  	
+    <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( select sc.catalog_code
+	                      ,sc.catalog_desc
+	                      ,ca.attribute_code
+	                      ,ca.attribute_name
+	                      ,ca.attribute_data_type
+	                      ,ca.attribute_data_min
+	                      ,ca.attribute_data_max
+	                      ,ca.assy_attribute_code
+	                      ,cast(ca.rowid as char(18))  as main_rowid
+	                      ,''                          as edit_attribute_name
+	                  from stx_dis_sd_catalog           sc
+	                      ,stx_dis_sd_catalog_attribute ca
+	                 where sc.catalog_code = ca.catalog_code
+	                   and ca.attribute_name like '%' || #{p_attribute_name} || '%'
+	                 order by 1, 2, 3 
+	               ) t1
+	       ) t2
+	 where page = #{curPageNo}  
+  	</select>
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_sd_catalog           sc
+	      ,stx_dis_sd_catalog_attribute ca
+	 where sc.catalog_code = ca.catalog_code
+	   and ca.attribute_name like '%' || #{p_attribute_name} || '%'
+  	</select>
+</mapper>

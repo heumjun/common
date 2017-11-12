@@ -1,0 +1,2305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PaintImportPaint">
+	<!-- savePaintImportCreateBom.xml로 이관 -->
+	<!--  <select id="insertPaintHead" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_head_insert_proc(p_project_no => #{p_project_no},
+                                                    p_revision => #{p_revision},
+                                                    p_series_project_no => #{p_series_project_no},
+                                                    p_paint_stage_type => #{p_paint_stage_type},
+                                                    p_eco_no => #{p_eco_no},
+                                                    p_login_id => #{p_login_id},
+                                                    p_paint_head_id => #{p_paint_head_id,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                    p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                            p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>-->
+    
+    <!-- savePaintImportCreateBom.xml로 이관 -->
+    <!--  <select id="insertPaintLine" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_line_insert_proc(p_paint_head_id => #{p_paint_head_id,jdbcType=VARCHAR},
+                                                    p_pe_code => #{p_pe_code,jdbcType=VARCHAR},
+                                                    p_pre_pe_code => #{p_pre_pe_code,jdbcType=VARCHAR},
+                                                    p_zone_code => #{p_zone_code,jdbcType=VARCHAR},
+                                                    p_block_code => #{p_block_code,jdbcType=VARCHAR},
+                                                    p_team_count => #{p_team_count,jdbcType=VARCHAR},
+                                                    p_team_desc => #{p_team_desc,jdbcType=VARCHAR},
+                                                    p_quay_code => #{p_quay_code,jdbcType=VARCHAR},
+                                                    p_area_code => #{p_area_code,jdbcType=VARCHAR},
+                                                    p_area => #{p_area,jdbcType=VARCHAR},
+                                                    p_paint_count => #{p_paint_count,jdbcType=VARCHAR},
+                                                    p_paint_item => #{p_paint_item,jdbcType=VARCHAR},
+                                                    p_thinner_code => #{p_thinner_code,jdbcType=VARCHAR},
+                                                    p_quantity => #{p_quantity,jdbcType=VARCHAR},
+                                                    p_theory_quantity => #{p_theory_quantity,jdbcType=VARCHAR},
+                                                    p_thinner_quantity => #{p_thinner_quantity,jdbcType=VARCHAR},
+                                                    p_thinner_theory_quantity => #{p_thinner_theory_quantity,jdbcType=VARCHAR},
+                                                    p_acd_type => #{p_acd_type,jdbcType=VARCHAR},
+                                                    p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                            p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>-->
+    
+    <!-- savePaintImportCreateBom.xml로 이관 -->
+    <!--  <select id="savePaintMain" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_main_proc(p_paint_head_id => #{p_paint_head_id},
+                                             p_login_id => #{p_login_id},
+                                             p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                     p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>-->
+    
+    <select id="savePaintEcoRelease" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_eco_release_proc(p_eco_no => #{p_eco_no},
+                                                    p_login_id => #{p_login_id},
+                                                    p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                            p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>
+    
+    <select id="savePaintPlanRelease" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+    { call stx_dis_paint_pkg.paint_plan_release_proc(p_project_no  => #{p_project_no},
+                                                     p_revision_no => #{p_revision_no},
+                                                     p_login_id    => #{p_login_id},
+                                                     p_error_code  => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                     p_error_msg   => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  	
+  	<select id="selectDelegateProjectNo" parameterType="java.util.Map" resultType="String">
+	select t1.delegate_project_no
+  	  from stx_dis_bom_schedule_v t1
+ 	 where t1.project_no = #{project_no}
+  	</select>
+  	
+  	<!-- selectPaintImportPaintList.xml로 이관 -->
+  	<!--  <select id="selectPaintNewRuleFlag" parameterType="java.util.Map" resultType="String">
+	SELECT SDP.PAINT_NEW_RULE_FLAG
+	  FROM STX_DIS_MAIN SDM
+	      ,STX_DIS_PROJECT SDP
+	 WHERE SDM.MAIN_CODE = SDP.PROJECT_CODE
+	   AND SDM.MAIN_NAME = #{project_no}
+  	</select>-->
+  	  	
+  	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectBlockQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	WITH TEMP AS (SELECT PAINT_COUNT                                                           AS  PAINT_COUNT
+	                    ,BLOCK_CODE                                                            AS  BLOCK_CODE
+	                    ,PE_CODE                                                               AS  PE_CODE
+	                    ,PAINT_ITEM                                                            AS  PAINT_ITEM
+	                    ,(SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                     )                                                                     AS THINNER_CODE
+	                    ,'curr'                                                                AS CURR_REVISION
+	                    ,NULL                                                                  AS PREV_REVISION
+	                    ,NULL                                                                  AS PREV_PRE_PE_CODE
+	                    ,NULL                                                                  AS PREV_AREA
+	                    ,NULL                                                                  AS PREV_QUANTITY
+	                    ,NULL                                                                  AS PREV_THEORY_QUANTITY
+	                    ,MIN(PRE_PE_CODE)                                                      AS PRE_PE_CODE
+	                    ,SUM(BLOCK_AREA)                                                       AS AREA
+	                    ,SUM(BLOCK_QUANTITY)                                                   AS QUANTITY
+	                    ,SUM(BLOCK_THEORY_QUANTITY)                                            AS THEORY_QUANTITY
+	                    ,GROUPING_ID(T1.PE_CODE, T1.BLOCK_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO        = #{project_no}
+	                 AND T1.REVISION          = #{revision}
+	                 AND T1.BLOCK_DEFINE_FLAG = 'Y'
+	                 AND T1.BLOCK_QUANTITY   != 0
+	               GROUP BY GROUPING SETS((T1.PE_CODE, T1.BLOCK_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM)) 
+	               UNION ALL
+	              SELECT PAINT_COUNT                                                           AS PAINT_COUNT
+	                    ,BLOCK_CODE                                                            AS BLOCK_CODE
+	                    ,PE_CODE                                                               AS PE_CODE
+	                    ,PAINT_ITEM                                                            AS PAINT_ITEM
+	                    ,(SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                     )                                                                     AS THINNER_CODE  
+	                    ,NULL                                                                  AS CURR_REVISION
+	                    ,'prev'                                                                AS PREV_REVISION
+	                    ,MIN(PRE_PE_CODE)                                                      AS PREV_PRE_PE_CODE
+	                    ,SUM(BLOCK_AREA)                                                       AS PREV_AREA
+	                    ,SUM(BLOCK_QUANTITY)                                                   AS PREV_QUANTITY
+	                    ,SUM(BLOCK_THEORY_QUANTITY)                                            AS PREVTHEORY_QUANTITY
+	                    ,NULL                                                                  AS PRE_PE_CODE
+	                    ,NULL                                                                  AS AREA
+	                    ,NULL                                                                  AS QUANTITY
+	                    ,NULL                                                                  AS THEORY_QUANTITY
+	                    ,GROUPING_ID(T1.PE_CODE, T1.BLOCK_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO        = #{project_no}
+	                 AND T1.REVISION          = (SELECT REVISION - 1
+	                                               FROM STX_DIS_PIS_PATTERN_SCHEME
+	                                              WHERE PROJECT_NO = #{project_no}
+	                                                AND REVISION   = #{revision}
+	                                                AND ROWNUM     = 1
+	                                            )
+	                AND T1.BLOCK_DEFINE_FLAG = 'Y'
+	                AND T1.BLOCK_QUANTITY   != 0
+	              GROUP BY GROUPING SETS((T1.PE_CODE, T1.BLOCK_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM)) 
+	             )
+	SELECT T4.*
+	  FROM (SELECT T2.PE_CODE                                                                       AS  PE_CODE
+	              ,T2.BLOCK_CODE                                                                    AS  BLOCK_CODE
+	              ,T2.PAINT_COUNT                                                                   AS  PAINT_COUNT
+	              ,T2.PAINT_ITEM                                                                    AS  PAINT_ITEM
+	              ,T3.ITEM_DESC                                                                     AS  ITEM_DESC
+	              ,T2.THINNER_CODE                                                                  AS  THINNER_CODE
+	              ,T2.PRE_PE_CODE                                                                   AS  PRE_PE_CODE
+	              ,T2.AREA                                                                          AS  AREA
+	              ,T2.QUANTITY                                                                      AS  QUANTITY
+	              ,T2.THEORY_QUANTITY                                                               AS  THEORY_QUANTITY
+	              ,T2.THINNER_QUANTITY                                                              AS  THINNER_QUANTITY
+	              ,T2.THINNER_THEORY_QUANTITY                                                       AS  THINNER_THEORY_QUANTITY
+	              ,(CASE WHEN CURR_REVISION IS NOT NULL AND PREV_REVISION IS NULL     THEN 'ADD'
+	                     WHEN CURR_REVISION IS NULL     AND PREV_REVISION IS NOT NULL THEN 'DELETE'
+	                     ELSE (CASE WHEN     NVL(PRE_PE_CODE,'@')   = NVL(PREV_PRE_PE_CODE,'@')
+	                                     AND NVL(AREA,0)            = NVL(PREV_AREA,0)
+	                                     AND NVL(QUANTITY,0)        = NVL(PREV_QUANTITY,0)
+	                                     AND NVL(THEORY_QUANTITY,0) = NVL(PREV_THEORY_QUANTITY,0)
+	                                THEN 'EQUAL'
+	                                ELSE 'CHANGE'
+	                           END
+	                          )
+	                END
+	               )                                                                                AS ACD
+	              ,'block'                                                                          AS STAGE
+	          FROM (SELECT T1.PE_CODE                                             AS PE_CODE
+	                      ,T1.BLOCK_CODE                                          AS BLOCK_CODE
+	                      ,T1.PAINT_COUNT                                         AS PAINT_COUNT
+	                      ,T1.PAINT_ITEM                                          AS PAINT_ITEM
+	                      ,T1.THINNER_CODE                                        AS THINNER_CODE
+	                      ,MAX(T1.CURR_REVISION)                                  AS CURR_REVISION
+	                      ,MAX(T1.PREV_REVISION)                                  AS PREV_REVISION
+	                      ,MAX(T1.PRE_PE_CODE)                                    AS PRE_PE_CODE
+	                      ,(SELECT SUM(AREA) 
+	                          FROM TEMP 
+	                         WHERE NVL(PE_CODE, '@') = NVL(T1.PE_CODE, '@')
+	                           AND BLOCK_CODE        = T1.BLOCK_CODE 
+	                           AND PAINT_COUNT       = T1.PAINT_COUNT
+	                       )                                                      AS AREA
+	                      ,MAX(T1.QUANTITY)                                       AS QUANTITY
+	                      ,MAX(T1.THEORY_QUANTITY)                                AS THEORY_QUANTITY
+	                      ,MAX(T1.PREV_PRE_PE_CODE)                               AS PREV_PRE_PE_CODE
+	                      ,(SELECT SUM(PREV_AREA) 
+	                          FROM TEMP 
+	                         WHERE NVL(PE_CODE, '@') = NVL(T1.PE_CODE, '@')
+	                           AND BLOCK_CODE        = T1.BLOCK_CODE
+	                           AND PAINT_COUNT       = T1.PAINT_COUNT
+	                       )                                                      AS PREV_AREA
+	                      ,MAX(T1.PREV_QUANTITY)                                  AS PREV_QUANTITY
+	                      ,MAX(T1.PREV_THEORY_QUANTITY)                           AS PREV_THEORY_QUANTITY
+	                      ,(SELECT SUM(QUANTITY * 0.15)
+	                                FROM TEMP
+	                               WHERE NVL(PE_CODE, '@') = NVL(T1.PE_CODE, '@')
+	                                 AND BLOCK_CODE        = T1.BLOCK_CODE
+	                                 AND PAINT_COUNT       = T1.PAINT_COUNT
+	                                 AND THINNER_CODE      = T1.THINNER_CODE
+	                       )                                                      AS THINNER_QUANTITY
+	                      ,(SELECT SUM(THEORY_QUANTITY * 0.15)
+	                          FROM TEMP 
+	                         WHERE NVL(PE_CODE, '@') = NVL(T1.PE_CODE, '@')
+	                           AND BLOCK_CODE        = T1.BLOCK_CODE 
+	                           AND PAINT_COUNT       = T1.PAINT_COUNT
+	                           AND THINNER_CODE      = T1.THINNER_CODE
+	                       )                                                      AS THINNER_THEORY_QUANTITY
+	                  FROM TEMP T1  
+	                 GROUP BY T1.PE_CODE
+	                        , T1.BLOCK_CODE
+	                        , T1.PAINT_COUNT
+	                        , T1.PAINT_ITEM
+	                        , T1.THINNER_CODE
+	               )                 T2 
+	              ,STX_DIS_ITEM      T3
+	         WHERE T2.PAINT_ITEM = T3.ITEM_CODE
+	       ) T4
+	 WHERE T4.ACD != 'EQUAL'
+	 ORDER BY T4.ACD DESC
+	        , T4.BLOCK_CODE
+	        , T4.PAINT_COUNT
+	</select>-->
+	
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectPrePeQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	WITH TEMP AS (SELECT PRE_PE_CODE                                                              AS PRE_PE_CODE
+	                   , AREA_CODE                                                                AS AREA_CODE
+	                   , PAINT_COUNT                                                              AS PAINT_COUNT
+	                   , PAINT_ITEM                                                               AS PAINT_ITEM
+	                   ,(SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                    )                                                                         AS THINNER_CODE
+	                   , 'curr'                                                                   AS CURR_REVISION
+	                   , NULL                                                                     AS PREV_REVISION
+	                   , NULL                                                                     AS PREV_PE_CODE
+	                   , NULL                                                                     AS PREV_BLOCK_CODE
+	                   , NULL                                                                     AS PREV_AREA
+	                   , NULL                                                                     AS PREV_QUANTITY
+	                   , NULL                                                                     AS PREV_THEORY_QUANTITY
+	                   , MIN(PE_CODE)                                                             AS PE_CODE
+	                   , MIN(BLOCK_CODE)                                                          AS BLOCK_CODE
+	                   , SUM(PRE_PE_AREA)                                                         AS AREA
+	                   , SUM(PRE_PE_QUANTITY)                                                     AS QUANTITY
+	                   , SUM(PRE_PE_THEORY_QUANTITY)                                              AS THEORY_QUANTITY
+	                   , GROUPING_ID(T1.PRE_PE_CODE, T1.AREA_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO            = #{project_no}
+	                 AND T1.REVISION              = #{revision}
+	                 AND T1.PRE_PE_DEFINE_FLAG    = 'Y'
+	                 AND T1.PRE_PE_CODE IS NOT NULL
+	                 AND T1.PRE_PE_QUANTITY      != 0
+	               GROUP BY GROUPING SETS((T1.PRE_PE_CODE, T1.AREA_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM))
+	               UNION ALL
+	              SELECT PRE_PE_CODE                                                              AS PRE_PE_CODE
+	                   , AREA_CODE                                                                AS AREA_CODE
+	                   , PAINT_COUNT                                                              AS PAINT_COUNT
+	                   , PAINT_ITEM                                                               AS PAINT_ITEM
+	                   ,(SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                    )                                                                         AS THINNER_CODE
+	                   , NULL                                                                     AS CURR_REVISION
+	                   , 'prev'                                                                   AS PREV_REVISION
+	                   , MIN(PE_CODE)                                                             AS PREV_PE_CODE
+	                   , MIN(BLOCK_CODE)                                                          AS PREV_BLOCK_CODE
+	                   , SUM(PRE_PE_AREA)                                                         AS PREV_AREA
+	                   , SUM(PRE_PE_QUANTITY)                                                     AS PREV_QUANTITY
+	                   , SUM(PRE_PE_THEORY_QUANTITY)                                              AS PREV_THEORY_QUANTITY
+	                   , NULL                                                                     AS PE_CODE
+	                   , NULL                                                                     AS BLOCK_CODE
+	                   , NULL                                                                     AS AREA
+	                   , NULL                                                                     AS QUANTITY
+	                   , NULL                                                                     AS THEORY_QUANTITY
+	                   , GROUPING_ID(T1.PRE_PE_CODE, T1.AREA_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO = #{project_no}
+	                 AND T1.REVISION   =
+	                     (SELECT MAX(REVISION) - 1
+	                        FROM STX_DIS_PIS_PATTERN_SCHEME
+	                       WHERE PROJECT_NO = #{project_no}
+	                         AND REVISION   = #{revision}
+	                     )
+	                 AND T1.PRE_PE_DEFINE_FLAG    = 'Y'
+	                 AND T1.PRE_PE_CODE IS NOT NULL
+	                 AND T1.PRE_PE_QUANTITY      != 0
+	               GROUP BY GROUPING SETS((T1.PRE_PE_CODE, T1.AREA_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM))
+	             )
+	SELECT T5.*
+	  FROM (SELECT T2.PRE_PE_CODE                                                                        AS PRE_PE_CODE
+	             , T2.AREA_CODE                                                                          AS AREA_CODE
+	             , T4.AREA_DESC                                                                          AS AREA_DESC
+	             , T2.PAINT_COUNT                                                                        AS PAINT_COUNT
+	             , T2.PAINT_ITEM                                                                         AS PAINT_ITEM
+	             , T3.ITEM_DESC                                                                          AS ITEM_DESC
+	             , T2.THINNER_CODE                                                                       AS THINNER_CODE
+	             , T2.PE_CODE                                                                            AS PE_CODE
+	             , T2.BLOCK_CODE                                                                         AS BLOCK_CODE
+	             , T2.AREA                                                                               AS AREA
+	             , T2.QUANTITY                                                                           AS QUANTITY
+	             , T2.THEORY_QUANTITY                                                                    AS THEORY_QUANTITY
+	             , T2.THINNER_QUANTITY                                                                   AS THINNER_QUANTITY
+	             , T2.THINNER_THEORY_QUANTITY                                                            AS THINNER_THEORY_QUANTITY
+	             ,(CASE WHEN T2.CURR_REVISION IS NOT NULL AND T2.PREV_REVISION IS NULL     THEN 'ADD'
+	                    WHEN T2.CURR_REVISION IS NULL     AND T2.PREV_REVISION IS NOT NULL THEN 'DELETE'
+	                    ELSE(CASE WHEN     NVL(T2.PE_CODE, '@')           = NVL(T2.PREV_PE_CODE, '@')
+	                                   AND NVL(T2.BLOCK_CODE, '@')    = NVL(T2.PREV_BLOCK_CODE, '@')
+	                                   AND NVL(T2.AREA, 0)            = NVL(T2.PREV_AREA, 0)
+	                                   AND NVL(T2.QUANTITY, 0)        = NVL(T2.PREV_QUANTITY, 0)
+	                                   AND NVL(T2.THEORY_QUANTITY, 0) = NVL(T2.PREV_THEORY_QUANTITY, 0)
+	                              THEN 'EQUAL'
+	                              ELSE 'CHANGE'
+	                         END
+	                        )
+	               END
+	              )                                                                                      AS ACD
+	             , 'pre_pe'                                                                              AS STAGE
+	           FROM (SELECT T1.PRE_PE_CODE                                              AS PRE_PE_CODE
+	                      , T1.AREA_CODE                                                AS AREA_CODE
+	                      , T1.PAINT_COUNT                                              AS PAINT_COUNT
+	                      , T1.PAINT_ITEM                                               AS PAINT_ITEM
+	                      , T1.THINNER_CODE                                             AS THINNER_CODE
+	                      , MAX(T1.CURR_REVISION)                                       AS CURR_REVISION
+	                      , MAX(T1.PREV_REVISION)                                       AS PREV_REVISION
+	                      , MAX(T1.PE_CODE)                                             AS PE_CODE
+	                      , MAX(T1.BLOCK_CODE)                                          AS BLOCK_CODE
+	                      , (SELECT SUM(AREA)
+	                           FROM TEMP
+	                          WHERE NVL(PRE_PE_CODE, '@') = NVL(T1.PRE_PE_CODE, '@')
+	                            AND AREA_CODE             = T1.AREA_CODE
+	                            AND PAINT_COUNT           = T1.PAINT_COUNT
+	                        )                                                           AS AREA
+	                      , MAX(T1.QUANTITY)                                            AS QUANTITY
+	                      , MAX(T1.THEORY_QUANTITY)                                     AS THEORY_QUANTITY
+	                      , MAX(T1.PREV_PE_CODE)                                        AS PREV_PE_CODE
+	                      , MAX(T1.PREV_BLOCK_CODE)                                     AS PREV_BLOCK_CODE
+	                      , (SELECT SUM(PREV_AREA)
+	                           FROM TEMP
+	                          WHERE NVL(PRE_PE_CODE, '@') = NVL(T1.PRE_PE_CODE, '@')
+	                            AND AREA_CODE             = T1.AREA_CODE
+	                            AND PAINT_COUNT           = T1.PAINT_COUNT
+	                        )                                                           AS PREV_AREA
+	                      , MAX(T1.PREV_QUANTITY)                                       AS PREV_QUANTITY
+	                      , MAX(T1.PREV_THEORY_QUANTITY)                                AS PREV_THEORY_QUANTITY
+	                      , (SELECT SUM(QUANTITY * 0.15)
+	                           FROM TEMP
+	                          WHERE NVL(PRE_PE_CODE, '@') = NVL(T1.PRE_PE_CODE, '@')
+	                            AND AREA_CODE             = T1.AREA_CODE
+	                            AND PAINT_COUNT           = T1.PAINT_COUNT
+	                            AND THINNER_CODE          = T1.THINNER_CODE
+	                        )                                                           AS THINNER_QUANTITY
+	                      , (SELECT SUM(THEORY_QUANTITY * 0.15)
+	                           FROM TEMP
+	                          WHERE NVL(PRE_PE_CODE, '@') = NVL(T1.PRE_PE_CODE, '@')
+	                            AND AREA_CODE             = T1.AREA_CODE
+	                            AND PAINT_COUNT           = T1.PAINT_COUNT
+	                            AND THINNER_CODE          = T1.THINNER_CODE
+	                        )                                                           AS THINNER_THEORY_QUANTITY
+	                   FROM TEMP T1
+	                  GROUP BY T1.PRE_PE_CODE
+	                         , T1.AREA_CODE
+	                         , T1.PAINT_COUNT
+	                         , T1.PAINT_ITEM
+	                         , T1.THINNER_CODE
+	                )                                    T2
+	              ,  STX_DIS_ITEM                        T3
+	              ,(SELECT AREA_CODE
+	                     , MIN(AREA_DESC) AS AREA_DESC
+	                  FROM STX_DIS_PIS_BLOCK
+	                 WHERE PROJECT_NO = #{project_no}
+	                   AND REVISION   = #{revision}
+	                GROUP BY PROJECT_NO
+	                       , REVISION
+	                       , AREA_CODE
+	               )                                     T4
+	          WHERE T2.PAINT_ITEM = T3.ITEM_CODE
+	            AND T2.AREA_CODE  = T4.AREA_CODE(+)
+	         ) T5
+	 WHERE T5.ACD != 'EQUAL'
+	 ORDER BY T5.ACD DESC
+	        , T5.PRE_PE_CODE
+	        , T5.AREA_CODE
+	        , T5.PAINT_COUNT
+	</select>-->
+	
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectPeQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	WITH TEMP AS (SELECT PE_CODE
+	                   , AREA_CODE
+	                   , PAINT_COUNT
+	                   , PAINT_ITEM
+	                   , (SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                     )                                                                    AS THINNER_CODE
+	                   , 'curr'                                                               AS CURR_REVISION
+	                   , NULL                                                                 AS PREV_REVISION
+	                   , NULL                                                                 AS PREV_PRE_PE_CODE
+	                   , NULL                                                                 AS PREV_BLOCK_CODE
+	                   , NULL                                                                 AS PREV_AREA
+	                   , NULL                                                                 AS PREV_QUANTITY
+	                   , NULL                                                                 AS PREV_THEORY_QUANTITY
+	                   , MIN(PRE_PE_CODE)                                                     AS PRE_PE_CODE
+	                   , MIN(BLOCK_CODE)                                                      AS BLOCK_CODE
+	                   , SUM(PE_AREA)                                                         AS AREA
+	                   , SUM(PE_QUANTITY)                                                     AS QUANTITY
+	                   , SUM(PE_THEORY_QUANTITY)                                              AS THEORY_QUANTITY
+	                   , GROUPING_ID(T1.PE_CODE, T1.AREA_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO        = #{project_no}
+	                 AND T1.REVISION          = #{revision}
+	                 AND T1.PE_DEFINE_FLAG    = 'Y'
+	                 AND T1.PE_CODE IS NOT NULL
+	                 AND T1.PE_QUANTITY      != 0
+	               GROUP BY GROUPING SETS((T1.PE_CODE, T1.AREA_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM))
+	               UNION ALL
+	              SELECT PE_CODE
+	                   , AREA_CODE
+	                   , PAINT_COUNT
+	                   , PAINT_ITEM
+	                   , (SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                     )                                                                    AS THINNER_CODE
+	                   , NULL                                                                 AS CURR_REVISION
+	                   , 'prev'                                                               AS PREV_REVISION
+	                   , MIN(PRE_PE_CODE)                                                     AS PREV_PRE_PE_CODE
+	                   , MIN(BLOCK_CODE)                                                      AS PREV_BLOCK_CODE
+	                   , SUM(PE_AREA)                                                         AS PREV_AREA
+	                   , SUM(PE_QUANTITY)                                                     AS PREV_QUANTITY
+	                   , SUM(PE_THEORY_QUANTITY)                                              AS PREV_THEORY_QUANTITY
+	                   , NULL                                                                 AS PE_CODE
+	                   , NULL                                                                 AS BLOCK_CODE
+	                   , NULL                                                                 AS AREA
+	                   , NULL                                                                 AS QUANTITY
+	                   , NULL                                                                 AS THEORY_QUANTITY
+	                   , GROUPING_ID(T1.PE_CODE, T1.AREA_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO = #{project_no}
+	                 AND T1.REVISION   =
+	                     (SELECT         MAX(REVISION) - 1
+	                                FROM STX_DIS_PIS_PATTERN_SCHEME
+	                               WHERE PROJECT_NO = #{project_no}
+	                                 AND REVISION   = #{revision}
+	                     )
+	                 AND T1.PE_DEFINE_FLAG    = 'Y'
+	                 AND T1.PE_CODE IS NOT NULL
+	                 AND T1.PE_QUANTITY      != 0
+	               GROUP BY GROUPING SETS((T1.PE_CODE, T1.AREA_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM))
+	             )
+	SELECT T5.*
+	  FROM (SELECT T2.PE_CODE                                                                             AS PE_CODE
+	             , T2.AREA_CODE                                                                           AS AREA_CODE
+	             , T4.AREA_DESC                                                                           AS AREA_DESC
+	             , T2.PAINT_COUNT                                                                         AS PAINT_COUNT
+	             , T2.PAINT_ITEM                                                                          AS PAINT_ITEM
+	             , T3.ITEM_DESC                                                                           AS ITEM_DESC
+	             , T2.THINNER_CODE                                                                        AS THINNER_CODE
+	             , T2.PRE_PE_CODE                                                                         AS PRE_PE_CODE
+	             , T2.BLOCK_CODE                                                                          AS BLOCK_CODE
+	             , T2.AREA                                                                                AS AREA
+	             , T2.QUANTITY                                                                            AS QUANTITY
+	             , T2.THEORY_QUANTITY                                                                     AS THEORY_QUANTITY
+	             , T2.THINNER_QUANTITY                                                                    AS THINNER_QUANTITY
+	             , T2.THINNER_THEORY_QUANTITY                                                             AS THINNER_THEORY_QUANTITY
+	             , (CASE WHEN T2.CURR_REVISION IS NOT NULL AND T2.PREV_REVISION IS NULL     THEN 'ADD'
+	                     WHEN T2.CURR_REVISION IS NULL     AND T2.PREV_REVISION IS NOT NULL THEN 'DELETE'
+	                     ELSE (CASE WHEN     NVL(T2.PRE_PE_CODE, '@')   = NVL(T2.PREV_PRE_PE_CODE, '@')
+	                                     AND NVL(T2.BLOCK_CODE, '@')    = NVL(T2.PREV_BLOCK_CODE, '@')
+	                                     AND NVL(T2.AREA, 0)            = NVL(T2.PREV_AREA, 0)
+	                                     AND NVL(T2.QUANTITY, 0)        = NVL(T2.PREV_QUANTITY, 0)
+	                                     AND NVL(T2.THEORY_QUANTITY, 0) = NVL(T2.PREV_THEORY_QUANTITY, 0)
+	                                THEN 'EQUAL'
+	                                ELSE 'CHANGE'
+	                           END
+	                          )
+	                END
+	               )                                                                                      AS ACD
+	             , 'pe'                                                                                   AS STAGE
+	          FROM (SELECT T1.PE_CODE                                       AS PE_CODE 
+	                     , T1.AREA_CODE                                     AS AREA_CODE
+	                     , T1.PAINT_COUNT                                   AS PAINT_COUNT
+	                     , T1.PAINT_ITEM                                    AS PAINT_ITEM
+	                     , T1.THINNER_CODE                                  AS THINNER_CODE
+	                     , MAX(T1.CURR_REVISION)                            AS CURR_REVISION
+	                     , MAX(T1.PREV_REVISION)                            AS PREV_REVISION
+	                     , MAX(T1.PRE_PE_CODE)                              AS PRE_PE_CODE
+	                     , MAX(T1.BLOCK_CODE)                               AS BLOCK_CODE
+	                     , (SELECT SUM(AREA)
+	                          FROM TEMP
+	                         WHERE NVL(PE_CODE, ' ') = NVL(T1.PE_CODE, ' ')
+	                           AND AREA_CODE         = T1.AREA_CODE
+	                           AND PAINT_COUNT       = T1.PAINT_COUNT
+	                       )                                                AS AREA
+	                     , MAX(T1.QUANTITY)                                 AS QUANTITY
+	                     , MAX(T1.THEORY_QUANTITY)                          AS THEORY_QUANTITY
+	                     , MAX(T1.PREV_PRE_PE_CODE)                         AS PREV_PRE_PE_CODE
+	                     , MAX(T1.PREV_BLOCK_CODE)                          AS PREV_BLOCK_CODE
+	                     , (SELECT SUM(PREV_AREA)
+	                          FROM TEMP
+	                         WHERE NVL(PE_CODE, ' ') = NVL(T1.PE_CODE, ' ')
+	                           AND AREA_CODE         = T1.AREA_CODE
+	                           AND PAINT_COUNT       = T1.PAINT_COUNT
+	                       )                                                AS PREV_AREA
+	                     , MAX(T1.PREV_QUANTITY)                            AS PREV_QUANTITY
+	                     , MAX(T1.PREV_THEORY_QUANTITY)                     AS PREV_THEORY_QUANTITY
+	                     , (SELECT SUM(QUANTITY * 0.15)
+	                          FROM TEMP
+	                         WHERE NVL(PE_CODE, ' ') = NVL(T1.PE_CODE, ' ')
+	                           AND AREA_CODE         = T1.AREA_CODE
+	                           AND PAINT_COUNT       = T1.PAINT_COUNT
+	                           AND THINNER_CODE      = T1.THINNER_CODE
+	                       )                                                AS THINNER_QUANTITY
+	                     , (SELECT SUM(THEORY_QUANTITY * 0.15)
+	                          FROM TEMP
+	                         WHERE NVL(PE_CODE, ' ') = NVL(T1.PE_CODE, ' ')
+	                           AND AREA_CODE         = T1.AREA_CODE
+	                           AND PAINT_COUNT       = T1.PAINT_COUNT
+	                           AND THINNER_CODE      = T1.THINNER_CODE
+	                       )                                                AS THINNER_THEORY_QUANTITY
+	                  FROM TEMP T1
+	                 GROUP BY T1.PE_CODE
+	                        , T1.AREA_CODE
+	                        , T1.PAINT_COUNT
+	                        , T1.PAINT_ITEM
+	                        , T1.THINNER_CODE
+	               ) T2
+	             , STX_DIS_ITEM T3
+	             ,(SELECT AREA_CODE
+	                    , MIN(AREA_DESC) AS AREA_DESC
+	                 FROM STX_DIS_PIS_BLOCK
+	                WHERE PROJECT_NO = #{project_no}
+	                  AND REVISION   = #{revision}
+	                GROUP BY PROJECT_NO
+	                       , REVISION
+	                       , AREA_CODE
+	              ) T4
+	         WHERE T2.PAINT_ITEM = T3.ITEM_CODE
+	           AND T2.AREA_CODE  = T4.AREA_CODE(+)
+	       ) T5
+	 WHERE T5.ACD != 'EQUAL'
+	 ORDER BY T5.ACD DESC
+	        , T5.PE_CODE
+	        , T5.AREA_CODE
+	        , T5.PAINT_COUNT
+	</select>-->
+	
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectHullQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	WITH TEMP AS (SELECT ZONE_CODE                                                AS ZONE_CODE
+	                    ,PAINT_COUNT                                              AS PAINT_COUNT
+	                    ,PAINT_ITEM                                               AS PAINT_ITEM
+	                    ,(SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                     )                                                        AS THINNER_CODE
+	                    ,'curr'                                                   AS CURR_REVISION
+	                    ,NULL                                                     AS PREV_REVISION
+	                    ,NULL                                                     AS PREV_PE_CODE
+	                    ,NULL                                                     AS PREV_PRE_PE_CODE
+	                    ,NULL                                                     AS PREV_BLOCK_CODE
+	                    ,NULL                                                     AS PREV_AREA
+	                    ,NULL                                                     AS PREV_QUANTITY
+	                    ,NULL                                                     AS PREV_THEORY_QUANTITY
+	                    ,MIN(PE_CODE)                                             AS PE_CODE
+	                    ,MIN(PRE_PE_CODE)                                         AS PRE_PE_CODE
+	                    ,MIN(BLOCK_CODE)                                          AS BLOCK_CODE
+	                    ,SUM(HULL_AREA)                                           AS AREA
+	                    ,SUM(HULL_QUANTITY)                                       AS QUANTITY
+	                    ,SUM(HULL_THEORY_QUANTITY)                                AS THEORY_QUANTITY
+	                    ,GROUPING_ID(T1.ZONE_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO       = #{project_no}
+	                 AND T1.REVISION         = #{revision}
+	                 AND T1.HULL_DEFINE_FLAG = 'Y'
+	                 AND T1.ZONE_CODE        IS NOT NULL
+	                 AND T1.HULL_QUANTITY   != 0
+	               GROUP BY GROUPING SETS((T1.ZONE_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM)) 
+	               UNION ALL
+	              SELECT ZONE_CODE                                                AS ZONE_CODE
+	                    ,PAINT_COUNT                                              AS PAINT_COUNT
+	                    ,PAINT_ITEM                                               AS PAINT_ITEM
+	                    ,(SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                     )                                                        AS THINNER_CODE
+	                    ,NULL                                                     AS CURR_REVISION
+	                    ,'prev'                                                   AS PREV_REVISION
+	                    ,MIN(PE_CODE)                                             AS PREV_PE_CODE
+	                    ,MIN(PRE_PE_CODE)                                         AS PREV_PRE_PE_CODE
+	                    ,MIN(BLOCK_CODE)                                          AS PREV_BLOCK_CODE
+	                    ,SUM(HULL_AREA)                                           AS PREV_AREA
+	                    ,SUM(HULL_QUANTITY)                                       AS PREV_QUANTITY
+	                    ,SUM(HULL_THEORY_QUANTITY)                                AS PREV_THEORY_QUANTITY
+	                    ,NULL                                                     AS PE_CODE
+	                    ,NULL                                                     AS PRE_PE_CODE
+	                    ,NULL                                                     AS BLOCK_CODE
+	                    ,NULL                                                     AS AREA
+	                    ,NULL                                                     AS QUANTITY
+	                    ,NULL                                                     AS THEORY_QUANTITY
+	                    ,GROUPING_ID(T1.ZONE_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO       = #{project_no}
+	                 AND T1.REVISION         = (SELECT MAX(REVISION) - 1 
+	                                              FROM STX_DIS_PIS_PATTERN_SCHEME
+	                                             WHERE PROJECT_NO = #{project_no}
+	                                               AND REVISION   = #{revision})                        
+	                 AND T1.HULL_DEFINE_FLAG = 'Y'
+	                 AND T1.ZONE_CODE        IS NOT NULL
+	                 AND T1.HULL_QUANTITY   != 0
+	               GROUP BY GROUPING SETS((T1.ZONE_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM))
+	             )
+	SELECT T5.*
+	  FROM (SELECT T2.ZONE_CODE                                                                           AS ZONE_CODE
+	              ,T2.PAINT_COUNT                                                                         AS PAINT_COUNT
+	              ,T2.PAINT_ITEM                                                                          AS PAINT_ITEM
+	              ,T3.ITEM_DESC                                                                           AS ITEM_DESC
+	              ,T2.THINNER_CODE                                                                        AS THINNER_CODE
+	              ,T2.PE_CODE                                                                             AS PE_CODE
+	              ,T2.PRE_PE_CODE                                                                         AS PRE_PE_CODE
+	              ,T2.BLOCK_CODE                                                                          AS BLOCK_CODE
+	              ,T2.AREA                                                                                AS AREA               
+	              ,T2.QUANTITY                                                                            AS QUANTITY            
+	              ,T2.THEORY_QUANTITY                                                                     AS THEORY_QUANTITY    
+	              ,T2.THINNER_QUANTITY                                                                    AS THINNER_QUANTITY
+	              ,T2.THINNER_THEORY_QUANTITY                                                             AS THINNER_THEORY_QUANTITY
+	              ,(CASE WHEN T2.CURR_REVISION IS NOT NULL AND T2.PREV_REVISION IS NULL     THEN 'ADD'
+	                     WHEN T2.CURR_REVISION IS NULL     AND T2.PREV_REVISION IS NOT NULL THEN 'DELETE'
+	                     ELSE (CASE WHEN     NVL(T2.PE_CODE,'@')       = NVL(T2.PREV_PE_CODE,'@')  
+	                                     AND NVL(T2.PRE_PE_CODE,'@')   = NVL(T2.PREV_PRE_PE_CODE,'@') 
+	                                     AND NVL(T2.BLOCK_CODE,'@')    = NVL(T2.PREV_BLOCK_CODE,'@') 
+	                                     AND NVL(T2.AREA,0)            = NVL(T2.PREV_AREA,0) 
+	                                     AND NVL(T2.QUANTITY,0)        = NVL(T2.PREV_QUANTITY,0) 
+	                                     AND NVL(T2.THEORY_QUANTITY,0) = NVL(T2.PREV_THEORY_QUANTITY,0)
+	                                THEN 'EQUAL'
+	                                ELSE 'CHANGE'
+	                           END
+	                          )
+	                END
+	               )                                                                                      AS ACD                                                               
+	              ,'hull'                                                                                 AS STAGE
+	          FROM (SELECT T1.ZONE_CODE                                         AS ZONE_CODE 
+	                      ,T1.PAINT_COUNT                                       AS PAINT_COUNT
+	                      ,T1.PAINT_ITEM                                        AS PAINT_ITEM
+	                      ,T1.THINNER_CODE                                      AS THINNER_CODE
+	                      ,MAX(T1.CURR_REVISION)                                AS CURR_REVISION
+	                      ,MAX(T1.PREV_REVISION)                                AS PREV_REVISION
+	                      ,MAX(T1.PE_CODE)                                      AS PE_CODE
+	                      ,MAX(T1.PRE_PE_CODE)                                  AS PRE_PE_CODE
+	                      ,MAX(T1.BLOCK_CODE)                                   AS BLOCK_CODE
+	                      ,(SELECT SUM(AREA)
+	                          FROM TEMP
+	                         WHERE NVL(ZONE_CODE, '@') = NVL(T1.ZONE_CODE, '@')
+	                           AND PAINT_COUNT         = T1.PAINT_COUNT
+	                       )                                                    AS AREA
+	                      ,MAX(T1.QUANTITY)                                     AS QUANTITY
+	                      ,MAX(T1.THEORY_QUANTITY)                              AS THEORY_QUANTITY
+	                      ,MAX(T1.PREV_PE_CODE)                                 AS PREV_PE_CODE          
+	                      ,MAX(T1.PREV_PRE_PE_CODE)                             AS PREV_PRE_PE_CODE
+	                      ,MAX(T1.PREV_BLOCK_CODE)                              AS PREV_BLOCK_CODE
+	                      ,(SELECT SUM(PREV_AREA)
+	                          FROM TEMP 
+	                         WHERE NVL(ZONE_CODE, '@') = NVL(T1.ZONE_CODE, '@')
+	                           AND PAINT_COUNT         = T1.PAINT_COUNT
+	                       )                                                    AS PREV_AREA
+	                      ,MAX(T1.PREV_QUANTITY)                                AS PREV_QUANTITY
+	                      ,MAX(T1.PREV_THEORY_QUANTITY)                         AS PREV_THEORY_QUANTITY
+	                      ,(SELECT SUM(QUANTITY * 0.15)
+	                          FROM TEMP 
+	                         WHERE NVL(ZONE_CODE, '@') = NVL(T1.ZONE_CODE, '@')
+	                           AND PAINT_COUNT         = T1.PAINT_COUNT
+	                           AND THINNER_CODE        = T1.THINNER_CODE
+	                       )                                                    AS THINNER_QUANTITY                            
+	                      ,(SELECT SUM(THEORY_QUANTITY * 0.15)
+	                          FROM TEMP 
+	                         WHERE NVL(ZONE_CODE, '@') = NVL(T1.ZONE_CODE, '@')
+	                           AND PAINT_COUNT         = T1.PAINT_COUNT
+	                           AND THINNER_CODE        = T1.THINNER_CODE
+	                       )                                                    AS THINNER_THEORY_QUANTITY     
+	                  FROM TEMP T1  
+	                 GROUP BY T1.ZONE_CODE
+	                        , T1.PAINT_COUNT
+	                        , T1.PAINT_ITEM
+	                        , T1.THINNER_CODE
+	               )            T2
+	              ,STX_DIS_ITEM T3
+	         WHERE T2.PAINT_ITEM = T3.ITEM_CODE
+	      ) T5
+	 WHERE T5.ACD != 'EQUAL'
+	 ORDER BY T5.ACD DESC
+	        , T5.ZONE_CODE
+	        , T5.PAINT_COUNT
+	</select>-->
+
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectHullQuantityList2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp as (
+                select zone_code
+                      ,area_code
+                      ,paint_count
+                      ,paint_item
+                      ,(select thinner_code
+                          from stx_dis_item
+                         where item_code = t1.paint_item)
+                                                    as thinner_code
+                      ,'curr'                       as curr_revision
+                      ,null                         as prev_revision
+                      
+                      ,null                         as prev_pe_code
+                      ,null                         as prev_pre_pe_code
+                      ,null                         as prev_block_code
+                      ,null                         as prev_area
+                      ,null                         as prev_quantity
+                      ,null                         as prev_theory_quantity
+                      
+                      ,min(pe_code)                 as pe_code
+                      ,min(pre_pe_code)             as pre_pe_code
+                      ,min(block_code)              as block_code
+                      ,sum(hull_area)               as area
+                      ,sum(hull_quantity)           as quantity
+                      ,sum(hull_theory_quantity)    as theory_quantity
+                      
+                      ,grouping_id(t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item)
+                                                    as group_id
+                  from stx_dis_pis_pattern_scheme t1
+                 where t1.project_no         = #{project_no}
+                   and t1.revision           = #{revision} 
+                   and t1.hull_define_flag   = 'Y'
+                   and t1.zone_code is not null
+                   and t1.hull_quantity     != 0
+                 group by grouping sets ((t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item)) 
+                union all
+                select zone_code
+                      ,area_code
+                      ,paint_count
+                      ,paint_item
+                      ,(select thinner_code
+                          from stx_dis_item
+                         where item_code = t1.paint_item)
+                                                    as thinner_code
+                      ,null                         as curr_revision
+                      ,'prev'                       as prev_revision
+                     
+                      ,min(pe_code)                 as prev_pe_code
+                      ,min(pre_pe_code)             as prev_pre_pe_code
+                      ,min(block_code)              as prev_block_code
+                      ,sum(hull_area)               as prev_area
+                      ,sum(hull_quantity)           as prev_quantity
+                      ,sum(hull_theory_quantity)    as prev_theory_quantity
+                     
+                      ,null                         as pe_code
+                      ,null                         as pre_pe_code
+                      ,null                         as block_code
+                      ,null                         as area
+                      ,null                         as quantity
+                      ,null                         as theory_quantity
+                      
+                      ,grouping_id(t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item)
+                                                    as group_id
+                  from stx_dis_pis_pattern_scheme t1
+                 where t1.project_no         = #{project_no}
+                   and t1.revision           = (select max(revision) - 1 
+                                                  from stx_dis_pis_pattern_scheme
+                                                 where project_no = #{project_no}
+                                                   and revision   = #{revision} )                        
+                   and t1.hull_define_flag   = 'Y'
+                   and t1.zone_code is not null
+                   and t1.hull_quantity     != 0
+                 group by grouping sets ((t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item))   
+               )
+           
+     select t5.*
+       from (
+             select t2.zone_code 
+                   ,t2.area_code
+                   ,t4.area_desc
+                   ,t2.paint_count
+                   ,t2.paint_item
+                   ,t3.item_desc
+                   ,t2.thinner_code
+                                     
+                   ,t2.pe_code
+                   ,t2.pre_pe_code
+                   ,t2.block_code
+                   
+                   ,t2.area               
+                   ,t2.quantity            
+                   ,t2.theory_quantity    
+                   ,t2.thinner_quantity
+                   ,t2.thinner_theory_quantity
+                   ,(case when t2.curr_revision is not null and t2.prev_revision is null      then 'ADD'
+                          when t2.curr_revision is null     and t2.prev_revision is not null  then 'DELETE'
+                          else (case when     nvl(t2.pe_code,' ')       = nvl(t2.prev_pe_code,' ')  
+                                          and nvl(t2.pre_pe_code,' ')   = nvl(t2.prev_pre_pe_code,' ') 
+                                          and nvl(t2.block_code,' ')    = nvl(t2.prev_block_code,' ') 
+                                          and nvl(t2.area,0)            = nvl(t2.prev_area,0) 
+                                          and nvl(t2.quantity,0)        = nvl(t2.prev_quantity,0) 
+                                          and nvl(t2.theory_quantity,0) = nvl(t2.prev_theory_quantity,0)
+                                      then 'EQUAL'
+                                      else 'CHANGE'
+                                end)
+                     end) 	as acd                                                               
+                    ,'hull' as stage                      
+               from (
+                     select t1.zone_code
+                           ,t1.area_code
+                           ,t1.paint_count
+                           ,t1.paint_item
+                		   ,t1.thinner_code	
+                			
+                           ,max(t1.curr_revision)             as curr_revision
+                           ,max(t1.prev_revision)             as prev_revision
+                           
+                           ,max(t1.pe_code)                   as pe_code
+                           ,max(t1.pre_pe_code)               as pre_pe_code
+                           ,max(t1.block_code)                as block_code
+                           ,(select sum(area) 
+                               from temp 
+                              where nvl(zone_code, ' ') = nvl(t1.zone_code, ' ')
+                                and area_code           = t1.area_code 
+                                and paint_count         = t1.paint_count)
+                                                              as area
+                           ,max(t1.quantity)                  as quantity
+                           ,max(t1.theory_quantity)           as theory_quantity
+                            
+                           ,max(t1.prev_pe_code)              as prev_pe_code          
+                           ,max(t1.prev_pre_pe_code)          as prev_pre_pe_code
+                           ,max(t1.prev_block_code)           as prev_block_code
+                           ,(select sum(prev_area) 
+                               from temp 
+                              where nvl(zone_code, ' ') = nvl(t1.zone_code, ' ')
+                                and area_code           = t1.area_code 
+                                and paint_count         = t1.paint_count)
+                                                              as prev_area
+                           ,max(t1.prev_quantity)             as prev_quantity
+                           ,max(t1.prev_theory_quantity)      as prev_theory_quantity  
+                           
+                           ,(select sum(quantity * 0.15)
+                               from temp 
+                              where nvl(zone_code, ' ') = nvl(t1.zone_code, ' ')
+                                and area_code           = t1.area_code 
+                                and paint_count         = t1.paint_count
+                                and thinner_code        = t1.thinner_code
+                            )                                 as thinner_quantity                            
+                           ,(select sum(theory_quantity * 0.15)
+                               from temp 
+                              where nvl(zone_code, ' ') = nvl(t1.zone_code, ' ')
+                                and area_code           = t1.area_code 
+                                and paint_count         = t1.paint_count
+                                and thinner_code        = t1.thinner_code
+                            )                                 as thinner_theory_quantity     
+                       from temp t1  
+                      group by t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item, t1.thinner_code
+                     )                         t2 
+                    ,stx_dis_item              t3
+                    ,(select area_code
+                            ,min(area_desc) as area_desc  
+                        from stx_dis_pis_block
+                       where project_no = #{project_no}
+                         and revision   = #{revision}
+                       group by project_no, revision, area_code
+                      )                        t4        
+                where t2.paint_item = t3.item_code
+                  and t2.area_code  = t4.area_code(+)
+           )  t5
+      where t5.acd != 'EQUAL'                    
+      order by t5.acd desc, t5.zone_code, t5.area_code, t5.paint_count            
+	</select>-->
+	
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectQuayQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	WITH TEMP AS (SELECT ZONE_CODE                                                AS ZONE_CODE
+	                    ,PAINT_COUNT                                              AS PAINT_COUNT
+	                    ,PAINT_ITEM                                               AS PAINT_ITEM
+	                    ,(SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                     )                                                        AS THINNER_CODE
+	                    ,'curr'                                                   AS CURR_REVISION
+	                    ,NULL                                                     AS PREV_REVISION
+	                    ,NULL                                                     AS PREV_PE_CODE
+	                    ,NULL                                                     AS PREV_PRE_PE_CODE
+	                    ,NULL                                                     AS PREV_BLOCK_CODE
+	                    ,NULL                                                     AS PREV_AREA
+	                    ,NULL                                                     AS PREV_QUANTITY
+	                    ,NULL                                                     AS PREV_THEORY_QUANTITY
+	                    ,MIN(PE_CODE)                                             AS PE_CODE
+	                    ,MIN(PRE_PE_CODE)                                         AS PRE_PE_CODE
+	                    ,MIN(BLOCK_CODE)                                          AS BLOCK_CODE
+	                    ,SUM(QUAY_AREA)                                           AS AREA
+	                    ,SUM(QUAY_QUANTITY)                                       AS QUANTITY
+	                    ,SUM(QUAY_THEORY_QUANTITY)                                AS THEORY_QUANTITY
+	                    ,GROUPING_ID(T1.ZONE_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO       = #{project_no}
+	                 AND T1.REVISION         = #{revision}
+	                 AND T1.QUAY_DEFINE_FLAG = 'Y'
+	                 AND T1.ZONE_CODE        IS NOT NULL
+	                 AND T1.QUAY_QUANTITY   != 0
+	               GROUP BY GROUPING SETS((T1.ZONE_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM)) 
+	               UNION ALL
+	              SELECT ZONE_CODE                                                AS ZONE_CODE
+	                    ,PAINT_COUNT                                              AS PAINT_COUNT
+	                    ,PAINT_ITEM                                               AS PAINT_ITEM
+	                    ,(SELECT THINNER_CODE
+	                        FROM STX_DIS_ITEM
+	                       WHERE ITEM_CODE = T1.PAINT_ITEM
+	                     )                                                        AS THINNER_CODE
+	                    ,NULL                                                     AS CURR_REVISION
+	                    ,'prev'                                                   AS PREV_REVISION
+	                    ,MIN(PE_CODE)                                             AS PREV_PE_CODE
+	                    ,MIN(PRE_PE_CODE)                                         AS PREV_PRE_PE_CODE
+	                    ,MIN(BLOCK_CODE)                                          AS PREV_BLOCK_CODE
+	                    ,SUM(QUAY_AREA)                                           AS PREV_AREA
+	                    ,SUM(QUAY_QUANTITY)                                       AS PREV_QUANTITY
+	                    ,SUM(QUAY_THEORY_QUANTITY)                                AS PREV_THEORY_QUANTITY
+	                    ,NULL                                                     AS PE_CODE
+	                    ,NULL                                                     AS PRE_PE_CODE
+	                    ,NULL                                                     AS BLOCK_CODE
+	                    ,NULL                                                     AS AREA
+	                    ,NULL                                                     AS QUANTITY
+	                    ,NULL                                                     AS THEORY_QUANTITY
+	                    ,GROUPING_ID(T1.ZONE_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM) AS GROUP_ID
+	                FROM STX_DIS_PIS_PATTERN_SCHEME T1
+	               WHERE T1.PROJECT_NO       = #{project_no}
+	                 AND T1.REVISION         = (SELECT MAX(REVISION) - 1 
+	                                              FROM STX_DIS_PIS_PATTERN_SCHEME
+	                                             WHERE PROJECT_NO = #{project_no}
+	                                               AND REVISION   = #{revision})
+	                 AND T1.QUAY_DEFINE_FLAG = 'Y'
+	                 AND T1.ZONE_CODE        IS NOT NULL
+	                 AND T1.QUAY_QUANTITY   != 0
+	               GROUP BY GROUPING SETS((T1.ZONE_CODE, T1.PAINT_COUNT, T1.PAINT_ITEM))   
+	             )
+	SELECT T5.*
+	  FROM (SELECT (SELECT MAX(QUAY) 
+                      FROM STX_DIS_PIS_ZONE A
+                     WHERE 1=1
+	                   AND PROJECT_NO = #{project_no}
+	                   AND REVISION   = #{revision}
+                       AND A.ZONE_CODE=T2.ZONE_CODE )                                                     AS QUAY_CODE
+	              ,T2.PAINT_COUNT                                                                         AS PAINT_COUNT
+	              ,T2.PAINT_ITEM                                                                          AS PAINT_ITEM
+	              ,T3.ITEM_DESC                                                                           AS ITEM_DESC
+	              ,T2.THINNER_CODE                                                                        AS THINNER_CODE      
+	              ,T2.PE_CODE                                                                             AS PE_CODE
+	              ,T2.PRE_PE_CODE                                                                         AS PRE_PE_CODE
+	              ,T2.BLOCK_CODE                                                                          AS BLOCK_CODE
+	              ,T2.AREA                                                                                AS AREA               
+	              ,T2.QUANTITY                                                                            AS QUANTITY            
+	              ,T2.THEORY_QUANTITY                                                                     AS THEORY_QUANTITY
+	              ,T2.THINNER_QUANTITY                                                                    AS THINNER_QUANTITY
+	              ,T2.THINNER_THEORY_QUANTITY                                                             AS THINNER_THEORY_QUANTITY
+	              ,(CASE WHEN T2.CURR_REVISION IS NOT NULL AND T2.PREV_REVISION IS NULL     THEN 'ADD'
+	                     WHEN T2.CURR_REVISION IS NULL     AND T2.PREV_REVISION IS NOT NULL THEN 'DELETE'
+	                     ELSE (CASE WHEN     NVL(T2.PE_CODE,'@')       = NVL(T2.PREV_PE_CODE,'@')  
+	                                     AND NVL(T2.PRE_PE_CODE,'@')   = NVL(T2.PREV_PRE_PE_CODE,'@') 
+	                                     AND NVL(T2.BLOCK_CODE,'@')    = NVL(T2.PREV_BLOCK_CODE,'@') 
+	                                     AND NVL(T2.AREA,0)            = NVL(T2.PREV_AREA,0) 
+	                                     AND NVL(T2.QUANTITY,0)        = NVL(T2.PREV_QUANTITY,0) 
+	                                     AND NVL(T2.THEORY_QUANTITY,0) = NVL(T2.PREV_THEORY_QUANTITY,0)
+	                                 THEN 'EQUAL'
+	                                 ELSE 'CHANGE'
+	                           END
+	                          )
+	                END
+	               )                                                                                      AS ACD
+	               ,'quay'                                                                                AS STAGE
+	          FROM (SELECT T1.ZONE_CODE                                         AS ZONE_CODE
+	                      ,T1.PAINT_COUNT                                       AS PAINT_COUNT
+	                      ,T1.PAINT_ITEM                                        AS PAINT_ITEM
+	                      ,T1.THINNER_CODE                                      AS THINNER_CODE
+	                      ,MAX(T1.CURR_REVISION)                                AS CURR_REVISION
+	                      ,MAX(T1.PREV_REVISION)                                AS PREV_REVISION
+	                      ,MAX(T1.PE_CODE)                                      AS PE_CODE
+	                      ,MAX(T1.PRE_PE_CODE)                                  AS PRE_PE_CODE
+	                      ,MAX(T1.BLOCK_CODE)                                   AS BLOCK_CODE
+	                      ,(SELECT SUM(AREA) 
+	                          FROM TEMP 
+	                         WHERE NVL(ZONE_CODE, '@') = NVL(T1.ZONE_CODE, '@')
+	                           AND PAINT_COUNT         = T1.PAINT_COUNT
+	                       )                                                    AS AREA
+	                      ,MAX(T1.QUANTITY)                                     AS QUANTITY
+	                      ,MAX(T1.THEORY_QUANTITY)                              AS THEORY_QUANTITY
+	                      ,MAX(T1.PREV_PE_CODE)                                 AS PREV_PE_CODE          
+	                      ,MAX(T1.PREV_PRE_PE_CODE)                             AS PREV_PRE_PE_CODE
+	                      ,MAX(T1.PREV_BLOCK_CODE)                              AS PREV_BLOCK_CODE
+	                      ,(SELECT SUM(PREV_AREA) 
+	                          FROM TEMP 
+	                         WHERE NVL(ZONE_CODE, '@') = NVL(T1.ZONE_CODE, '@')
+	                           AND PAINT_COUNT         = T1.PAINT_COUNT
+	                       )                                                    AS PREV_AREA
+	                      ,MAX(T1.PREV_QUANTITY)                                AS PREV_QUANTITY
+	                      ,MAX(T1.PREV_THEORY_QUANTITY)                         AS PREV_THEORY_QUANTITY
+	                      ,(SELECT SUM(QUANTITY * 0.15)
+	                          FROM TEMP 
+	                         WHERE NVL(ZONE_CODE, '@') = NVL(T1.ZONE_CODE, '@')
+	                           AND PAINT_COUNT         = T1.PAINT_COUNT
+	                           AND THINNER_CODE        = T1.THINNER_CODE
+	                       )                                                    AS THINNER_QUANTITY                            
+	                      ,(SELECT SUM(THEORY_QUANTITY * 0.15)
+	                          FROM TEMP 
+	                         WHERE NVL(ZONE_CODE, '@') = NVL(T1.ZONE_CODE, '@')
+	                           AND PAINT_COUNT         = T1.PAINT_COUNT
+	                           AND THINNER_CODE        = T1.THINNER_CODE
+	                       )                                                    AS THINNER_THEORY_QUANTITY     
+	                  FROM TEMP T1  
+	                 GROUP BY T1.ZONE_CODE
+	                        , T1.PAINT_COUNT
+	                        , T1.PAINT_ITEM
+	                        , T1.THINNER_CODE
+	                )                         T2 
+	               ,STX_DIS_ITEM              T3       
+	         WHERE T2.PAINT_ITEM = T3.ITEM_CODE
+	       )  T5
+	 WHERE T5.ACD != 'EQUAL'
+	 ORDER BY T5.ACD DESC
+	        , T5.QUAY_CODE
+	        , T5.PAINT_COUNT
+	</select>-->
+	
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectQuayQuantityList2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp as (
+                select zone_code
+                      ,area_code
+                      ,paint_count
+                      ,paint_item
+                      ,(select thinner_code
+                          from stx_dis_item
+                         where item_code = t1.paint_item)
+                                                    as thinner_code
+                      ,'curr'                       as curr_revision
+                      ,null                         as prev_revision
+                      
+                      ,null                         as prev_pe_code
+                      ,null                         as prev_pre_pe_code
+                      ,null                         as prev_block_code
+                      ,null                         as prev_area
+                      ,null                         as prev_quantity
+                      ,null                         as prev_theory_quantity
+                      
+                      ,min(pe_code)                 as pe_code
+                      ,min(pre_pe_code)             as pre_pe_code
+                      ,min(block_code)              as block_code
+                      ,sum(quay_area)               as area
+                      ,sum(quay_quantity)           as quantity
+                      ,sum(quay_theory_quantity)    as theory_quantity
+                      
+                      ,grouping_id(t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item)
+                                                    as group_id
+                  from stx_dis_pis_pattern_scheme t1
+                 where t1.project_no         = #{project_no}
+                   and t1.revision           = #{revision} 
+                   and t1.quay_define_flag   = 'Y'
+                   and t1.zone_code is not null
+                   and t1.quay_quantity     != 0
+                 group by grouping sets ((t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item)) 
+                union all
+                select zone_code					
+                      ,area_code
+                      ,paint_count
+                      ,paint_item
+                      ,(select thinner_code
+                          from stx_dis_item
+                         where item_code = t1.paint_item)
+                                                    as thinner_code
+                      ,null                         as curr_revision
+                      ,'prev'                       as prev_revision
+                     
+                      ,min(pe_code)                 as prev_pe_code
+                      ,min(pre_pe_code)             as prev_pre_pe_code
+                      ,min(block_code)              as prev_block_code
+                      ,sum(quay_area)               as prev_area
+                      ,sum(quay_quantity)           as prev_quantity
+                      ,sum(quay_theory_quantity)    as prev_theory_quantity
+                     
+                      ,null                         as pe_code
+                      ,null                         as pre_pe_code
+                      ,null                         as block_code
+                      ,null                         as area
+                      ,null                         as quantity
+                      ,null                         as theory_quantity
+                      
+                      ,grouping_id(t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item)
+                                                    as group_id
+                  from stx_dis_pis_pattern_scheme t1
+                 where t1.project_no         = #{project_no}
+                   and t1.revision           = (select max(revision) - 1 
+                                                  from stx_dis_pis_pattern_scheme
+                                                 where project_no = #{project_no}
+                                                   and revision   = #{revision} )                        
+                   and t1.quay_define_flag   = 'Y'
+                   and t1.zone_code is not null
+                   and t1.quay_quantity     != 0
+                 group by grouping sets ((t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item))   
+               )
+           
+     select t5.*
+       from (             
+	         select (select max(quay) 
+                       from stx_dis_pis_zone a
+                      where 1=1
+	                    and project_no = #{project_no}
+	                    and revision   = #{revision}
+                        and a.zone_code=t2.zone_code )               as quay_code             
+                   ,t2.area_code
+                   ,t4.area_desc
+                   ,t2.paint_count
+                   ,t2.paint_item
+                   ,t3.item_desc
+                   ,t2.thinner_code
+                                     
+                   ,t2.pe_code
+                   ,t2.pre_pe_code
+                   ,t2.block_code
+                   
+                   ,t2.area               
+                   ,t2.quantity            
+                   ,t2.theory_quantity    
+                   ,t2.thinner_quantity
+                   ,t2.thinner_theory_quantity
+                   ,(case when t2.curr_revision is not null and t2.prev_revision is null      then 'ADD'
+                          when t2.curr_revision is null     and t2.prev_revision is not null  then 'DELETE'
+                          else (case when     nvl(t2.pe_code,' ')       = nvl(t2.prev_pe_code,' ')  
+                                          and nvl(t2.pre_pe_code,' ')   = nvl(t2.prev_pre_pe_code,' ') 
+                                          and nvl(t2.block_code,' ')    = nvl(t2.prev_block_code,' ') 
+                                          and nvl(t2.area,0)            = nvl(t2.prev_area,0) 
+                                          and nvl(t2.quantity,0)        = nvl(t2.prev_quantity,0) 
+                                          and nvl(t2.theory_quantity,0) = nvl(t2.prev_theory_quantity,0)
+                                      then 'EQUAL'
+                                      else 'CHANGE'
+                                end)
+                     end) 	as acd                                                               
+                    ,'quay' as stage                      
+               from (
+                     select t1.zone_code
+                           ,t1.area_code
+                           ,t1.paint_count
+                           ,t1.paint_item
+                		   ,t1.thinner_code		
+                			
+                           ,max(t1.curr_revision)             as curr_revision
+                           ,max(t1.prev_revision)             as prev_revision
+                           
+                           ,max(t1.pe_code)                   as pe_code
+                           ,max(t1.pre_pe_code)               as pre_pe_code
+                           ,max(t1.block_code)                as block_code
+                           ,(select sum(area) 
+                               from temp 
+                              where nvl(zone_code, ' ') = nvl(t1.zone_code, ' ')
+                                and area_code           = t1.area_code 
+                                and paint_count         = t1.paint_count)
+                                                              as area
+                           ,max(t1.quantity)                  as quantity
+                           ,max(t1.theory_quantity)           as theory_quantity
+                            
+                           ,max(t1.prev_pe_code)              as prev_pe_code          
+                           ,max(t1.prev_pre_pe_code)          as prev_pre_pe_code
+                           ,max(t1.prev_block_code)           as prev_block_code
+                           ,(select sum(prev_area) 
+                               from temp 
+                              where nvl(zone_code, ' ') = nvl(t1.zone_code, ' ')
+                                and area_code           = t1.area_code 
+                                and paint_count         = t1.paint_count)
+                                                              as prev_area
+                           ,max(t1.prev_quantity)             as prev_quantity
+                           ,max(t1.prev_theory_quantity)      as prev_theory_quantity  
+                           
+                           ,(select sum(quantity * 0.15)
+                               from temp 
+                              where nvl(zone_code, ' ') = nvl(t1.zone_code, ' ')
+                                and area_code           = t1.area_code 
+                                and paint_count         = t1.paint_count
+                                and thinner_code        = t1.thinner_code
+                            )                                 as thinner_quantity                            
+                           ,(select sum(theory_quantity * 0.15)
+                               from temp 
+                              where nvl(zone_code, ' ') = nvl(t1.zone_code, ' ')
+                                and area_code           = t1.area_code 
+                                and paint_count         = t1.paint_count
+                                and thinner_code        = t1.thinner_code
+                            )                                 as thinner_theory_quantity     
+                       from temp t1  
+                      group by t1.zone_code, t1.area_code, t1.paint_count, t1.paint_item, t1.thinner_code
+                     )                         t2 
+                    ,stx_dis_item              t3
+                    ,(select area_code
+                            ,min(area_desc) as area_desc  
+                        from stx_dis_pis_block
+                       where project_no = #{project_no}
+                         and revision   = #{revision}
+                       group by project_no, revision, area_code
+                      )                        t4        
+                where t2.paint_item = t3.item_code
+                  and t2.area_code  = t4.area_code(+)
+           )  t5
+      where t5.acd != 'EQUAL'                    
+      order by t5.acd desc, t5.quay_code, t5.area_code, t5.paint_count             
+	</select>-->
+	
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectOutCosQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with outcos as (
+	                  select t1.project_no
+	                        ,t1.revision                                        
+	                        ,t1.team_count
+	                        ,t1.paint_item
+	                        
+	                        ,'OUT'                    as outcos_code 
+	                        ,'curr'                   as curr_revision 
+	                        ,null                     as prev_revision       
+	                        
+	                        ,(select area 
+	                            from stx_dis_pis_outfitting_area
+	                           where project_no = t1.project_no
+	                             and revision   = t1.revision
+	                             and team_count = t1.team_count)
+	                                                  as area  
+	                        ,sum(t1.quantity)         as quantity
+	                        ,sum(t1.theory_quantity)  as theory_quantity
+	                        ,null                     as prev_area
+	                        ,null                     as prev_quantity
+	                        ,null                     as prev_theory_quantity
+	                    from stx_dis_pis_outfitting      t1
+	                   where t1.project_no  = #{project_no}
+	                     and t1.revision    = #{revision}
+	                   group by t1.project_no, t1.revision, t1.team_count, t1.paint_item      
+	                  union all
+	                  select t1.project_no
+	                        ,t1.revision                                        
+	                        ,t1.team_count
+	                        ,t1.paint_item
+	                        
+	                        ,'OUT'                    as outcos_code 
+	                        ,null                     as curr_revision 
+	                        ,'prev'                   as prev_revision  
+	                         
+	                        ,null                     as area    
+	                        ,null                     as quantity
+	                        ,null                     as theory_quantity
+	                        ,(select area 
+	                            from stx_dis_pis_outfitting_area
+	                           where project_no = t1.project_no
+	                             and revision   = t1.revision
+	                             and team_count = t1.team_count)
+	                                                  as prev_area  
+	                        ,sum(t1.quantity)         as prev_quantity
+	                        ,sum(t1.theory_quantity)  as prev_theory_quantity
+	                    from stx_dis_pis_outfitting t1
+	                   where t1.project_no  = #{project_no}
+	                     and t1.revision    = (select max(revision) - 1 
+	                                                    from stx_dis_pis_pattern_scheme
+	                                                   where project_no = #{project_no}
+	                                                     and revision   = #{revision} )  
+	                   group by t1.project_no, t1.revision, t1.team_count, t1.paint_item
+	                  union all
+	                  select t1.project_no
+	                        ,t1.revision                                        
+	                        ,t1.team_count
+	                        ,t1.paint_item
+	                        
+	                        ,'COS'                    as outcos_code 
+	                        ,'curr'                   as curr_revision 
+	                        ,null                     as prev_revision       
+	                        
+	                        ,(select area 
+	                            from stx_dis_pis_cosmetic_area
+	                           where project_no = t1.project_no
+	                             and revision   = t1.revision
+	                             and team_count = t1.team_count)
+	                                                  as area
+	                        ,sum(t1.quantity)         as quantity
+	                        ,sum(t1.theory_quantity)  as theory_quantity
+	                        ,null                     as prev_area
+	                        ,null                     as prev_quantity
+	                        ,null                     as prev_theory_quantity
+	                    from stx_dis_pis_cosmetic t1
+	                   where t1.project_no  = #{project_no}
+	                     and t1.revision    = #{revision}
+	                   group by t1.project_no, t1.revision, t1.team_count, t1.paint_item 
+	                   union all
+	                  select t1.project_no
+	                        ,t1.revision                                        
+	                        ,t1.team_count
+	                        ,t1.paint_item
+	                         
+	                        ,'COS'                    as outcos_code 
+	                        ,null                     as curr_revision 
+	                        ,'prev'                   as prev_revision       
+	                        
+	                        ,null                     as area
+	                        ,null                     as quantity
+	                        ,null                     as theory_quantity
+	                        ,(select area 
+	                            from stx_dis_pis_cosmetic_area
+	                           where project_no = t1.project_no
+	                             and revision   = t1.revision
+	                             and team_count = t1.team_count)
+	                                                  as prev_area  
+	                        ,sum(t1.quantity)         as prev_quantity
+	                        ,sum(t1.theory_quantity)  as prev_theory_quantity
+	                    from stx_dis_pis_cosmetic t1
+	                   where t1.project_no  = #{project_no}
+	                     and t1.revision    = (select max(revision) - 1 
+	                                                    from stx_dis_pis_pattern_scheme
+	                                                   where project_no = #{project_no}
+	                                                     and revision   = #{revision} )  
+	                   group by t1.project_no, t1.revision, t1.team_count, t1.paint_item  
+	               )
+	select t5.*
+	  from (             
+	        select t3.project_no
+	              ,t3.revision  
+	              ,t3.outcos_code                                       
+	              ,t3.team_count
+	              ,t3.team_desc
+	              ,t3.paint_item
+	              ,t4.item_desc
+	              
+	              ,t3.area
+	              ,t3.quantity
+	              ,t3.theory_quantity
+	              ,(case when curr_revision is not null and prev_revision is null      then 'ADD'
+	                     when curr_revision is null     and prev_revision is not null  then 'DELETE'
+	                     else (case when    nvl(area,0) 		   = nvl(prev_area,0) 
+	                                    and nvl(quantity,0) 	   = nvl(prev_quantity,0) 
+	                                    and nvl(theory_quantity,0) = nvl(prev_theory_quantity,0)
+	                                 then 'EQUAL'
+	                                 else 'CHANGE'
+	                           end)
+	                end) 	 as acd   
+	               ,(case when t3.outcos_code  = 'OUT' then 'out'
+	                								   else 'cos'	
+	                end)     as stage                                                                
+	          from (               
+	                 select t1.project_no
+	                       ,t1.revision  
+	                       ,t1.outcos_code                                       
+	                       ,t1.team_count
+	                       ,(select states_description
+	                           from stx_dis_states_mgnt
+	                          where states_main_category  = 'PAINT'
+	                            and states_type           = (case when t1.outcos_code   = 'OUT' then 'PAINT TEAM'
+	                                                                                        	else 'PAINT TEAM2'
+	                                                         end)
+	                            and states_var1           = to_char(t1.team_count)
+	                            and rownum                = 1)
+	                                                   as team_desc 
+	                       ,t1.paint_item
+	                       
+	                       ,max(t1.curr_revision)             as curr_revision
+	                       ,max(t1.prev_revision)             as prev_revision
+	                       
+	                       ,max(area)                  as area
+	                       ,max(quantity)              as quantity
+	                       ,max(theory_quantity)       as theory_quantity
+	                       ,max(prev_area)             as prev_area              
+	                       ,max(prev_quantity)         as prev_quantity
+	                       ,max(prev_theory_quantity)  as prev_theory_quantity
+	                   from outcos          t1
+	                  group by t1.project_no, t1.revision, t1.outcos_code , t1.team_count, t1.paint_item
+	               )                          t3
+	               ,stx_dis_item              t4
+	         where t3.paint_item  = t4.item_code
+	      ) t5
+	 where t5.acd != 'EQUAL'                    
+	 order by t5.acd desc, t5.outcos_code  desc, t5.team_desc, t5.paint_item    
+	</select>-->
+	
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectOutQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with outcos as (
+	                  select t1.project_no
+	                        ,t1.revision                                        
+                          ,t1.team_count
+                          ,t1.paint_item
+                          
+                          ,'OUT'                    as outcos_code 
+                          ,'curr'                   as curr_revision 
+                          ,null                     as prev_revision       
+                          
+                          ,(select area 
+                              from stx_dis_pis_outfitting_area
+                             where project_no = t1.project_no
+                               and revision   = t1.revision
+                               and team_count = t1.team_count)
+                                                    as area  
+                          ,sum(t1.quantity)         as quantity
+                          ,sum(t1.theory_quantity)  as theory_quantity
+                          ,null                     as prev_area
+                          ,null                     as prev_quantity
+                          ,null                     as prev_theory_quantity
+                      from stx_dis_pis_outfitting      t1
+                     where t1.project_no  = #{project_no}
+                       and t1.revision    = #{revision}
+                     group by t1.project_no, t1.revision, t1.team_count, t1.paint_item      
+                    union all
+                    select t1.project_no
+                          ,t1.revision                                        
+                          ,t1.team_count
+                          ,t1.paint_item
+                          
+                          ,'OUT'                    as outcos_code 
+                          ,null                     as curr_revision 
+                          ,'prev'                   as prev_revision  
+                           
+                          ,null                     as area    
+                          ,null                     as quantity
+                          ,null                     as theory_quantity
+                          ,(select area 
+                              from stx_dis_pis_outfitting_area
+                             where project_no = t1.project_no
+                               and revision   = t1.revision
+                               and team_count = t1.team_count)
+                                                    as prev_area  
+                          ,sum(t1.quantity)         as prev_quantity
+                          ,sum(t1.theory_quantity)  as prev_theory_quantity
+                      from stx_dis_pis_outfitting t1
+                     where t1.project_no  = #{project_no}
+                       and t1.revision    = (select max(revision) - 1 
+                                                      from stx_dis_pis_pattern_scheme
+                                                     where project_no = #{project_no}
+                                                       and revision   = #{revision} )  
+                     group by t1.project_no, t1.revision, t1.team_count, t1.paint_item
+                 )
+  select t5.*
+    from (             
+          select t3.outcos_code                                       
+                ,t3.team_count
+                ,t3.team_desc
+                ,t3.paint_item
+                ,t4.item_desc
+                
+                ,t3.area
+                ,t3.quantity
+                ,t3.theory_quantity
+                ,(case when curr_revision is not null and prev_revision is null      then 'ADD'
+                       when curr_revision is null     and prev_revision is not null  then 'DELETE'
+                       else (case when    nvl(area,0)        = nvl(prev_area,0) 
+                                      and nvl(quantity,0)      = nvl(prev_quantity,0) 
+                                      and nvl(theory_quantity,0) = nvl(prev_theory_quantity,0)
+                                   then 'EQUAL'
+                                   else 'CHANGE'
+                             end)
+                  end)    as acd   
+                 ,'out'      as stage                                                                
+            from (               
+                   select t1.outcos_code                                       
+                         ,t1.team_count
+                         ,(select states_description
+                             from stx_dis_states_mgnt
+                            where states_main_category  = 'PAINT'
+                              and states_type           = 'PAINT TEAM'
+                              and states_var1           = to_char(t1.team_count)
+                              and rownum                = 1)
+                                                     as team_desc 
+                         ,t1.paint_item
+                         
+                         ,max(t1.curr_revision)             as curr_revision
+                         ,max(t1.prev_revision)             as prev_revision
+                         
+                         ,max(area)                  as area
+                         ,max(quantity)              as quantity
+                         ,max(theory_quantity)       as theory_quantity
+                         ,max(prev_area)             as prev_area              
+                         ,max(prev_quantity)         as prev_quantity
+                         ,max(prev_theory_quantity)  as prev_theory_quantity
+                     from outcos          t1
+                    group by t1.outcos_code , t1.team_count, t1.paint_item
+                 )                          t3
+                 ,stx_dis_item              t4
+           where t3.paint_item  = t4.item_code
+        ) t5
+   where t5.acd != 'EQUAL'                    
+   order by t5.acd desc, t5.outcos_code  desc, t5.team_desc, t5.paint_item
+	</select>-->
+	
+	<!-- selectPaintImportPaintList.xml로 이관 -->
+	<!--  <select id="selectCosQuantityList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with outcos as (
+                    select t1.project_no
+                          ,t1.revision                                        
+                          ,t1.team_count
+                          ,t1.paint_item
+                          
+                          ,'COS'                    as outcos_code 
+                          ,'curr'                   as curr_revision 
+                          ,null                     as prev_revision       
+                          
+                          ,(select area 
+                              from stx_dis_pis_cosmetic_area
+                             where project_no = t1.project_no
+                               and revision   = t1.revision
+                               and team_count = t1.team_count)
+                                                    as area
+                          ,sum(t1.quantity)         as quantity
+                          ,sum(t1.theory_quantity)  as theory_quantity
+                          ,null                     as prev_area
+                          ,null                     as prev_quantity
+                          ,null                     as prev_theory_quantity
+                      from stx_dis_pis_cosmetic t1
+                     where t1.project_no  = #{project_no}
+                       and t1.revision    = #{revision}
+                     group by t1.project_no, t1.revision, t1.team_count, t1.paint_item 
+                     union all
+                    select t1.project_no
+                          ,t1.revision                                        
+                          ,t1.team_count
+                          ,t1.paint_item
+                           
+                          ,'COS'                    as outcos_code 
+                          ,null                     as curr_revision 
+                          ,'prev'                   as prev_revision       
+                          
+                          ,null                     as area
+                          ,null                     as quantity
+                          ,null                     as theory_quantity
+                          ,(select area 
+                              from stx_dis_pis_cosmetic_area
+                             where project_no = t1.project_no
+                               and revision   = t1.revision
+                               and team_count = t1.team_count)
+                                                    as prev_area  
+                          ,sum(t1.quantity)         as prev_quantity
+                          ,sum(t1.theory_quantity)  as prev_theory_quantity
+                      from stx_dis_pis_cosmetic t1
+                     where t1.project_no  = #{project_no}
+                       and t1.revision    = (select max(revision) - 1 
+                                                      from stx_dis_pis_pattern_scheme
+                                                     where project_no = #{project_no}
+                                                       and revision   = #{revision} )  
+                     group by t1.project_no, t1.revision, t1.team_count, t1.paint_item  
+                 )
+  select t5.*
+    from (             
+          select t3.outcos_code                                       
+                ,t3.team_count
+                ,t3.team_desc
+                ,t3.paint_item
+                ,t4.item_desc
+                
+                ,t3.area
+                ,t3.quantity
+                ,t3.theory_quantity
+                ,(case when curr_revision is not null and prev_revision is null      then 'ADD'
+                       when curr_revision is null     and prev_revision is not null  then 'DELETE'
+                       else (case when    nvl(area,0)        = nvl(prev_area,0) 
+                                      and nvl(quantity,0)      = nvl(prev_quantity,0) 
+                                      and nvl(theory_quantity,0) = nvl(prev_theory_quantity,0)
+                                   then 'EQUAL'
+                                   else 'CHANGE'
+                             end)
+                  end)    as acd   
+                 ,'cos'    as stage                                                                
+            from (               
+                   select t1.outcos_code                                       
+                         ,t1.team_count
+                         ,(select states_description
+                             from stx_dis_states_mgnt
+                            where states_main_category  = 'PAINT'
+                              and states_type           = 'PAINT TEAM2'
+                              and states_var1           = to_char(t1.team_count)
+                              and rownum                = 1)
+                                                     as team_desc 
+                         ,t1.paint_item
+                         
+                         ,max(t1.curr_revision)             as curr_revision
+                         ,max(t1.prev_revision)             as prev_revision
+                         
+                         ,max(area)                  as area
+                         ,max(quantity)              as quantity
+                         ,max(theory_quantity)       as theory_quantity
+                         ,max(prev_area)             as prev_area              
+                         ,max(prev_quantity)         as prev_quantity
+                         ,max(prev_theory_quantity)  as prev_theory_quantity
+                     from outcos          t1
+                    group by t1.outcos_code , t1.team_count, t1.paint_item
+                 )                          t3
+                 ,stx_dis_item              t4
+           where t3.paint_item  = t4.item_code
+        ) t5
+   where t5.acd != 'EQUAL'                    
+   order by t5.acd desc, t5.outcos_code  desc, t5.team_desc, t5.paint_item    
+	</select>-->
+	
+	<select id="selectExistPaintItem" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt
+	   from stx_dis_bom_work x
+	  where 1=1 
+	    and x.item_code       like #{item_code} || '%'
+	  start with x.mother_code   = #{mother_code}
+	connect by prior x.item_code = x.mother_code
+	</select>
+	
+	<select id="selectPaintBomInform" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select level  																	as lv
+	      , rownum 																	as r_num
+	      , stx_dis_splitview_f( sys_connect_by_path( x.item_code, '/' ), '/', 2 )  as project_name
+	      , stx_dis_splitview_f( sys_connect_by_path( x.item_code, '/' ), '/', 3 )  as wbs_name
+	      , stx_dis_splitview_f( sys_connect_by_path( x.item_code, '/' ), '/', 4 )  as out1
+	      , stx_dis_splitview_f( sys_connect_by_path( x.item_code, '/' ), '/', 5 ) 	as out2
+	      , stx_dis_splitview_f( sys_connect_by_path( x.item_code, '/' ), '/', 6 )  as out3
+	      , stx_dis_splitview_f( sys_connect_by_path( x.item_code, '/' ), '/', 7 )  as out4
+	      , stx_dis_short_emp_name_f( x.create_by ) user_name
+	      , x.*
+	   from stx_dis_bom_work x
+	  where 1=1 
+	    and x.item_code         like #{item_code} || '%'
+	  start with x.mother_code     = #{mother_code}
+	  connect by prior x.item_code = x.mother_code
+	</select>
+	
+	<select id="selectExistPaintPendingBom" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt
+	   from stx_dis_pending
+	  where project_no   = #{project_no}
+	    and job_cd       = #{job_cd}
+	    and mother_code  like #{mother_code} || '%'
+	</select>
+	
+	<select id="selectPaintPendingBomInform" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select job_cd
+	 	   ,mother_code
+	 	   ,project_no
+	 	   ,item_catalog
+	 	   ,state_flag
+	 	   ,act_flag
+	 	   ,str_flag
+	 	   ,block_no
+	   from stx_dis_pending
+	  where project_no   = #{project_no}
+	    and job_cd       = #{job_cd}
+	    and mother_code  like #{mother_code} || '%'
+	</select>
+		 
+	<select id="selectExistEcoInform" parameterType="string" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select main_name		as eco_no
+	       ,states_code		as states_code
+	       ,states_desc		as states_desc
+	   from stx_dis_main
+	  where main_type = 'ECO'
+	    and main_name = #{eco_main_name}
+	</select>
+	
+	<select id="selectDelegateProjectShipType" parameterType="string" resultType="string" >
+	 select t2.ship_type
+	   from stx_std_sd_bom_schedule@stxerp  t1
+	       ,stx_std_sd_model@stxerp         t2
+	  where 1=1
+	    and t1.model_no   = t2.model_no
+	    and t1.project_no = #{project_no}
+	</select>
+		 
+	<select id="createPaintUSCItem" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{call stx_dis_item_pkg.stx_dis_main_proc(
+		    #{p_catalog_code,	   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_ship_type,		   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_weight,			   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_loginid,		   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_old_item_code,     jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr00_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr00_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr01_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr01_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr02_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr02_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr03_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr03_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr04_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr04_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr05_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr05_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr06_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr06_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr07_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr07_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr08_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr08_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr09_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr09_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr10_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr10_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr11_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr11_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr12_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr12_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr13_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr13_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr14_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr14_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr15_code,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_attr15_desc,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_paint_code1,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_paint_code2,       jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr01_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr02_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr03_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr04_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr05_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr06_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr07_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr08_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_add_attr09_desc,   jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+			#{p_excel_upload_flag, jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_err_msg,		   jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    #{p_err_code,		   jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    #{p_item_code,		   jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+	      	)
+	  }    	
+    </select>  	
+    
+    <select id="insertPaintWBSBom" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{call stx_dis_plm_wbs_insert_pkg.insert_Paint_Wbs_Add(
+		    
+		    #{p_error_code,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    #{p_error_msg,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    
+		    #{p_master_project_no,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_item_code,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_catalog_code,		jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_dwg_no,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_bom10,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_bom11,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_bom12,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_bom13,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_bom14,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_eco_no,				jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_loginid,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN}
+	      	)
+	  }    	
+    </select>  	
+    
+    <select id="insertPaintProjectWBSBom" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{call stx_dis_plm_wbs_insert_pkg.insert_Project_Wbs_Add(
+		    
+		    #{p_error_code,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    #{p_error_msg,			jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    
+		    #{p_master_project_no,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_loginid,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN}
+	      	)
+	  }    	
+    </select> 
+    
+    <select id="insertStxDisMain" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{call stx_dis_eco_pkg.stx_dis_main_insert_proc(
+		    
+		    #{p_permanent_temporary_flag,	jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_loginid,					jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    #{p_main_description,			jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		    
+		    #{p_eng_change_order_code,		jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    #{p_eng_change_order_name_h,	jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    #{p_eng_change_order_name_n,	jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},		    	  
+		    #{p_error_msg,					jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		    #{p_error_code,					jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+	      	)
+	  }    	
+    </select> 	
+  	
+  	<insert id="insertPaintPendingBom" parameterType="java.util.HashMap">
+  	insert
+  		into stx_dis_pending
+  		(
+  		  job_cd           
+         ,mother_code      
+         ,project_no       
+         ,item_catalog     
+         ,dwg_no           
+         ,stage_no         
+         ,str_flag         
+         ,mail_flag        
+         ,state_flag       
+         ,user_id          
+         ,create_date      
+         ,dept_code        
+         ,block_no	
+         ,eco_no
+  		)
+  	values
+  		(
+  		  #{job_cd}
+  		 ,#{mother_code}      
+         ,#{project_no}       
+         ,#{item_catalog}     
+         ,#{dwg_no}           
+         ,#{stage_no}         
+         ,#{str_flag}         
+         ,#{mail_flag}        
+         ,#{state_flag}       
+         ,#{loginid}          
+         ,sysdate      
+         ,(select dept_code
+             from stx_com_insa_user@stxerp  
+            where emp_no = #{loginid})       
+         ,#{block_no}
+         ,#{eco_no}	
+  		)
+  	</insert>
+  	
+  	<delete id="deletePaintSSCBom" parameterType="java.util.Map">
+  	delete 
+  	  from stx_dis_ssc_head x
+  	 where x.project_no 	= #{project_no}
+  	   and x.dwg_no			= #{dwg_no} 
+	   and x.item_type_cd	= #{item_type_cd}
+	   and x.mother_code	= #{mother_code}
+	   and x.item_code		= #{item_code}
+  	</delete>
+  	
+  	<update id="updatePaintSSCBom" parameterType="java.util.Map">
+  	update stx_dis_ssc_head x
+  	   set x.state_flag 	= 'D'
+  	      ,x.eco_no			= #{eco_no}
+  	 where x.project_no 	= #{project_no}
+  	   and x.dwg_no			= #{dwg_no} 
+	   and x.item_type_cd	= #{item_type_cd}
+	   and x.mother_code	= #{mother_code}
+	   and x.item_code		= #{item_code} 
+  	</update>
+  	
+  	<insert id="insertPaintSSCBom" parameterType="java.util.Map">
+	merge
+	 into stx_dis_ssc_head x
+	using (select #{project_no}					as project_no
+				 ,#{item_type_cd}				as item_type_cd
+				 ,#{dwg_no}						as dwg_no
+				 ,#{mother_code}				as mother_code
+				 ,#{item_code}					as item_code
+				 ,#{ssc_sub_id}					as ssc_sub_id
+				 ,#{cad_sub_id}					as cad_sub_id
+				 ,#{rev_no}						as rev_no
+				
+				 ,#{bom1}						as bom1
+				 ,#{bom2}						as bom2
+				 ,#{bom3}						as bom3
+				 ,#{bom4}						as bom4	
+				 ,#{bom5}						as bom5
+				
+				 ,#{bom6}						as bom6
+				 ,#{bom7}						as bom7
+				 ,#{bom8}						as bom8
+				 ,#{bom9}						as bom9
+				 ,#{bom10}						as bom10
+				
+				 ,trunc(#{bom11}, 3)			as bom11
+				 ,#{bom12}						as bom12
+				 ,#{bom13}						as bom13
+				 ,trunc(#{bom14}, 3)			as bom14
+				 ,#{bom15}						as bom15
+				
+				 ,null							as supply_type
+				 ,null							as block_div
+				 ,null							as block_chg_date
+				
+				 ,#{job}						as job
+				 ,null							as job_chg_date
+				 ,null							as upp_chg_flag
+				 ,null							as upp_chg_date
+				
+				 ,(select dept_code
+					 from stx_com_insa_user@stxerp  
+					where emp_no = #{loginid})  as dept_code
+				 ,(select dept_name
+					 from stx_com_insa_user@stxerp  
+					where emp_no = #{loginid})	as dept_name
+				 ,null							as dwg_check
+				 ,trunc(#{bom_qty}, 3)			as bom_qty
+				 ,#{eco_no}						as eco_no
+				 ,#{master_ship}				as master_ship
+				 ,null							as move_code
+				 ,null							as move_ea
+				 ,null							as move_job
+			 	
+				 ,null							as paint_code3
+				 ,null							as paint_code4
+				 ,null							as paint_code5
+			 	
+				 ,#{raw_lv}						as raw_lv
+				 ,#{remark}						as remark
+			 	
+				 ,#{state_flag}					as state_flag
+				 ,null							as key_no
+				 ,null							as bom_item_detail
+				 ,null							as upp_confirm_date
+				 ,null							as plm_flag
+				 ,null							as find_number
+				 ,null							as main_code
+				 ,null							as activity_cd
+				 ,null							as job_cd2
+				
+				 ,#{loginid}					as user_id
+				 ,(select user_name
+					 from stx_com_insa_user@stxerp  
+					where emp_no = #{loginid})  as user_name	
+			 from dual
+			) y
+	   on(		x.project_no 	= y.project_no
+	        and x.dwg_no		= y.dwg_no 
+	   	 	and	x.item_type_cd	= y.item_type_cd
+	   	 	and x.mother_code	= y.mother_code
+	   	 	and x.item_code		= y.item_code
+	   	 )	
+	when matched then
+		update
+		   set x.state_flag = y.state_flag
+		      ,x.rev_no		= y.rev_no
+		      
+		      ,x.bom1		= y.bom1
+		      ,x.bom2		= y.bom2
+		      ,x.bom3		= y.bom3
+		      ,x.bom4		= y.bom4
+		      ,x.bom5		= y.bom5
+		      
+		      ,x.bom6		= y.bom6
+		      ,x.bom7		= y.bom7
+		      ,x.bom8		= y.bom8
+		      ,x.bom9		= y.bom9
+		      ,x.bom10		= y.bom10
+		      
+		      ,x.bom11		= y.bom11
+		      ,x.bom12		= y.bom12
+		      ,x.bom13		= y.bom13
+		      ,x.bom14		= y.bom14
+		      ,x.bom15		= y.bom15
+		      
+		      ,x.dept_code  = y.dept_code      
+		      ,x.dept_name	= y.dept_name
+		      ,x.bom_qty	= y.bom_qty
+		      ,x.eco_no		= y.eco_no
+	when not matched then
+		insert (
+				  x.project_no
+				 ,x.item_type_cd
+				 ,x.dwg_no
+				 ,x.mother_code
+				 ,x.item_code
+				 ,x.ssc_sub_id
+				 ,x.cad_sub_id
+				 ,x.rev_no
+				
+				 ,x.bom1
+				 ,x.bom2
+				 ,x.bom3
+				 ,x.bom4
+				 ,x.bom5
+				
+				 ,x.bom6
+				 ,x.bom7
+				 ,x.bom8
+				 ,x.bom9
+				 ,x.bom10
+				
+				 ,x.bom11
+				 ,x.bom12
+				 ,x.bom13
+				 ,x.bom14
+				 ,x.bom15
+				
+				 ,x.supply_type
+				 ,x.block_div
+				 ,x.block_chg_date
+				
+				 ,x.job
+				 ,x.job_chg_date
+				 ,x.upp_chg_flag
+				 ,x.upp_chg_date
+				
+				 ,x.dept_code
+				 ,x.dept_name
+				 ,x.dwg_check
+				 ,x.bom_qty
+				 ,x.eco_no
+				 ,x.master_ship
+				 ,x.move_code
+				 ,x.move_ea
+				 ,x.move_job
+			 	
+				 ,x.paint_code3
+				 ,x.paint_code4
+				 ,x.paint_code5
+			 	
+				 ,x.raw_lv
+				 ,x.remark
+			 	
+				 ,x.state_flag
+				 ,x.key_no
+				 ,x.bom_item_detail
+				 ,x.upp_confirm_date
+				 ,x.plm_flag
+				 ,x.find_number
+				 ,x.main_code
+				 ,x.activity_cd
+				 ,x.job_cd2
+				
+				 ,x.user_id
+				 ,x.user_name
+				 ,x.create_date
+				)
+			values
+				(
+				  y.project_no
+				 ,y.item_type_cd
+				 ,y.dwg_no
+				 ,y.mother_code
+				 ,y.item_code
+				 ,stx_dis_ssc_sub_id_sq.nextval
+				 ,y.cad_sub_id
+				 ,y.rev_no
+				 
+				 ,y.bom1
+				 ,y.bom2
+				 ,y.bom3
+				 ,y.bom4
+				 ,y.bom5
+				
+				 ,y.bom6
+				 ,y.bom7
+				 ,y.bom8
+				 ,y.bom9
+				 ,y.bom10
+				
+				 ,y.bom11
+				 ,y.bom12
+				 ,y.bom13
+				 ,y.bom14
+				 ,y.bom15
+				
+				 ,y.supply_type
+				 ,y.block_div
+				 ,y.block_chg_date
+				
+				 ,y.job
+				 ,y.job_chg_date
+				 ,y.upp_chg_flag
+				 ,y.upp_chg_date
+				
+				 ,y.dept_code
+				 ,y.dept_name
+				 ,y.dwg_check
+				 ,y.bom_qty
+				 ,y.eco_no
+				 ,y.master_ship
+				 ,y.move_code
+				 ,y.move_ea
+				 ,y.move_job
+			 	
+				 ,y.paint_code3
+				 ,y.paint_code4
+				 ,y.paint_code5
+			 	
+				 ,y.raw_lv
+				 ,y.remark
+			 	
+				 ,y.state_flag
+				 ,y.key_no
+				 ,y.bom_item_detail
+				 ,y.upp_confirm_date
+				 ,y.plm_flag
+				 ,y.find_number
+				 ,y.main_code
+				 ,y.activity_cd
+				 ,y.job_cd2	
+				 
+				 ,y.user_id
+				 ,y.user_name
+				 ,sysdate
+				)
+	
+  	</insert>
+  	
+  	<select id="selectPaintSSCBom" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select x.project_no
+	      ,x.item_type_cd
+	      ,x.dwg_no
+	      ,x.mother_code
+	      ,x.item_code
+	      ,x.ssc_sub_id
+	      ,x.cad_sub_id
+	      ,x.rev_no
+	                
+	      ,x.bom1
+	      ,x.bom2
+	      ,x.bom3
+	      ,x.bom4
+	      ,x.bom5
+	               
+	      ,x.bom6
+	      ,x.bom7
+	      ,x.bom8
+	      ,x.bom9
+	      ,x.bom10
+	                
+	      ,x.bom11
+	      ,x.bom12
+	      ,x.bom13
+	      ,x.bom14
+	      ,x.bom15
+	                
+	      ,x.supply_type
+	      ,x.block_div
+	      ,x.block_chg_date
+	                
+	      ,x.job
+	      ,x.job_chg_date
+	      ,x.upp_chg_flag
+	      ,x.upp_chg_date
+	               
+	      ,x.dept_code
+	      ,x.dept_name
+	      ,x.dwg_check
+	      ,x.bom_qty
+	      ,x.eco_no
+	      ,x.master_ship
+	      ,x.move_code
+	      ,x.move_ea
+	      ,x.move_job
+	                
+	      ,x.paint_code3
+	      ,x.paint_code4
+	      ,x.paint_code5
+	                
+	      ,x.raw_lv
+	      ,x.remark
+	                
+	      ,x.state_flag
+	      ,x.key_no
+	      ,x.bom_item_detail
+	      ,x.upp_confirm_date
+	      ,x.plm_flag
+	      ,x.find_number
+	      ,x.main_code
+	      ,x.activity_cd
+	      ,x.job_cd2
+	      
+	      ,(select states_desc
+	          from stx_dis_main
+	         where main_type = 'ECO'
+		       and main_name = x.eco_no
+	      ) as eco_desc       
+	 from stx_dis_ssc_head x
+	where x.project_no    = #{project_no}
+	  and x.dwg_no		  = #{dwg_no}
+	  and x.item_type_cd  = #{item_type_cd}
+	  and x.mother_code	  = #{mother_code}
+	  and x.item_code	  = #{item_code}
+  	</select>
+  	
+  	<update id="updatePaintRelease" parameterType="java.util.Map">
+  	update stx_dis_pis_plan
+  	   set state 			= 'D'
+  	      ,last_updated_by  = -1
+  	      ,last_update_date = sysdate
+  	 where project_no	=	#{project_no}
+  	   and revision		=	#{revision}
+  	   and state 		is  null
+  	</update>
+  	
+  	<insert id="insertEngChangeOrder" parameterType="java.util.Map">
+  	insert into stx_dis_eng_change_order
+       (
+         eng_change_order_code
+        ,permanent_temporary_flag
+        ,eng_change_order_cause
+        ,eng_eco_project
+        ,eng_change_order_name_h
+        ,eng_change_order_name_n
+        ,design_engineer
+        ,manufacturing_engineer
+        ,last_updated_by
+        ,last_update_date
+       )
+	select #{p_eng_change_order_code}
+	      ,#{p_permanent_temporary_flag}                      
+	      ,eng_change_order_cause
+	      ,eng_eco_project
+	      ,#{p_eng_change_order_name_h}
+	      ,#{p_eng_change_order_name_n}
+	      ,design_engineer
+	      ,manufacturing_engineer
+	      ,#{p_loginid}
+	      ,sysdate
+	  from stx_dis_eng_change_order
+	 where eng_change_order_name_h || eng_change_order_name_n = #{p_eco_no}
+  	</insert>
+  	
+  	<select id="selectMainCode" parameterType="java.util.Map" resultType="string" >
+	 select main_code 
+	   from stx_dis_main 
+	  where main_type = #{p_eng_type}
+	    and main_name = #{p_main_name}
+	    and rownum    = 1
+	</select>
+	
+	<insert id="insertEcoEngRel" parameterType="java.util.Map">
+	insert into stx_dis_eng_rel
+       (
+         main_code   
+        ,no
+        ,toid
+        ,eng_type
+        ,eng_rel_code 
+        ,eng_sub_type
+        ,eng_small_type
+        ,created_by
+        ,creation_date
+       )
+	values  
+       (
+        #{p_main_code}
+       ,(select nvl(max(no)+1,0) as no
+		   from stx_dis_eng_rel
+		  where main_code  = #{p_main_code})  
+       ,#{p_eng_change_order_code}
+       ,#{p_eng_type}
+       ,stx_dis_main_code.nextval
+       ,null
+       ,null
+       ,#{p_loginid}
+       ,sysdate
+       )     	
+	</insert>
+	
+	<select id="selectExistStateReq" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_statereq
+	 where main_code = #{p_eng_change_order_code}
+	</select>
+	
+	<insert id="insertStateReq" parameterType="java.util.Map">
+	insert into stx_dis_statereq
+	   (
+	     state_req_code
+	    ,state_flag
+	    ,no
+	    ,actual_date
+	    ,emp_no
+	    ,main_code
+	    ,state_type
+	    ,notify_msg
+	    ,referrers 
+	   )
+	  select stx_dis_main_code.nextval 	as state_req_code
+	        ,'N'                       	as state_flag
+	        ,no                        	as no  
+	        ,null                   	as actual_date
+	        ,emp_no                    	as emp_no
+	        ,#{p_eng_change_order_code} as main_code
+	        ,state_type                	as state_type
+	        ,'Paint Pending 잠정 Eco'    	as notify_msg
+	        ,'N'                       	as referrers 
+	    from stx_dis_statereq 
+	   where main_code = #{p_main_code}      	
+	</insert>
+	
+	<select id="selectPaintEco" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT DISTINCT SDPBIH.ALL_ECO_NO
+	  FROM STX_DIS_PAINT_BOM_IF_HEAD SDPBIH
+	 WHERE SDPBIH.PROJECT_NO       = #{project_no}
+	   AND SDPBIH.REVISION         = #{revision}
+	   AND SDPBIH.PAINT_STAGE_TYPE = #{stage_type}
+	</select>
+	
+	<!-- savePaintImportCreateBom.xml로 이관 -->
+	<!--  <delete id="deletePaintLine">
+	delete from STX_DIS_PAINT_BOM_IF_LINE
+     where 1=1
+	   and PAINT_HEAD_ID   = #{p_paint_head_id}
+
+	</delete>-->  	
+</mapper>  	

@@ -1,0 +1,130 @@
+@CHARSET "EUC-KR";
+body{
+ 
+    font-size: 0.75em; /*9pt , 12px, 0.75em*/
+   /* 단위가 px이면 브라우저에서 텍스트 크기를 변경해도 변경되지않고 고정된 크기를 보여준다.*/
+  
+   font-family: 'Malgun Gothic',굴림, Verdana, Helvetica, Sans-Serif;
+    /*맑은 고딕 : Malgun Gothic => 폰트명을 한글로 쓰는것보다는 영문으로 쓰는게 좋다.
+       그 이유는 영문OS나 영문 브라우저를 사용했을때 폰트를 읽어오지 못하는 경우가 있기때문이다.
+    */
+    /* background-color: #5c87b2; */ /*배경색*/
+    color: #696969; /*전경색*/
+    margin: 1;
+    padding: 0;
+ 
+}
+
+/* 레이아웃 관련 스타일 */
+ 
+ 
+#page{
+   
+    width:1700px;  /*page 클래스의 width값에 따라서 고정/가변 레이아웃 구성*/
+    margin-left: auto;
+    margin-right: auto;
+    /* margin-left,margin-right에 auto 값을 주면 해당된 div가 가운데 정렬된다. */
+    /* 좌우가 균등하게 여백이 들어가므로 가운데 정렬되는 결과가 나온다. */
+}
+ 
+ 
+#header{
+ 
+    position:relative; /* absolute를 사용하면 절대좌표를 지정해야함. 지정하지않으면 레이아웃이 겹침 */
+    margin-bottom: 0px;
+    padding: 0px; /* header 와 header속에 있는 title의 간격을 0으로 */
+    color: #000;
+ 
+   
+}
+ 
+
+ 
+#content{
+    width:100%;
+   
+}
+ 
+#leftColumn{
+	
+    background-color:Silver;
+    width:100px;
+    height:700px;   
+    float:left;
+}
+ 
+#main{
+    padding : 0;   /* 안쪽 여백  */
+    background-color: #ffffff;
+    margin-bottom: 30px ;/*바같쪽 여백 */
+    min-height: 400px; /* 최소 높이(세로크기) 지정, IE6에서 적용안됨. */
+    _height: 300px; /* IE전용 :  _(언더스코어)로 시작하는 속성 */
+   
+    margin-left:185px; /*leftColumn 영역의 width값만큼 여백으로 지정*/
+    width:auto;
+}
+ 
+#mainDiv{
+    padding: 10px;
+    overflow:hidden;
+}
+ 
+ 
+#footer{   
+    clear:both;
+    text-align: center; /* 내용 가운데 정렬*/
+    margin:0;
+    padding:10px 0;  /* 상하:10px  좌우:0  안쪽 여백 지정*/
+    line-height: normal;
+    font-size: .9em;
+    /* body에 지정한 스타일 " font-size: 0.75em;" 먼저 적용되고 이것을 상속받아서
+        footer에서 0.75em이 1이 된다 그래서 0.9em을 하면 body에서 기본으로 적용한 글자크기보다
+        작은것을 볼수있다. */
+ 
+}
+ 
+ 
+ 
+
+ 
+#menucontainer{
+    /*clear:both;*/
+    margin-top:40px;
+   
+  
+}
+ 
+/*메뉴 모양 정의 */
+ 
+ul#menu{
+   
+    text-align:right;
+    margin:0;
+    border-bottom: 1px #5c87b2 solid;
+    position: relative;
+}
+ 
+ul#menu li{
+    display:inline;
+    list-style:none; /*리스트의 블릿기호 none */
+}
+ul#menu li a{
+    padding:10px 20px;
+    background-color:#e8eef4;
+    font-weight: bold;
+    text-decoration:none;
+    line-height:2.8em;
+    color:#034af3;
+}
+ul#menu li a:hover{
+   
+    background-color:#fff;
+    text-decoration:none;
+}
+ul#menu li a:active{
+   
+    background-color:#a6e2a6;
+    text-decoration:none;
+}
+
+

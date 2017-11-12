@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="pendingList">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PENDING_PKG.PENDING_SELECT_PROC(
+                    #{p_chk_series}                                             
+                    , #{p_block_no}                                             
+                    , #{p_str_flag}                                             
+                    , #{p_usc_job_flag}                                             
+                    , #{p_dwg_no}                                             
+                    , #{p_stage_no}                                             
+                    , #{p_dept_code}                                             
+                    , #{p_user_id}                                             
+                    , #{p_job_cd}
+                    , #{p_job_desc}                                             
+                    , #{p_mother_code}  
+                    , #{p_work_flag} 
+                    , #{p_pending_flag} 
+                    , #{p_upperaction}  
+                    , #{p_start_date}
+                    , #{p_end_date}   
+                    , #{p_eco_no}
+                    , #{p_state_flag}
+                    , #{p_is_eco}
+                    , #{p_release}
+                    , #{curPageNo}
+				    , #{pageSize}  
+                    , #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                    , #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                    , #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=pendingList.procResultMap, mode=OUT}
+		)}
+	</select>
+	
+	<select id="popupPendingWorkList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PENDING_PKG.PENDING_POP_SELECT_PROC(
+								p_project_no 		=> #{p_project_no, 		jdbcType=VARCHAR,	mode=IN}
+                                , p_mother_code 	=> #{p_mother_code, 	jdbcType=VARCHAR,	mode=IN}
+                                , p_item_code 		=> #{p_item_code, 		jdbcType=VARCHAR,	mode=IN}
+                                , p_release_type 	=> #{p_release_type, 	jdbcType=VARCHAR,	mode=IN}
+                                , p_curpageno 		=> #{curPageNo, 		jdbcType=VARCHAR,	mode=IN}
+                                , p_pagesize 		=> #{pageSize, 			jdbcType=VARCHAR,	mode=IN}
+                                , p_error_code 		=> #{p_error_code,      jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+								, p_error_msg 		=> #{p_error_msg,       jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+								, p_refer 			=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=pendingList.procResultMap, mode=OUT}
+        )}
+	</select>
+	
+	<select id="pendingDeleteTemp" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call stx_dis_pending_pkg.pending_temp_all_delete_proc( 
+                                  p_user_id 		=> #{p_user_id, 		jdbcType=VARCHAR,	mode=IN}
+                                , p_error_code 		=> #{p_error_code,      jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+								, p_error_msg 		=> #{p_error_msg,       jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+								
+        )}
+	</select>
+
+</mapper>

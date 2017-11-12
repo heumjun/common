@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="pendingGetPendingDwgnoExport">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT *
+        FROM(
+            SELECT SUBSTR(A.ACTIVITYCODE, 1, 8) AS DWG_NO ,
+	              A.DWGTITLE AS ITEM_DESC ,
+	              C.TBC_CATALOG_NO AS ITEM_CATALOG ,
+	              COUNT(STP.MOTHER_CODE) AS PENDING_CNT
+            FROM DPM_ACTIVITY@STXDP A INNER JOIN STX_STD_SD_BOM_SCHEDULE@STXERP B ON A.PROJECTNO = B.PROJECT_NO 
+	            LEFT JOIN STX_DWG_CATEGORY_MASTERS@STXERP C ON SUBSTR(A.ACTIVITYCODE, 1, 5) = C.DWG_NO_CONCAT 
+	            LEFT JOIN STX_DIS_PENDING STP ON SUBSTR(A.ACTIVITYCODE, 1, 8) = STP.DWG_NO
+            	AND A.PROJECTNO = STP.PROJECT_NO
+            WHERE A.WORKTYPE = 'DW'
+            AND A.CASENO = '1'
+              
+			<if test='p_ship != null and !p_ship.equalsIgnoreCase("")'>
+					<choose>
+						<when test='p_ship == "project"'>
+		 					AND A.PROJECTNO = #{p_project_no, jdbcType=VARCHAR}
+		 				</when>
+		 				<otherwise>
+		 					AND B.DELEGATE_PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+		 				</otherwise>
+	 				 </choose>
+			    </if>
+			
+			<if test='p_dept_code != null and !p_dept_code.equalsIgnoreCase("")'>
+				AND A.DWGDEPTCODE = #{p_dept_code, jdbcType=VARCHAR}
+			</if>
+			
+			<if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>
+				AND A.ACTIVITYCODE LIKE #{p_dwg_no, jdbcType=VARCHAR } || '%'
+			</if>
+              
+            GROUP BY A.ACTIVITYCODE , A.DWGTITLE , C.TBC_CATALOG_NO )
+        	WHERE 1=1 
+        
+        	<if test='p_isPendingCount != null and !p_isPendingCount.equalsIgnoreCase("") and !p_isPendingCount.equalsIgnoreCase("ALL")'>
+				<choose>
+					<when test='p_isPendingCount == "Y"'>
+	 					AND PENDING_CNT > 0
+	 				</when>
+	 				<otherwise>
+	 					AND PENDING_CNT = 0
+	 				</otherwise>
+				</choose>
+	    	</if>
+  	</select>
+
+</mapper>

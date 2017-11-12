@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="categoryFromPartFamily">
+  
+	<select id="selectCategoryFromPartFamily" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DSC.CATEGORY_CODE1 
+				,DSC.CATEGORY_CODE2 
+				,DSC.CATEGORY_CODE3 
+				,DSC.CATEGORY_ID 
+				,DSC.CATEGORY_DESC 
+				,category_code1 || '.' || category_code2 || '.' || category_code3 
+				as category_code 
+				FROM STX_DIS_SD_CATEGORY DSC 
+				WHERE DSC.TYPE_CODE = '01' 
+				AND DSC.CATEGORY_CODE1 = (SELECT CATEGORY_TYPE FROM STX_DIS_SD_PART_FAMILY DSPF WHERE DSPF.PART_FAMILY_CODE = #{part_family_code} AND ROWNUM = 1) 
+				
+				AND DSC.CATEGORY_CODE2 = SUBSTR(#{catalog_code} , 2, 1) 
+				AND DSC.CATEGORY_CODE3 = CASE WHEN LENGTH(#{catalog_code} ) = 5 THEN SUBSTR(#{catalog_code} , 3, 1) 
+				WHEN LENGTH(#{catalog_code} ) = 6 THEN SUBSTR(#{catalog_code} , 3, 2) 
+				END 
+	</select>
+	
+</mapper>

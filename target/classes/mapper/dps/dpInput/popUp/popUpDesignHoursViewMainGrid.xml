@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpDesignHoursViewMainGrid">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT PROJECT_NO,
+		       WORKDAY,
+		       WEEKDAY,
+		       HOLIDAYYN,
+		       EMPLOYEE_NO,
+		       EMP_NAME,
+		       DWG_CODE,
+		       OP_CODE ||' : ' || OP_STR AS OP_CODE,
+		       EMP_DEPT,
+		       CAUSE_DEPART,
+		       BASIS,
+		       NORMAL_TIME,
+		       OVERTIME,
+		       SPECIAL_TIME,
+		       EVENT1,
+		       EVENT2,
+		       EVENT3,
+		       WORK_DESC
+		FROM   (SELECT A.PROJECT_NO,
+		               TO_CHAR(A.WORK_DAY, 'YYYY-MM-DD') AS WORKDAY,
+		               DECODE(TO_CHAR(A.WORK_DAY, 'D'), '1', '일', '2', '월', '3', '화', '4', '수', '5', '목', '6', '금', '7', '토') AS WEEKDAY,
+		               (SELECT DECODE(B.ISWORKDAY, 'Y', '평일', 'N', '휴일')
+		                FROM   CCC_CALENDAR B
+		                WHERE  B.WORKINGDAY = A.WORK_DAY) AS HOLIDAYYN,
+		               A.EMPLOYEE_NO,
+		               (SELECT C.NAME
+		                FROM   CCC_SAWON C
+		                WHERE  C.EMPLOYEE_NUM = A.EMPLOYEE_NO) AS EMP_NAME,
+		               A.DWG_CODE,
+		               A.OP_CODE,
+		               (SELECT C.DEPT_CODE
+		                FROM   CCC_SAWON C
+		                WHERE  C.EMPLOYEE_NUM = A.EMPLOYEE_NO) AS EMP_DEPT,
+		               A.CAUSE_DEPART,
+		               A.BASIS,
+		               A.NORMAL_TIME,
+		               A.OVERTIME,
+		               A.SPECIAL_TIME,
+		               A.EVENT1,
+		               A.EVENT2,
+		               A.EVENT3,
+		               (SELECT B.SUB_DESC
+		                FROM   PLM_DESIGN_MH_OP_SUB B
+		                WHERE  B.GRT_CODE||B.MID_CODE||B.SUB_CODE=A.OP_CODE) AS OP_STR, -- PLM_CODE_TBL에서 가져오던것을 OP TABLE에서 가져오도록 변경
+		               WORK_DESC
+		        FROM   PLM_DESIGN_MH A
+		        WHERE  1 = 1                                                                                                               
+			   AND A.OP_CODE&lt;&gt;'D1Z'                                                                                                          
+			   <if test="(designerList == null or designerList == '') and (departmentList != null and departmentList != '')">
+			   		AND A.DEPT_CODE=#{departmentList}
+			   </if>
+			   <if test="designerList != null and designerList != ''">
+			   		AND A.EMPLOYEE_NO=#{designerList}
+			   </if>
+			   <if test="dateSelected_from != null and dateSelected_from != '' and dateSelected_to != null and dateSelected_to != ''">
+			   		AND A.WORK_DAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+			   </if>             
+			   <if test="projectNo != null and projectNo != ''">
+			   		AND A.PROJECT_NO = #{projectNo}
+			   </if>
+			   <if test="causeDepartmentList != null and causeDepartmentList != ''">
+				    AND A.CAUSE_DEPART = #{causeDepartmentList}
+			   </if>
+			   <if test="drawingNo != null and drawingNo != ''">
+			   		AND A.DWG_CODE LIKE #{drawingNo}
+			   </if>
+			   <if test="opCode != null and opCode != ''">
+			   		AND A.OP_CODE LIKE #{opCode}%
+			   </if>
+			   <if test="e1 != null and e1 != ''">
+			        AND A.EVENT1 IS NOT NULL
+				</if>
+				<if test="e2 != null and e2 != ''">
+			        AND A.EVENT2 IS NOT NULL
+				</if>
+				<if test="e3 != null and e3 != ''">
+			        AND A.EVENT3 IS NOT NULL
+				</if>
+		ORDER BY A.WORK_DAY ASC, A.PROJECT_NO, A.START_TIME)                                                                         
+  	</select>
+  	
+</mapper>

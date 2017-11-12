@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="standardInfoTransList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select *
+		from(
+					select ROWNUM as rnum,
+					t.*
+					from(
+			
+					SELECT	*
+					FROM	(SELECT STICL_LIST.COMMON_NAME AS LIST_TYPE_DESC <!-- 유형 -->
+							  ,'' AS DESCRIPTION --DESCRIPTION
+							  ,SCIDE.DEPT_NAME AS DEPT_NAME <!-- 부서이름 -->
+							  ,SCIDE.DEPT_CODE AS DEPT_CODE <!-- 부서코드 -->
+							  ,SCIUE.USER_NAME AS USER_NAME <!-- 유저이름 -->
+							  ,SCIUE.EMP_NO AS EMP_NO <!-- 사번 -->
+							  ,STICL_STAUTS.COMMON_NAME AS LIST_STATUS_DESC <!-- 상태값 -->
+							  ,TO_CHAR(STIL.REQUEST_DATE, 'YYYY-MM-DD') AS REQUEST_DATE <!-- 요청일자 -->
+							  ,STIL.LIST_ID AS LIST_ID --LIST_ID (KEY)
+							  ,STIL.LIST_TYPE AS LIST_TYPE <!-- 유형코드 -->
+							  ,STIL.LIST_STATUS AS LIST_STATUS <!-- 상태코드 -->
+							  ,STIL.REQUEST_TITLE AS REQUEST_TITLE <!-- 서브 타이틀 -->
+							  ,CASE
+							    WHEN STIL.COMPLETE_DATE IS NOT NULL THEN TO_CHAR(STIL.COMPLETE_DATE, 'YYYY-MM-DD')
+							    WHEN STIL.FEEDBACK_DATE IS NOT NULL THEN TO_CHAR(STIL.FEEDBACK_DATE, 'YYYY-MM-DD')
+							    WHEN STIL.CONFIRM_DATE IS NOT NULL THEN TO_CHAR(STIL.CONFIRM_DATE, 'YYYY-MM-DD')
+							  END AS JOCHI_DATE
+							FROM STX_DIS_INFO_LIST STIL ,
+							  STX_DIS_INFO_CODE_LIST STICL_LIST ,
+							  STX_DIS_INFO_CODE_LIST STICL_STAUTS ,
+							  STX_COM_INSA_DEPT@STXERP SCIDE ,
+							  STX_COM_INSA_USER@STXERP SCIUE
+							WHERE STIL.LIST_TYPE = STICL_LIST.COMMON_CODE
+							  AND STICL_LIST.LIST_TYPE = 'LIST_TYPE'
+							  AND STIL.LIST_STATUS = STICL_STAUTS.COMMON_CODE
+							  AND STICL_STAUTS.LIST_TYPE = 'PROCESS_TYPE'
+							  AND STIL.REQUEST_DEPT_CODE = SCIDE.DEPT_CODE
+							  AND STIL.REQUEST_EMP_NO = SCIUE.EMP_NO
+							ORDER BY LIST_ID DESC )
+					WHERE	1=1
+					<if test='p_list_id != null and p_list_id != ""'> 
+					AND	LIST_ID	LIKE '%' || #{p_list_id} || '%'
+					</if>
+					 <if test='fromDate != null and fromDate != ""'> 
+					AND	REQUEST_DATE	>=	#{fromDate}
+					</if>
+					 <if test='ToDate != null and ToDate != ""'> 
+					<![CDATA[
+					AND	REQUEST_DATE	<=	#{ToDate}
+					]]>
+					 </if>
+					 <if test='p_type != null and p_type != ""'>
+					AND	LIST_TYPE		=	#{p_type}
+					 </if>
+					 <if test='p_description != null and p_description != ""'>
+					AND DESCRIPTION		=	#{p_description p_dept}
+					 </if>
+					 <if test='p_dept != null and p_dept != ""'>
+					AND	DEPT_NAME		LIKE '%' || #{p_dept} || '%'
+					 </if>
+					 <if test='p_state != null and p_state != ""'>
+					AND	LIST_STATUS		=	#{p_state}
+					</if>
+					 <if test='p_requestor != null and p_requestor != ""'> 
+					AND	USER_NAME		=	#{p_requestor}
+					</if>
+					 <if test='p_request_title != null and p_request_title != ""'> 
+					AND	REQUEST_TITLE	LIKE  '%' || #{p_request_title} || '%'
+					</if>
+		)t
+
+	        <![CDATA[
+	    WHERE ROWNUM <= (#{curPageNo}*#{pageSize}))
+	    	]]>
+		WHERE RNUM >= (#{curPageNo}*#{pageSize}) - (#{pageSize}-1)
+
+
+	</select>
+
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT	COUNT(*) AS CNT
+		FROM	(SELECT STICL_LIST.COMMON_NAME AS LIST_TYPE_DESC <!-- 유형 -->
+							  ,'' AS DESCRIPTION --DESCRIPTION
+							  ,SCIDE.DEPT_NAME AS DEPT_NAME <!-- 부서이름 -->
+							  ,SCIDE.DEPT_CODE AS DEPT_CODE <!-- 부서코드 -->
+							  ,SCIUE.USER_NAME AS USER_NAME <!-- 유저이름 -->
+							  ,SCIUE.EMP_NO AS EMP_NO <!-- 사번 -->
+							  ,STICL_STAUTS.COMMON_NAME AS LIST_STATUS_DESC <!-- 상태값 -->
+							  ,TO_CHAR(STIL.REQUEST_DATE, 'YYYY-MM-DD') AS REQUEST_DATE <!-- 요청일자 -->
+							  ,STIL.LIST_ID AS LIST_ID --LIST_ID (KEY)
+							  ,STIL.LIST_TYPE AS LIST_TYPE <!-- 유형코드 -->
+							  ,STIL.LIST_STATUS AS LIST_STATUS <!-- 상태코드 -->
+							  ,STIL.REQUEST_TITLE AS REQUEST_TITLE <!-- 서브 타이틀 -->
+							  ,CASE
+							    WHEN STIL.COMPLETE_DATE IS NOT NULL THEN TO_CHAR(STIL.COMPLETE_DATE, 'YYYY-MM-DD')
+							    WHEN STIL.FEEDBACK_DATE IS NOT NULL THEN TO_CHAR(STIL.FEEDBACK_DATE, 'YYYY-MM-DD')
+							    WHEN STIL.CONFIRM_DATE IS NOT NULL THEN TO_CHAR(STIL.CONFIRM_DATE, 'YYYY-MM-DD')
+							  END AS JOCHI_DATE
+							FROM STX_DIS_INFO_LIST STIL ,
+							  STX_DIS_INFO_CODE_LIST STICL_LIST ,
+							  STX_DIS_INFO_CODE_LIST STICL_STAUTS ,
+							  STX_COM_INSA_DEPT@STXERP SCIDE ,
+							  STX_COM_INSA_USER@STXERP SCIUE
+							WHERE STIL.LIST_TYPE = STICL_LIST.COMMON_CODE
+							  AND STICL_LIST.LIST_TYPE = 'LIST_TYPE'
+							  AND STIL.LIST_STATUS = STICL_STAUTS.COMMON_CODE
+							  AND STICL_STAUTS.LIST_TYPE = 'PROCESS_TYPE'
+							  AND STIL.REQUEST_DEPT_CODE = SCIDE.DEPT_CODE
+							  AND STIL.REQUEST_EMP_NO = SCIUE.EMP_NO
+							ORDER BY LIST_ID DESC )
+		WHERE	1=1
+		<if test='p_list_id != null and p_list_id != ""'> 
+		AND	LIST_ID	LIKE '%' || #{p_list_id} || '%'
+		</if>
+		 <if test='fromDate != null and fromDate != ""'> 
+		AND	REQUEST_DATE	>=	#{fromDate}
+		</if>
+		 <if test='ToDate != null and ToDate != ""'> 
+		<![CDATA[
+		AND	REQUEST_DATE	<=	#{ToDate}
+		]]>
+		 </if>
+		 <if test='p_type != null and p_type != ""'>
+		AND	LIST_TYPE		=	#{p_type}
+		 </if>
+		 <if test='p_description != null and p_description != ""'>
+		AND DESCRIPTION		=	#{p_description p_dept}
+		 </if>
+		 <if test='p_dept != null and p_dept != ""'>
+		AND	DEPT_NAME		like '%' || #{p_dept} || '%'
+		 </if>
+		 <if test='p_state != null and p_state != ""'>
+		AND	LIST_STATUS		=	#{p_state}
+		</if>
+		 <if test='p_requestor != null and p_requestor != ""'> 
+		AND	USER_NAME		=	#{p_requestor}
+		</if>
+		 <if test='p_request_title != null and p_request_title != ""'> 
+		AND	REQUEST_TITLE	LIKE  '%' || #{p_request_title} || '%'
+		</if>
+	</select>
+
+</mapper>

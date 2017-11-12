@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoCategoryMgnt">  	
+  	<!-- 2014.05.13 add 최경호 카테고리 mgnt 에서 속성값 가져올때 사용하는 팝업 -->
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		  SELECT A.ATTRIBUTE_ID   AS id
+		      ,A.ATTRIBUTE_CODE AS sd_code
+		      ,A.ATTRIBUTE_NAME AS sd_desc
+		  FROM (   
+		       SELECT '01'               AS CATEGORY_TYPE 
+		            , T.TEMPLATE_ID      AS ATTRIBUTE_ID
+		            , T.TEMPLATE_NAME    AS ATTRIBUTE_CODE
+		            , T.DESCRIPTION      AS ATTRIBUTE_NAME
+		         FROM MTL_ITEM_TEMPLATES@stxerp T
+		        UNION ALL
+		       SELECT '02'               AS CATEGORY_TYPE 
+		            , T.RESOURCE_ID      AS ATTRIBUTE_ID
+		            , T.RESOURCE_CODE    AS ATTRIBUTE_CODE
+		            , T.EXPENDITURE_TYPE AS ATTRIBUTE_NAME
+		         FROM BOM.BOM_RESOURCES@stxerp T
+		        WHERE T.ORGANIZATION_ID = 82
+		          AND T.COST_ELEMENT_ID = 1
+		          AND T.DISABLE_DATE IS NULL ) A
+		 WHERE A.CATEGORY_TYPE = #{p_sd_type}
+		 
+		 <if test="p_code_find != null and p_code_find !='' ">
+		  and a.attribute_name like #{p_code_find}||'%'
+ 		</if>
+  	</select>
+ 	
+</mapper>

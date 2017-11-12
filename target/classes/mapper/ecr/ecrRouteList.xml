@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ecrRouteList">
+
+  <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT ROWNUM SEQ
+		     , STX_DIS_SHORT_EMP_NAME_F( X.EMP_NO ) USER_NAME
+		  FROM STX_DIS_STATEREQ X
+		 WHERE X.REFERRERS = 'Y'
+		   AND X.MAIN_CODE = #{main_code,jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

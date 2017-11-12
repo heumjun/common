@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpEmsDbMasterItemApprove">
+
+	<update id="modFlag">
+	UPDATE STX_EMS_DB_MASTER 
+	   SET STATUS           = #{stt}
+	      ,LAST_UPDATED_BY  = #{user_id}
+	      ,LAST_UPDATE_DATE = SYSDATE
+	 WHERE ITEM_CODE = #{itemCode}
+	</update>
+	
+	<select id="createItemList" parameterType="String" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT SEIS.ITEM_DESC 
+	      ,SEIS.CATALOG 
+	      ,SSCE.CATEGORY_CODE1 || '.' || SSCE.CATEGORY_CODE2 || '.' || SSCE.CATEGORY_CODE3 AS CATEGORY_CODE 
+	      ,NVL(SSSC.UOM_CODE , 'EA')  AS UOM 
+	  FROM STX_EMS_ITEM_SPEC     SEIS 
+	      ,STX_DIS_SD_CATALOG@STXDIS    SSSC 
+	      ,STX_DIS_SD_CATEGORY@STXDIS   SSCE 
+	 WHERE SEIS.CATALOG || '-' || ITEM_CODE || SPEC_CODE = #{itemCode} 
+	   AND SEIS.CATALOG = SSSC.CATALOG_CODE 
+	   AND SSSC.CATEGORY_ID  = SSCE.CATEGORY_ID 
+	</select>
+	
+	<delete id="delItem">
+	DELETE FROM STX_EMS_ITEM
+	 WHERE CATALOG_CODE = #{catalog_code}
+	   AND ITEM_CODE    = #{item_code}
+	</delete>
+	
+	<delete id="delSpec">
+	DELETE FROM STX_EMS_ITEM_SPEC
+	 WHERE CATALOG   = #{catalog_code}
+	   AND ITEM_CODE = #{item_code}
+	   AND SPEC_CODE = #{spec_code}
+	</delete>
+	
+	<delete id="delMaster">
+	DELETE FROM STX_EMS_DB_MASTER
+	 WHERE ITEM_CODE = #{item_code}
+	</delete>
+	
+</mapper>

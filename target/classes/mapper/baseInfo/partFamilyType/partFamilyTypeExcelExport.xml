@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="partFamilyTypeExcelExport">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.part_family_code
+      ,t1.part_family_desc
+      ,t1.part_family_mean 
+      ,t1.category_type
+      ,t2.category_type_desc  
+      ,t1.design_register_flag
+      ,t1.shiptype_flag
+      ,t1.weight_flag
+      ,t1.enable_flag
+      ,t1.item_value_rule
+      ,(select listagg(item_rule_desc,',') within group(order by item_rule_no) 
+      	   from stx_dis_sd_item_rule 
+      	  where part_family_code = t1.part_family_code
+      	    and category_type    = t1.category_type) 
+      								as item_rule_desc
+      ,t1.design_register_flag 	as design_register_flag_changed
+      ,t1.enable_flag 				as enable_flag_changed
+      ,t1.shiptype_flag 			as shiptype_flag_changed
+      ,t1.weight_flag 				as weight_flag_changed
+      ,'...' 						as action
+      
+      ,t1.part_family_code 		as o_part_family_code
+      ,t1.category_type			as o_category_type
+  from stx_dis_sd_part_family   t1
+      ,stx_dis_sd_category_type t2
+ where 1=1
+  	and t1.category_type = t2.category_type(+)
+ <if test="p_part_family_code != null and p_part_family_code !='' ">
+   and t1.part_family_code like #{p_part_family_code} || '%'
+ </if>
+ 
+ <if test="p_part_family_desc != null and p_part_family_desc !='' ">
+ 	 and t1.part_family_desc like #{p_part_family_desc} || '%'
+ </if>
+ 
+ <if test="p_part_family_mean != null and p_part_family_mean !='' ">
+ 	 and t1.part_family_mean like #{p_part_family_mean} || '%'
+ </if>
+
+ <if test="p_category_type != null and p_category_type !='' ">
+   and t1.category_type like #{p_category_type} || '%'
+ </if>
+ order by t1.part_family_code,t1.category_type			  		
+  	</select>
+</mapper>

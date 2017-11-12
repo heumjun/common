@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectDWGReceiverGroupDetail">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  	select d.group_id
+	      ,d.email_adress as email
+	      ,d.receiver_name as print_user_name
+	      ,d.receiver_type as user_type
+	      ,d.receiver_dept as print_dept_id
+	      ,d.receiver_empno as print_user_id
+	      ,d.created_by
+	      ,sdd.dept_name as print_dept_name
+	      ,to_char(d.creation_date
+	              ,'yyyy-mm-dd') creation_date
+	  from stx_dwg_receiver_group_detail d
+	  	  ,stx_dwg_dept_manager@stxerp   sdd
+	  	  ,stx_com_insa_user@stxerp      sciu
+	 where d.group_id = #{groupList}
+	   and d.receiver_dept = sdd.dept_id(+)
+	   and d.receiver_name = sciu.user_name
+	   and d.email_adress  = sciu.ep_mail || '@onestx.com'
+	   and sciu.del_date is null
+  	</select>
+  	
+</mapper>

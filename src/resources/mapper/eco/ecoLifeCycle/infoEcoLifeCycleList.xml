@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoEcoLifeCycleList">
+<!-- eco에 연결된 라우더 조회 -->
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT y.user_name || ' ' ||  y.position_name || '(' || y.emp_no || ', ' || y.dept_name || ')' user_name
+         , DECODE( state_type, 'ROUTE', DECODE(x.no,'0','기술변경담당자','1','결재자'), 'NOTIFI', 'Notification') position
+         , DECODE( x.STATE_FLAG, 'N', DECODE( x.actual_date, '', '미결', '반려' ), '결재' ) is_approve
+         , to_char(x.actual_date,'YYYY-MM-DD') AS actualDate
+         , x.notify_msg comments
+      FROM stx_dis_statereq x
+         , stx_com_insa_user@stxerp y
+      WHERE x.emp_no = y.emp_no
+        AND x.main_code = #{main_code}
+        and x.state_type ='ROUTE'
+      ORDER BY x.state_req_code
+  	</select>
+</mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="factorCaseMainGrid">
+	<select id="list" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT FACTOR_NO,
+	       	CAREER_MONTH_FROM as MONTH_FROM,
+	       	CAREER_MONTH_TO as MONTH_TO,
+	       	TO_CHAR(FACTOR_VALUE, '99990D9') as FACTOR,
+	       	'R' AS OPER
+		FROM   PLM_DESIGN_MH_FACTOR
+		WHERE  CASE_NO = #{mhFactorCaseSelect}
+		ORDER BY FACTOR_NO 
+	</select>
+</mapper>

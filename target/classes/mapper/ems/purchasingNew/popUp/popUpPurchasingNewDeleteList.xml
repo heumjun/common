@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingNewDeleteList">
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<insert id="emsPurchasingDelInstTempProc"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_DELETE_INSERT_PROC (
+					P_WORK_KEY 				=> #{p_work_key},
+					P_WORK_FLAG				=> #{p_work_flag},
+					P_EMS_PUR_NO			=> #{p_ems_pur_no},
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+	<insert id="emsPurchasingDelChkTempProc"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_DELETE_CHECK_PROC (
+					P_WORK_KEY 				=> #{p_work_key},
+					P_WORK_FLAG				=> #{p_work_flag},
+					P_RESULT_FLAG  			=> #{p_result_flag,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_RESULT_MSG  			=> #{p_result_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+	
+	<insert id="emsPurchasingDeleteApply"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_DELETE_CONFIRM_PROC  (
+					P_WORK_KEY 				=> #{p_work_key},
+					P_REASON 				=> #{p_reason},
+					P_POS_REV  				=> #{p_pos_rev},
+					P_FILE_ID  				=> #{p_file_id},
+					P_USER_ID 				=> #{p_user_id},
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+	
+	<select id="emsPurchasingDeleteList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_DELETE_SELECT_PROC (
+					P_WORK_KEY 			=> #{p_work_key},
+					P_CURPAGENO 		=>  #{curPageNo}, 
+					P_PAGESIZE 			=>  #{pageSize}, 
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=popUpPurchasingNewDeleteList.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	
+	
+</mapper>

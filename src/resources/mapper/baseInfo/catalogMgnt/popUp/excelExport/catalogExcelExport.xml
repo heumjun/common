@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="catalogExcelExport">  	
+  	<select id="selectExcelDownLoad" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    SELECT A.CATALOG_CODE,                                              
+           A.ATTRIBUTE_TYPE,                                          
+           A.ATTRIBUTE_CODE,                      
+           A.ATTRIBUTE_NAME,                      
+           A.ATTRIBUTE_DATA_TYPE,                 
+           A.ASSY_ATTRIBUTE_CODE,                 
+           A.ATTRIBUTE_DATA_MIN,                  
+           A.ATTRIBUTE_DATA_MAX,                  
+           B.VALUE_CODE,                          
+           B.ITEM_MAKE_VALUE,                     
+           C.ASSY_VALUE_CODE                      
+      FROM STX_DIS_SD_CATALOG_ATTRIBUTE   A         
+          ,STX_DIS_SD_CATALOG_ATTR_VALUE  B        
+          ,STX_DIS_SD_CATALOG_ATTR_VAL_DE C       
+     WHERE A.CATALOG_CODE   = B.CATALOG_CODE(+)   
+       AND A.ATTRIBUTE_TYPE = B.ATTRIBUTE_TYPE(+) 
+       AND A.ATTRIBUTE_CODE = B.ATTRIBUTE_CODE(+) 
+       AND B.CATALOG_CODE   = C.CATALOG_CODE(+)   
+       AND B.ATTRIBUTE_TYPE = C.ATTRIBUTE_TYPE(+) 
+       AND B.ATTRIBUTE_CODE = C.ATTRIBUTE_CODE(+) 
+       AND B.VALUE_CODE     = C.VALUE_CODE(+) 
+       
+       <if test="catalog_code != null and catalog_code !='' ">
+	   AND A.CATALOG_CODE = #{catalog_code}
+       </if> 
+	</select>
+ 	
+</mapper>

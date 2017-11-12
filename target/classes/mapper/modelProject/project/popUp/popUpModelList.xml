@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpModelList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDMDL.MODEL_NO     AS MODEL_NO
+		      ,SDMDL.DESCRIPTION  AS MODEL_DESC
+		  FROM STX_DIS_MODEL SDMDL
+		 WHERE SDMDL.MODEL_NO     LIKE #{p_model,jdbcType=VARCHAR} || '%'
+		 ORDER BY SDMDL.MODEL_NO
+	</select>
+  	
+</mapper>

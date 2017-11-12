@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="saveUscJobCreate">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="uscJobCreateEcoUpdate" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.job_create_eco_update_proc(
+					 #{p_eco_no}
+				   , #{project_no}
+				   , #{area}
+				   , #{block_no}
+				   , #{block_str_flag}
+				   , #{str_flag}
+				   , #{usc_job_type}
+				   , ''
+				   , #{act_code}
+				   , #{job_code}
+				   , #{work_yn}
+				   , #{state_flag}
+				   , #{old_act_code}				   
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+	
+	<select id="uscJobCreateEcoCreate" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.job_create_eco_create_proc(
+					 #{p_eco_no}
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+
+	<select id="restoreUscValidationJobCreate" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) AS CNT
+		  FROM STX_DIS_USC_BOM_WORK SDUB
+		 WHERE SDUB.PROJECT_NO  = #{project_no}
+		   AND SDUB.ITEM_CODE   = #{job_code}
+		   AND SDUB.STATE_FLAG  = 'A'
+	</select>
+	
+	<select id="uscJobCreateEcoRestore" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.job_create_restore_proc(
+					 #{project_no}
+				   , ''
+				   , #{act_code}
+				   , #{job_code}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select>
+	
+	<select id="uscJobCreateEcoCancel" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.job_create_cancel_proc(
+					 #{project_no}
+				   , ''
+				   , #{act_code}
+				   , #{job_code}
+				   , #{eco_no}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select>
+  
+</mapper>  	

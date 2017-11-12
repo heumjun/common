@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscBom">
+
+	<update id="updateSscHeadEcoNo_back" parameterType="java.util.Map">	
+		UPDATE STX_DIS_SSC_HEAD_WORK 
+		   SET ECO_NO = #{p_eco_no, jdbcType=VARCHAR}
+		 WHERE SSC_SUB_ID IN (
+		 	<foreach collection="p_ssc_sub_id" item="item" separator=",">
+				#{item}
+			</foreach>
+		 ) 
+	</update>
+		 
+	<select id="updateSscHeadEcoNo"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">	 
+		 {CALL STX_DIS_SSC_PKG.SSC_HEAD_ECO_UDPATE_PROC(
+		 		P_ITEM_TYPE 	=> #{p_item_type_cd}
+                ,P_USER_ID 		=> #{p_user_id}
+                ,P_ECO_NO 		=> #{p_eco_no}
+                ,P_SSC_SUB_ID 	=> #{ssc_sub_id}
+                ,P_ERR_CODE 	=> #{p_error_code,      jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				,P_ERR_MSG 		=> #{p_error_msg,       jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+         )}
+	</select>
+	
+	<update id="updateBuyBuyEcoNo" parameterType="java.util.Map">	
+		UPDATE STX_DIS_RAWLEVEL 
+		   SET ECO_NO = #{p_eco_no, jdbcType=VARCHAR}
+		 WHERE MOTHER_CODE = #{p_mother_code, jdbcType=VARCHAR}
+		   AND ITEM_CODE IN (
+		 	<foreach collection="p_item_code" item="item" separator=",">
+				#{item}
+			</foreach>
+		 ) 
+	</update>
+	
+	<select id="sscEcoInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PERMANENT_TEMPORARY_FLAG 
+		     , ENG_CHANGE_ORDER_CAUSE 
+			 , DESIGN_ENGINEER
+			 , STATES_CODE 
+		  FROM STX_DIS_ENG_CHANGE_ORDER
+		 WHERE ENG_CHANGE_ORDER_CODE = #{p_eco_no, jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

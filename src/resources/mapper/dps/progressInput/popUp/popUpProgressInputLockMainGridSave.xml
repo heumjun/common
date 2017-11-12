@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpProgressInputLockMainGridSave">
+  	<update id="update" parameterType="java.util.Map">
+  		MERGE
+		INTO   PLM_PROGRESS_LOCK A USING (SELECT 1
+		        FROM   DUAL) ON (#{dept_code} IN A.DEPT_CODE)
+		       WHEN MATCHED THEN
+		UPDATE
+		SET    RESTRICT_TO = #{lock_date},
+		       UPDATE_DATE = SYSDATE,
+		       UPDATE_BY = ''
+		       WHEN NOT MATCHED THEN
+		INSERT
+		VALUES(#{dept_code},
+		               #{lock_date},
+		               SYSDATE,
+		               '',
+		               SYSDATE,
+		               '') 
+  	</update>
+</mapper>

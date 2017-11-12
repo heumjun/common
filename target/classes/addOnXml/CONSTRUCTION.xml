@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SQL>
+	<template>
+	<![CDATA[
+	]]>
+	</template>
+	
+	<selectConstructionDate>
+		<![CDATA[
+	SELECT T.ACTIVITYDESC,
+	   T.BLOCKNO,
+       TO_CHAR(T.PLANSTARTDATE+TO_NUMBER(#FACTOR#)*7,'YYYY-MM-DD') AS PLANSTARTDATE,
+       TO_CHAR(T.PLANFINISHDATE+TO_NUMBER(#FACTOR#)*7,'YYYY-MM-DD') AS PLANFINISHDATE,
+       T.BUILDING_TAG,
+       T.BUILDING_TAG_DESC
+  FROM APS_ACTIVITY_LIST_V T
+ WHERE 1=1
+   		]]>
+   	<notempty name="PROJECTNO">
+   AND T.PROJECTNO = #PROJECTNO#
+    </notempty>
+    <notempty name="BUILDING_TAG">
+   AND T.BUILDING_TAG = #BUILDING_TAG#
+    </notempty>
+    <notempty name="BLOCKNO">
+   AND T.BLOCKNO LIKE #BLOCKNO# || '%'
+    </notempty>
+    <notempty name="ACTIVITYDESC">
+   AND T.ACTIVITYDESC LIKE #ACTIVITYDESC# || '%'
+    </notempty>
+    <notempty name="SORT">
+    ORDER BY T.PROJECTNO,T.BUILDING_TAG,T.BLOCKNO,T.ACTIVITYDESC
+    </notempty>
+	</selectConstructionDate>
+</SQL>		     

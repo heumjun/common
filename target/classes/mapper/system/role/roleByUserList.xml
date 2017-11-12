@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="roleByUserList">
+  	<!-- 프로그램관리 조회버튼 클릭시 SQL Mapping -->
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.*
+		  FROM (SELECT A.*
+		             , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM (SELECT A.LEV
+		                     , A.EMP_NO
+		                     , A.MENU_ID
+		                     , A.PGM_ID
+		                     , A.PGM_NAME AS PGM_NAME
+		                     , DECODE(LEV, 0, 'DIS', '') PGM_NAME0
+		                     , DECODE(LEV, 1, A.PGM_NAME, '') PGM_NAME1
+		                     , DECODE(LEV, 2, A.PGM_NAME, '') PGM_NAME2
+		                     , DECODE(LEV, 3, A.PGM_NAME, '') PGM_NAME3
+		                     , A.PGM_LINK
+		                     , A.UP_MENU_ID
+		                     , A.PGM_YN
+		                     , A.SORT_ORDER
+		                     , A.ATTRIBUTE1
+		                     , A.ATTRIBUTE2
+		                     , A.ATTRIBUTE3
+		                     , A.ATTRIBUTE4
+		                     , A.ATTRIBUTE5
+		                     , A.ATTRIBUTE6
+		                     , A.ATTRIBUTE7
+		                     , A.ATTRIBUTE8
+		                     , A.ATTRIBUTE9
+		                     , A.ATTRIBUTE10
+		                     , A.NOTE
+		                  FROM (SELECT LEVEL-1 LEV
+		                             , A.EMP_NO
+		                             , A.MENU_ID
+		                             , A.PGM_ID
+		                             , (SELECT DISTINCT C.PGM_NAME FROM STX_DIS_PROGRAM C WHERE C.PGM_ID = A.PGM_ID ) AS PGM_NAME
+		                             , A.PGM_LINK
+		                             , A.UP_MENU_ID
+		                             , A.PGM_YN
+		                             , A.SORT_ORDER
+		                             , A.ATTRIBUTE1
+		                             , A.ATTRIBUTE2
+		                             , A.ATTRIBUTE3
+		                             , A.ATTRIBUTE4
+		                             , A.ATTRIBUTE5
+		                             , A.ATTRIBUTE6
+		                             , A.ATTRIBUTE7
+		                             , A.ATTRIBUTE8
+		                             , A.ATTRIBUTE9
+		                             , A.ATTRIBUTE10
+		                             , A.NOTE
+		                          FROM (SELECT A.EMP_NO
+		                                     , A.MENU_ID
+		                                     , NVL(A.PGM_ID, '') PGM_ID
+		                                     , A.PGM_NAME
+		                                     , NVL(A.PGM_LINK, '') PGM_LINK
+		                                     , NVL(A.UP_MENU_ID, '') UP_MENU_ID
+		                                     , DECODE(NVL(A.PGM_LINK, ''), ' ', 'N', 'Y') PGM_YN
+		                                     , NVL(A.SORT_ORDER, 0) SORT_ORDER
+		                                     , NVL(B.ATTRIBUTE1, 'N') ATTRIBUTE1
+		                                     , NVL(B.ATTRIBUTE2, 'N') ATTRIBUTE2
+		                                     , NVL(B.ATTRIBUTE3, 'N') ATTRIBUTE3
+		                                     , NVL(B.ATTRIBUTE4, 'N') ATTRIBUTE4
+		                                     , NVL(B.ATTRIBUTE5, 'N') ATTRIBUTE5
+		                                     , NVL(B.ATTRIBUTE6, 'N') ATTRIBUTE6
+		                                     , NVL(B.ATTRIBUTE7, 'N') ATTRIBUTE7
+		                                     , NVL(B.ATTRIBUTE8, 'N') ATTRIBUTE8
+		                                     , NVL(B.ATTRIBUTE9, 'N') ATTRIBUTE9
+		                                     , NVL(B.ATTRIBUTE10, 'N') ATTRIBUTE10
+		                                     , NVL(B.NOTE, '') NOTE
+		                                  FROM (SELECT A.EMP_NO
+		                                             , B.*
+		                                          FROM (SELECT #{p_role_code} AS EMP_NO
+		                                                  FROM DUAL ) A
+		                                             , (SELECT *
+		                                                  FROM STX_DIS_MENU
+		                                                 WHERE USE_YN = 'Y'
+		                                                 <!-- <if test='admin_yn != "Y"'>
+		                                                   AND MENU_ID &lt;> (SELECT MENU_ID
+		                                                          FROM STX_DIS_MENU
+		                                                         WHERE PGM_ID = 'F_SYSTEM')
+		                                                 </if> -->) B
+		                                         WHERE 1=1) A
+		                                     , (SELECT *
+		                                          FROM STX_DIS_USER_MENU
+		                                         WHERE ATTRIBUTE1 = 'Y'
+		                                           AND EMP_NO = #{p_role_code}) B
+		                                 WHERE 1=1
+		                                   AND A.MENU_ID = B.MENU_ID(+)) A CONNECT BY PRIOR(A.MENU_ID) = A.UP_MENU_ID START WITH A.MENU_ID = (SELECT MENU_ID
+		                                  FROM STX_DIS_MENU
+		                                 WHERE UP_MENU_ID IS NULL)
+		                         ORDER SIBLINGS BY SORT_ORDER) A) A) A
+		 WHERE PAGE = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT
+		  FROM (SELECT A.EMP_NO
+                     , A.MENU_ID
+                     , NVL(A.PGM_ID, '') PGM_ID
+                     , A.PGM_NAME
+                     , NVL(A.PGM_LINK, '') PGM_LINK
+                     , NVL(A.UP_MENU_ID, '') UP_MENU_ID
+                     , DECODE(NVL(A.PGM_LINK, ''), ' ', 'N', 'Y') PGM_YN
+                     , NVL(A.SORT_ORDER, 0) SORT_ORDER
+                     , NVL(B.ATTRIBUTE1, 'N') ATTRIBUTE1
+                     , NVL(B.ATTRIBUTE2, 'N') ATTRIBUTE2
+                     , NVL(B.ATTRIBUTE3, 'N') ATTRIBUTE3
+                     , NVL(B.ATTRIBUTE4, 'N') ATTRIBUTE4
+                     , NVL(B.ATTRIBUTE5, 'N') ATTRIBUTE5
+                     , NVL(B.ATTRIBUTE6, 'N') ATTRIBUTE6
+                     , NVL(B.ATTRIBUTE7, 'N') ATTRIBUTE7
+                     , NVL(B.ATTRIBUTE8, 'N') ATTRIBUTE8
+                     , NVL(B.ATTRIBUTE9, 'N') ATTRIBUTE9
+                     , NVL(B.ATTRIBUTE10, 'N') ATTRIBUTE10
+                     , NVL(B.NOTE, '') NOTE
+                  FROM (SELECT A.EMP_NO
+                             , B.*
+                          FROM (SELECT #{p_role_code} AS EMP_NO
+		                                                  FROM DUAL ) A
+                             , (SELECT *
+                                  FROM STX_DIS_MENU
+                                 WHERE USE_YN = 'Y'
+                                 <!-- <if test='admin_yn != "Y"'>
+                                   AND MENU_ID &lt;> (SELECT MENU_ID
+                                          FROM STX_DIS_MENU
+                                         WHERE PGM_ID = 'F_SYSTEM')
+                                 </if> -->) B
+                         WHERE 1=1) A
+                     , (SELECT *
+                          FROM STX_DIS_USER_MENU
+                         WHERE ATTRIBUTE1 = 'Y'
+                           AND EMP_NO = #{p_role_code}) B
+                 WHERE 1=1
+                   AND A.MENU_ID = B.MENU_ID(+) AND A.MENU_ID = B.MENU_ID(+)) A CONNECT BY PRIOR(A.MENU_ID) = A.UP_MENU_ID START WITH A.MENU_ID = (SELECT MENU_ID
+		                                  FROM STX_DIS_MENU
+		                                 WHERE UP_MENU_ID IS NULL)
+  	</select>
+</mapper>

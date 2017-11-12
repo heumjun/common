@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="pendingModify">
+  	<select id="procModifyAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_PENDING_PKG.MODIFY_ACTION_PROC(	
+       				p_user_id			=> #{p_user_id, jdbcType=VARCHAR},
+					p_work_key			=> #{p_work_key, jdbcType=VARCHAR},
+					p_work_flag			=> #{p_work_flag, jdbcType=VARCHAR},
+					p_error_code		=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+					p_error_msg			=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+	 	)}
+	</select>
+	
+	<select id="procModifyValidation"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_PENDING_PKG.MODIFY_VALIDATION_PROC(	p_user_id			=> #{p_user_id, jdbcType=VARCHAR},
+														p_work_key			=> #{p_work_key, jdbcType=VARCHAR},
+														p_work_flag			=> #{p_work_flag, jdbcType=VARCHAR},
+														p_move_dwg_no		=> #{p_move_dwg_no, jdbcType=VARCHAR},
+														p_move_block		=> #{p_move_block, jdbcType=VARCHAR},
+														p_move_stage		=> #{p_move_stage, jdbcType=VARCHAR},
+														p_move_str			=> #{p_move_str, jdbcType=VARCHAR},
+														p_move_job_cd		=> #{p_move_job_cd, jdbcType=VARCHAR},
+														p_move_usc_job_type	=> trim(#{p_move_usc_job_type, jdbcType=VARCHAR}),
+														p_err_code			=> #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+														p_err_msg			=> #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+									 				)
+                          
+       }
+	</select>
+	
+	<select id="procInsertPendingWork"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ CALL STX_DIS_PENDING_PKG.WORK_INSERT(
+								 P_USER_ID          => #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+                                 ,P_WORK_KEY        => #{p_work_key, 	jdbcType=VARCHAR, 	mode=IN}
+                                 ,P_WORK_FLAG       => #{p_work_flag, 	jdbcType=VARCHAR, 	mode=IN}
+                                 ,P_CHK_SERIES      => #{p_chk_series,  jdbcType=VARCHAR, 	mode=IN}
+                                 ,P_ITEM_TYPE_CD    => #{p_item_type_cd,	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_STATE_FLAG      => #{p_state_flag,	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_MASTER_SHIP     => #{p_master_ship, jdbcType=VARCHAR,	mode=IN}
+                                 ,P_PROJECT_NO      => #{p_project_no, 	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_DEPT_CODE       => #{p_dept_code, 	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_BLOCK_NO        => #{p_block_no, 	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_STAGE_NO        => #{p_stage_no, 	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_STR_FLAG        => #{p_str_flag, 	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_USC_JOB_TYPE    => #{p_usc_job_type,	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_JOB_CD          => #{p_job_cd, 		jdbcType=VARCHAR,	mode=IN}
+                                 ,P_DWG_NO          => #{p_dwg_no, 		jdbcType=VARCHAR,	mode=IN}
+                                 ,P_MOTHER_CODE     => #{p_mother_code, jdbcType=VARCHAR,	mode=IN}
+                                 ,P_PENDING_ID      => #{p_pending_id,  jdbcType=VARCHAR,	mode=IN}
+                                 ,P_ITEM_GROUP      => #{p_item_code, 	jdbcType=VARCHAR,	mode=IN}
+                                 ,P_ERR_CODE        => #{p_err_code,	jdbcType=VARCHAR,	javaType=java.lang.String,	mode=OUT}
+                                 ,P_ERR_MSG         => #{p_err_msg,		jdbcType=VARCHAR,	javaType=java.lang.String,	mode=OUT}
+		)}
+	</select>
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+   	<select id="pendingWorkValidationList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+   	{ call STX_DIS_PENDING_PKG.BOM_VALIDATION_PROC(P_USER_ID    => #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+                                              ,P_WORK_KEY   => #{p_work_key, 	jdbcType=VARCHAR, 	mode=IN}
+                                              ,P_WORK_FLAG  => #{p_work_flag,	jdbcType=VARCHAR, 	mode=IN}
+                                              ,P_CURPAGENO  => #{page,			jdbcType=VARCHAR, 	mode=IN}
+                                              ,P_PAGESIZE   => #{rows,			jdbcType=VARCHAR, 	mode=IN}
+                                              ,P_ERROR_CODE	=> #{p_error_code,  jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                                              ,P_ERROR_MSG  => #{p_error_msg,   jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}  
+                                              ,P_REFER      => #{p_refer,       jdbcType=CURSOR,  javaType=ResultSet, resultMap=pendingModify.procResultMap, mode=OUT}
+	)}
+	</select>
+</mapper>

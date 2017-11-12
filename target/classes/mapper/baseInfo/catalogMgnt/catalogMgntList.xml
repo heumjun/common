@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="catalogMgntList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					 select t1.catalog_code
+					       ,t1.catalog_desc
+					       ,stx_dis_sd_catalog_length_f(t1.catalog_code) catalog_length
+					       ,t1.category_id
+					       ,t1.uom_code
+					       ,t1.part_family_code
+					       ,t3.part_family_desc
+					       ,to_char(t1.invalid_date,'YYYY-MM-DD') as invalid_date
+					       ,t1.enable_flag
+					       ,t1.wbs_flag
+					       ,t1.wbs_sub_flag
+					       ,t1.activity_flag
+					       ,t1.job_flag  
+					       ,t1.pd_flag
+					       ,t1.paint_flag
+					       ,t1.paint_usc_flag
+					       ,t2.category_desc
+					       ,(case when t2.category_id is null 
+					       		  then ''
+					       		  else t2.category_code1 || '.' || t2.category_code2 || '.' || t2.category_code3
+					        end)               as category_code
+					       ,t1.enable_flag     as enable_flag_changed
+					       ,t1.wbs_flag    	   as wbs_flag_changed
+					       ,t1.wbs_sub_flag    	   as wbs_sub_flag_changed
+					       ,t1.activity_flag   as activity_flag_changed
+					       ,t1.job_flag        as job_flag_changed 
+					       ,t1.pd_flag       as pd_flag_changed
+					       ,t1.paint_flag    as paint_flag_changed
+					       ,t1.paint_usc_flag as paint_usc_flag_changed
+					       ,t1.catalog_code    as sel_catalog_code 
+					  from stx_dis_sd_catalog      t1
+					      ,stx_dis_sd_category 	   t2
+					      ,stx_dis_sd_part_family  t3
+					 where 1=1
+					   and t1.category_id 	   = t2.category_id(+)
+					   and t2.type_code   	   = '01'
+					   and t1.part_family_code = t3.part_family_code(+)
+					<if test="p_catalog_code != null and p_catalog_code !='' ">
+					   and t1.catalog_code like #{p_catalog_code} || '%'
+				    </if>
+				    <if test="p_catalog_desc != null and p_catalog_desc !='' ">
+					   and t1.catalog_desc like #{p_catalog_desc} || '%'
+					</if>
+					<if test="p_category_code != null and p_category_code !='' ">
+					   and t2.category_code1 || t2.category_code2 || t2.category_code3 like #{p_category_code} || '%'
+				    </if>
+				    <if test="p_category_desc != null and p_category_desc !='' ">
+					   and t2.category_desc like  #{p_category_desc} || '%'
+					</if>
+					order by t1.catalog_code
+	              ) t1
+	       ) t2
+	 where page = #{curPageNo}  				
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+  	select count(*) as cnt 
+	  from stx_dis_sd_catalog      t1
+	      ,stx_dis_sd_category 	   t2
+	      ,stx_dis_sd_part_family  t3
+	 where 1=1
+	   and t1.category_id 	   = t2.category_id(+)
+	   and t2.type_code   	   = '01'
+	   and t1.part_family_code = t3.part_family_code(+)
+	<if test="p_catalog_code != null and p_catalog_code !='' ">
+	   and t1.catalog_code like #{p_catalog_code} || '%'
+    </if>
+    <if test="p_catalog_desc != null and p_catalog_desc !='' ">
+	   and t1.catalog_desc like #{p_catalog_desc} || '%'
+	</if>
+	<if test="p_category_code != null and p_category_code !='' ">
+	   and t2.category_code1 || t2.category_code2 || t2.category_code3 like #{p_category_code} || '%'
+    </if>
+    <if test="p_category_desc != null and p_category_desc !='' ">
+	   and t2.category_desc like  #{p_category_desc} || '%'
+	</if>	
+  	</select>
+</mapper>

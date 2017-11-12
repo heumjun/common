@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingNewSpecList">
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="selectPurchasingSpecList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_SPEC_SELECT_PROC (
+					P_MASTER 			=>  #{p_master},
+					P_DWG_NO 			=>  #{p_dwg_no}, 
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=popUpPurchasingNewSpecList.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	<select id="selectEmsPurchasingSpecDownList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT FILE_ID,FILE_NAME FROM STX_PO_EPMS_FILE
+			WHERE 
+			FILE_ID IN (
+			                SELECT      TRIM(REGEXP_SUBSTR(ORG_DATA, '[^,]+', 1, LEVEL)) AS SPLIT_DATA
+			                FROM        (SELECT #{p_file_ids} AS ORG_DATA FROM DUAL)
+			                CONNECT BY  INSTR(ORG_DATA, ',', 1, LEVEL - 1) > 0
+			)
+	</select>
+	
+	<insert id="emsPurchasingSpecApply"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_SPEC_CONFIRM_PROC (
+					P_PROJECT_ID 			=>  #{project_id},
+					P_PROJECT_NO 			=>  #{project_no},
+					P_EQUIPMENT_NAME		=>  #{equipment_name},
+					P_VENDOR_SITE_ID		=>  #{vendor_site_id},
+					P_VENDOR_SITE_NAME		=>  #{vendor_site_name},
+					P_DWG_NO				=>  #{dwg_no},
+					P_ACT_COMMENT			=>  #{ds_act_comment},
+					P_COMPLETE_FLAG			=>  #{complete_meaning},
+					P_FILE_ID				=>  #{ds_file_ids},
+					P_USER_ID				=>  #{p_user_id},
+					P_SPEC_REVIEW_ID		=>  #{spec_review_id},               
+					P_ERROR_CODE 			=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</insert>
+	
+	
+</mapper>

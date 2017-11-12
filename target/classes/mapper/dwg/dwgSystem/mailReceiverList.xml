@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mailReceiverList">
+  	<select id = "list" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  	 SELECT MASTER_PROJECT_NO DWG_PROJECT_NO
+	      ,PROJECT_NO PROJECT_NO
+	      ,SDERU.DRWAING_STATUS	AS DRAWING_STATUS
+	      ,SDERU.RECEIVER_EMPNO PRINT_USER_ID
+	      ,SDERU.RECEIVER_NAME PRINT_USER_NAME
+	      ,SDERU.RECEIVER_DEPT PRINT_DEPT_ID
+	      ,SDD.DEPT_NAME PRINT_DEPT_NAME
+	      ,'' PRINT_DATE
+	      ,EMAIL_ADRESS EMAIL
+	      ,RECEIVER_TYPE USER_TYPE
+	      ,'TRUE' CHECKED
+	      ,(SELECT SDERD.MAIL_SEND_FLAG
+	          FROM STX_DWG_ECO_REBUILD_MAIL_HE@stxerp SDERH
+	              ,STX_DWG_ECO_REBUILD_MAIL_DE@stxerp SDERD
+	         WHERE SDERH.HEAD_ID = SDERD.HEAD_ID
+	           AND SDERH.ECO_NO = SDER.ECO_NO
+	           AND SDERD.EMAIL_ADDRESS = sderu.email_adress
+	           AND SDERH.PROJECT_NO = SDERU.PROJECT_NO
+	           and rownum = 1) MAIL_SEND_FLAG
+	      ,to_char((SELECT SDERD.Last_Update_Date
+	          FROM STX_DWG_ECO_REBUILD_MAIL_HE@stxerp SDERH
+	              ,STX_DWG_ECO_REBUILD_MAIL_DE@stxerp SDERD
+	         WHERE SDERH.HEAD_ID = SDERD.HEAD_ID
+	           AND SDERH.ECO_NO = SDER.ECO_NO
+	           AND SDERD.EMAIL_ADDRESS = sderu.email_adress
+	           AND SDERH.PROJECT_NO = SDERU.PROJECT_NO
+	           and rownum = 1),'YYYY-MM-DD HH24:mm') MAIL_SEND_DATE
+	  FROM STX_DWG_ECO_RECEIVER_USER@stxerp SDERU
+	      ,STX_DWG_ECO_RECEIVER@stxerp      SDER
+	      ,STX_DWG_DEPT_MANAGER@stxerp      SDD
+	 WHERE SDERU.RECEIVER_ID = SDER.RECEIVER_ID
+	   AND SDD.DEPT_ID = SDERU.RECEIVER_DEPT
+	 <if test="DWG_PROJECT_NO != null and DWG_PROJECT_NO !='' ">
+	   AND SDER.MASTER_PROJECT_NO = #{DWG_PROJECT_NO,jdbcType=VARCHAR}
+	 </if>
+	 <if test="shp_no != null and shp_no !='' ">
+	   AND SDER.MASTER_PROJECT_NO = #{shp_no,jdbcType=VARCHAR}
+	 </if> 
+	   AND SDER.DWG_NO = #{DWG_NO,jdbcType=VARCHAR}
+	   AND SDER.REV_NO = to_number(#{dwg_rev,jdbcType=VARCHAR})
+	   
+	  <if test="shipNo != null and shipNo !='' ">
+	   AND SDERU.PROJECT_NO LIKE REPLACE(#{shipNo,jdbcType=VARCHAR}, '*', '%') || '%'
+ 	  </if>
+  	</select>
+</mapper>

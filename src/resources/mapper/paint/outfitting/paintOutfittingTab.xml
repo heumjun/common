@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="paintOutfittingTab">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select sds.sd_code as id ,
+				sds.sd_desc as gbnDesc ,
+				sds.attribute1 as addCodeFlag ,
+				sds.attribute2 as viewAreaFlag,
+				sds.attribute3 as paingGbn
+		from stx_dis_sd_code sds
+				where 1=1
+				and sd_type = 'PAINT_TEAM_GBN'
+                and attribute4 = (select sd_code
+                                 from stx_dis_sd_code
+                                 where sd_type='PAINT_TEAM'
+                                 and attribute2 = 'OUTFITTING'
+                                 and attribute1=#{teamCode})
+				and enable_flag = 'Y'
+		order by sds.attribute5
+	</select>
+</mapper>

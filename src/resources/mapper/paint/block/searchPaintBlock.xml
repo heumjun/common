@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="searchPaintBlock">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					select t1.project_no || '_' || t1.block_code as block_desc
+					      ,t1.project_no
+					      ,t1.revision
+					      ,t1.block_code
+					      ,t1.area_code
+					      ,nvl(t1.area_desc, t2.area_desc)
+					       as area_desc
+					      ,t1.area
+					      ,t2.loss_code  
+					  from stx_dis_pis_block t1
+					      ,stx_dis_pis_area  t2
+					 where 1=1
+					   and t1.project_no = #{project_no}  
+					   and t1.revision	 = #{revision}  
+					   and t1.area_code  = t2.area_code(+)
+					
+					 <if test="blockCodeForm != null and blockCodeForm !='' ">
+					   and t1.block_code <![CDATA[>=]]>  #{blockCodeForm} 
+					 </if>
+					 
+					 <if test="blockCodeTo != null and blockCodeTo !='' ">
+					   and t1.block_code <![CDATA[<=]]>  #{blockCodeTo} 
+					 </if>
+					 
+					 <if test="areaCode != null and areaCode !='' ">
+					   and t1.area_code like #{areaCode} || '%' 
+					 </if>
+					 
+					 order by t1.block_code, t1.area_code  
+	   				) t1
+         	) t2
+  	  where page = #{curPageNo}  				  
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String" >
+	select count(*) as cnt 
+       from stx_dis_pis_block t1
+		   ,stx_dis_pis_area  t2
+	  where 1=1
+	    and t1.project_no = #{project_no}  
+	    and t1.revision	  = #{revision}    
+	    and t1.area_code  = t2.area_code(+)
+	
+	  <if test="blockCodeForm != null and blockCodeForm !='' ">
+	    and t1.block_code <![CDATA[>=]]>  #{blockCodeForm} 
+	  </if>	 
+	  
+	  <if test="blockCodeTo != null and blockCodeTo !='' ">
+	    and t1.block_code <![CDATA[<=]]>  #{blockCodeTo} 
+	  </if>
+	  
+	  <if test="areaCode != null and areaCode !='' ">
+	    and t1.area_code like #{areaCode} || '%' 
+	  </if>
+  	</select>
+
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePartList1SubList">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="insert" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PARTLIST_PKG.save_partlist_sub_proc(
+					 #{part_list_s}
+				   <if test='block_no != null and !block_no.equalsIgnoreCase("")'>
+				   , #{block_no}
+				   </if>
+				   <if test='block_no == null or block_no.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='stage_no != null and !stage_no.equalsIgnoreCase("")'>
+				   , #{stage_no}
+				   </if>
+				   <if test='stage_no == null or stage_no.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='str_flag != null and !str_flag.equalsIgnoreCase("")'>
+				   , #{str_flag}
+				   </if>
+				   <if test='str_flag == null or str_flag.equalsIgnoreCase("선택")'>
+				   , ''
+				   </if>
+				   <if test='usc_job_type != null and !usc_job_type.equalsIgnoreCase("")'>
+				   , #{usc_job_type}
+				   </if>
+				   <if test='usc_job_type == null or usc_job_type.equalsIgnoreCase("선택")'>
+				   , ''
+				   </if>
+				   <if test='ea != null and !ea.equalsIgnoreCase("")'>
+				   , #{ea}
+				   </if>
+				   <if test='ea == null or ea.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='mother_code != null and !mother_code.equalsIgnoreCase("")'>
+				   , #{mother_code}
+				   </if>
+				   <if test='mother_code == null or mother_code.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+</mapper>

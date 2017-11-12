@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectERPUserInOutUserList">
+  	<select id="list" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  	<if test="inout == 'in'">
+				  	select sciu.emp_no as print_user_id
+					             ,sciu.user_name as print_user_name
+					             ,sciu.ep_mail || '@onestx.com' as email
+					             ,sdd.dept_name as print_dept_name
+					             ,sciu.dept_name as insa_dept_name
+					             ,sdd.dept_id as print_dept_id
+					             ,'사내' as user_type
+					         from stx_com_insa_user@stxerp    sciu
+					             ,stx_dwg_dept_mapping@stxerp sddm
+					             ,stx_dwg_dept_manager@stxerp sdd
+					        where sciu.dept_code = sddm.dept_code
+				            and sddm.dept_id = sdd.dept_id
+				            and sciu.del_date is null
+				            and rownum <![CDATA[<]]> 500
+
+				    <if test="deptName != null and deptName !='' ">
+				      and sciu.dept_name like #{deptName} || '%'
+				    </if>
+				    <if test="userName != null and userName !='' ">
+				      and sciu.user_name like #{userName} || '%'
+				    </if>
+				      order by sciu.user_name,sdd.dept_name
+	</if>
+	<if test="inout != 'in'">
+					select sdum.emp_no as print_user_id
+					             ,sdum.user_name as print_user_name
+					             ,sdum.ep_mail as email
+					             ,sddm.dept_name as print_dept_name
+					             ,'' as insa_dept_name
+					             ,sddm.dept_id as print_dept_id
+					             ,'사외' as user_type
+					         from stx_dwg_user_master@stxerp  sdum
+					             ,stx_dwg_dept_manager@stxerp sddm
+					        where sdum.user_type = 'O'
+					          and sdum.dept_code = sddm.dept_id
+					          and rownum <![CDATA[<]]> 500
+					          and sdum.enable_flag = 'Y'
+					<if test="deptName != null and deptName !='' ">
+				      and sddm.dept_name like #{deptName} || '%'
+				    </if>
+				    <if test="userName != null and userName !='' ">
+				      and sdum.user_name like #{userName} || '%'
+				    </if>
+				      order by sdum.user_name,sddm.dept_name
+	</if>
+  	</select>
+</mapper>

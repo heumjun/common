@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="searchLossCodeSetName">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.set_name
+		   ,TRANSLATE(t1.set_name, '0123456789'||t1.set_name, '0123456789') as set_name_num
+	      ,t1.paint_count || '회' 
+	       as paint_count_desc
+	      ,t1.stage_desc 
+	      ,nvl(t1.remark, '') as remark 
+	      ,t1.paint_count
+	      ,t1.pre_loss
+	      ,t1.post_loss
+	      ,t1.pre_loss_rate
+	      ,t1.post_loss_rate
+	      ,(select sd_desc
+	          from stx_dis_sd_code
+	         where sd_type 	  = 'PAINT_TYPE'	           
+	           and sd_code    = t1.paint_type)  
+	       as paint_type      
+	  from stx_dis_pis_loss t1
+	 where loss_code = #{loss_code}
+	 order by cast(set_name_num as int), t1.paint_count  
+ 	</select>
+</mapper>

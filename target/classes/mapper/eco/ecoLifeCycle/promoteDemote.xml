@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="promoteDemote">
+<select id="stxDisEcoPromoteDemoteProc" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_eco_pkg.eco_promote_demote_pro(p_main_code   => #{p_main_code,jdbcType=VARCHAR},
+                                                  p_eco_no      => #{p_eco_no,jdbcType=VARCHAR},
+                                                  p_appr_type   => #{p_appr_type,jdbcType=VARCHAR},
+                                                  p_notify_msg  => #{p_notify_msg,jdbcType=VARCHAR},
+                                                  p_user_id     => #{p_user_id,jdbcType=VARCHAR},
+                                                  p_states_code => #{p_states_code,jdbcType=VARCHAR},
+                                                  p_no          => #{p_no,jdbcType=VARCHAR},
+                                                  p_error_msg   => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                  p_error_code  => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	} 
+	</select>
+	
+	<select id="getLastEcoStatesDesc" parameterType="java.util.Map" resultType="String">
+		SELECT SDSC.SD_DESC
+		  FROM STX_DIS_ENG_CHANGE_ORDER SDECO
+		      ,STX_DIS_SD_CODE           SDSC
+		 WHERE SDECO.STATES_CODE = SDSC.SD_CODE(+)
+		   AND SDSC.SD_TYPE  = 'ECO_STATES'
+		   AND SDECO.ENG_CHANGE_ORDER_CODE = #{p_main_code}
+	</select>	
+</mapper>

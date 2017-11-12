@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintQuantity">
+  
+  	<update id="updatePaintQuantityBlockDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   = #{loginId}
+	      ,last_update_date  = sysdate
+	      ,block_define_flag = #{update_define_flag}
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}
+	   and block_define_flag = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>
+	
+	<update id="updatePaintQuantityPEDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   = #{loginId}
+	      ,last_update_date  = sysdate
+	      ,pe_define_flag 	 = #{update_define_flag}
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}
+	   and pe_define_flag 	 = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>	
+	
+	<update id="updatePaintQuantityPrePEDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by    = #{loginId}
+	      ,last_update_date   = sysdate
+	      ,pre_pe_define_flag = #{update_define_flag}
+	 where project_no  		  = #{project_no}
+	   and revision    		  = #{revision}
+	   and season_code 		  = #{season_code}
+	   and pre_pe_define_flag = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>	
+	
+	<update id="updatePaintQuantityHullDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   = #{loginId}
+	      ,last_update_date  = sysdate
+	      ,hull_define_flag  = #{update_define_flag}
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}
+	   and hull_define_flag  = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>	
+	
+	<update id="updatePaintQuantityQuayDefineFlag">
+	update stx_dis_pis_pattern_scheme
+	   set last_updated_by   = #{loginId}
+	      ,last_update_date  = sysdate
+	      ,quay_define_flag  = #{update_define_flag}
+	 where project_no  		 = #{project_no}
+	   and revision    		 = #{revision}
+	   and season_code 		 = #{season_code}
+	   and quay_define_flag  = #{current_define_flag}
+	   <if test="block_code != null and block_code !='' ">
+	   and block_code in ( ${block_code} )
+	   </if>	   
+	   <if test="area_code != null and area_code !='' ">
+	   and area_code in ( ${area_code} )
+   	   </if>
+	</update>
+	
+<select id="selectBlockSeasonCodeCnt" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select project_no                                              
+	      , block_code                                           
+	      , nvl(max(cnt_season_blk),0)    as cnt_season_blk
+	      , nvl(max(cnt_season_pe),0)     as cnt_season_pe
+	      , nvl(max(cnt_season_pre_pe),0) as cnt_season_pre_pe
+	      , nvl(max(cnt_season_hull),0)   as cnt_season_hull
+	      , nvl(max(cnt_season_quay),0)   as cnt_season_quay
+	     
+	   from                                                      
+	       (                                                     
+	        select project_no
+	              ,block_code
+	              ,count(distinct season_code)  as cnt_season_blk
+	              ,null                         as cnt_season_pe
+	              ,null                         as cnt_season_pre_pe   
+	              ,null                         as cnt_season_hull
+	              ,null                         as cnt_season_quay
+	          from stx_dis_pis_pattern_scheme
+	         where project_no        = #{project_no}
+	           and revision          = #{revision}
+	           and block_quantity    <![CDATA[>]]> 0
+	           and block_define_flag = 'Y'
+	           
+	           <if test="block_code != null and block_code !='' ">
+			   and block_code in ( ${block_code} )
+			   </if>	   
+			   <if test="area_code != null and area_code !='' ">
+			   and area_code in ( ${area_code} )
+		   	   </if>
+	           	
+	         group by project_no, block_code
+	        having count(distinct season_code) <![CDATA[>]]> 1
+	        union all
+	        select project_no
+	              ,block_code
+	              ,null                        
+	              ,count(distinct season_code)  
+	              ,null                           
+	              ,null                         
+	              ,null                         
+	          from stx_dis_pis_pattern_scheme
+	         where project_no       = #{project_no}
+	           and revision         = #{revision}
+	           and pe_quantity      <![CDATA[>]]> 0
+	           and pe_define_flag   = 'Y'
+	           
+	           <if test="block_code != null and block_code !='' ">
+			   and block_code in ( ${block_code} )
+			   </if>	   
+			   <if test="area_code != null and area_code !='' ">
+			   and area_code in ( ${area_code} )
+		   	   </if>
+	           
+	         group by project_no, block_code
+	        having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,count(distinct season_code)                           
+	             ,null                         
+	             ,null                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and pre_pe_quantity    <![CDATA[>]]> 0
+	          and pre_pe_define_flag = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,null                        
+	             ,count(distinct season_code)                            
+	             ,null                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and hull_quantity      <![CDATA[>]]> 0
+	          and hull_define_flag   = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,null                        
+	             ,null                            
+	             ,count(distinct season_code)                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and quay_quantity      <![CDATA[>]]> 0
+	          and quay_define_flag   = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]>  1                      
+	       )                                                   
+	 group by project_no, block_code
+	 order by project_no, block_code	
+	</select>		
+</mapper>

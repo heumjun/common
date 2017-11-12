@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoCategoryBase">  	
+  	<!-- CATEGORY TYPE 조회 -->
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	  select sd_code  as sd_code,
+	      	 sd_desc  as sd_desc
+        from stx_dis_sd_code   
+       where enable_flag = 'Y'
+         and sd_type 	 = #{p_sd_type}
+         and sd_code like  #{p_code_find} || '%'
+        <if test="p_table_id == 'itemAttributeBase'">
+	     and sd_code not in (select attribute_code
+                                from stx_dis_sd_catalog_attribute
+                               where attribute_type = 'ITEM'
+                                 and catalog_code   = #{p_catalog_code}
+                               )                     
+	    and attribute1 = 'ITEM'
+	    </if>
+	    
+	    <if test="p_table_id == 'bomAttributeBase'">
+	     and sd_code not in (select attribute_code
+                                from stx_dis_sd_catalog_attribute
+                               where attribute_type = 'BOM'
+                                 and catalog_code   = #{p_catalog_code}
+                               )  
+         and attribute2 = 'BOM'                      
+	    </if>
+	    
+	    <if test="p_table_id == 'itemAddAttributeBase'">
+	     and sd_code not in (select attribute_code
+                               from stx_dis_sd_catalog_attribute
+                              where attribute_type = 'ADDITEM'
+                                and catalog_code   = #{p_catalog_code}
+                              )  
+         and attribute1 = 'ADDITEM'                      
+	    </if>
+	    
+	    <if test="p_table_id == 'catalogInfo'">
+	     and sd_code not in (select value_code 
+                               from stx_dis_sd_catalog_value    
+                              where value_type   = #{p_sd_type}
+                                and catalog_code = #{p_catalog_code} 
+                             )    	
+	    </if>
+        
+        <if test="p_table_id == 'item'">
+         and attribute1 = 'ITEM'
+        </if>
+        
+        <if test="p_table_id == 'bom'">
+         and attribute2 = 'BOM'
+        </if> 
+        
+        <if test="p_table_id == 'additem'">
+         and attribute3 = 'ADDITEM'
+        </if>
+         
+       order by sd_code, sd_desc   
+  	</select>
+ 	
+</mapper>

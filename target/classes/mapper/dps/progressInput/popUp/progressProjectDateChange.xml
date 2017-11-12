@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="progressProjectDateChange">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PRJ.PROJECTNO ,
+		       B.DWG_KIND B_KIND ,
+		       M.DWG_KIND M_KIND ,
+		       P.DWG_KIND P_KIND
+		FROM   (SELECT DISTINCT PSP.PROJECTNO
+		        FROM   PLM_SEARCHABLE_PROJECT PSP) PRJ ,
+		       (SELECT *
+		        FROM   PLM_DATE_CHANGE_ABLE_PROJECT
+		        WHERE  DWG_KIND = '기본도') B ,
+		       (SELECT *
+		        FROM   PLM_DATE_CHANGE_ABLE_PROJECT
+		        WHERE  DWG_KIND = 'MAKER') M ,
+		       (SELECT *
+		        FROM   PLM_DATE_CHANGE_ABLE_PROJECT
+		        WHERE  DWG_KIND = '생설도') P
+		WHERE  PRJ.PROJECTNO = B.PROJECTNO(+)
+		AND    PRJ.PROJECTNO = M.PROJECTNO(+)
+		AND    PRJ.PROJECTNO = P.PROJECTNO(+)
+		ORDER BY PRJ.PROJECTNO 				
+	</select>
+
+	<select id="selectExistsPlmAbleProject" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT *
+		FROM   PLM_DATE_CHANGE_ABLE_PROJECT T
+		WHERE  T.PROJECTNO = #{project_no}
+		AND    T.DWG_KIND = #{dwg_kind}
+	</select>
+	
+	<insert id="insertPlmDateChangeAbleProject" parameterType="java.util.Map">
+		INSERT INTO   PLM_DATE_CHANGE_ABLE_PROJECT (PROJECTNO , DWG_KIND)
+		VALUES (#{project_no} ,#{dwg_kind}) 
+	</insert>
+	
+	<delete id="deletePlmDateChangeAbleProject" parameterType="java.util.Map">
+		DELETE PLM_DATE_CHANGE_ABLE_PROJECT T
+		WHERE  T.PROJECTNO = #{project_no}
+		AND    T.DWG_KIND = #{dwg_kind} 
+	</delete>
+</mapper>

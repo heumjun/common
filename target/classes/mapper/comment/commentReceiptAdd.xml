@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="commentReceiptAdd">
+
+	<!-- 수신문서 ADD -->
+	<select id="commentReceiptAddInsert"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_ADD_PROC(  
+               P_PROJECT_NO         => #{p_project_no,				jdbcType=VARCHAR,	mode=IN}
+               ,P_DOC_TYPE           => #{p_doc_type,				jdbcType=VARCHAR,	mode=IN}
+               ,P_ISSUER             => #{p_issuer,					jdbcType=VARCHAR,	mode=IN}
+               ,P_SUBJECT            => #{p_subject,				jdbcType=VARCHAR,	mode=IN}
+               ,P_ISSUE_DATE         => #{p_issue_date,				jdbcType=VARCHAR,	mode=IN} 
+               ,P_COM_NO             => #{p_com_no,					jdbcType=VARCHAR,	mode=IN}
+               ,P_RECEIPT_TEAM_CODE  => #{p_receipt_team_code,		jdbcType=VARCHAR,	mode=IN}
+               ,P_RECEIPT_DEPT_CODE  => #{p_receipt_dept_code,		jdbcType=VARCHAR,	mode=IN}
+               ,P_RECEIPT_USER_ID    => #{p_receipt_user_id,		jdbcType=VARCHAR,	mode=IN}
+               ,P_DWG_NO             => #{p_dwg_no,					jdbcType=VARCHAR,	mode=IN}
+               ,P_DOCUMENT_NAME      => #{p_document_name,			jdbcType=VARCHAR,	mode=IN}
+               ,P_DOCUMENT_DATA      => #{p_document_data,			jdbcType=VARCHAR,	mode=IN}
+               ,P_USER_ID            => #{p_user_id,				jdbcType=VARCHAR,	mode=IN}
+               ,P_WORK_KEY           => #{p_work_key,				jdbcType=VARCHAR,	mode=IN}
+               ,P_RECEIPT_NO         => #{p_receipt_no,				jdbcType=VARCHAR,	mode=OUT}
+               ,P_RECEIPT_ID         => #{p_receipt_id,				jdbcType=VARCHAR,	mode=OUT}
+               ,P_ERROR_CODE         => #{p_err_code,				jdbcType=VARCHAR,	mode=OUT}
+               ,P_ERROR_MSG          => #{p_err_msg,				jdbcType=VARCHAR,	mode=OUT}
+		)}
+	</select>
+	
+	<!-- 수신문서 ADD NEXT LIST -->
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+   	<select id="commentReceiptWorkValidationList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+   	{ CALL STX_DIS_COMMENT_PKG.RECEIPT_ADD_SELECT_PROC(
+   				P_WORK_KEY		=> #{p_work_key, 	jdbcType=VARCHAR, mode=IN}
+               ,P_ERROR_CODE	=> #{p_error_code,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+               ,P_ERROR_MSG		=> #{p_error_msg,   jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}  
+               ,P_REFER			=> #{p_refer,       jdbcType=CURSOR,  javaType=ResultSet, resultMap=commentReceiptAdd.procResultMap, mode=OUT}
+	)}
+	</select>
+	
+	<!-- 수신문서 ADD APPLY -->
+	<select id="commentReceiptAddApplyAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.RECEIPT_ADD_CONFIRM_PROC(  
+				P_WORK_KEY		=> #{p_work_key,	jdbcType=VARCHAR,	mode=IN},
+				P_USER_ID		=> #{p_user_id,		jdbcType=VARCHAR,	mode=IN},
+				P_ERROR_CODE	=> #{p_err_code,	jdbcType=VARCHAR,	javaType=java.lang.String,	mode=OUT},
+				P_ERROR_MSG		=> #{p_err_msg,		jdbcType=VARCHAR,	javaType=java.lang.String,	mode=OUT}
+	 	)}
+	</select>
+	
+	
+	<select id="commentExcelTeamCode" parameterType="java.util.Map" resultType="String">
+		SELECT DWGDEPTCODE AS TEAM_CODE
+		  FROM STX_DIS_DWGDEPTCODE SDDD_TEAM
+		 WHERE 1 = 1
+		   AND DWGDEPTNM LIKE #{p_team_name,		jdbcType=VARCHAR} || '%'
+	</select>
+	
+	
+</mapper>

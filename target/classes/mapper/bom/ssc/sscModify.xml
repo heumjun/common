@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscModify">
+  	<select id="procModifyAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_SSC_PKG.MODIFY_ACTION_PROC(	p_user_id			=> #{p_user_id, jdbcType=VARCHAR},
+													p_work_key			=> #{p_work_key, jdbcType=VARCHAR},
+													p_work_flag			=> #{p_work_flag, jdbcType=VARCHAR},
+													p_err_code			=> #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+													p_err_msg			=> #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+									 			)
+                          
+       }
+	</select>
+	
+	<select id="procModifyValidation"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_SSC_PKG.MODIFY_VALIDATION_PROC(	p_user_id			=> #{p_user_id, jdbcType=VARCHAR},
+														p_work_key			=> #{p_work_key, jdbcType=VARCHAR},
+														p_work_flag			=> #{p_work_flag, jdbcType=VARCHAR},
+														p_move_dwg_no		=> #{p_move_dwg_no, jdbcType=VARCHAR},
+														p_move_block		=> #{p_move_block, jdbcType=VARCHAR},
+														p_move_stage		=> #{p_move_stage, jdbcType=VARCHAR},
+														p_move_str			=> #{p_move_str, jdbcType=VARCHAR},
+														p_move_job_cd		=> #{p_move_job_cd, jdbcType=VARCHAR},
+														p_move_usc_job_type	=> #{p_move_usc_job_type, jdbcType=VARCHAR},
+														p_err_code			=> #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+														p_err_msg			=> #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+									 				)
+                          
+       }
+	</select>
+</mapper>

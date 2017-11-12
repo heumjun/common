@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveCodeMaster">
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+	  select count(*) as cnt
+       from stx_dis_sd_code
+  	  where sd_type = #{sd_type} and sd_code = #{sd_code}
+  	</select>
+  	
+  	<insert id="insert" parameterType="java.util.Map">
+	 insert into stx_dis_sd_code
+            (sd_type
+            ,sd_code
+            ,sd_desc
+            ,sd_meaning
+            ,attribute1
+            ,attribute2
+            ,attribute3
+            ,attribute4
+            ,attribute5
+            ,order_by
+            ,enable_flag
+            ,created_by
+            ,creation_date
+            ,last_updated_by
+            ,last_update_date
+            )
+       values
+ 	          (#{sd_type}     
+              ,#{sd_code}
+              ,#{sd_desc}
+              ,#{sd_meaning}
+              ,#{attribute1}
+              ,#{attribute2}
+              ,#{attribute3}
+              ,#{attribute4}
+              ,#{attribute5}
+              ,#{order_by}
+              ,#{enable_flag} 
+              ,#{loginId}
+              ,SYSDATE 
+              ,#{loginId}
+              ,SYSDATE 
+              )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+	 update stx_dis_sd_code
+	 	set	sd_type	= #{sd_type}
+	 	   ,sd_code = #{sd_code}
+	 	   ,sd_desc	= #{sd_desc}
+       ,sd_meaning = #{sd_meaning}
+       ,attribute1 = #{attribute1}
+       ,attribute2 = #{attribute2}
+       ,attribute3 = #{attribute3}
+       ,attribute4 = #{attribute4}
+       ,attribute5 = #{attribute5}
+       ,order_by = #{order_by}
+       ,last_updated_by=#{loginId}
+       ,last_update_date=SYSDATE
+	   ,enable_flag    = #{enable_flag} 
+    where sd_type = #{sd_type} and sd_code = #{sd_code}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  	 delete from stx_dis_sd_code
+  	 		where sd_type= #{sd_type} and sd_code = #{sd_code}
+  	 
+  	</delete>
+</mapper>

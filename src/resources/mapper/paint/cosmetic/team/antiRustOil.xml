@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="antiRustOil">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select item_code          as paint_item
+	       ,item_desc          as item_desc
+	       ,case when item_code = '42101-55252NCL01' then 180
+	                                                 else 36
+	        end                as quantity                          
+	       ,0                  as theory_quantity
+	       ,(case when (select count(*) as cnt
+	                      from stx_dis_pis_cosmetic
+	                     where project_no   = #{project_no}
+	                       and revision     = #{revision}
+	                       and team_count   = #{team_count}
+	                       and paint_gbn    = #{paint_gbn}
+	                       and paint_item   = t1.item_code) > 0 then '─'
+	                                                           else '+'
+            end)               as chk   	     
+	  from stx_dis_item t1
+	 where item_code in ('42101-55252NCL01', '42102-55121')
+	 order by item_code 
+  	</select>
+</mapper>

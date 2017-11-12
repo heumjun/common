@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoBomItemAttr">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.ITEM_CODE
+		     , A.ITEM_CATALOG
+		     , A.ITEM_CATEGORY
+		     , A.ITEM_DESC
+		     , A.ITEM_DESC_DETAIL
+		     , A.ITEM_WEIGHT
+		     , A.ATTR1
+		     , A.ATTR2
+		     , A.ATTR3
+		     , A.ATTR4
+		     , A.ATTR5
+		     , A.ATTR6
+		     , A.ATTR7
+		     , A.ATTR8
+		     , A.ATTR9
+		     , A.ATTR10
+		     , A.ATTR11
+		     , A.ATTR12
+		     , A.ATTR13
+		     , A.ATTR14
+		     , A.ATTR15
+		     , A.ITEM_MATERIAL1
+		     , A.ITEM_MATERIAL2
+		     , A.ITEM_MATERIAL3
+		     , A.ITEM_MATERIAL4
+		     , A.ITEM_MATERIAL5
+		     , A.PAINT_CODE1
+		     , A.PAINT_CODE2
+		     , A.CODE_TYPE
+		     , A.UOM
+		     , A.SHIP_PATTERN
+		     , A.ITEM_OLDCODE
+		     , A.CABLE_LENGTH
+		     , A.CABLE_TYPE
+		     , A.CABLE_OUTDIA
+		     , A.CAN_SIZE
+		     , A.STXSVR
+		     , A.THINNER_CODE
+		     , A.STX_STANDARD
+		     , A.PAINT_CODE
+		     , A.USER_ID
+		     , A.USER_NAME
+		     , TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+		     , A.STATES_CODE
+		     , A.STATES_DESC
+		  FROM STX_DIS_ITEM A
+		 WHERE ITEM_CODE = #{item_code}
+	</select>
+</mapper>

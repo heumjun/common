@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgRegisterMainGrid">
+	<select id="list"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT REPLACE(REPLACE(A.GUBUN, '자체', 'Itself'), '출도실', 'Copy Center') AS GUBUN,  
+               A.DEPLOY_NO, 
+               A.DEPT_CODE, 
+               B.DEPT_NAME,                                          
+               A.EMPLOYEE_NO, 
+               C.NAME, 
+               TO_CHAR(A.REQUEST_DATE, 'YYYY-MM-DD') AS REQUEST_DATE,                   
+               TO_CHAR(A.DEPLOY_DATE, 'YYYY-MM-DD') AS DEPLOY_DATE,                                           
+               A.PROJECT_NO, 
+               A.DEPLOY_REV, 
+               A.DWG_CODE, 
+               A.DWG_TITLE,                            
+               A.REASON_CODE, 
+               A.CAUSE_DEPART AS CAUSE_DEPART_CODE, 
+               D.DEPT_NAME AS CAUSE_DEPART_NAME,                                     
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(                                                                        
+               REPLACE(A.REV_TIMING,                                                           
+                       '설계 전', 'Pre-Design'),                                               
+                       '설계 후', 'Post-Design'),                                              
+                       '생산 전', 'Pre-Production'),                                           
+                       '생산 후', 'Post-Production'),                                          
+                       '제작 전', 'Pre-Manufacture'),                                          
+                       '제작 후', 'Post-Manufacture'),                                         
+                       '설치 전', 'Pre-Installation'),                                         
+                       '설치 후', 'Post-Installation'),                                        
+                       '절단 전', 'Pre-Cutting'),                                              
+                       '절단 후', 'Post-Cutting'),                                             
+                       '시공 전', 'Pre-Production'),                                           
+                       '시공 후', 'Post-Production')                                           
+               AS REV_TIMING,                                                                  
+               A.DEPLOY_DESC, 
+               A.ECO_NO, 
+               E.DWGCATEGORY,
+               'R' as OPER                                          
+		FROM PLM_HARDCOPY_DWG A,
+		(                                                                               
+			SELECT A.DEPT_CODE, A.DEPT_NAME                                            
+			FROM STX_COM_INSA_DEPT@STXERP A                                          
+			UNION ALL                                                                  
+			SELECT A.DEPTCODE AS DEPT_CODE,	A.DEPTNM AS DEPT_NAME                   
+			FROM DCC_DEPTCODE A, Z_DALIAN_SAWON_TO111231 B                           
+			WHERE A.DWGDEPTCODE = B.DWG_DEPTCODE                                      
+			GROUP BY A.DEPTCODE, A.DEPTNM                                             
+     	) B,                                                                            
+     	(                                                                               
+          	SELECT EMPLOYEE_NUM, NAME                                                  
+          	FROM CCC_SAWON                                                           
+          	UNION ALL                                                                  
+          	SELECT SAWON_ID AS EMPLOYEE_NUM, SAWON_NAME AS NAME                        
+          	FROM Z_DALIAN_SAWON_TO111231                                             
+     	) C,                                                                            
+     	(                                                                               
+          	SELECT A.DEPT_CODE, A.DEPT_NAME                                            
+            FROM STX_COM_INSA_DEPT@STXERP A                                          
+          	UNION ALL                                                                  
+          	SELECT A.DEPTCODE AS DEPT_CODE,	A.DEPTNM AS DEPT_NAME                   
+            FROM DCC_DEPTCODE A, Z_DALIAN_SAWON_TO111231 B                           
+           	WHERE A.DWGDEPTCODE = B.DWG_DEPTCODE                                      
+           	GROUP BY A.DEPTCODE, A.DEPTNM                                             
+     	) D,
+     	PLM_ACTIVITY E                                                                  
+   		WHERE 1 = 1
+   		<if test="projectInput != null and projectInput != ''">
+   			AND A.PROJECT_NO = #{projectInput}
+   		</if>
+   		<if test="departmentList != null and departmentList != ''">
+   			AND A.DEPT_CODE = #{departmentList}
+   		</if>
+   		<if test="designerList != null and designerList != ''">
+   			AND A.EMPLOYEE_NO = #{designerList}
+   		</if>
+   		<if test="dateSelected_from != null and dateSelected_from != ''">
+   			AND A.REQUEST_DATE &gt;= TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')
+   		</if>
+   		<if test="dateSelected_to != null and dateSelected_to != ''">
+   			AND A.REQUEST_DATE &lt; TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD') + 1
+   		</if>
+   		<if test="drawingNo != null and drawingNo != ''">
+   			AND A.DWG_CODE LIKE #{drawingNo}
+   		</if>
+   		<if test="deployRevInput != null and deployRevInput != ''">
+   			AND A.DEPLOY_REV = #{deployRevInput}
+   		</if>
+   		<if test="deployNoInput != null and deployNoInput != ''">
+   			AND A.DEPLOY_NO = #{deployNoInput}
+   		</if>
+   		AND    A.DEPT_CODE = B.DEPT_CODE
+		AND    A.EMPLOYEE_NO = C.EMPLOYEE_NUM
+		AND    A.CAUSE_DEPART = D.DEPT_CODE(+)
+		AND    A.PROJECT_NO = E.PROJECTNO
+		AND    E.WORKTYPE = 'DW'
+		AND    SUBSTR(E.ACTIVITYCODE, 1, 8) = A.DWG_CODE
+		ORDER BY A.DEPLOY_NO 
+	</select>
+</mapper>

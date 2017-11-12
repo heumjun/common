@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="paintPlanProjectNoCheck">
+
+	<select id="selectPaintPlanProjectNoCheck" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT (CASE WHEN (SELECT COUNT(*)
+		                     FROM STX_DIS_PIS_PLAN SDPP_SUB
+		                    WHERE SDPP_SUB.PROJECT_NO = SDPP.PROJECT_NO
+		                      AND SDPP_SUB.REVISION > SDPP.REVISION) = 0
+		             THEN 'Y'
+		             ELSE 'N'
+		        END)                                               AS LAST_REVISION_YN 
+		      ,DECODE( SDPP.STATE, NULL, '',SDPP.STATE)            AS STATE
+		      ,(SELECT COUNT(1)
+		          FROM STX_DIS_PAINT_BOM_IF_HEAD SDPBIH
+		         WHERE SDPBIH.PROJECT_NO = SDPP.PROJECT_NO
+		           AND SDPBIH.REVISION   = SDPP.REVISION
+		           AND SDPBIH.STATES_FLAG = '04')                  AS PLAN_RELEASE_CNT
+		  FROM STX_DIS_PIS_PLAN SDPP
+		 WHERE PROJECT_NO = #{project_no}
+		   AND REVISION   = #{revision}
+	  	</select>
+
+</mapper>

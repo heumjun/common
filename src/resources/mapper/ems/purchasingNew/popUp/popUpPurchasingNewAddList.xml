@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingNewAddList">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="emsPurchasingAddFirstList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADD_SELECT_PROC (
+					P_MASTER       		=>  #{p_master},
+					P_DWG_NO 			=>  #{p_dwg_no},
+					P_SHIP_TYPE			=>  #{p_ship_type}, 
+					P_ITEM_CODE 		=>  #{p_item_code}, 
+					P_ITEM_DESC 		=>  #{p_item_desc}, 
+					P_CURPAGENO 		=>  #{curPageNo}, 
+					P_PAGESIZE 			=>  #{pageSize}, 
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=popUpPurchasingNewAddList.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	<insert id="emsPurchasingAddTempInsertProc"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADD_TEMP_INSERT_PROC (
+					P_WORK_KEY 				=> #{p_session_id},
+					P_WORK_FLAG				=> #{p_work_flag},
+					P_SHIP_KIND				=> #{ship_kind},
+					P_MASTER 				=> #{p_master},
+					P_DWG_NO 				=> #{dwg_no},
+					P_ITEM_CODE				=> #{item_code},
+					P_EA					=> #{ea},
+					P_LOCATION_NO			=> #{location_no},
+					P_STAGE_NO				=> #{stage_no},
+					P_SUPPLY_TYPE			=> #{supply_type},
+					P_PROJECT				=> #{p_project},
+					P_POS_REV 				=> #{pos_rev},
+					P_FILE_ID 				=> #{file_id},
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+	<insert id="emsPurchasingAddTempDeleteProc"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADD_TEMP_DELETE_PROC (
+					P_WORK_KEY 				=> #{p_session_id},
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+	<select id="emsPurchasingAddSecondList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADD_SELECT_NEXT_PROC (
+					P_WORK_KEY 			=> #{p_session_id},
+					P_CURPAGENO 		=>  #{curPageNo}, 
+					P_PAGESIZE 			=>  #{pageSize}, 
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=popUpPurchasingNewAddList.procResultMap, mode=OUT}
+			)}
+	</select>
+	<insert id="emsPurchasingPosApplyProc"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADD_CONFIRM_PROC (
+					P_WORK_KEY 				=> #{p_session_id},
+					P_EMS_PUR_NO			=> #{ems_pur_no},
+					P_USER_ID 				=> #{p_user_id},
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+</mapper>

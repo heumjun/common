@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="updateItemAttributeList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT t2.*
+		  FROM ( SELECT t1.*
+		              , FLOOR( ( ROWNUM - 1) / #{pageSize} + 1 ) AS page
+		           FROM ( SELECT x.item
+		                       , x.item_desc
+		                       , x.weight
+		                       , x.attr0
+		                       , x.attr1
+		                       , x.attr2
+		                       , x.attr3
+		                       , x.attr4
+		                       , x.attr5
+		                       , x.attr6
+		                       , x.attr7
+		                       , x.attr8
+		                       , x.attr9
+		                       , x.attr10
+		                       , x.attr11
+		                       , x.attr12
+		                       , x.attr13
+		                       , x.attr14
+		                       , x.cable_outdia
+		                       , x.can_size
+		                       , x.stxsvr
+		                       , x.thinner_code
+		                       , x.paint_code
+		                       , x.cable_type
+		                       , x.cable_length
+		                       , x.stxstandard
+		                       , x.tbc_paint_code
+		                       , x.plmflag
+		                       , x.erpflag
+		                       , to_char( x.upload_date, 'yyyy-mm-dd hh24:mi:ss' ) upload_date
+		                    FROM stx_plmerp_item_update x
+		                    WHERE x.upload_date BETWEEN to_date(to_char(SYSDATE, 'yyyymmdd')||'000000', 'yyyymmddhh24miss')
+		                                           AND to_date(to_char(SYSDATE + 1, 'yyyymmdd')||'000000', 'yyyymmddhh24miss')
+		                ) t1
+		       ) t2
+		 WHERE page = #{curPageNo}
+	</select>
+	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*)
+		  FROM stx_plmerp_item_update x
+		 WHERE x.upload_date BETWEEN to_date(to_char(SYSDATE, 'yyyymmdd')||'000000', 'yyyymmddhh24miss')
+		                         AND to_date(to_char(SYSDATE + 1, 'yyyymmdd')||'000000', 'yyyymmddhh24miss')
+  	</select>
+</mapper>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingAddList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		select t2.* 
+		from ( 
+		select t1.* , COUNT(*) OVER() AS CNT  
+		,floor((rownum - 1) / #{rows} + 1 ) as page 
+		from   
+		( 
+		SELECT '' EMS_NO 
+		  , SES.SHIP_SIZE || SES.SHIP_TYPE SHIP_KIND  
+		  , SES.DWG_CODE AS DWG_NO  
+		  , SES.MIDDLE_CODE  
+		  , SES.MIDDLE_NAME  
+		  , SES.DWG_NAME          
+		  , SES.ITEM_CODE  
+		  , SES.ITEM_DESC  
+		  , SES.BOM_STAGE  
+		  , SES.BOM_LEVEL  
+		  , CREATED_BY  
+		  , (SELECT MAX(EA) FROM STX_EMS_PURCHASING@STXERP WHERE DWG_NO = SES.DWG_CODE AND ITEM_CODE = SES.ITEM_CODE) EA  
+		  , CREATION_DATE  
+		  , SES.USE_YN  
+		  FROM STX_EMS_STANDARD_V@STXERP SES 
+		  ORDER BY SES.DWG_CODE, SES.ITEM_CODE, SES.SHIP_SIZE || SES.SHIP_TYPE
+		) t1  
+		  WHERE 1=1 
+		    AND USE_YN = 'Y'       
+		<if test="p_ship_kind != null and !p_ship_kind.equalsIgnoreCase('') and !p_ship_kind.equalsIgnoreCase('null') and !p_ship_kind.equalsIgnoreCase('*') and !p_ship_kind.equalsIgnoreCase('All')">
+		    AND SHIP_KIND = #{p_ship_kind}
+		</if>  
+		<if test="p_dwg_no != null and !p_dwg_no.equalsIgnoreCase('') and !p_dwg_no.equalsIgnoreCase('null') and !p_dwg_no.equalsIgnoreCase('*')">
+		    AND DWG_NO = #{p_dwg_no}
+		</if>      
+		<if test="p_middle_name != null and !p_middle_name.equalsIgnoreCase('') and !p_middle_name.equalsIgnoreCase('null') and !p_middle_name.equalsIgnoreCase('*')">
+		    AND MIDDLE_NAME LIKE '%' || #{p_middle_name} || '%'
+		</if>           
+		<if test="p_item_code != null and !p_item_code.equalsIgnoreCase('') and !p_item_code.equalsIgnoreCase('null') and !p_item_code.equalsIgnoreCase('*')">
+		    AND ITEM_CODE LIKE '%' || #{p_item_code} || '%'
+		</if>
+		<if test="p_item_desc != null and !p_item_desc.equalsIgnoreCase('') and !p_item_desc.equalsIgnoreCase('null') and !p_item_desc.equalsIgnoreCase('*')">
+		    AND ITEM_DESC LIKE '%' || #{p_item_desc} || '%'
+		</if>
+		) t2
+		where page = #{page}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*) AS CNT
+		FROM(
+		SELECT '' EMS_NO 
+             , SES.SHIP_SIZE || SES.SHIP_TYPE AS SHIP_KIND  
+             , SES.DWG_CODE AS DWG_NO  
+             , SES.MIDDLE_CODE  
+             , SES.MIDDLE_NAME  
+             , SES.DWG_NAME          
+             , SES.ITEM_CODE  
+             , SES.ITEM_DESC  
+             , SES.BOM_STAGE  
+             , SES.BOM_LEVEL  
+             , CREATED_BY  
+             , (SELECT MAX(EA) FROM STX_EMS_PURCHASING@STXERP WHERE DWG_NO = SES.DWG_CODE AND ITEM_CODE = SES.ITEM_CODE) EA  
+             , CREATION_DATE  
+             , SES.USE_YN  
+		  FROM STX_EMS_STANDARD_V@STXERP SES 
+		)
+		  WHERE 1=1 
+		    AND USE_YN = 'Y'       
+		<if test="p_ship_kind != null and !p_ship_kind.equalsIgnoreCase('') and !p_ship_kind.equalsIgnoreCase('null') and !p_ship_kind.equalsIgnoreCase('*') and !p_ship_kind.equalsIgnoreCase('All')">
+		    AND SHIP_KIND = #{p_ship_kind}
+		</if>  
+		<if test="p_dwg_no != null and !p_dwg_no.equalsIgnoreCase('') and !p_dwg_no.equalsIgnoreCase('null') and !p_dwg_no.equalsIgnoreCase('*')">
+		    AND DWG_NO = #{p_dwg_no}
+		</if>      
+		<if test="p_middle_name != null and !p_middle_name.equalsIgnoreCase('') and !p_middle_name.equalsIgnoreCase('null') and !p_middle_name.equalsIgnoreCase('*')">
+		    AND MIDDLE_NAME LIKE '%' || #{p_middle_name} || '%'
+		</if>           
+		<if test="p_item_code != null and !p_item_code.equalsIgnoreCase('') and !p_item_code.equalsIgnoreCase('null') and !p_item_code.equalsIgnoreCase('*')">
+		    AND ITEM_CODE LIKE '%' || #{p_item_code} || '%'
+		</if>
+		<if test="p_item_desc != null and !p_item_desc.equalsIgnoreCase('') and !p_item_desc.equalsIgnoreCase('null') and !p_item_desc.equalsIgnoreCase('*')">
+		    AND ITEM_DESC LIKE '%' || #{p_item_desc} || '%'
+		</if>
+
+	</select>
+	
+</mapper>

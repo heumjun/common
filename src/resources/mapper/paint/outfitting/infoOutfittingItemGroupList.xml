@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoOutfittingItemGroupList">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.project_no
+	      ,t1.revision 
+	      ,t1.team_count
+	      ,t1.paint_item
+	      ,t2.item_desc
+	      ,sum(t1.quantity)         as quantity
+	      ,sum(t1.quantity)  as theory_quantity
+	      <!-- ,sum(t1.theory_quantity)  as theory_quantity -->
+	  from stx_dis_pis_outfitting t1
+	      ,stx_dis_item           t2
+	 where t1.paint_item  = t2.item_code
+	   and t1.project_no  = #{project_no}
+	   and t1.revision    = #{revision}
+	   and t1.team_count  = #{team_count}  
+	 group by t1.project_no,t1.revision,t1.team_count,t1.paint_item,t2.item_desc  
+	 order by t1.project_no, t1.revision, t1.paint_item  	 	 
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	select count(*) from (select t1.project_no
+	      ,t1.revision 
+	      ,t1.team_count
+	      ,t1.paint_item
+	      ,t2.item_desc
+	      ,sum(t1.quantity)         as quantity
+	      ,sum(t1.theory_quantity)  as theory_quantity
+	  from stx_dis_pis_outfitting t1
+	      ,stx_dis_item           t2
+	 where t1.paint_item  = t2.item_code
+	   and t1.project_no  = #{project_no}
+	   and t1.revision    = #{revision}
+	   and t1.team_count  = #{team_count}  
+	 group by t1.project_no,t1.revision,t1.team_count,t1.paint_item,t2.item_desc  
+	 order by t1.project_no, t1.revision, t1.paint_item) 	 	 
+  	</select>
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveItemAddAttribute">  	
+  	<delete id="deleteAddItemAttributeBase" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attribute
+          where catalog_code      	=  #{catalog_code}  
+	        and attribute_type	 	=  #{attribute_type}  
+	        and attribute_code 	 	=  #{attribute_code}    
+	</delete>
+ 	<insert id="insertAddItemAttributeBase" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_attribute
+        (
+         catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,attribute_required_flag
+        ,enable_flag
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,created_by
+	 	,creation_date
+	 	,last_updated_by			
+		,last_update_date 
+        )
+        values
+        (
+         #{catalog_code}
+        ,#{attribute_type}
+        ,#{attribute_code}
+        ,#{attribute_name}
+        ,#{attribute_data_type}
+        ,#{attribute_required_flag}
+        ,#{enable_flag}
+        ,#{assy_attribute_code}
+        ,#{attribute_data_min}
+        ,#{attribute_data_max}
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+        )
+	</insert>
+	<update id="updateAddItemAttributeBase" parameterType="java.util.Map">
+	 update stx_dis_sd_catalog_attribute
+	   set attribute_name       =  #{attribute_name}    
+	      ,attribute_data_type  =  #{attribute_data_type}
+	      ,assy_attribute_code	=  #{assy_attribute_code}
+          ,attribute_data_min	=  #{attribute_data_min}	
+          ,attribute_data_max   =  #{attribute_data_max}
+          ,attribute_required_flag   =  #{attribute_required_flag}	  
+	      ,last_updated_by   	=  #{loginId}               
+	      ,last_update_date  	=  sysdate     
+	 where catalog_code      	=  #{catalog_code}  
+	   and attribute_type	 	=  #{attribute_type}  
+	   and attribute_code 	 	=  #{attribute_code}  
+	</update>
+	
+	<delete id="deleteAddItemValue" parameterType="java.util.Map">
+	delete from stx_dis_sd_catalog_attr_value
+          where catalog_code      	=  #{catalog_code}  
+		    and attribute_type	 	=  #{attribute_type}  
+		    and attribute_code 	 	=  #{attribute_code} 
+		    and value_code			=  #{org_value_code}
+	</delete>
+	<insert id="insertAddItemValue" parameterType="java.util.Map">
+	 insert into stx_dis_sd_catalog_attr_value
+       (
+         catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,value_code
+        ,item_make_value
+        ,enable_flag
+        ,created_by
+	 	,creation_date
+	 	,last_updated_by			
+		,last_update_date
+       )
+       values
+       (
+         #{catalog_code}
+        ,#{attribute_type}
+        ,#{attribute_code}
+        ,#{value_code}
+        ,null
+        ,#{enable_flag}
+        ,#{loginId}
+        ,SYSDATE
+        ,#{loginId}
+        ,SYSDATE
+       )
+	</insert>
+</mapper>

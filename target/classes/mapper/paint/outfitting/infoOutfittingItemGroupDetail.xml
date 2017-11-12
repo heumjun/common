@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoOutfittingItemGroupDetail">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select (SELECT SD_DESC FROM STX_DIS_SD_CODE WHERE SD_TYPE = 'PAINT_TEAM_GBN' AND ATTRIBUTE3 = t1.PAINT_GBN AND ATTRIBUTE4 = t3.SD_CODE) as name  
+		  ,(SELECT SD_CODE FROM STX_DIS_SD_CODE WHERE SD_TYPE = 'PAINT_TEAM_GBN' AND ATTRIBUTE3 = t1.PAINT_GBN AND ATTRIBUTE4 = t3.SD_CODE) as gbn
+		  ,t1.project_no
+	      ,t1.revision 
+	      ,t1.team_count
+	      ,t1.paint_item
+	      ,t2.item_desc
+	      ,t1.quantity         as quantity
+	      ,t1.quantity  as theory_quantity
+	      <!-- ,t1.theory_quantity  as theory_quantity -->
+	  from stx_dis_pis_outfitting t1
+	      ,stx_dis_item           t2
+	      ,stx_dis_sd_code        t3
+	 where t1.paint_item  = t2.item_code
+	   and t3.SD_TYPE = 'PAINT_TEAM'
+       and t3.attribute2 = 'OUTFITTING'
+       and t1.team_count = t3.attribute1
+	   and t1.project_no  = #{project_no}
+	   and t1.revision    = #{revision}
+	   and t1.team_count  = #{team_count}
+	   and t1.paint_item  = #{group_item} 
+	 order by (SELECT ATTRIBUTE5 FROM STX_DIS_SD_CODE WHERE SD_TYPE = 'PAINT_TEAM_GBN' AND ATTRIBUTE3 = t1.PAINT_GBN AND ATTRIBUTE4 = t3.SD_CODE)  	 	 
+  	</select>
+  	
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="paint_plan_rev_add">
+	<select id="savePlanRevAdd"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_plan_rev_add_proc(p_project_no => #{p_project_no},
+                                                     p_revision => #{p_revision},
+                                                     p_login_id => #{p_login_id},
+                                                     p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                     p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+  	</select>
+  	
+  		<select id="savePlanProjectAdd"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_plan_project_add_proc(p_project_no => #{p_project_no},
+                                                     p_revision => #{p_revision},
+                                                     p_add_project_no => #{p_add_project_no},
+                                                     p_login_id => #{p_login_id},
+                                                     p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                     p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+  	</select>
+
+</mapper>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveManual">
+  	
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT count(*) as cnt
+		  FROM STX_DIS_MANUAL
+		 WHERE PGM_ID = #{pgm_id, jdbcType=VARCHAR}
+  	</select>
+  	
+ 	<insert id="insert" parameterType="java.util.Map">
+		INSERT INTO STX_DIS_MANUAL ( MANUAL_OPTION
+                            ,PGM_ID
+                            ,PGM_NAME
+                            ,DESCRIPTION
+                            ,ENABLE_FLAG
+                            ,CREATE_BY
+                            ,CREATE_DATE
+                            ,MODIFY_BY
+                            ,MODIFY_DATE )
+		VALUES ( #{manual_option, jdbcType=VARCHAR}
+		        ,#{pgm_id, jdbcType=VARCHAR}
+		        ,CASE WHEN 'MANUAL' = #{manual_option, jdbcType=VARCHAR} THEN ''
+		              ELSE #{pgm_name, jdbcType=VARCHAR} END
+		        ,#{description, jdbcType=VARCHAR}
+		        ,#{enable_flag, jdbcType=VARCHAR}
+		        ,#{loginId, jdbcType=VARCHAR}
+		        ,SYSDATE
+		        ,#{loginId, jdbcType=VARCHAR}
+		        ,SYSDATE )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE STX_DIS_MANUAL SDM
+		   SET SDM.PGM_NAME    = CASE WHEN 'MANUAL' = #{manual_option, jdbcType=VARCHAR} THEN ''
+		                              ELSE #{pgm_name, jdbcType=VARCHAR} END
+		      ,SDM.DESCRIPTION = #{description, jdbcType=VARCHAR}
+		      ,SDM.ENABLE_FLAG = #{enable_flag, jdbcType=VARCHAR}
+		      ,SDM.MODIFY_BY   = #{loginId, jdbcType=VARCHAR}
+		      ,SDM.MODIFY_DATE = SYSDATE
+		 WHERE SDM.PGM_ID = #{pgm_id, jdbcType=VARCHAR}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  		DELETE STX_DIS_MANUAL
+ 		WHERE PGM_ID = #{pgm_id, jdbcType=VARCHAR}
+  	</delete>
+  	
+  	<delete id="fileDelete" parameterType="java.util.Map">
+  		DELETE STX_DIS_MANUAL_FILE
+ 		WHERE PGM_ID = #{del_pgm_id, jdbcType=VARCHAR}
+  	</delete>
+  	
+  	<insert id="insertFileInfo" parameterType="java.util.Map">
+		INSERT INTO STX_DIS_MANUAL_FILE ( PGM_ID
+                            ,REVISION_NO 
+                            ,REVISION_DESC 
+                            ,FILENAME 
+                            ,FILECONTENTTYPE 
+                            ,BLOBDATA 
+                            ,CREATE_BY 
+                            ,CREATE_DATE 
+                            ,MODIFY_BY
+                            ,MODIFY_DATE   )
+	    VALUES ( #{p_pgm_id, jdbcType=VARCHAR}
+	            ,NVL((select /*+ INDEX_DESC( SDMF STX_DIS_MANUAL_FILE_U1) */ SDMF.REVISION_NO+ 1 from STX_DIS_MANUAL_FILE SDMF where SDMF.PGM_ID = #{p_pgm_id, jdbcType=VARCHAR} AND ROWNUM = 1 ),0)
+	            ,#{revision_desc, jdbcType=VARCHAR}
+	            ,#{filename, jdbcType=VARCHAR}
+	            ,#{filecontenttype, jdbcType=VARCHAR}
+	            ,#{blobdata}
+	            ,#{loginId, jdbcType=VARCHAR}
+	            ,SYSDATE
+	            ,#{loginId, jdbcType=VARCHAR}
+			    ,SYSDATE )                       
+	</insert>
+	
+	<update id="detailUpdate" parameterType="java.util.Map">
+		UPDATE STX_DIS_MANUAL_FILE SDMF
+		   SET SDMF.REVISION_DESC = #{revision_desc, jdbcType=VARCHAR}
+		      ,SDMF.MODIFY_BY   = #{loginId, jdbcType=VARCHAR}
+		      ,SDMF.MODIFY_DATE = SYSDATE
+		 WHERE SDMF.PGM_ID = #{pgm_id, jdbcType=VARCHAR}
+		   AND SDMF.REVISION_NO = #{revision_no, jdbcType=VARCHAR}
+	</update>
+ 	
+</mapper>

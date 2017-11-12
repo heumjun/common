@@ -1,0 +1,461 @@
+<%@page import="java.util.*"%>
+<%@page import="com.stx.common.interfaces.DBConnect"%>
+<%@page import="java.sql.*"%>
+<%@page import="com.stx.common.util.STXPLMProperty"%>
+
+<%@page import="com.stx.common.util.StringUtil"%>
+
+
+<%!
+
+	private static String STX_ERP_DBLINK = "";
+
+	private static void setERP_DBLINK() throws Exception
+	{
+		STX_ERP_DBLINK = STXPLMProperty.getPLMProperty("stxEngineeringCentralItemStringResource", "PLM.ERP.DBLINK.NAME");
+	}
+	
+	private static ArrayList getResultMapRows(ResultSet rs) throws Exception {
+		ArrayList mlReturn = new ArrayList();
+		ResultSetMetaData metaData = rs.getMetaData();
+		while (rs.next()) {
+			HashMap mapReturn = new HashMap();
+			for (int index = 0; index < metaData.getColumnCount(); index++) {
+				String sColumnName = metaData.getColumnName(index + 1);
+				mapReturn.put(StringUtil.setEmpty(sColumnName), StringUtil.setEmpty(rs.getString(sColumnName)));
+			}
+			mlReturn.add(mapReturn);
+		}
+		return mlReturn;
+	}
+	
+	private static Map getResultMapRowsSingle(ResultSet rs) throws Exception {
+		Map mapReturn = new HashMap();
+		ArrayList mlReturn = getResultMapRows(rs);
+		if (mlReturn.size() > 0) {
+			mapReturn = (Map) mlReturn.get(0);
+		}
+		return mapReturn;
+	}
+	
+	public static org.jdom.Element getSimpleElementFromMap(org.jdom.Element elParent,Map mapInput) throws Exception
+	{
+		Iterator itrKey = mapInput.keySet().iterator();
+		while(itrKey.hasNext())
+		{
+			
+			String sKey = (String)itrKey.next();
+			String sValue = (String)mapInput.get(sKey);
+			org.jdom.Element elReturn = new org.jdom.Element(sKey); 
+			elReturn.addContent(sValue);
+			elParent.addContent(elReturn);
+		}
+		return elParent;
+	}
+	
+	private static String selectCurrentSeq(Connection conn, String sSequenceName) throws Exception
+	{
+		String sReturn = "";
+		Statement stmt = null;
+		java.sql.ResultSet rset = null;
+		try {
+			stmt = conn.createStatement();
+			StringBuffer queryStr = new StringBuffer();
+			queryStr.append(" select "+sSequenceName+".Nextval from dual \n");
+			rset = stmt.executeQuery(queryStr.toString());
+			Map mapResult = getResultMapRowsSingle(rset);
+			if(mapResult.get("NEXTVAL") != null)
+			{
+				sReturn = (String)mapResult.get("NEXTVAL");
+			}
+		} catch (Exception e)
+		{
+			throw e;
+		}
+		finally {
+			if (rset != null) rset.close();
+			if (stmt != null) stmt.close();
+		}
+		return sReturn;
+	}
+	
+	private static void insertTableSimple(
+			Connection conn
+			,String sTableName
+			,Map mapInsert
+			) throws Exception
+	{
+		PreparedStatement stmt = null;
+		try {
+			
+			Vector vValue = new Vector();
+			
+			StringBuffer queryStr = new StringBuffer();
+			queryStr.append(" insert into "+sTableName+" \n");
+			queryStr.append(" (");
+			
+			boolean hasValue = false;
+			
+			Set setKey = mapInsert.keySet();
+			Iterator itrKey = setKey.iterator();
+			while(itrKey.hasNext())
+			{
+				String sKey = (String)itrKey.next();
+				Object objValue = mapInsert.get(sKey);
+				if(objValue != null)
+				{
+					if(hasValue)
+					{
+						queryStr.append(",");
+					} else {
+						hasValue = true;
+					}
+					queryStr.append(" "+sKey+" ");
+					vValue.add(objValue);
+				}
+			}
+			queryStr.append(" ) values ( ");
+			for(int index = 0;index< vValue.size();index++)
+        	{
+				if(index != 0)queryStr.append(",");
+				queryStr.append("?");
+        	}
+			queryStr.append(")");
+			
+			System.out.println(queryStr.toString());
+	        stmt = conn.prepareStatement(queryStr.toString());
+	        setStatementValue(stmt,vValue);
+	        
+	        stmt.executeUpdate();
+	        System.out.println(queryStr.toString());
+		} catch (Exception e)
+		{
+			throw e;
+		}
+		finally {
+			if (stmt != null) stmt.close();
+		}
+	}
+	
+	private static ArrayList selectTableSimple(
+			String dbName
+			,String sTableName
+			,Map mapWhere
+			) throws Exception
+	{
+		Connection conn = null;
+		ArrayList resultMapList = new ArrayList();
+	
+		try {
+			conn = DBConnect.getDBConnection(dbName);
+			resultMapList = selectTableSimple(conn,sTableName,mapWhere);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			throw e;
+		}
+		finally {
+			if (conn != null) conn.close();
+		}
+		return resultMapList;
+	}
+	
+	
+	private static ArrayList selectTableSimple(
+			Connection conn
+			,String sTableName
+			,Map mapWhere
+			) throws Exception
+	{
+		PreparedStatement stmt = null;
+		java.sql.ResultSet rset = null;
+	
+		ArrayList resultMapList = new ArrayList();
+	
+		try {
+			System.out.println(mapWhere);
+			Vector vValue = new Vector();
+			
+			StringBuffer queryStr = new StringBuffer();
+			queryStr.append("select *\n");
+			queryStr.append("from "+sTableName+"\n");
+			queryStr.append("WHERE 1=1 \n");
+			
+			Set setKey = mapWhere.keySet();
+			Iterator itrKey = setKey.iterator();
+			while(itrKey.hasNext())
+			{
+				String sKey = (String)itrKey.next();
+				Object objValue = mapWhere.get(sKey);
+				if(objValue != null)
+				{
+					queryStr.append("AND "+sKey+" = ? \n");
+					vValue.add(objValue);
+				}
+			}
+	        stmt = conn.prepareStatement(queryStr.toString());
+	        setStatementValue(stmt,vValue);
+	        
+	        rset = stmt.executeQuery();
+	        System.out.println(queryStr.toString());
+	        resultMapList = getResultMapRows(rset);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			throw e;
+		}
+		finally {
+			if (rset != null) rset.close();
+			if (stmt != null) stmt.close();
+		}
+		return resultMapList;
+	}
+	
+	private static void updateTableSimple(
+			String sDBName
+			,String sTableName
+			,Map mapUpdate
+			,Map mapWhere
+			) throws Exception
+	{
+		Connection conn = null;
+		try{
+			conn = DBConnect.getDBConnection(sDBName);
+			updateTableSimple(conn,sTableName,mapUpdate,mapWhere);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if(conn != null) conn.close();
+		}
+	}
+	
+	
+	private static void updateTableSimple(
+			Connection conn
+			,String sTableName
+			,Map mapUpdate
+			,Map mapWhere
+			) throws Exception
+	{
+		System.out.println("update ****** " + mapUpdate);
+		System.out.println("where ****** " + mapWhere);
+		PreparedStatement stmt = null;
+		try {
+			
+			StringBuffer queryStr = new StringBuffer();
+			queryStr.append("update \n");
+			queryStr.append(" "+sTableName+"\n");
+			queryStr.append(" SET \n");
+			
+			boolean hasSet = false;
+			boolean hasWhere = false;
+			
+			Vector vValue = new Vector();
+			
+			Set setKeyUpdate = mapUpdate.keySet();
+			Iterator itrUpdateKey = setKeyUpdate.iterator();
+			
+			while(itrUpdateKey.hasNext())
+			{
+				String sKey = (String)itrUpdateKey.next();
+				Object objValue = mapUpdate.get(sKey);
+				if(!hasSet)
+				{
+					queryStr.append(" "+sKey+" = ? \n");
+					vValue.add(objValue);
+					hasSet = true;
+				} else {
+					queryStr.append(", "+sKey+" = ? \n");
+					vValue.add(objValue);
+				}
+			}
+			
+			queryStr.append("WHERE 1=1 \n");
+			
+			Set setKey = mapWhere.keySet();
+			Iterator itrKey = setKey.iterator();
+			
+			while(itrKey.hasNext())
+			{
+				String sKey = (String)itrKey.next();
+				Object objValue = mapWhere.get(sKey);
+				queryStr.append("AND "+sKey+" = ? \n");
+				vValue.add(objValue);
+				hasWhere = true;
+			}
+	        
+	        if(hasWhere && hasSet)
+	        {
+	        	stmt = conn.prepareStatement(queryStr.toString());
+	        	setStatementValue(stmt,vValue);
+	        	System.out.println(queryStr.toString());
+	        	stmt.executeUpdate();
+	        }
+		} catch (Exception e)
+		{
+			throw e;
+		}
+		finally {
+			if (stmt != null) stmt.close();
+		}
+	}
+	
+	private static void deleteTableSimple(
+			Connection conn
+			,String sTableName
+			,Map mapWhere
+			) throws Exception
+	{
+		PreparedStatement stmt = null;
+		try {
+			
+			StringBuffer queryStr = new StringBuffer();
+			queryStr.append("DELETE FROM \n");
+			queryStr.append(" "+sTableName+"\n");
+			
+			boolean hasWhere = false;
+			
+			Vector vValue = new Vector();
+			
+			queryStr.append("WHERE 1=1 \n");
+			
+			Set setKey = mapWhere.keySet();
+			Iterator itrKey = setKey.iterator();
+			
+			while(itrKey.hasNext())
+			{
+				String sKey = (String)itrKey.next();
+				Object objValue = mapWhere.get(sKey);
+				queryStr.append("AND "+sKey+" = ? \n");
+				vValue.add(objValue);
+				hasWhere = true;
+			}
+	        
+	        if(hasWhere)
+	        {
+	        	stmt = conn.prepareStatement(queryStr.toString());
+	        	setStatementValue(stmt,vValue);
+	        	System.out.println(queryStr.toString());
+	        	stmt.executeUpdate();
+	        }
+		} catch (Exception e)
+		{
+			throw e;
+		}
+		finally {
+			if (stmt != null) stmt.close();
+		}
+	}
+	
+	
+	private static java.sql.Timestamp getToDayWithTime()
+	{
+		return new java.sql.Timestamp(java.util.Calendar.getInstance().getTimeInMillis());
+	}
+	
+	private static void setStatementValue(PreparedStatement pstmt,Vector vValue) throws Exception
+	{
+		for(int index = 0;index< vValue.size();index++)
+    	{
+    		Object objValue = vValue.get(index);
+    		if(objValue == null) {
+    			throw new Exception("where value is null");
+    		} else if(objValue instanceof String)
+    		{
+    			pstmt.setString(index + 1, (String)vValue.get(index));
+    		} else if(objValue instanceof Integer)
+    		{
+    			pstmt.setInt(index + 1, Integer.parseInt((String)vValue.get(index)));
+    		} else if(objValue instanceof java.sql.Date)
+    		{
+    			pstmt.setDate(index + 1, (java.sql.Date)objValue);
+    		} else if(objValue instanceof java.sql.Timestamp)
+    		{
+    			pstmt.setTimestamp(index + 1, (java.sql.Timestamp)objValue);
+    		} else {
+    			pstmt.setString(index + 1, (String)vValue.get(index));
+    		}
+    	}
+	}
+	
+	public static String getXMLResultFromArrayList(ArrayList mlList)throws Exception
+	{
+		String sReturn = "";
+		if(mlList.size()>0)
+		{
+			org.jdom.output.XMLOutputter outputter = new org.jdom.output.XMLOutputter();
+			org.jdom.Document outDocument = new org.jdom.Document();
+			
+			org.jdom.Element root = new org.jdom.Element("RESULT");
+			outDocument.setRootElement(root);
+			
+			for (int i = 0; mlList != null && i < mlList.size(); i++) 
+		    {
+				org.jdom.Element elResult = new org.jdom.Element("RESULTRECORD");
+		        Map mapResult = (Map)mlList.get(i);
+		        getSimpleElementFromMap(elResult,mapResult);
+		        root.addContent(elResult);
+		    }
+			sReturn = outputter.outputString(outDocument);
+		}
+		return sReturn;
+	}
+	
+	public static String genXMLFromMap(Map mapInput)throws Exception
+	{
+		org.jdom.output.XMLOutputter outputter = new org.jdom.output.XMLOutputter();
+		org.jdom.Document outDocument = new org.jdom.Document();
+		org.jdom.Element root = new org.jdom.Element("RESULT");
+		outDocument.setRootElement(root);
+		getSimpleElementFromMap(root,mapInput);
+		return outputter.outputString(outDocument);
+	}
+	
+	public static Map getRequestMap(HttpServletRequest req) throws Exception
+	{
+		Map mapReturn = new HashMap();
+		Enumeration enumParam = req.getParameterNames();
+		while(enumParam.hasMoreElements())
+		{
+			Object objParam = enumParam.nextElement();
+			if(objParam != null)
+			{
+				mapReturn.put(objParam,req.getParameter((String)objParam));
+			}
+		}
+		return mapReturn;
+	}
+	
+	public static Map preSQL(Map map) throws Exception
+	{
+		if(map != null)
+		{
+			try{
+				Set set = map.keySet();
+				Iterator itr = set.iterator();
+				while(itr.hasNext())
+				{
+					String key = (String)itr.next();
+					Object objVal = map.get(key);
+					if( objVal != null && objVal instanceof String)
+					{
+						String sVal = (String)objVal;
+						sVal = sVal.replaceAll("''", "'");
+						sVal = sVal.replaceAll("'", "''");
+						map.put(key,sVal);
+					}
+				}
+			} catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+		return map;
+	}
+	
+%>
+<%
+	setERP_DBLINK();
+%>

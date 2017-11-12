@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="uscMainList">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.usc_main_search_proc(
+					 #{p_chk_series}
+				   , #{p_area}
+				   , #{p_block_no}
+				   , #{p_block_str_flag}
+				   , #{p_str_flag}
+				   , #{p_attr_code}
+				   , #{p_eco_no}
+				   , #{p_status}
+				   , #{p_bk_code}
+				   , #{p_act_code}
+				   , #{p_job_code}
+				   , #{p_is_work}
+				   , #{p_is_work_yn}
+				   , #{p_upper_block}
+				   , #{curPageNo}
+				   , #{pageSize}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{vcursor, mode=OUT, jdbcType=CURSOR, javaType=ResultSet	, resultMap=uscActivityStdList.procResultMap})
+			}
+	</select>     
+	
+	<select id="uscAreaCodeName" statementType="CALLABLE" parameterType="java.util.Map" resultType="String">
+		SELECT STX_DIS_SD_CODE_DESC_F('USC_AREA_CODE', #{p_area}) AREA_NAME FROM DUAL
+	</select>
+	
+	<select id="uscMasterCode" statementType="CALLABLE" parameterType="java.util.Map" resultType="String">
+		SELECT   REPRESENTATIVE_PRO_NUM
+	      FROM   STX_DIS_PROJECT
+	     WHERE  PROJECT_NO = upper(#{p_project_no})
+	</select>
+	
+	<select id="uscBlockImportCheck" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.usc_block_import_check(
+					#{project_no}
+				   , #{p_area}
+				   , #{p_block}
+				   , #{p_block_str_flag}
+				   , #{p_bk_code}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select>
+	
+	<select id="uscActivityImportCheck" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.usc_activity_import_check(
+					#{project_no}
+				   , #{area}
+				   <if test='block_no != null and !block_no.equalsIgnoreCase("")'>
+				   , #{block_no}
+				   </if>
+				   <if test='block_no == null or block_no.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   , #{block_str_flag}
+				   , #{job_str_flag}
+				   , #{block_catalog}
+				   <if test='activity_catalog != null and !activity_catalog.equalsIgnoreCase("")'>
+				   , #{activity_catalog}
+				   </if>
+				   <if test='activity_catalog == null or activity_catalog.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='job_catalog != null and !job_catalog.equalsIgnoreCase("")'>
+				   , #{job_catalog}
+				   </if>
+				   <if test='job_catalog == null or job_catalog.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   , #{usc_job_type}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select>
+	
+	<select id="uscMainEconoCreate" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_USC_PKG.usc_main_econo_create_proc(
+					#{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{vreturn, mode=OUT, javaType=String, jdbcType=VARCHAR})
+			}
+	</select>
+</mapper>  	

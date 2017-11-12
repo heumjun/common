@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpEmsDbMasterShipDp">
+
+	<delete id="deleteShipDp" parameterType="java.util.Map">
+	DELETE FROM STX_EMS_SHIP_DP
+	</delete>
+	
+  	<insert id="insertShipDp" parameterType="java.util.Map">
+	INSERT INTO STX_EMS_SHIP_DP (SHIP_TYPE, SHIP_SIZE, SHIP_ORDER)
+	VALUES (#{ship_type}, #{ship_size}, #{ship_order})
+	</insert>
+	
+</mapper>

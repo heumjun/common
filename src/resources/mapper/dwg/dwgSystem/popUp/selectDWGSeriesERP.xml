@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectDWGSeriesERP">
+  	<select id = "list" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+  	SELECT SDSM.SERIES_PROJECT_NO
+            ,SDSM.PROJECT_NO
+            ,SDCM.DWG_NO_CONCAT || SDM.DWG_BLOCK AS DWG_NO
+        FROM STX_DWG_SERIES_MASTER@stxerp    SDSM
+            ,STX_DWG_MASTER@stxerp           SDM
+            ,STX_DWG_CATEGORY_MASTERS@stxerp SDCM
+       WHERE SDSM.DWG_NO_ID      = SDM.DWG_NO_ID
+         AND SDM.DWG_CATEGORY_ID = SDCM.DWG_CATEGORY_ID
+         AND SDSM.SERIES_PROJECT_NO = SUBSTR(#{DWG},1,INSTR(#{DWG},'-',1,1)-1)
+         AND SDCM.DWG_NO_CONCAT     = SUBSTR(#{DWG}, INSTR(#{DWG},'-',1,1)+1,5)
+         AND SDM.DWG_BLOCK          = SUBSTR(#{DWG}, INSTR(#{DWG},'-',1,1)+6,5)
+         AND SDSM.ENABLE_FLAG = 'Y'
+     UNION ALL
+     SELECT  SDSM.SERIES_PROJECT_NO
+            ,SDSM.SERIES_PROJECT_NO
+            ,SDCM.DWG_NO_CONCAT || SDM.DWG_BLOCK AS DWG_NO
+        FROM STX_DWG_SERIES_MASTER@stxerp    SDSM
+            ,STX_DWG_MASTER@stxerp           SDM
+            ,STX_DWG_CATEGORY_MASTERS@stxerp SDCM
+       WHERE SDSM.DWG_NO_ID      = SDM.DWG_NO_ID
+         AND SDM.DWG_CATEGORY_ID = SDCM.DWG_CATEGORY_ID
+         AND SDSM.SERIES_PROJECT_NO = SUBSTR(#{DWG},1,INSTR(#{DWG},'-',1,1)-1)
+         AND SDCM.DWG_NO_CONCAT     = SUBSTR(#{DWG}, INSTR(#{DWG},'-',1,1)+1,5)
+         AND SDM.DWG_BLOCK          = SUBSTR(#{DWG}, INSTR(#{DWG},'-',1,1)+6,5)
+         AND ROWNUM = 1
+         AND SDSM.ENABLE_FLAG = 'Y'
+       ORDER BY PROJECT_NO
+  	</select>
+</mapper>

@@ -1,0 +1,1043 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PaintPattern">
+  
+  	<select id="selectPaintAreaCodeCntFromBlock" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_block t1
+	      ,stx_dis_pis_area  t2
+	 where t1.project_no = #{project_no}
+	   and t1.revision   = #{revision}
+	   and t1.area_code  = t2.area_code(+)
+	   and not exists (select '0'
+	                     from stx_dis_pis_pattern_area
+	                    where project_no  =  t1.project_no
+	                      and revision    =  t1.revision
+	                      and area_code   =  t1.area_code)		
+  	</select>
+	
+	<!-- searchAreaCodeFromBlock.xml로 이관 -->
+	<!--  <select id="selectPaintAreaCodeListFromBlock" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+		                         select project_no
+		                               ,revision
+		                               ,area_code
+		                               ,min(area_desc)
+		                                as area_desc  
+		                           from stx_dis_pis_block
+		                          where project_no = #{project_no} 
+		                            and revision   = #{revision}
+		                            <if test="area_code != null and area_code !='' ">
+								    and area_code like #{area_code} || '%' 
+								    </if>
+								  
+		                          group by project_no, revision, area_code
+	                         )
+	
+	select t1.area_code 
+	      ,t1.area_desc
+	      ,t2.loss_code
+	  from temp_paint_block  t1
+	      ,stx_dis_pis_area  t2
+	 where t1.project_no = #{project_no}
+	   and t1.revision   = #{revision}
+	   and t1.area_code  = t2.area_code(+)
+	   <if test="loss_code != null and loss_code !='' ">
+	   and t2.loss_code like #{loss_code} || '%' 
+	   </if>
+	   and not exists (select '0'
+	                     from stx_dis_pis_pattern_area
+	                    where project_no  =  t1.project_no
+	                      and revision    =  t1.revision
+	                      and area_code   =  t1.area_code)
+	 order by t1.area_code     
+ 	</select>-->
+ 	
+ 	<!-- searchLossCodeSetName.xml로 이관 -->
+ 	<!--  <select id="selectPaintLossSetName" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.set_name
+	      ,t1.paint_count || '회' 
+	       as paint_count_desc
+	      ,t1.stage_desc  
+	      ,t1.paint_count
+	      ,t1.pre_loss
+	      ,t1.post_loss
+	      ,t1.pre_loss_rate
+	      ,t1.post_loss_rate
+	      ,(select states_description
+	          from stx_dis_states_mgnt
+	         where states_main_category = 'PAINT'
+	           and states_type          = 'PAINT TYPE' 
+	           and states_code          = t1.paint_type)  
+	       as paint_type      
+	  from stx_dis_pis_loss t1
+	 where loss_code = #{loss_code}
+	 order by t1.set_name, t1.paint_count  
+ 	</select>-->
+  	
+  	<!-- paintPatternList.xml로 이관 -->
+	<!--  <select id="selectPatternList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+		                         select project_no
+		                               ,revision
+		                               ,area_code
+		                               ,min(area_desc)
+		                                as area_desc  
+		                           from stx_dis_pis_block
+		                          where project_no = #{project_no} 
+		                            and revision   = #{revision}
+		                          group by project_no, revision, area_code
+		                         )
+	 select t3.*
+	  from (  
+	        select t2.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					select t6.project_no
+					      ,t6.revision
+					      ,t6.pattern_code
+					      ,t6.define_flag
+					      ,t1.project_no || '_' || t1.pattern_code
+					       as pattern_desc
+					      ,t1.paint_count
+					      ,t1.paint_dft
+					      ,t1.paint_svr
+					      ,t1.paint_stage
+					      ,t1.pre_loss
+					      ,t1.post_loss
+					      ,t2.area_code
+					      ,t3.area_desc
+					      ,t1.paint_item
+					      ,t4.item_desc 
+					      ,t1.season_code
+					      ,t4.stxsvr
+					  from stx_dis_pis_pattern      t6,
+					       stx_dis_pis_pattern_item t1,
+					       stx_dis_pis_pattern_area t2,
+					       temp_paint_block        	t3,
+					       stx_dis_item             t4
+					 where t6.project_no 	= t1.project_no(+) 
+					   and t6.revision 		= t1.revision(+) 
+					   and t6.pattern_code 	= t1.pattern_code(+) 
+					   and t6.project_no 	= t2.project_no(+) 
+					   and t6.revision 		= t2.revision(+) 
+					   and t6.pattern_code 	= t2.pattern_code(+) 
+					   and t2.project_no 	= t3.project_no(+) 
+					   and t2.revision 		= t3.revision(+) 
+					   and t2.area_code 	= t3.area_code(+) 
+					   and t1.paint_item 	= t4.item_code(+) 
+					   and t6.project_no    = #{project_no}
+					   and t6.revision      = #{revision}
+					   
+					   <if test="pattern_code != null and pattern_code !='' ">
+				       and t1.pattern_code like #{pattern_code} || '%'
+				       </if>
+					             
+					   <if test="season_code != '0'.toString() ">
+					   and t1.season_code = #{season_code}
+					   </if>
+					   
+					  order by t6.pattern_code,  t1.season_code, t2.area_code, t1.paint_count
+	   				) t2
+         	) t3
+  	  where page = #{curPageNo}   				  
+  	</select>-->
+  	
+  	<!-- savePatternConfirm.xml로 이관 -->
+  	<!--  <select id="selectAllPatternList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+		                         select project_no
+		                               ,revision
+		                               ,area_code
+		                               ,min(area_desc)
+		                                as area_desc  
+		                           from stx_dis_pis_block
+		                          where project_no = #{project_no} 
+		                            and revision   = #{revision}
+		                          group by project_no, revision, area_code
+		                         )
+		select t6.project_no
+		      ,t6.revision
+		      ,t6.pattern_code
+		      ,t6.define_flag
+		      ,t1.project_no || '_' || t1.pattern_code
+		       as pattern_desc
+		      ,t1.paint_count
+		      ,t1.paint_dft
+		      ,t1.paint_svr
+		      ,t1.paint_stage
+		      ,t1.pre_loss
+		      ,t1.post_loss
+		      ,t2.area_code
+		      ,t3.area_desc
+		      ,t1.paint_item
+		      ,t4.item_desc 
+		      ,t1.season_code
+		      ,t4.stxsvr
+		  from stx_dis_pis_pattern      t6,
+		       stx_dis_pis_pattern_item t1,
+		       stx_dis_pis_pattern_area t2,
+		       temp_paint_block        	t3,
+		       stx_dis_item             t4
+		 where t6.project_no 	= t1.project_no(+) 
+		   and t6.revision 		= t1.revision(+) 
+		   and t6.pattern_code 	= t1.pattern_code(+) 
+		   and t6.project_no 	= t2.project_no(+) 
+		   and t6.revision 		= t2.revision(+) 
+		   and t6.pattern_code 	= t2.pattern_code(+) 
+		   and t2.project_no 	= t3.project_no(+) 
+		   and t2.revision 		= t3.revision(+) 
+		   and t2.area_code 	= t3.area_code(+) 
+		   and t1.paint_item 	= t4.item_code(+) 
+		   and t6.project_no    = #{project_no}
+		   and t6.revision      = #{revision}
+		   
+		   <if test="pattern_code != null and pattern_code !='' ">
+	       and t1.pattern_code like #{pattern_code} || '%'
+	       </if>
+		             
+		  <if test="season_code != '0'.toString() ">
+		   and t1.season_code = #{season_code}
+		   </if>
+		  order by t6.pattern_code, t2.area_code, t1.paint_count, t1.season_code
+	   						  
+  	</select>-->
+  
+  <!-- paintPatternList.xml로 이관 -->
+  <!-- 	<select id="selectPatternListCnt" parameterType="java.util.Map" resultType="int" >
+	 with temp_paint_block as (
+		                         select project_no
+		                               ,revision
+		                               ,area_code
+		                               ,min(area_desc)
+		                                as area_desc  
+		                           from stx_dis_pis_block
+		                          where project_no = #{project_no} 
+		                            and revision   = #{revision}
+		                          group by project_no, revision, area_code
+		                         )
+	select count(*) as cnt
+	  from stx_dis_pis_pattern      t6,
+	  	   stx_dis_pis_pattern_item t1,
+	       stx_dis_pis_pattern_area t2,
+	       temp_paint_block         t3,
+	       stx_dis_item             t4
+	 where t6.project_no 	= t1.project_no(+) 
+   	   and t6.revision 		= t1.revision(+) 
+       and t6.pattern_code 	= t1.pattern_code(+) 
+   	   and t6.project_no 	= t2.project_no(+) 
+   	   and t6.revision 		= t2.revision(+) 
+   	   and t6.pattern_code 	= t2.pattern_code(+) 
+   	   and t2.project_no 	= t3.project_no(+) 
+   	   and t2.revision 		= t3.revision(+) 
+   	   and t2.area_code 	= t3.area_code(+) 
+   	   and t1.paint_item 	= t4.item_code(+) 
+	   and t6.project_no    = #{project_no}
+	   and t6.revision      = #{revision}
+	   
+	   <if test="pattern_code != null and pattern_code !='' ">
+       and t1.pattern_code like #{pattern_code} || '%'
+       </if>
+	   
+	   <if test="season_code != '0'.toString() ">
+	   and t1.season_code 	= #{season_code}
+	   </if>
+  	</select>
+  	-->
+  	
+  	<!-- savePaintPattern.xml로 이관 -->
+  	<!--  <select id="selectExistPatternCodeCnt" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt 
+	  from stx_dis_pis_pattern
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</select>-->     
+	
+	<!-- savePaintPattern.xml로 이관 -->
+	<!--  <select id="selectIsItemModified" parameterType="java.util.Map" resultType="String" >
+	select (case when paint_count = #{paint_count} and season_code = #{season_code}
+             then 'Y'
+             else 'N'
+       	   end) as isModified      
+	  from stx_dis_pis_pattern_item 
+	 where rowid = #{pattern_rowid}
+	</select>-->    	
+	
+	<!-- savePaintPattern.xml로 이관 -->
+	<!--  
+	<select id="selectIsAreaModified" parameterType="java.util.Map" resultType="String" >
+	select (case when area_code = #{area_code}
+             then 'Y'
+             else 'N'
+       	   end) as isModified      
+	  from stx_dis_pis_pattern_area 
+	 where rowid = #{pattern_rowid}
+	</select>   --> 	
+		
+	<!--  savePaintPattern.xml로 이관 -->
+  	<!--  <select id="selectExistPatternPaintCodeCnt" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt 
+	  from stx_dis_pis_pattern_item
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and paint_count  = #{paint_count}
+	   and pattern_code = #{pattern_code}
+	   and season_code  = #{season_code}
+	</select> --> 
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <select id="selectExistPatternAreaCodeCnt" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt 
+	  from stx_dis_pis_pattern_area
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and area_code	= #{area_code}
+	</select>-->    
+
+	<select id="selectExistBlockCodeCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_block
+	  where project_no = #{project_no}
+	    and revision   = #{revision}  
+	    and block_code = #{block_code}
+	</select>  
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <select id="selectExistItemCodeCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt
+	  from stx_dis_item
+	 where item_code = #{paint_item}
+	</select>-->   
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!-- <select id="selectExistStageCodeCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_stage
+	  where stage_code = #{paint_stage}
+	</select>   
+	-->
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--<select id="selectExistAreaCodeCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_block
+	  where project_no = #{project_no}
+	    and revision   = #{revision}  
+	    and area_code  = #{area_code}
+	</select>  -->  
+  	<!--  savePaintPattern.xml로 이관 -->
+  	<!-- <delete id="deletePaintPatternItem">
+	delete from stx_dis_pis_pattern_item
+     where 1=1 
+       and rowid	= #{pattern_rowid}
+	</delete> --> 
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <update id="updatePaintPatternItem">
+	update stx_dis_pis_pattern_item
+	   set paint_item		= #{paint_item}
+	      ,season_code		= #{season_code}
+	      ,paint_stage		= #{paint_stage}
+	      ,paint_dft		= nvl(#{paint_dft}, 0)
+	      ,paint_svr		= nvl(#{paint_svr}, 0) 
+	      ,pre_loss			= nvl(#{pre_loss},  0)
+	      ,post_loss		= nvl(#{post_loss}, 0)	
+	      ,last_updated_by  = -1
+	      ,last_update_date = sysdate
+	 where rowid  	 		= #{pattern_rowid}
+	</update> -->
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <delete id="deletePaintPatternArea">
+	delete from stx_dis_pis_pattern_area
+     where 1=1 
+       and rowid	= #{pattern_rowid}
+	</delete>-->
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <update id="updatePaintPatternArea">
+	update stx_dis_pis_pattern_item
+	   set area_code		= #{area_code}	
+	      ,last_updated_by  = -1
+	      ,last_update_date = sysdate
+	 where rowid  	 		= #{pattern_rowid}
+	</update>-->
+	
+	<!-- savePatternConfirm.xml로 이관 -->
+	<!--  <update id="updatePatternCodeConfirm">
+	update stx_dis_pis_pattern
+	   set define_flag  = 'D'
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}	
+	   and pattern_code = #{pattern_code}
+	   and define_flag  is null
+	</update> -->
+	
+	<!-- savePatternUndefine.xml로 이관 -->
+	<!--<update id="updatePatternCodeUndefine">
+	update stx_dis_pis_pattern
+	   set define_flag  = null
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}	
+	   and pattern_code = #{pattern_code}
+	   and define_flag  = 'D'
+	</update> -->
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <insert id="insertPaintPatternItem" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern_item
+	   (
+		  project_no
+	     ,revision
+	     ,pattern_code
+	     ,paint_count
+	     ,paint_item
+	     ,season_code
+	     ,paint_stage
+	     ,paint_dft
+	     ,paint_svr
+	     ,pre_loss
+	     ,post_loss
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   values
+	   (
+	      #{project_no}
+	     ,#{revision}
+	     ,#{pattern_code}
+	     ,#{paint_count}
+	     ,#{paint_item}
+	     ,#{season_code}
+	     ,#{paint_stage}
+	     ,nvl(#{paint_dft}, 0) 
+	     ,nvl(#{paint_svr}, 0)
+	     ,nvl(#{pre_loss},  0)
+	     ,nvl(#{post_loss}, 0)
+	    ,-1
+	    ,sysdate
+	    ,-1
+	    ,sysdate     
+	   )
+	</insert>-->
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <insert id="insertPaintPatternWinterItem" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern_item
+		(
+		   project_no
+		  ,revision
+		  ,pattern_code
+		  ,paint_count
+		  ,paint_item
+		  ,paint_dft
+		  ,paint_stage
+		  ,paint_svr
+		  ,season_code             
+		  ,pre_loss
+		  ,post_loss
+		  ,created_by
+		  ,creation_date
+		  ,last_updated_by
+		  ,last_update_date
+		)
+		select project_no
+		      ,revision
+		      ,pattern_code
+		      ,paint_count
+		      ,nvl((select paint_code
+		              from stx_dis_item
+		             where item_code = t1.paint_item
+		               and rownum    = 1)  
+		           ,t1.paint_item) as paint_item
+		      ,paint_dft
+		      ,paint_stage
+		      ,paint_svr
+		      ,'W'                 as season_code
+		      ,pre_loss
+		      ,post_loss
+		      ,created_by
+		      ,creation_date
+		      ,last_updated_by
+		      ,last_update_date       
+		 from stx_dis_pis_pattern_item t1
+		where project_no   =  #{project_no}
+		  and revision	   =  #{revision}
+		  and pattern_code =  #{pattern_code}
+		  and season_code  =  'S'
+	</insert>-->
+	
+	<!-- savePaintPattern.xml로 이관 -->
+	<!-- 
+	<delete id="deletePaintPatternWinterItem">
+	delete from stx_dis_pis_pattern_item
+     where 1=1
+	   and project_no   =  #{project_no}
+	   and revision	    =  #{revision}
+	   and pattern_code =  #{pattern_code}
+	   and season_code  =  'W'
+	</delete> -->
+	
+	<!-- <delete id="deletePaintPatternAllItem">
+	delete from stx_dis_pis_pattern_item
+     where 1=1
+	   and project_no   =  #{project_no}
+	   and revision	    =  #{revision}
+	   and pattern_code =  #{pattern_code}
+	</delete> -->
+	
+	<!-- savePaintPattern.xml로 이관 -->
+	<!--  <insert id="insertPaintPatternArea" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern_area
+	   (
+		  project_no
+	     ,revision
+	     ,pattern_code
+	     ,area_code
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   values
+	   (
+	     #{project_no}
+	    ,#{revision}
+	    ,#{pattern_code}
+	    ,#{area_code}
+	    ,-1
+	    ,sysdate
+	    ,-1
+	    ,sysdate     
+	   )
+	</insert> -->
+	
+	<!-- savePaintPattern.xml로 이관 -->
+	<!--  <insert id="insertPaintPatternCode" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern
+	   (
+		  project_no
+	     ,revision
+	     ,pattern_code
+	     ,define_flag
+	     ,created_by
+	     ,creation_date
+	     ,last_updated_by
+	     ,last_update_date
+	   )
+	   values
+	   (
+	     #{project_no}
+	    ,#{revision}
+	    ,#{pattern_code}
+	    ,null
+	    ,-1
+	    ,sysdate
+	    ,-1
+	    ,sysdate     
+	   )
+	</insert>-->
+	
+	<!-- searchPatternPaintItem.xml로 이관 -->
+	<!--  <select id="searchPatternPaintItem" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.project_no
+	      ,t1.revision
+	      ,t1.pattern_code	
+	      ,t1.paint_count
+	      ,t1.paint_item
+	      ,t2.item_desc 			   as paint_desc      
+	      ,t1.paint_dft
+	      ,t1.paint_stage
+	      ,t1.paint_svr
+	      ,t1.season_code
+	      ,t1.pre_loss
+	      ,t1.post_loss 
+	      ,cast(t1.rowid as char(18))  as pattern_rowid      
+	  from stx_dis_pis_pattern_item t1
+	  	  ,stx_dis_item             t2
+	 where t1.paint_item       =   t2.item_code
+	   and t1.project_no       =   #{project_no}                 
+	   and t1.revision         =   #{revision}
+	   and t1.pattern_code     =   #{pattern_code}
+	   and t1.season_code	   =   'S' 
+	 order by t1.paint_count, t1.season_code
+ 	</select>-->
+	
+	<!-- searchPatternPaintArea.xml로 이관 -->
+	<!--  <select id="searchPatternPaintArea" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+	                         select project_no
+	                               ,revision
+	                               ,area_code
+	                               ,min(area_desc)
+	                                as area_desc  
+	                           from stx_dis_pis_block
+	                          where project_no = #{project_no} 
+	                            and revision   = #{revision}
+	                          group by project_no, revision, area_code
+	                         )
+	select t1.project_no
+	      ,t1.revision
+	      ,t1.pattern_code
+	      ,t1.area_code
+	      ,t2.area_desc
+	      ,t3.loss_code 
+	      ,(select zone_code
+	          from stx_dis_pis_zone
+	         where project_no = t1.project_no
+	           and revision	  = t1.revision	
+	           and area_code  = t1.area_code) as zone_code       				
+	      ,cast(t1.rowid as char(18))  		  as pattern_rowid      
+	  from stx_dis_pis_pattern_area t1
+	      ,temp_paint_block         t2
+	      ,stx_dis_pis_area         t3
+	 where t1.project_no    =  t2.project_no
+	   and t1.revision      =  t2.revision
+	   and t1.area_code     =  t2.area_code
+	   and t2.area_code     =  t3.area_code(+)
+	   and t1.project_no    =  #{project_no}                     
+	   and t1.revision      =  #{revision}
+	   and t1.pattern_code  =  #{pattern_code}
+  	 order by area_code 
+ 	</select>-->
+ 	
+ 	<!-- patternExcelExport.xml로 이관-->
+ 	<!--  <select id="selectPatternExport" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+	                         select project_no
+	                               ,revision
+	                               ,area_code
+	                               ,min(area_desc)
+	                                as area_desc  
+	                           from stx_dis_pis_block
+	                          where project_no = #{project_no} 
+	                            and revision   = #{revision}
+	                          group by project_no, revision, area_code
+	                         )
+	select t1.project_no
+	      ,t1.revision
+	      ,t1.pattern_code
+	      ,t6.define_flag
+	      ,t1.project_no || '_' || t1.pattern_code
+	       as pattern_desc
+	      ,t1.paint_count
+	      ,t1.paint_dft
+	      ,t1.paint_svr
+	      ,t1.paint_stage
+	      ,t1.pre_loss
+	      ,t1.post_loss
+	      ,t2.area_code
+	      ,t3.area_desc
+	      ,t1.paint_item
+	      ,t4.item_desc 
+	      ,t1.season_code
+	      ,t4.stxsvr
+	  from stx_dis_pis_pattern      t6,
+	       stx_dis_pis_pattern_item t1,
+	       stx_dis_pis_pattern_area t2,
+	       temp_paint_block         t3,
+	       stx_dis_item             t4
+	 where t6.project_no    = t1.project_no
+	   and t6.revision      = t1.revision
+	   and t6.pattern_code  = t1.pattern_code
+	   and t1.project_no    = t2.project_no
+	   and t1.revision      = t2.revision
+	   and t1.pattern_code  = t2.pattern_code
+	   and t2.project_no    = t3.project_no
+	   and t2.revision      = t3.revision
+	   and t2.area_code     = t3.area_code
+	   and t1.paint_item    = t4.item_code
+	   and t1.project_no    = #{project_no}
+	   and t1.revision      = #{revision}
+	   
+	   <if test="pattern_code != null and pattern_code !='' ">
+       and t1.pattern_code like #{pattern_code} || '%'
+       </if>
+	   
+	  <if test="season_code != '0'.toString() ">
+	   and t1.season_code = #{season_code}
+	   </if>
+	  order by t1.pattern_code, t1.season_code, t1.paint_count, t2.area_code			  
+  	</select>-->
+  	
+  	<!-- patternExcelExport.xml로 이관-->
+  	<!--  <select id="selectPatternExport2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with pattern_item as (select project_no
+	                            ,revision
+	                            ,pattern_code
+	                            ,paint_count
+	                            ,paint_item
+	                            ,paint_dft
+	                            ,paint_stage
+	                            ,paint_svr
+	                            ,season_code
+	                            ,pre_loss
+	                            ,post_loss
+	                            ,row_number() over(partition by project_no, revision, pattern_code order by  project_no, revision, pattern_code, season_code, paint_count)
+	                             as item_cnt
+	                        from stx_dis_pis_pattern_item t1
+	                       where project_no = #{project_no}   
+	                         and revision   = #{revision}
+	                         
+	                         <if test="pattern_code != null and pattern_code !='' ">
+					         and pattern_code like #{pattern_code} || '%'
+					         </if>
+					         
+					        <if test="season_code != '0'.toString() ">
+						  	 and season_code = #{season_code}
+						   	 </if>
+		                    )
+	   ,pattern_area as (select project_no
+	                           ,revision
+	                           ,pattern_code
+	                           ,area_code
+	                           ,row_number() over(partition by project_no, revision, pattern_code order by  project_no, revision, pattern_code, area_code)
+	                            as area_cnt
+	                       from stx_dis_pis_pattern_area
+	                      where project_no = #{project_no}   
+	                        and revision   = #{revision} 
+	                        
+	                        <if test="pattern_code != null and pattern_code !='' ">
+					        and pattern_code like #{pattern_code} || '%'
+					        </if>  
+	                      )  
+	   ,temp_paint_block as (
+	                         select project_no
+	                               ,revision
+	                               ,area_code
+	                               ,min(area_desc)
+	                                as area_desc  
+	                           from stx_dis_pis_block
+	                          where project_no = #{project_no} 
+	                            and revision   = #{revision}
+	                          group by project_no, revision, area_code
+	                         )                    
+	select t1.project_no
+	      ,t1.revision
+	      ,t1.pattern_code
+	      ,t2.paint_count
+	      ,t2.paint_item
+	      ,t4.item_desc
+	      ,t2.paint_dft
+	      ,t2.paint_stage
+	      ,t2.paint_svr
+	      ,t2.season_code
+	      ,t2.pre_loss
+	      ,t2.post_loss
+	      ,t3.area_code
+	      ,t5.area_desc
+	      ,(select loss_code
+	          from stx_dis_pis_area
+	         where area_code = t3.area_code)
+	       as loss_code  
+	  from (select project_no
+	              ,revision
+	              ,pattern_code 
+	              ,item_cnt
+	          from pattern_item
+	        union  
+	        select project_no
+	              ,revision
+	              ,pattern_code 
+	              ,area_cnt
+	         from pattern_area
+	      )                     t1                
+	      , pattern_item        t2
+	      , pattern_area        t3
+	      , stx_dis_item        t4
+	      , temp_paint_block    t5
+	where t1.project_no       = t2.project_no(+)
+	  and t1.revision         = t2.revision(+)
+	  and t1.pattern_code     = t2.pattern_code(+)
+	  and t1.item_cnt         = t2.item_cnt(+)
+	  and t1.project_no       = t3.project_no(+)
+	  and t1.revision         = t3.revision(+)
+	  and t1.pattern_code     = t3.pattern_code(+)
+	  and t1.item_cnt         = t3.area_cnt(+)
+	  and t2.paint_item       = t4.item_code(+)
+	  and t3.project_no       = t5.project_no(+)
+	  and t3.revision         = t5.revision(+)
+	  and t3.area_code        = t5.area_code(+)
+	order by  t1.pattern_code, t1.item_cnt		  
+  	</select>-->
+  	
+  	<!-- savePatternConfirm.xml로 이관 -->
+  	<!--  <select id="selectExistPatternScheme" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt
+  	   from stx_dis_pis_pattern_scheme
+	  where 1=1
+	    and project_no 	  = #{project_no}
+	    and revision   	  = #{revision}  
+	    and pattern_code  = #{pattern_code}
+	</select> --> 
+	
+	<!-- savePatternConfirm.xml로 이관 -->
+	<!--  <delete id="deletePatternScheme">
+	delete from stx_dis_pis_pattern_scheme
+     where 1=1
+	   and project_no 	  = #{project_no}
+	   and revision   	  = #{revision}  
+	   and pattern_code   = #{pattern_code}
+	</delete>-->
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <delete id="deletePaintPattern">
+	delete from stx_dis_pis_pattern
+     where 1=1
+	   and project_no 	  = #{project_no}
+	   and revision   	  = #{revision}  
+	   and pattern_code   = #{pattern_code}
+	   and define_flag	  is null
+	</delete>-->
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <select id="selectBlockCodeFromAreaCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with temp_stage as (select block_rate
+	                          ,pe_rate
+	                          ,dock_rate
+	                          ,quay_rate
+	                     from stx_dis_pis_stage
+	                    where stage_code = #{paint_stage}
+	                    ) 
+	select t3.*
+	      ,round(t3.temp_block_area / pre_tsr,   3) as block_quantity
+	      ,round(t3.temp_pe_area /  post_tsr,    3) as pe_quantity
+	      ,round(t3.temp_hull_area / post_tsr,   3) as hull_quantity
+	      ,round(t3.temp_quay_area / post_tsr,   3) as quay_quantity
+	      ,round(t3.temp_block_area / paint_tsr, 3) as block_theory_quantity
+	      ,round(t3.temp_pe_area /  paint_tsr,   3) as pe_theory_quantity
+	      ,round(t3.temp_hull_area / paint_tsr,  3) as hull_theory_quantity
+	      ,round(t3.temp_quay_area / paint_tsr,  3) as quay_theory_quantity
+	  from (                          
+	        select t1.project_no
+	              ,t1.revision
+	              ,#{pattern_code}                         as pattern_code   
+	              ,t1.area_code
+	              ,t1.area_desc
+	              ,t1.block_code
+	              ,t1.area
+	              ,t3.pe_code
+	              ,nvl(t3.pre_pe_code, '')				   as pre_pe_code
+	              ,round(t1.area * t2.block_rate / 100, 3) as block_area
+	              ,round(t1.area * t2.pe_rate 	 / 100, 3) as pe_area
+	              ,round(t1.area * t2.dock_rate  / 100, 3) as hull_area
+	              ,round(t1.area * t2.quay_rate  / 100, 3) as quay_area	              
+	              ,t1.area * t2.block_rate / 100           as temp_block_area
+	              ,t1.area * t2.pe_rate 	 / 100         as temp_pe_area
+	              ,t1.area * t2.dock_rate  / 100           as temp_hull_area
+	              ,t1.area * t2.quay_rate  / 100           as temp_quay_area	              	              
+	              ,t2.block_rate						   as block_rate
+	              ,t2.pe_rate							   as pe_rate 
+	              ,t2.dock_rate							   as dock_rate 
+	              ,t2.quay_rate							   as quay_rate
+	              ,#{zone_code}							   as zone_code
+	              ,#{paint_tsr}                            as paint_tsr
+	              ,#{pre_tsr}                              as pre_tsr
+	              ,#{post_tsr}                             as post_tsr    
+	          from stx_dis_pis_block t1
+	              ,temp_stage        t2 
+	              ,stx_dis_pis_pe	 t3
+	         where t1.project_no   = #{project_no}
+	           and t1.revision     = #{revision} 
+	           and t1.area_code    = #{area_code}
+	           and t1.project_no   = t3.project_no(+)
+	           and t1.revision	   = t3.revision(+)
+	           and t1.block_code   = t3.block_code(+)
+	        ) t3  
+	 order by t3.block_code
+	</select> -->
+	
+	<!-- savePatternConfirm.xml로 이관 -->
+	<!--  <select id="searchPatternPaintCodeTsr" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t3.*
+	      ,(t3.paint_tsr * (100 - t3.pre_loss) / 100)  as pre_tsr
+	      ,(t3.paint_tsr * (100 - t3.post_loss) / 100) as post_tsr
+	  from (
+	        select t1.project_no
+	              ,t1.revision
+	              ,t1.pattern_code	
+	              ,t1.paint_count
+	              ,t1.paint_item
+	              ,t2.item_desc 			   as paint_desc      
+	              ,t1.paint_dft
+	              ,t1.paint_stage
+	              ,t1.paint_svr
+	              ,t1.season_code
+	              ,t1.pre_loss
+	              ,t1.post_loss 
+	              ,(decode(t1.paint_svr,0,50,t1.paint_svr) * 10 ) / t1.paint_dft
+	               as paint_tsr       
+	          from stx_dis_pis_pattern_item t1
+	              ,stx_dis_item             t2
+	         where t1.paint_item       =   t2.item_code
+			   and t1.project_no       =   #{project_no}                 
+			   and t1.revision         =   #{revision}
+			   and t1.pattern_code     =   #{pattern_code}
+			) t3    
+     order by t3.paint_count, t3.season_code   
+ 	</select> -->
+	
+	<!-- savePatternConfirm.xml로 이관 -->
+	<!--  <insert id="insertPaintPatternScheme" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern_scheme
+	   (
+		 project_no            
+		,revision              
+		,pattern_code          
+		,block_code 
+		,pe_code
+		,pre_pe_code
+		,zone_code           
+		,area_code             
+		,season_code           
+		,paint_count           
+		,paint_item            
+		,paint_dft             
+		,paint_stage           
+		,paint_svr             
+		,pre_loss              
+		,post_loss             
+		,block_area            
+		,pe_area               
+		,hull_area             
+		,quay_area 
+		,pre_pe_area            
+		,block_quantity        
+		,pe_quantity           
+		,hull_quantity         
+		,quay_quantity  
+		,pre_pe_quantity       
+		,block_theory_quantity 
+		,pe_theory_quantity    
+		,hull_theory_quantity  
+		,quay_theory_quantity  
+		,pre_pe_theory_quantity
+		,created_by            
+		,creation_date         
+		,last_updated_by       
+		,last_update_date   
+	   )
+	   values
+	   ( 
+	     #{project_no}            
+		,#{revision}              
+		,#{pattern_code}          
+		,#{block_code}   
+		,#{pe_code}
+		,#{pre_pe_code}
+		,#{zone_code}            
+		,#{area_code}             
+		,#{season_code}           
+		,#{paint_count}           
+		,#{paint_item}            
+		,#{paint_dft}             
+		,#{paint_stage}           
+		,#{paint_svr}             
+		,#{pre_loss}              
+		,#{post_loss}             
+		,#{block_area}            
+		,#{pe_area}               
+		,#{hull_area}             
+		,#{quay_area}    
+		,0         
+		,#{block_quantity}        
+		,#{pe_quantity}           
+		,#{hull_quantity}         
+		,#{quay_quantity}  
+		,0       
+		,#{block_theory_quantity} 
+		,#{pe_theory_quantity}    
+		,#{hull_theory_quantity}  
+		,#{quay_theory_quantity}  
+		,0
+	    ,-1
+	    ,sysdate
+	    ,-1
+	    ,sysdate     
+	   )
+	</insert> -->
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <select id="selectCountPatternItem" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_pattern_item 
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</select>--> 
+	
+	<!--  savePaintPattern.xml로 이관 -->
+	<!--  <select id="selectCountPatternArea" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_pattern_area 
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</select>--> 
+	
+	<!--  deletePatternList.xml로 이관 -->
+	<!--  <select id="selectPatternDefineFlag" parameterType="java.util.Map" resultType="string" >
+	select define_flag
+	  from stx_dis_pis_pattern 
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</select>--> 
+	
+	<!--  deletePatternList.xml로 이관 -->
+	<!--  <delete id="deletePaintPatternCode">
+	delete from stx_dis_pis_pattern
+     where 1=1
+	   and project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</delete>-->  
+	
+	<!--  deletePatternList.xml로 이관 -->
+	<!--  <delete id="deletePaintPatternItemList">
+	delete from stx_dis_pis_pattern_item
+	 where 1=1
+	   and project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</delete>-->
+	
+	<!--  deletePatternList.xml로 이관 -->  
+	<!--  <delete id="deletePaintPatternAreaList">
+	delete from stx_dis_pis_pattern_area
+     where 1=1 
+	   and project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</delete> -->
+	
+	<!-- searchCopyItemListFromPattern.xml로 이관 -->
+	<!--  <select id="selectCopyItemListFromPattern" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.paint_count   as paint_count
+	      ,t1.paint_item    as paint_item                 
+	      ,t2.item_desc     as paint_desc
+	      ,t1.paint_dft     as paint_dft
+	      ,t1.paint_stage   as paint_stage
+	      ,t1.paint_svr     as paint_svr
+	      ,t1.season_code   as season_code
+	      ,t1.pre_loss      as pre_loss
+	      ,t1.post_loss     as post_loss
+	      ,null             as pattern_rowid
+	  from stx_dis_pis_pattern_item t1
+	      ,stx_dis_item             t2
+	 where t1.project_no   = #{project_no} 
+	   and t1.revision     = #{revision}                    
+	   and t1.pattern_code = #{pattern_code}
+	   and t1.season_code  = 'S'
+	   and t1.paint_item   = t2.item_code
+	 order by t1.paint_count, t1.paint_item
+	</select> -->
+	
+</mapper>  	

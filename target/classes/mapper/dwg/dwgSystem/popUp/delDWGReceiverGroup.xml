@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="delDWGReceiverGroup">
+  	<delete id="delete_STX_DWG_RECEIVER_GROUP_HEAD" parameterType="java.util.Map">
+  		delete from STX_DWG_RECEIVER_GROUP_HEAD
+  			  where group_id = #{GROUP_ID}
+  	</delete>
+  	
+  	<delete id="delete_STX_DWG_RECEIVER_GROUP_DETAIL">
+  		delete from STX_DWG_RECEIVER_GROUP_DETAIL
+  			  where group_id = #{GROUP_ID}
+  	</delete>
+</mapper>

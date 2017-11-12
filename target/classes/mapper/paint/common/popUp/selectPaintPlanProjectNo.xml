@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectPaintPlanProjectNo">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select project_no
+	      ,revision
+	      ,(case state when 'D' then 'Release'
+			                    else 'Preliminary'
+		   end) as state_desc
+		   ,DECODE((SELECT COUNT(*)
+			FROM STXDIS.STX_DIS_PAINT_BOM_IF_HEAD A,
+			     STX_DIS_ENG_CHANGE_ORDER B
+			WHERE PROJECT_NO= SDPP.project_no
+			  AND REVISION =  SDPP.revision
+			  AND A.ALL_ECO_NO  = B.ENG_CHANGE_ORDER_CODE
+			  AND B.STATES_CODE ='RELEASE'),0,'N','Y') AS SEARCH_FLAG  
+	  from stx_dis_pis_plan SDPP
+	 where project_no like #{project_no} || '%'
+	   and revision   like #{revision} 	 || '%'
+	 order by project_no, revision  				  
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_plan
+	 where project_no like #{project_no} || '%'
+	   and revision   like #{revision} 	 || '%'
+  	</select>
+
+</mapper>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="manualList">
+
+  	<!-- 프로그램관리 조회버튼 클릭시 SQL Mapping -->
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T2.*
+		  FROM (SELECT T1.*
+		             , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM ( SELECT MANUAL_OPTION
+						      ,PGM_ID
+						      ,PGM_NAME
+						      ,DESCRIPTION
+						      ,ENABLE_FLAG
+						  FROM ( SELECT SDM.MANUAL_OPTION
+						               ,SDM.PGM_ID
+						               ,SDP.PGM_NAME
+						               ,SDM.DESCRIPTION
+						               ,SDM.ENABLE_FLAG
+						           FROM STX_DIS_MANUAL  SDM
+						               ,STX_DIS_PROGRAM SDP
+						          WHERE SDM.PGM_ID = SDP.PGM_ID
+						            AND SDM.MANUAL_OPTION = 'MANUAL'
+						         UNION ALL
+						         SELECT SDM.MANUAL_OPTION
+						               ,SDM.PGM_ID
+						               ,SDM.PGM_NAME
+						               ,SDM.DESCRIPTION
+						               ,SDM.ENABLE_FLAG
+						           FROM STX_DIS_MANUAL SDM
+						          WHERE SDM.MANUAL_OPTION = '양식지' OR SDM.MANUAL_OPTION = '기타양식지' ) A
+						 WHERE 1=1
+						 <if test="p_manual_option != null and p_manual_option !='' ">
+						   AND A.MANUAL_OPTION = #{p_manual_option, jdbcType=VARCHAR}
+						 </if>
+						 <if test="p_pgm_name != null and p_pgm_name !='' ">
+						   AND A.PGM_NAME LIKE REPLACE(#{p_pgm_name, jdbcType=VARCHAR} , '*', '%') || '%'
+						 </if>
+						 <if test="p_description != null and p_description !='' ">
+						   AND A.DESCRIPTION LIKE REPLACE(#{p_description, jdbcType=VARCHAR} , '*', '%') || '%'
+						 </if>
+						 
+		                 ORDER BY PGM_ID ) T1 ) T2
+		 WHERE PAGE = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT     
+		  FROM ( SELECT SDM.MANUAL_OPTION
+		               ,SDM.PGM_ID
+		               ,SDP.PGM_NAME
+		               ,SDM.DESCRIPTION
+		               ,SDM.ENABLE_FLAG
+		           FROM STX_DIS_MANUAL  SDM
+		               ,STX_DIS_PROGRAM SDP
+		          WHERE SDM.PGM_ID = SDP.PGM_ID
+		            AND SDM.MANUAL_OPTION = 'MANUAL'
+		         UNION ALL
+		         SELECT SDM.MANUAL_OPTION
+		               ,SDM.PGM_ID
+		               ,SDM.PGM_NAME
+		               ,SDM.DESCRIPTION
+		               ,SDM.ENABLE_FLAG
+		           FROM STX_DIS_MANUAL SDM
+		          WHERE SDM.MANUAL_OPTION = '양식지' OR SDM.MANUAL_OPTION = '기타양식지' ) A
+		 WHERE 1=1
+		 <if test="p_manual_option != null and p_manual_option !='' ">
+		   AND A.MANUAL_OPTION = #{p_manual_option, jdbcType=VARCHAR}
+		 </if>
+		 <if test="p_pgm_name != null and p_pgm_name !='' ">
+		   AND A.PGM_NAME LIKE REPLACE(#{p_pgm_name, jdbcType=VARCHAR} , '*', '%') || '%'
+		 </if>
+		 <if test="p_description != null and p_description !='' ">
+		   AND A.DESCRIPTION LIKE REPLACE(#{p_description, jdbcType=VARCHAR} , '*', '%') || '%'
+		 </if>
+  	</select>
+  	
+  	<select id="manualInfoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		SELECT SDM.PGM_ID 
+		       ,(SELECT /*+ INDEX_DESC( SDMF STX_DIS_MANUAL_FILE_U1) */ 
+		              SDMF.REVISION_NO
+		         FROM STX_DIS_MANUAL_FILE SDMF 
+		        WHERE SDMF.PGM_ID = SDM.PGM_ID
+		          AND ROWNUM = 1 
+		       )                AS REVISION_NO
+		       ,(SELECT /*+ INDEX_DESC( SDMF STX_DIS_MANUAL_FILE_U1) */ 
+	                  SDMF.FILENAME
+	             FROM STX_DIS_MANUAL_FILE SDMF 
+	            WHERE SDMF.PGM_ID = SDM.PGM_ID
+	              AND ROWNUM = 1 
+	           )                AS FILENAME
+		  FROM STX_DIS_MANUAL  SDM
+		 WHERE SDM.PGM_ID = (
+		      SELECT A.PGM_ID
+		        FROM STX_DIS_MENU A, STX_DIS_PROGRAM B
+		       WHERE 1=1
+		         AND A.PGM_ID = B.PGM_ID(+)
+		         AND MENU_ID = #{menu_id}  
+		      )
+		 AND SDM.MANUAL_OPTION = 'MANUAL'     
+  	</select>
+  	
+</mapper>

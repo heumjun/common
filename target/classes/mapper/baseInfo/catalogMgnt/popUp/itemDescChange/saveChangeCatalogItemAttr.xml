@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveChangeCatalogItemAttr">  
+		
+  	<insert id="insertCatalogAttributeNameHis" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_attr_his
+        (
+         revision_no
+        ,process_action
+        ,catalog_code
+        ,attribute_type
+        ,attribute_code
+        ,attribute_name
+        ,attribute_data_type
+        ,assy_attribute_code
+        ,attribute_data_min
+        ,attribute_data_max
+        ,value_code
+        ,item_make_value
+        ,assy_value_code
+        ,enable_flag
+        ,item_rowid
+        ,item_value_rowid
+        ,item_value_de_rowid
+        ,created_by
+        ,creation_date
+        ,last_updated_by            
+        ,last_update_date 
+        )
+        values
+        (
+         #{revision_no}
+        ,'CHANGE' 
+        ,#{catalog_code}
+        ,'ITEM'
+        ,#{attribute_code}
+        ,#{attribute_name}
+        ,#{attribute_data_type}
+        ,#{assy_attribute_code}
+        ,#{attribute_data_min}
+        ,#{attribute_data_max}
+        ,null
+        ,null
+        ,null
+        ,null
+        ,#{main_rowid}
+        ,null
+        ,null
+        ,'-1'
+        ,SYSDATE
+        ,'-1'
+        ,SYSDATE
+        )
+    </insert>
+    <update id="updateCatalogAttributeName" parameterType="java.util.Map">
+	update stx_dis_sd_catalog_attribute
+       set attribute_name   = #{edit_attribute_name}
+	      ,last_updated_by  = -1
+	      ,last_update_date = sysdate
+ 	where rowid = #{main_rowid} 
+	</update>
+	<update id="updateDescriptiveElements2" parameterType="java.util.Map">
+	UPDATE MTL_DESCRIPTIVE_ELEMENTS@stxerp
+	   SET ELEMENT_NAME 		 = #{edit_attribute_name}
+	   	  ,LAST_UPDATE_DATE  	 = SYSDATE         
+          ,LAST_UPDATED_BY       = -1      
+          ,LAST_UPDATE_LOGIN     = -1   
+	 WHERE ITEM_CATALOG_GROUP_ID = #{v_item_catalog_group_id}
+	   AND ELEMENT_SEQUENCE      = DECODE( #{attribute_code}, '10', #{attribute_code} ||'0', '11', #{attribute_code} ||'0', '12', #{attribute_code} ||'0', '13', #{attribute_code} ||'0', '14', #{attribute_code} ||'0', SUBSTR( #{attribute_code}, 2, 1) ||'0')				          
+	</update>
+	
+</mapper>

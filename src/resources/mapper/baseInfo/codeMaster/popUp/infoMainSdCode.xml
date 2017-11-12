@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoMainSdCode">  	
+  	<!-- codeMaster type(...버튼) 클릭시 SQL Mapping -->
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT *
+		FROM ( select 'MAIN' as sd_code
+		            , 'MAIN' as sd_desc
+		            , ''  as attribute1  
+			        , ''  as attribute2  
+			        , ''  as attribute3  
+			        , ''  as attribute4  
+			        , ''  as attribute5     
+		        FROM dual 
+		        UNION ALL
+		       select sd_code
+		            ,sd_desc 
+		            ,attribute1  as attribute1  
+			        ,attribute2  as attribute2  
+			        ,attribute3  as attribute3  
+			        ,attribute4  as attribute4  
+			        ,attribute5  as attribute5
+		         from STX_DIS_SD_CODE  
+		        where SD_TYPE='MAIN'
+		     )
+		 WHERE 1 = 1
+		<if test="p_code_find != null and p_code_find !='' ">
+		   AND sd_code like '%' || replace(upper(#{p_code_find}),'*','%') || '%'
+		</if>
+		<if test="p_desc_find != null and p_desc_find !='' ">
+		   AND sd_desc like '%' || replace(upper(#{p_desc_find}),'*','%') || '%'
+		</if>
+  	</select>
+  	
+  	<!-- codeMaster code tap(MAIN이 아닐시 ) 시 SQL Mapping -->
+  	<select id="mainsdtypelist" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select sd_type as sd_code
+	 		,sd_code	as sd_desc
+	   from STX_DIS_SD_CODE  
+	  where 1=1
+	    and sd_type = #{p_find_main}
+	 <if test="p_code_find != null and p_code_find !='' ">
+        and sd_code like  #{p_code_find} || '%'
+     </if>
+  	</select>
+</mapper>

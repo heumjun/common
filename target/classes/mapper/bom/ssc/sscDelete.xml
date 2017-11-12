@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscDelete">
+  	<select id="procDeleteAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_SSC_PKG.DELETE_ACTION_PROC(	p_user_id			=> #{p_user_id, jdbcType=VARCHAR},
+													p_work_key			=> #{p_work_key, jdbcType=VARCHAR},
+													p_err_code			=> #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+													p_err_msg			=> #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+									 			)
+                          
+       }
+	</select>
+	
+	<select id="procDeleteValidation"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call STX_DIS_SSC_DELETE_VALIDATION(	p_user_id			=> #{p_user_id, jdbcType=VARCHAR},
+												p_work_key			=> #{p_work_key, jdbcType=VARCHAR},
+												p_err_code			=> #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+												p_err_msg			=> #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+									 		)
+                          
+       }
+	</select>
+	
+	<delete id="sscTribonInterfaceDelete" parameterType="java.util.Map">
+		DELETE STX_DIS_SSC_INPUT_HEAD
+ 		 WHERE CAD_SUB_ID = #{p_cad_sub_id, jdbcType=VARCHAR}
+	</delete>
+	
+	<delete id="sscTribonInterfaceAttrDelete" parameterType="java.util.Map">
+		DELETE STX_DIS_SSC_INPUT_ETC_ATTR
+ 		 WHERE CAD_SUB_ID = #{p_cad_sub_id, jdbcType=VARCHAR}
+	</delete>
+	
+</mapper>

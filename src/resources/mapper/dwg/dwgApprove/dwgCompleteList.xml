@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgCompleteList">
+  	<select id="list" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+    <if test='!"Y".equalsIgnoreCase(p_is_excel)'>
+    select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+	</if>
+					 select      
+		distinct  
+      case when t1.req_state='Y' then 'Release'  
+           when t1.req_state='S' then 'Request'  
+           when t1.req_state='R' then 'Return'  
+           else 'Preliminary'  
+       end as trans_plm  
+      ,t3.shp_no as shp_no  
+      ,t3.dwg_no as dwg_no  
+      ,t5.description as text_des  
+      ,t3.dwg_rev as dwg_rev  
+      ,t4.user_name as user_name  
+      ,t1.req_sabun as req_sabun  
+      ,t4.dept_name as dept_name  
+      ,to_char(t1.REQ_DATE,'YYYY-MM-DD HH24:mi') as req_date   
+      ,t1.res_sabun as res_sabun  
+      ,(select user_name   
+          from STX_COM_INSA_USER@STXERP  
+         where emp_no = t1.res_sabun) as res_user_name  
+      ,to_char(t1.res_date,'YYYY-MM-DD HH24:mi') as res_date  
+      ,(select dept_name  
+          from STX_COM_INSA_USER@STXERP  
+         where emp_no = t1.res_sabun) as res_dept_name  
+      ,t1.req_seq as req_seq  
+      ,t4.ep_mail as ep_mail  
+      ,t1.MAIL_RECEIVER AS mail_receiver 
+from stx_DIS_dwg_trans                t1 
+     ,stx_DIS_dwg_trans_detail        t2 
+     ,STX_DWG_DW302TBL@stxerp         t3 
+     ,STX_COM_INSA_USER@stxerp        t4 
+     ,stx_dwg_category_masters@stxerp t5 
+     ,stx_com_insa_dept@stxerp        t6 
+where 1=1 
+  and t1.req_seq = t2.req_seq   
+  and t2.req_dwg_seq_id = t3.dwg_seq_id 
+  and t1.req_sabun = t4.emp_no 
+  and substr(t3.dwg_no,1,5) = t5.dwg_no_concat 
+  and t4.dept_code = t6.dept_code 
+		   <if	test='permissionFlag =="Y"'>
+		       <if	test="GrCode!='M1'">
+			   and t1.req_dept = #{dept}
+			   and t1.res_sabun = #{p_userId}	       
+	       	   </if>
+		   </if>
+		   <if	test='permissionFlag !="Y"'>
+		       and t1.req_sabun = #{p_userId}
+		   </if>
+	       <if test="btnRadio == 0 ">
+	       and  t1.req_state = 'S'
+	       </if>
+	       <if test="fromDate !=null and fromDate !='' ">
+	       and  to_char(t1.req_date,'YYYY-MM-DD') <![CDATA[>=]]> #{fromDate}
+	       </if>
+	       <if test="ToDate !=null and ToDate !='' ">
+	       and  to_char(t1.req_date,'YYYY-MM-DD') <![CDATA[<=]]> #{ToDate}
+	       </if>
+	       <if test="shipNo != null and shipNo != '' ">
+	       and  t3.shp_no = #{shipNo}
+	       </if>
+	       <if test="dwgNo != null and dwgNo != '' ">
+	       and  substr(t3.dwg_no,1,5) like #{dwgNo} || '%'
+	       </if>
+	       <if test="blockNo != null and blockNo != '' ">
+	       and  substr(t3.dwg_no,6,8) like #{blockNo} || '%'
+	       </if>
+	       order by shp_no,dwg_no,dwg_rev desc,req_date desc
+	       <if test='!"Y".equalsIgnoreCase(p_is_excel)'>
+                		) t1
+         			) t2
+  			 where page = #{curPageNo}       
+  		   </if>    
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		 select
+			 		count(*) as cnt 
+		   from 	
+				   (select      
+				distinct  
+		      case when t1.req_state='Y' then 'Release'  
+		           when t1.req_state='S' then 'Request'  
+		           when t1.req_state='R' then 'Return'  
+		           else 'Preliminary'  
+		       end as trans_plm  
+		      ,t3.shp_no as shp_no  
+		      ,t3.dwg_no as dwg_no  
+		      ,t5.description as text_des  
+		      ,t3.dwg_rev as dwg_rev  
+		      ,t4.user_name as user_name  
+		      ,t1.req_sabun as req_sabun  
+		      ,t4.dept_name as dept_name  
+		      ,to_char(t1.REQ_DATE,'YYYY-MM-DD HH24:mi') as req_date   
+		      ,t1.res_sabun as res_sabun  
+		      ,(select user_name   
+		          from STX_COM_INSA_USER@STXERP  
+		         where emp_no = t1.res_sabun) as res_user_name  
+		      ,to_char(t1.res_date,'YYYY-MM-DD HH24:mi') as res_date  
+		      ,(select dept_name  
+		          from STX_COM_INSA_USER@STXERP  
+		         where emp_no = t1.res_sabun) as res_dept_name  
+		      ,t1.req_seq as req_seq  
+		      ,t4.ep_mail as ep_mail  
+		      ,t1.MAIL_RECEIVER AS mail_receiver 
+		from stx_DIS_dwg_trans                t1 
+		     ,stx_DIS_dwg_trans_detail        t2 
+		     ,STX_DWG_DW302TBL@stxerp         t3 
+		     ,STX_COM_INSA_USER@stxerp        t4 
+		     ,stx_dwg_category_masters@stxerp t5 
+		     ,stx_com_insa_dept@stxerp        t6 
+		where 1=1 
+		  and t1.req_seq = t2.req_seq   
+		  and t2.req_dwg_seq_id = t3.dwg_seq_id 
+		  and t1.req_sabun = t4.emp_no 
+		  and substr(t3.dwg_no,1,5) = t5.dwg_no_concat 
+		  and t4.dept_code = t6.dept_code 
+
+  	       <if	test='permissionFlag =="Y"'>
+		       <if	test="GrCode!='M1'">
+			   and t1.req_dept = #{dept}
+			   and t1.res_sabun = #{p_userId}	       
+	       	   </if>
+		   </if>
+		   <if	test='permissionFlag !="Y"'>
+		       and t1.req_sabun = #{p_userId}
+		   </if>
+	       <if test="btnRadio == 0 ">
+	       and  t1.req_state = 'S'
+	       </if>
+	       <if test="fromDate !=null and fromDate !='' ">
+	       and  to_char(t1.req_date,'YYYY-MM-DD') <![CDATA[>=]]> #{fromDate}
+	       </if>
+	       <if test="ToDate !=null and ToDate !='' ">
+	       and  to_char(t1.req_date,'YYYY-MM-DD') <![CDATA[<=]]> #{ToDate}
+	       </if>
+	       <if test="shipNo != null and shipNo != '' ">
+	       and  t3.shp_no = #{shipNo}
+	       </if>
+	       <if test="dwgNo != null and dwgNo != '' ">
+	       and  substr(t3.dwg_no,1,5) like #{dwgNo} || '%'
+	       </if>
+	       <if test="blockNo != null and blockNo != '' ">
+	       and  substr(t3.dwg_no,6,8) like #{blockNo} || '%'
+	       </if>
+	       order by shp_no,dwg_no,dwg_rev desc,req_date desc
+	       )
+	   
+  	</select>
+  	
+</mapper>

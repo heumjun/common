@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintLoss">
+  	<select id="selectMaxOrderSeq" parameterType="string" resultType="int" >
+	 select nvl(max(order_seq)+1,0) as order_seq
+  	   from stx_dis_pis_loss
+	</select> 
+	<select id="selectExistOrderSeq" parameterType="java.util.Map" resultType="string" >
+	select max(loss_code) as loss_code
+	  from stx_dis_pis_loss
+	 where order_seq = #{orderSeq}
+	</select>   
+	<select id="selectExistLossCodeCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_loss
+	  where 1=1 
+	    and loss_code   = #{lossCode}
+	</select>   
+	<update id="updatePaintLossDesc">
+	update stx_dis_pis_loss
+	   set loss_desc		= #{lossDesc}
+	      ,order_seq     	= #{orderSeq}
+	      ,last_updated_by  = #{loginId}
+	      ,last_update_date = sysdate
+	 where loss_code   		= #{lossCode}
+	</update>
+	<select id="selectExistLossSetPaintCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_loss
+	  where 1=1 
+	    and loss_code   = #{loss_code}
+	    and set_name    = #{set_name}
+	    and paint_count = #{paint_count}
+	</select>   
+	<delete id="deletePaintLoss">
+	delete from stx_dis_pis_loss
+	      where 1=1 
+		    and loss_code   = #{loss_code}
+		    and set_name  	= #{set_name}
+		    and paint_count = #{paint_count}
+	</delete>
+	<insert id="insertPaintLoss" parameterType="java.util.Map">
+	insert into stx_dis_pis_loss
+	   (
+		  order_seq
+		 ,loss_code
+	     ,loss_desc
+	     ,set_name
+	     ,paint_count
+	     ,pre_loss
+	     ,post_loss
+	     ,pre_loss_rate
+	     ,post_loss_rate
+	     
+	     ,paint_type
+	     ,stage_desc
+	     ,remark
+		 ,created_by        
+		 ,creation_date
+		 ,last_updated_by
+		 ,last_update_date    
+	   )
+	   values
+	   (
+	     #{order_seq}
+	    ,#{loss_code}
+		,#{loss_desc}
+		,#{set_name}
+		,#{paint_count}
+		,nvl(#{pre_loss},0)
+		,nvl(#{post_loss},0)
+		,nvl(#{pre_loss_rate},0)
+		,nvl(#{post_loss_rate},0)
+		
+	    ,#{paint_type}
+	    ,#{stage_desc}
+	    ,#{remark}
+	    ,#{loginId}
+	    ,sysdate
+	    ,#{loginId}
+	    ,sysdate     
+	   )
+	</insert>
+	<update id="updatePaintLoss">
+	update stx_dis_pis_loss
+	   set pre_loss			= nvl( #{pre_loss}, 0)
+	      ,post_loss		= nvl( #{post_loss}, 0)
+	      ,pre_loss_rate	= nvl( #{pre_loss_rate}, 0)
+	      ,post_loss_rate	= nvl( #{post_loss_rate}, 0)
+	      ,paint_type		= #{paint_type}
+	      ,stage_desc       = #{stage_desc}
+	      ,remark			= #{remark}
+	      ,last_updated_by  = #{loginId}
+	      ,last_update_date = sysdate
+	 where loss_code   		= #{loss_code}
+	   and set_name    		= #{set_name}
+	   and paint_count 		= #{paint_count}
+	</update>
+</mapper>

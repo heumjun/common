@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectEcoReleaseNotificationGroupList">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		SELECT DISTINCT H.GROUP_ID    VALUE
+		      ,H.DESCRIPTION DISPLAY
+		  FROM STX_DIS_ECO_NOTI_GROUP_HEAD H
+		 WHERE H.CREATED_BY = #{userId}
+  	</select>
+</mapper>

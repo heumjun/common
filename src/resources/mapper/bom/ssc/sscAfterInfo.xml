@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscAfterInfo">
+	<select id="sscAfterInfoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT AA.PROJECT_NO   AS PROJECT_NO 
+		      ,AA.DWG_NO       AS DWG_NO 
+		      ,AA.JOB_CD	   AS JOB_CD
+		      ,AA.BLOCK_NO     AS BLOCK_NO 
+		      ,AA.STAGE_NO     AS STAGE_NO 
+		      ,AA.STR_FLAG     AS STR_FLAG 
+		      ,AA.USC_JOB_TYPE AS USC_JOB_TYPE
+		      ,AA.MOTHER_CODE  AS MOTHER_CODE 
+		      ,AA.ITEM_CODE    AS ITEM_CODE 
+		      ,AA.KEY_NO       AS KEY_NO 
+		      ,AA.BOM_QTY      AS BOM_QTY 
+		      ,AA.ITEM_WEIGHT  AS ITEM_WEIGHT
+		      ,AA.ECO_NO
+              ,AA.RELEASE_DESC
+		      ,AA.TRAY_DIM_L1 
+		      ,AA.TRAY_DIM_L2 
+		      ,AA.TRAY_DIM_L3 
+		      ,AA.TRAY_DIM_L4 
+		      ,AA.TRAY_DIM_L5 
+		      ,AA.TRAY_DIM_L6  
+		      ,AA.SEAT_DIM_W1 
+		      ,AA.SEAT_DIM_W 
+		      ,AA.SEAT_DIM_A 
+		      ,AA.SEAT_DIM_L1 
+		      ,AA.SEAT_DIM_L 
+		      ,AA.SEAT_DIM_B 
+		      ,AA.SEAT_DIM_D 
+		      ,AA.SEAT_DIM_D1 
+		      ,AA.SEAT_DIM_A1 
+		      ,AA.SEAT_MATERIAL1 
+		      ,AA.SEAT_MATERIAL2 
+		      ,AA.SEAT_MATERIAL3
+		      ,AA.BOM_ITEM_DETAIL
+	          ,AA.SE_PAINT
+	          ,AA.SE_MATERIAL
+	          ,AA.SE_EARTH_BOLT
+	          ,AA.SE_PAD 
+		      ,AA.EARTH_BOLT     
+		      ,TO_CHAR(SISV.rcv_transaction_date, 'YY-MM-DD')                      AS TRAN_DATE 
+		      ,SISV.rcv_created_by_disp                                            AS TRAN_USER 
+		      ,SISV.wip_department_disp                                            AS WORK_DEPT 
+		      ,TO_CHAR(SISV.wip_sch_start_date, 'YY-MM-DD')                        AS WORK_START_DATE 
+		      ,TO_CHAR(SISV.wip_sch_completion_date, 'YY-MM-DD')                   AS WORK_END_DATE 
+		      ,SISV.wip_status_disp                                                AS WORK_STATUS 
+		      ,SISV.wip_required_quantity                                          AS REQUIRED_EA 
+		      ,TO_CHAR(SISV.req_required_date, 'YY-MM-DD')                         AS REQUIRED_DATE    
+		      ,SISV.WIP_CLASS_DISP                                                 AS WIP_CLASS 
+		      ,SISV.PR_NO                                                          AS PR_NO 
+		      ,SISV.PR_QUANTITY                                                    AS PR_EA 
+		      ,TO_CHAR(SISV.PR_APPROVED_DATE, 'YY-MM-DD')                          AS PR_DATE 
+		      ,SISV.PO_NO                                                          AS PO_NO 
+		      ,SISV.PO_QUANTITY_ORDERED-SISV.PO_QUANTITY_CANCELLED                 AS PO_EA 
+		      ,TO_CHAR(NVL(SISV.PO_NEED_BY_DATE,SISV.PR_NEED_BY_DATE), 'YY-MM-DD') AS NEED_BY_DATE 
+		      ,SISV.PO_AGENT_DISP                                                  AS AGENT_USER 
+		      ,SISV.PO_VENDOR_SITE_CODE_ALT                                        AS VENDER 
+		      ,SISV.PO_QUANTITY_DELIVERED                                          AS DELIVERED_DATE
+		      ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB STSS WHERE STSS.SSC_SUB_ID = AA.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '100') AS COAT_IN 
+		      ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB STSS WHERE STSS.SSC_SUB_ID = AA.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '110') AS COAT_OUT 
+		      ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB STSS WHERE STSS.SSC_SUB_ID = AA.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '120') AS LETTER_NAMEPLATE 
+		      ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB STSS WHERE STSS.SSC_SUB_ID = AA.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '130') AS TYPE1 
+		      ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB STSS WHERE STSS.SSC_SUB_ID = AA.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '140') AS TYPE2 
+		      ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB STSS WHERE STSS.SSC_SUB_ID = AA.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '150') AS POSITION
+		      ,NULL                                                                AS VALVE_CLASS 
+		      ,NULL                                                                AS PRESS 
+		      ,NULL                                                                AS NDA 
+		      ,NULL                                                                AS BODY_MAT 
+		      ,NULL                                                                AS SEAT_MAT
+		      ,ATTR1 
+		      ,ATTR2 
+		      ,ATTR3 
+		      ,ATTR4 
+		      ,ATTR5 
+		      ,ATTR6 
+		      ,ATTR7 
+		      ,ATTR8 
+		      ,ATTR9 
+		      ,ATTR10 
+		      ,ATTR11 
+		      ,ATTR12
+		      ,SUBSTR(AA.LIST_VALUE, 1, INSTR(AA.LIST_VALUE, '@', 1, 1)-1)   AS COMP_NAME
+		      ,SUBSTR(AA.LIST_VALUE, INSTR(AA.LIST_VALUE, '@', 1, 1)+1, INSTR(AA.LIST_VALUE, '@', 1, 2) - (INSTR(AA.LIST_VALUE, '@', 1, 1)+1) )   AS FROMDECK
+		      ,SUBSTR(AA.LIST_VALUE, INSTR(AA.LIST_VALUE, '@', 1, 2)+1, INSTR(AA.LIST_VALUE, '@', 1, 3) - (INSTR(AA.LIST_VALUE, '@', 1, 2)+1) )   AS FROMEQUIPMEMT
+		      ,SUBSTR(AA.LIST_VALUE, INSTR(AA.LIST_VALUE, '@', 1, 3)+1, INSTR(AA.LIST_VALUE, '@', 1, 4) - (INSTR(AA.LIST_VALUE, '@', 1, 3)+1) )   AS TO_DECK
+		      ,SUBSTR(AA.LIST_VALUE, INSTR(AA.LIST_VALUE, '@', 1, 4)+1, INSTR(AA.LIST_VALUE, '@', 1, 5) - (INSTR(AA.LIST_VALUE, '@', 1, 4)+1) )   AS TO_EQUIP
+		      ,SUBSTR(AA.LIST_VALUE, INSTR(AA.LIST_VALUE, '@', 1, 5)+1, INSTR(AA.LIST_VALUE, '@', 1, 6) - (INSTR(AA.LIST_VALUE, '@', 1, 5)+1) )   AS SUPPLY_DECK
+		      ,SUBSTR(AA.LIST_VALUE, INSTR(AA.LIST_VALUE, '@', 1, 6)+1 )   AS PALLET  
+		  FROM (
+		        SELECT SDP.PROJECT_NO 
+		              ,SDP.DWG_NO 
+		              ,SDP.BLOCK_NO 
+		              ,SDP.STAGE_NO 
+		              ,SDP.STR_FLAG
+		              ,SDP.USC_JOB_TYPE 
+		              ,SDP.JOB_CD
+		              ,SDP.MOTHER_CODE 
+		              ,SDSH.ITEM_CODE 
+		              ,SDSH.KEY_NO 
+		              ,SDSH.BOM_QTY 
+		              ,SDI.ITEM_WEIGHT
+		              ,SDSH.ECO_NO
+                  	  ,TO_CHAR(ECO.LAST_UPDATE_DATE,'YYYY-MM-DD')  AS RELEASE_DESC  
+		              ,SDSE.TRAY_DIM_L1 
+		              ,SDSE.TRAY_DIM_L2 
+		              ,SDSE.TRAY_DIM_L3 
+		              ,SDSE.TRAY_DIM_L4 
+		              ,SDSE.TRAY_DIM_L5 
+		              ,SDSE.TRAY_DIM_L6  
+		              ,SDSE.SEAT_DIM_W1 
+		              ,SDSE.SEAT_DIM_W 
+		              ,SDSE.SEAT_DIM_A 
+		              ,SDSE.SEAT_DIM_L1 
+		              ,SDSE.SEAT_DIM_L 
+		              ,SDSE.SEAT_DIM_B 
+		              ,SDSE.SEAT_DIM_D 
+		              ,SDSE.SEAT_DIM_D1 
+		              ,SDSE.SEAT_DIM_A1 
+		              ,SDSE.SEAT_MATERIAL1 
+		              ,SDSE.SEAT_MATERIAL2 
+		              ,SDSE.SEAT_MATERIAL3
+		              ,SDSH.BOM_ITEM_DETAIL
+	                  ,CASE WHEN SUBSTR(SDSH.ITEM_CODE,0,1) != 'Z' 
+	                        THEN DECODE((SELECT CASE WHEN SUBSTR(ATTRIBUTE_CODE, 0, 1) = 0 
+	                                                 THEN REPLACE(ATTRIBUTE_CODE, 0) 
+	                                                 ELSE ATTRIBUTE_CODE 
+	                                            END ATTRBUTE_CODE 
+	                                     FROM STX_DIS_SD_CATALOG_ATTRIBUTE
+	                                     WHERE ATTRIBUTE_TYPE = 'ITEM' 
+	                                       AND CATALOG_CODE = SDI.ITEM_CATALOG 
+	                                       AND ATTRIBUTE_NAME = 'OUT_SIDE COATING' 
+	                                        ), '1', SDI.ATTR1, '2', SDI.ATTR2, '3', SDI.ATTR3
+	                                        , '4', SDI.ATTR4, '5', SDI.ATTR5, '6', SDI.ATTR6
+	                                        , '7', SDI.ATTR7, '8', SDI.ATTR8, '9', SDI.ATTR9
+	                                        , '10', SDI.ATTR10, '11', SDI.ATTR11, '12', SDI.ATTR12
+	                                        , '13', SDI.ATTR13, '14', SDI.ATTR14, '15', SDI.ATTR15, '') 
+	                        ELSE PAINT_CODE1 
+	                   END                                                                               AS SE_PAINT 
+	                  ,DECODE((SELECT CASE WHEN SUBSTR(ATTRIBUTE_CODE, 0, 1) = 0 
+	                                       THEN REPLACE(ATTRIBUTE_CODE, 0) 
+	                                       ELSE ATTRIBUTE_CODE 
+	                                  END ATTRBUTE_CODE 
+	                           FROM STX_DIS_SD_CATALOG_ATTRIBUTE
+	                           WHERE ATTRIBUTE_TYPE = 'ITEM' 
+	                             AND CATALOG_CODE = SDI.ITEM_CATALOG 
+	                             AND (ATTRIBUTE_NAME = 'MATERIAL' OR ATTRIBUTE_NAME = 'MATERIAL1' OR ATTRIBUTE_NAME = 'MATERIAL2') 
+	                             AND ROWNUM = 1), '1', SDI.ATTR1, '2', SDI.ATTR2, '3', SDI.ATTR3
+	                             , '4', SDI.ATTR4, '5', SDI.ATTR5, '6', SDI.ATTR6, '7', SDI.ATTR7
+	                             , '8', SDI.ATTR8, '9', SDI.ATTR9, '10', SDI.ATTR10
+	                             , '11', SDI.ATTR11, '12', SDI.ATTR12, '13', SDI.ATTR13
+	                             , '14', SDI.ATTR14, '15', SDI.ATTR15, '', SDI.ITEM_MATERIAL1 )          AS SE_MATERIAL
+	                  ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB_WORK STSS 
+	                       WHERE STSS.SSC_SUB_ID = SDSH.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '150')    AS SE_EARTH_BOLT            
+	                  ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB_WORK STSS 
+	                     WHERE STSS.SSC_SUB_ID = SDSH.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '160')    AS SE_PAD 
+		              ,SDSE.EARTH_BOLT
+		              ,SDSH.SSC_SUB_ID
+		              ,SDI.ATTR1
+		              ,SDI.ATTR2
+		              ,SDI.ATTR3
+		              ,SDI.ATTR4
+		              ,SDI.ATTR5
+		              ,SDI.ATTR6
+		              ,SDI.ATTR7
+		              ,SDI.ATTR8
+		              ,SDI.ATTR9
+		              ,SDI.ATTR10
+		              ,SDI.ATTR11
+		              ,SDI.ATTR12
+		              ,(   
+				        select /*+ index_desc(sscl STX_STD_CABLE_LIST_U1) */
+				               sscl.comp_name  || '@' || sscl.FROM_DECK  || '@' || sscl.FROM_EQUIP || '@' || sscl.TO_DECK || '@' || sscl.to_equip  || '@' || sscl.SUPPLY_DECK || '@' ||  
+				               (select sscp.pallet 
+				                  from stx_std_cable_pallet@STXERP sscp
+				                 where sscp.organization_id = msi.organization_id
+				                   and sscp.project_no      = sscl.project_no
+				                   and sscp.cable_name      = sscl.cable_name
+				                   and sscp.revision        = sscl.revision
+				                 )              as list_value
+				          from stx_std_cable_list@STXERP       sscl
+				              ,mtl_system_items_b@STXERP       msi
+				              ,mtl_descr_element_values@STXERP mdev
+				         where msi.organization_id = 82
+				           and msi.segment1        = SDSH.ITEM_CODE 
+				           and msi.inventory_item_id = mdev.inventory_item_id
+				           and mdev.element_value    = sscl.cable_name
+				           and mdev.element_name     = 'CIRCUIT NO.'
+				           and sscl.project_no       = SDP.PROJECT_NO
+				           and rownum = 1
+				         ) list_value
+		           FROM STX_DIS_SSC_HEAD           SDSH 
+		               ,STX_DIS_PENDING            SDP 
+		               ,STX_DIS_ITEM               SDI 
+		               ,STX_DIS_SSC_INPUT_ETC_ATTR SDSE 
+		               ,STX_DIS_ENG_CHANGE_ORDER ECO
+		          WHERE SDSH.PROJECT_NO  = SDP.PROJECT_NO
+		            AND SDSH.MOTHER_CODE = SDP.MOTHER_CODE 
+		            AND SDSH.ITEM_CODE   = SDI.ITEM_CODE
+		            AND SDSH.ECO_NO      = ECO.ENG_CHANGE_ORDER_CODE(+)
+		            AND SDSH.CAD_SUB_ID  = SDSE.CAD_SUB_ID(+)
+		            AND SDSH.SSC_SUB_ID =  #{p_ssc_sub_id, jdbcType=VARCHAR} 
+		            AND NOT EXISTS
+		                (SELECT 1
+		                   FROM STX_DIS_SSC_HEAD_WORK SDSHW
+		                  WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+		                 ) 
+		          UNION ALL
+		          SELECT SDP.PROJECT_NO 
+		              ,SDP.DWG_NO 
+		              ,SDP.BLOCK_NO 
+		              ,SDP.STAGE_NO 
+		              ,SDP.STR_FLAG 
+		              ,SDP.USC_JOB_TYPE
+		              ,SDP.JOB_CD
+		              ,SDP.MOTHER_CODE 
+		              ,SDSH.ITEM_CODE 
+		              ,SDSH.KEY_NO 
+		              ,SDSH.BOM_QTY 
+		              ,SDI.ITEM_WEIGHT 
+		              ,SDSH.ECO_NO
+                  	  ,ECO.STATES_CODE     AS RELEASE_DESC 
+		              ,SDSE.TRAY_DIM_L1 
+		              ,SDSE.TRAY_DIM_L2 
+		              ,SDSE.TRAY_DIM_L3 
+		              ,SDSE.TRAY_DIM_L4 
+		              ,SDSE.TRAY_DIM_L5 
+		              ,SDSE.TRAY_DIM_L6  
+		              ,SDSE.SEAT_DIM_W1 
+		              ,SDSE.SEAT_DIM_W 
+		              ,SDSE.SEAT_DIM_A 
+		              ,SDSE.SEAT_DIM_L1 
+		              ,SDSE.SEAT_DIM_L 
+		              ,SDSE.SEAT_DIM_B 
+		              ,SDSE.SEAT_DIM_D 
+		              ,SDSE.SEAT_DIM_D1 
+		              ,SDSE.SEAT_DIM_A1 
+		              ,SDSE.SEAT_MATERIAL1 
+		              ,SDSE.SEAT_MATERIAL2 
+		              ,SDSE.SEAT_MATERIAL3
+		              ,SDSH.BOM_ITEM_DETAIL
+	                  ,CASE WHEN SUBSTR(SDSH.ITEM_CODE,0,1) != 'Z' 
+	                        THEN DECODE((SELECT CASE WHEN SUBSTR(ATTRIBUTE_CODE, 0, 1) = 0 
+	                                                 THEN REPLACE(ATTRIBUTE_CODE, 0) 
+	                                                 ELSE ATTRIBUTE_CODE 
+	                                            END ATTRBUTE_CODE 
+	                                     FROM STX_DIS_SD_CATALOG_ATTRIBUTE
+	                                     WHERE ATTRIBUTE_TYPE = 'ITEM' 
+	                                       AND CATALOG_CODE = SDI.ITEM_CATALOG 
+	                                       AND ATTRIBUTE_NAME = 'OUT_SIDE COATING' 
+	                                        ), '1', SDI.ATTR1, '2', SDI.ATTR2, '3', SDI.ATTR3
+	                                        , '4', SDI.ATTR4, '5', SDI.ATTR5, '6', SDI.ATTR6
+	                                        , '7', SDI.ATTR7, '8', SDI.ATTR8, '9', SDI.ATTR9
+	                                        , '10', SDI.ATTR10, '11', SDI.ATTR11, '12', SDI.ATTR12
+	                                        , '13', SDI.ATTR13, '14', SDI.ATTR14, '15', SDI.ATTR15, '') 
+	                        ELSE PAINT_CODE1 
+	                   END                                                                               AS SE_PAINT 
+	                  ,DECODE((SELECT CASE WHEN SUBSTR(ATTRIBUTE_CODE, 0, 1) = 0 
+	                                       THEN REPLACE(ATTRIBUTE_CODE, 0) 
+	                                       ELSE ATTRIBUTE_CODE 
+	                                  END ATTRBUTE_CODE 
+	                           FROM STX_DIS_SD_CATALOG_ATTRIBUTE
+	                           WHERE ATTRIBUTE_TYPE = 'ITEM' 
+	                             AND CATALOG_CODE = SDI.ITEM_CATALOG 
+	                             AND (ATTRIBUTE_NAME = 'MATERIAL' OR ATTRIBUTE_NAME = 'MATERIAL1' OR ATTRIBUTE_NAME = 'MATERIAL2') 
+	                             AND ROWNUM = 1), '1', SDI.ATTR1, '2', SDI.ATTR2, '3', SDI.ATTR3
+	                             , '4', SDI.ATTR4, '5', SDI.ATTR5, '6', SDI.ATTR6, '7', SDI.ATTR7
+	                             , '8', SDI.ATTR8, '9', SDI.ATTR9, '10', SDI.ATTR10
+	                             , '11', SDI.ATTR11, '12', SDI.ATTR12, '13', SDI.ATTR13
+	                             , '14', SDI.ATTR14, '15', SDI.ATTR15, '', SDI.ITEM_MATERIAL1 )          AS SE_MATERIAL
+	                  ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB_WORK STSS 
+	                     WHERE STSS.SSC_SUB_ID = SDSH.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '150')    AS SE_EARTH_BOLT             
+	                  ,(SELECT ELEMENT_VALUE FROM STX_DIS_SSC_SUB_WORK STSS 
+	                     WHERE STSS.SSC_SUB_ID = SDSH.SSC_SUB_ID AND STSS.ELEMENT_SEQUENCE = '160')    AS SE_PAD 
+		              ,SDSE.EARTH_BOLT
+		              ,SDSH.SSC_SUB_ID
+		              ,SDI.ATTR1
+		              ,SDI.ATTR2
+		              ,SDI.ATTR3
+		              ,SDI.ATTR4
+		              ,SDI.ATTR5
+		              ,SDI.ATTR6
+		              ,SDI.ATTR7
+		              ,SDI.ATTR8
+		              ,SDI.ATTR9
+		              ,SDI.ATTR10
+		              ,SDI.ATTR11
+		              ,SDI.ATTR12
+		              ,(   
+				        select /*+ index_desc(sscl STX_STD_CABLE_LIST_U1) */
+				               sscl.comp_name  || '@' || sscl.FROM_DECK  || '@' || sscl.FROM_EQUIP || '@' || sscl.TO_DECK || '@' || sscl.to_equip  || '@' || sscl.SUPPLY_DECK || '@' ||  
+				               (select sscp.pallet 
+				                  from stx_std_cable_pallet@STXERP sscp
+				                 where sscp.organization_id = msi.organization_id
+				                   and sscp.project_no      = sscl.project_no
+				                   and sscp.cable_name      = sscl.cable_name
+				                   and sscp.revision        = sscl.revision
+				                 )              as list_value
+				          from stx_std_cable_list@STXERP       sscl
+				              ,mtl_system_items_b@STXERP       msi
+				              ,mtl_descr_element_values@STXERP mdev
+				         where msi.organization_id = 82
+				           and msi.segment1        = SDSH.ITEM_CODE 
+				           and msi.inventory_item_id = mdev.inventory_item_id
+				           and mdev.element_value    = sscl.cable_name
+				           and mdev.element_name     = 'CIRCUIT NO.'
+				           and sscl.project_no       = SDP.PROJECT_NO
+				           and rownum = 1
+				         ) list_value
+		           FROM STX_DIS_SSC_HEAD_WORK           SDSH 
+		               ,STX_DIS_PENDING            SDP 
+		               ,STX_DIS_ITEM               SDI 
+		               ,STX_DIS_SSC_INPUT_ETC_ATTR SDSE
+		               ,STX_DIS_ENG_CHANGE_ORDER ECO 
+		          WHERE SDSH.PROJECT_NO  = SDP.PROJECT_NO
+		            AND SDSH.MOTHER_CODE = SDP.MOTHER_CODE 
+		            AND SDSH.ITEM_CODE   = SDI.ITEM_CODE
+		            AND SDSH.ECO_NO      = ECO.ENG_CHANGE_ORDER_CODE(+)
+		            AND SDSH.CAD_SUB_ID  = SDSE.CAD_SUB_ID(+)
+		            AND SDSH.SSC_SUB_ID =  #{p_ssc_sub_id, jdbcType=VARCHAR} 
+		          )                   AA
+             ,STX_DIS_ERP_INV_PMT  SISV
+             ,STX_DIS_ERP_JOB_LIST SDEJL 
+       WHERE SISV.PROJECT_NO = SDEJL.PROJECT_NO
+         AND SISV.PRIMARY_ITEM_CODE = SDEJL.ORGIN_JOB_ITEM_CODE
+         AND AA.PROJECT_NO = SDEJL.PROJECT_NO(+)
+         AND AA.JOB_CD     = SDEJL.JOB_ITEM_CODE(+) 
+         AND AA.ITEM_CODE  = SISV.ITEM_CODE(+)
+	</select>
+	
+	<select id="procSscSubAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ call STX_DIS_SSC_SUB_PROC(p_element_value => #{p_element_value,jdbcType=VARCHAR,mode=IN},
+                                    p_ssc_sub_id => #{p_ssc_sub_id,jdbcType=VARCHAR,mode=IN},
+                                    p_element_sequence => #{p_element_sequence,jdbcType=VARCHAR,mode=IN},
+                                    p_err_code => #{p_err_code,jdbcType=VARCHAR,mode=OUT},
+                                    p_err_msg => #{p_err_msg,jdbcType=VARCHAR,mode=OUT})
+		                                              
+		}
+	</select>
+	
+	<update id="updateSscAfteriofoBuyBuyAction" parameterType="java.util.Map">
+		UPDATE STX_DIS_RAWLEVEL A 
+		   SET COAT_IN = #{p_coat_in,jdbcType=VARCHAR,mode=IN} 
+		     , COAT_OUT = #{p_coat_out,jdbcType=VARCHAR,mode=IN} 
+		     , LETTER_NAMEPLATE = #{p_letter_nameplate,jdbcType=VARCHAR,mode=IN} 
+		     , TYPE1 = #{p_type1,jdbcType=VARCHAR,mode=IN} 
+		     , TYPE2 = #{p_type2,jdbcType=VARCHAR,mode=IN}
+		     , POSITION = #{p_position,jdbcType=VARCHAR,mode=IN} 
+		     , LAST_UPDATE_ID = #{p_user_id,jdbcType=VARCHAR,mode=IN}
+		     , LAST_UPDATE_DATE = SYSDATE 
+		 WHERE A.MOTHER_CODE = (SELECT B.ITEM_CODE FROM STX_DIS_SSC_HEAD B WHERE SSC_SUB_ID = #{p_ssc_sub_id,jdbcType=VARCHAR,mode=IN}) 
+		   AND A.ITEM_CODE = #{p_buy_item_code,jdbcType=VARCHAR,mode=IN} 
+	</update>
+	
+</mapper>

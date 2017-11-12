@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="pendingBom">
+
+	<update id="updatePendingHeadEcoNo_back" parameterType="java.util.Map">
+		UPDATE STX_DIS_PENDING_WORK
+		SET ECO_NO = #{p_eco_no, jdbcType=VARCHAR}
+		WHERE ROWID IN (
+		<foreach collection="p_pending_id" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+	</update>
+
+	<select id="updatePendingHeadEcoNo" statementType="CALLABLE" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		{CALL STX_DIS_PENDING_PKG.PENDING_ECO_UDPATE_PROC(
+					P_ITEM_TYPE 	=> #{p_item_type_cd}
+					,P_USER_ID 		=> #{p_user_id}
+					,P_ECO_NO 		=> #{p_eco_no}
+					,P_PENDING_ID 	=> #{p_pending_id}
+					,P_ERR_CODE 	=> #{p_err_code, jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+					,P_ERR_MSG 		=> #{p_err_msg, jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+		)}
+	</select>
+
+
+	<select id="pendingEcoInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PERMANENT_TEMPORARY_FLAG
+		, ENG_CHANGE_ORDER_CAUSE
+		, DESIGN_ENGINEER
+		, STATES_CODE
+		FROM STX_DIS_ENG_CHANGE_ORDER
+		WHERE ENG_CHANGE_ORDER_CODE = #{p_eco_no, jdbcType=VARCHAR}
+	</select>
+
+</mapper>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoPaintCountCatalogCodeList">
+  <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT t2.*
+	  FROM (
+	        SELECT t1.* 
+	             , FLOOR( ( rownum - 1 ) / #{pageSize} + 1 ) AS page
+	          FROM ( 
+	                SELECT SDSC.CATALOG_CODE
+	                     , SDSC.CATALOG_DESC
+	                  FROM STX_DIS_SD_CATALOG SDSC
+	                 WHERE SDSC.CATALOG_CODE LIKE 'V1%'
+	                   AND SDSC.PAINT_USC_FLAG = 'Y'
+		<if test='catalog_code != null and !catalog_code.equalsIgnoreCase("")'>
+	                   AND SDSC.CATALOG_CODE LIKE #{catalog_code} || '%'
+		</if>
+	                   AND NOT EXISTS
+	                       (SELECT 1
+	                          FROM (
+	                                SELECT BOM.ITEM_CATALOG
+	                                  FROM (
+	                                        SELECT SDB.MOTHER_CODE
+	                                             , SDB.ITEM_CODE
+	                                             , SDB.ITEM_CATALOG
+	                                          FROM STX_DIS_BOM SDB
+	                                         WHERE NOT EXISTS
+	                                               (SELECT 1
+	                                                  FROM STX_DIS_BOM_WORK SDBW
+	                                                 WHERE SDB.Mother_Code = SDBW.MOTHER_CODE
+	                                                   AND sdb.item_code = sdbw.item_code
+	                                               )
+	                                           AND NOT EXISTS
+	                                               (SELECT 1
+	                                                  FROM STX_DIS_PAINT_BOM_TEMP SDPBT
+	                                                 WHERE sdb.mother_code = SDPBT.MOTHER_CODE
+	                                                   AND sdb.item_code = sdpbt.item_code
+	                                               )
+	                                         UNION ALL
+	                                        SELECT SDBW.MOTHER_CODE
+	                                             , SDBW.ITEM_CODE
+	                                             , SDBW.ITEM_CATALOG
+	                                          FROM STX_DIS_BOM_WORK SDBW
+	                                         UNION ALL
+	                                        SELECT SDPBT.MOTHER_CODE
+	                                             , SDPBT.ITEM_CODE
+	                                             , SDPBT.ITEM_CATALOG
+	                                          FROM STX_DIS_PAINT_BOM_TEMP SDPBT
+	                                       ) BOM
+	                                 START WITH BOM.MOTHER_CODE = #{p_mother_code}
+	                                 CONNECT BY PRIOR BOM.ITEM_CODE = BOM.MOTHER_CODE
+	                               ) BOM_LIST
+	                         WHERE BOM_LIST.ITEM_CATALOG = SDSC.CATALOG_CODE
+	                       )
+	                 ORDER BY SDSC.CATALOG_CODE
+	               ) t1
+	       ) t2
+	 WHERE page = #{curPageNo}
+  	</select>
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+	SELECT COUNT(1) AS cnt
+	  FROM STX_DIS_SD_CATALOG SDSC
+	 WHERE SDSC.CATALOG_CODE LIKE 'V1%'
+	   AND SDSC.PAINT_USC_FLAG = 'Y'
+		<if test='catalog_code != null and !catalog_code.equalsIgnoreCase("")'>
+	   AND SDSC.CATALOG_CODE LIKE #{catalog_code} || '%'
+		</if>
+	   AND NOT EXISTS
+	       (SELECT 1
+	          FROM (
+	                SELECT BOM.ITEM_CATALOG
+	                  FROM (
+	                        SELECT SDB.MOTHER_CODE
+	                             , SDB.ITEM_CODE
+	                             , SDB.ITEM_CATALOG
+	                          FROM STX_DIS_BOM SDB
+	                         WHERE NOT EXISTS
+	                               (SELECT 1
+	                                  FROM STX_DIS_BOM_WORK SDBW
+	                                 WHERE SDB.Mother_Code = SDBW.MOTHER_CODE
+	                                   AND sdb.item_code = sdbw.item_code
+	                               )
+	                           AND NOT EXISTS
+	                               (SELECT 1
+	                                  FROM STX_DIS_PAINT_BOM_TEMP SDPBT
+	                                 WHERE sdb.mother_code = SDPBT.MOTHER_CODE
+	                                   AND sdb.item_code = sdpbt.item_code
+	                               )
+	                         UNION ALL
+	                        SELECT SDBW.MOTHER_CODE
+	                             , SDBW.ITEM_CODE
+	                             , SDBW.ITEM_CATALOG
+	                          FROM STX_DIS_BOM_WORK SDBW
+	                         UNION ALL
+	                        SELECT SDPBT.MOTHER_CODE
+	                             , SDPBT.ITEM_CODE
+	                             , SDPBT.ITEM_CATALOG
+	                          FROM STX_DIS_PAINT_BOM_TEMP SDPBT
+	                       ) BOM
+	                 START WITH BOM.MOTHER_CODE = #{p_mother_code}
+	                 CONNECT BY PRIOR BOM.ITEM_CODE = BOM.MOTHER_CODE
+	               ) BOM_LIST
+	         WHERE BOM_LIST.ITEM_CATALOG = SDSC.CATALOG_CODE
+	       )
+  	</select>
+</mapper>  	

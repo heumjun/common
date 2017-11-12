@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveBomFromJobItem">
+	<insert id="insertBomFromJobItem" parameterType="java.util.Map">
+		INSERT
+		  INTO STX_DIS_USC_BOM_WORK(MOTHER_CODE, ITEM_CODE, PROJECT_NO, AREA, BLOCK_NO, STR_FLAG, MOTHER_CATALOG, ITEM_CATALOG, ECO_NO, QTY, BOM1, BOM2, BOM3, BOM4, BOM5, BOM6, BOM7, BOM8, BOM9, BOM10, BOM11, BOM12, BOM13, BOM14, BOM15, EMP_NO, CREATE_BY, CREATE_DATE, MODIFY_BY, MODIFY_DATE, PAINT_HEAD_ID, STATE_FLAG, PAINT_BOM_SEQ)
+		VALUES(#{mother_code}
+		     , #{item_code}
+		     , #{project_no}
+		     , 'PA'
+		     , 'PA'
+		     , 'PA'
+		     , (SELECT SDI.ITEM_CATALOG  FROM STX_DIS_ITEM    SDI  WHERE SDI.ITEM_CODE =  #{mother_code})
+		     , #{item_catalog}
+		     , #{p_eco_no}
+		     , #{qty}
+		     , #{bom1}
+		     , #{bom2}
+		     , #{bom3}
+		     , #{bom4}
+		     , #{bom5}
+		     , #{bom6}
+		     , #{bom7}
+		     , #{bom8}
+		     , #{bom9}
+		     , #{bom10}
+		     , #{bom11}
+		     , #{bom12}
+		     , #{bom13}
+		     , #{bom14}
+		     , #{bom15}	 
+		     , #{p_loginid}
+		     , #{p_loginid}
+		     , SYSDATE
+		     , #{p_loginid}
+		     , SYSDATE
+		     , NULL
+		     , #{states_flag}
+		     , STX_DIS_PAINT_BOM_SEQ.NEXTVAL )	
+
+	</insert>
+	<select id="insertItemCodeCreate" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+  	{ call stx_dis_item_pkg.stx_dis_main_proc( p_catalog_code      => #{p_catalog_code,jdbcType=VARCHAR},
+                                               p_ship_type         => #{p_ship_type,jdbcType=VARCHAR},
+                                               p_weight            => #{p_weight,jdbcType=VARCHAR},
+                                               p_loginid           => #{p_loginid,jdbcType=VARCHAR},
+                                               p_old_item_code     => #{p_old_item_code,jdbcType=VARCHAR},
+                                               p_attr00_code       => #{p_attr00_code,jdbcType=VARCHAR},
+                                               p_attr00_desc       => #{p_attr00_desc,jdbcType=VARCHAR},
+                                               p_attr01_code       => #{p_attr01_code,jdbcType=VARCHAR},
+                                               p_attr01_desc       => #{p_attr01_desc,jdbcType=VARCHAR},
+                                               p_attr02_code       => #{p_attr02_code,jdbcType=VARCHAR},
+                                               p_attr02_desc       => #{p_attr02_desc,jdbcType=VARCHAR},
+                                               p_attr03_code       => #{p_attr03_code,jdbcType=VARCHAR},
+                                               p_attr03_desc       => #{p_attr03_desc,jdbcType=VARCHAR},
+                                               p_attr04_code       => #{p_attr04_code,jdbcType=VARCHAR},
+                                               p_attr04_desc       => #{p_attr04_desc,jdbcType=VARCHAR},
+                                               p_attr05_code       => #{p_attr05_code,jdbcType=VARCHAR},
+                                               p_attr05_desc       => #{p_attr05_desc,jdbcType=VARCHAR},
+                                               p_attr06_code       => #{p_attr06_code,jdbcType=VARCHAR},
+                                               p_attr06_desc       => #{p_attr06_desc,jdbcType=VARCHAR},
+                                               p_attr07_code       => #{p_attr07_code,jdbcType=VARCHAR},
+                                               p_attr07_desc       => #{p_attr07_desc,jdbcType=VARCHAR},
+                                               p_attr08_code       => #{p_attr08_code,jdbcType=VARCHAR},
+                                               p_attr08_desc       => #{p_attr08_desc,jdbcType=VARCHAR},
+                                               p_attr09_code       => #{p_attr09_code,jdbcType=VARCHAR},
+                                               p_attr09_desc       => #{p_attr09_desc,jdbcType=VARCHAR},
+                                               p_attr10_code       => #{p_attr10_code,jdbcType=VARCHAR},
+                                               p_attr10_desc       => #{p_attr10_desc,jdbcType=VARCHAR},
+                                               p_attr11_code       => #{p_attr11_code,jdbcType=VARCHAR},
+                                               p_attr11_desc       => #{p_attr11_desc,jdbcType=VARCHAR},
+                                               p_attr12_code       => #{p_attr12_code,jdbcType=VARCHAR},
+                                               p_attr12_desc       => #{p_attr12_desc,jdbcType=VARCHAR},
+                                               p_attr13_code       => #{p_attr13_code,jdbcType=VARCHAR},
+                                               p_attr13_desc       => #{p_attr13_desc,jdbcType=VARCHAR},
+                                               p_attr14_code       => #{p_attr14_code,jdbcType=VARCHAR},
+                                               p_attr14_desc       => #{p_attr14_desc,jdbcType=VARCHAR},
+                                               p_attr15_code       => #{p_attr15_code,jdbcType=VARCHAR},
+                                               p_attr15_desc       => #{p_attr15_desc,jdbcType=VARCHAR},
+                                               p_paint_code1       => #{p_paint_code1,jdbcType=VARCHAR},
+                                               p_paint_code2       => #{p_paint_code2,jdbcType=VARCHAR},
+                                               p_add_attr01_desc   => #{p_add_attr01_desc,jdbcType=VARCHAR},
+                                               p_add_attr02_desc   => #{p_add_attr02_desc,jdbcType=VARCHAR},
+                                               p_add_attr03_desc   => #{p_add_attr03_desc,jdbcType=VARCHAR},
+                                               p_add_attr04_desc   => #{p_add_attr04_desc,jdbcType=VARCHAR},
+                                               p_add_attr05_desc   => #{p_add_attr05_desc,jdbcType=VARCHAR},
+                                               p_add_attr06_desc   => #{p_add_attr06_desc,jdbcType=VARCHAR},
+                                               p_add_attr07_desc   => #{p_add_attr07_desc,jdbcType=VARCHAR},
+                                               p_add_attr08_desc   => #{p_add_attr08_desc,jdbcType=VARCHAR},
+                                               p_add_attr09_desc   => #{p_add_attr09_desc,jdbcType=VARCHAR},
+                                               p_excel_upload_flag => #{p_excel_upload_flag,jdbcType=VARCHAR},
+                                               p_err_msg           => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                               p_err_code          => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                               p_item_code         => #{p_item_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT} )
+	}
+  	</select>
+</mapper>

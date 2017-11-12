@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="searchPaintSeparatedValue">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select section_cls
+	      ,separated_val 
+	  from stx_dis_pis_afvolume
+	 where project_no	= #{project_no}
+	   and revision		= #{revision}
+	 order by section_cls 
+  	</select>
+	
+</mapper>  	

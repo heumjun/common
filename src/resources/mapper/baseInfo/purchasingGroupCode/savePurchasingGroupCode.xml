@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePurchasingGroupCode">
+
+	<select id="duplicate" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) cnt
+		  FROM stx_dis_sd_catalog_type
+		 WHERE catalog_type = #{catalog_type}
+	</select>
+
+	<insert id="insert" parameterType="java.util.Map">
+		INSERT
+		  INTO stx_dis_sd_catalog_type
+		       (
+		               catalog_type
+		             , catalog_type_desc
+		             , standard_flag
+		             , enable_flag
+		             , created_by
+		             , creation_date
+		             , last_updated_by
+		             , last_update_date
+		       )
+		       VALUES
+		       (
+		               #{catalog_type}
+		             , #{catalog_type_desc}
+		             , #{standard_flag}
+		             , #{enable_flag}
+		             , #{loginId}
+		             , SYSDATE
+		             , #{loginId}
+		             , SYSDATE
+		       )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE stx_dis_sd_catalog_type
+		   SET catalog_type = #{catalog_type}
+		     , catalog_type_desc = #{catalog_type_desc}
+		     , standard_flag = #{standard_flag}
+		     , enable_flag = #{enable_flag}
+		     , last_updated_by = #{loginId}
+		     , last_update_date = SYSDATE
+		 WHERE catalog_type = #{catalog_type}
+	</update>
+</mapper>

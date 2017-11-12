@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscBuyBuy">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="sscBuyBuyMainList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{ CALL STX_DIS_SSC_BUYBUY_PKG.BUYBUY_SELECT_PROC ( p_project_no   => #{p_project_no,  jdbcType=VARCHAR, mode=IN},
+					                                       p_mother_by    => #{p_mother_by,  jdbcType=VARCHAR, mode=IN},
+					                                       p_state_flag   => #{p_state_flag,  jdbcType=VARCHAR, mode=IN},
+					                                       p_dwg_no       => #{p_dwg_no,  jdbcType=VARCHAR, mode=IN},
+					                                       p_item_code    => #{p_item_code,  jdbcType=VARCHAR, mode=IN},
+					                                       p_upperaction  => #{p_upperaction,  jdbcType=VARCHAR, mode=IN},
+					                                       p_is_eco       => #{p_is_eco,  jdbcType=VARCHAR, mode=IN},
+					                                       p_release      => #{p_release,  jdbcType=VARCHAR, mode=IN},
+					                                       p_chk_series   => #{p_chk_series,  jdbcType=VARCHAR, mode=IN},
+					                                       p_error_code   => #{p_error_code,  jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+				                                           p_error_msg    => #{p_error_msg,  jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+				                                           p_refer 		  => #{p_refer,  jdbcType=CURSOR,  javaType=ResultSet, resultMap=sscBuyBuy.procResultMap, mode=OUT}
+			                                             )
+		}
+    </select>
+    
+    <select id="getSscDescription" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT ' '   AS MASTER_SHIP
+		      ,' '   AS ITEM_CODE     
+		      ,' '   AS ITEM_DESC
+		      ,' '   AS APPLY_PROJECT
+		  FROM DUAL
+		 WHERE 0 = ( SELECT COUNT(*) 
+		               FROM (
+								SELECT ( SELECT A.REPRESENTATIVE_PRO_NUM
+								           FROM STX_DIS_PROJECT A
+								          WHERE A.PROJECT_NO = #{p_mother_by} ) AS MASTER_SHIP
+								      ,SDI.ITEM_CODE                   AS ITEM_CODE     
+								      ,'Buy-Buy 대상 품목이 아닙니다.' AS ITEM_DESC
+								      ,' '                             AS APPLY_PROJECT
+								  FROM STX_DIS_ITEM             SDI 
+								 WHERE SDI.ITEM_CODE              = #{p_mother_by}
+								   AND NOT EXISTS
+								       (SELECT 1
+								          FROM STX_DIS_SD_CATALOG_VALUE SDSCV 
+								         WHERE SDSCV.VALUE_CODE           = '10'
+								           AND SDSCV.VALUE_NAME           = 'Y'
+								           AND SDSCV.ENABLE_FLAG          = 'Y'
+								           AND SDSCV.CATALOG_CODE         = SDI.ITEM_CATALOG
+								       )
+								UNION ALL
+								SELECT A.REPRESENTATIVE_PRO_NUM                                     AS MASTER_SHIP
+								      ,A.ITEM_CODE                                                  AS ITEM_CODE     
+								      ,B.ITEM_DESC                                                  AS ITEM_DESC
+								      ,LISTAGG(PROJECT_NO, ', ') WITHIN GROUP (ORDER BY PROJECT_NO) AS APPLY_PROJECT
+								  FROM (SELECT DISTINCT
+								               SDP.REPRESENTATIVE_PRO_NUM
+								              ,SDSH.PROJECT_NO
+								              ,SDSH.ITEM_CODE
+								          FROM STX_DIS_SSC_HEAD_WORK    SDSH
+								              ,STX_DIS_PROJECT          SDP
+								              ,STX_DIS_PROJECT          SDP_PR
+								              ,STX_DIS_SD_CATALOG_VALUE SDSCV
+								         WHERE SDP.PROJECT_NO             = #{p_project_no}
+								           AND SDP.REPRESENTATIVE_PRO_NUM = SDP_PR.REPRESENTATIVE_PRO_NUM
+                                           AND SDSH.PROJECT_NO            = SDP_PR.PROJECT_NO
+								           AND SDSH.ITEM_CODE             = #{p_mother_by}
+								           AND SDSCV.VALUE_CODE           = '10'
+								           AND SDSCV.VALUE_NAME           = 'Y'
+								           AND SDSCV.ENABLE_FLAG          = 'Y'
+								           AND SDSCV.CATALOG_CODE         = SDSH.ITEM_CATALOG
+								        UNION
+								        SELECT DISTINCT
+								               SDP.REPRESENTATIVE_PRO_NUM
+								              ,SDSH.PROJECT_NO
+								              ,SDSH.ITEM_CODE
+								          FROM STX_DIS_SSC_HEAD         SDSH
+								              ,STX_DIS_PROJECT          SDP
+								              ,STX_DIS_PROJECT          SDP_PR
+								              ,STX_DIS_SD_CATALOG_VALUE SDSCV
+								         WHERE SDP.PROJECT_NO             = #{p_project_no}
+								           AND SDP.REPRESENTATIVE_PRO_NUM = SDP_PR.REPRESENTATIVE_PRO_NUM
+                                           AND SDSH.PROJECT_NO            = SDP_PR.PROJECT_NO
+								           AND SDSH.ITEM_CODE             = #{p_mother_by}
+								           AND SDSCV.VALUE_CODE           = '10'
+								           AND SDSCV.VALUE_NAME           = 'Y'
+								           AND SDSCV.ENABLE_FLAG          = 'Y'
+								           AND SDSCV.CATALOG_CODE         = SDSH.ITEM_CATALOG
+								           AND NOT EXISTS (SELECT 1
+								                             FROM STX_DIS_SSC_HEAD_WORK SDSHW
+								                            WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+								                          )                              
+								       )            A
+								      ,STX_DIS_ITEM B
+								WHERE A.ITEM_CODE = B.ITEM_CODE
+								GROUP BY A.REPRESENTATIVE_PRO_NUM, A.ITEM_CODE, B.ITEM_DESC
+						    )
+		           ) 
+		           
+		           
+		UNION ALL
+		SELECT ( SELECT A.REPRESENTATIVE_PRO_NUM
+		           FROM STX_DIS_PROJECT A
+		          WHERE A.PROJECT_NO = #{p_mother_by} ) AS MASTER_SHIP
+		      ,SDI.ITEM_CODE                   AS ITEM_CODE     
+		      ,'Buy-Buy 대상 품목이 아닙니다.' AS ITEM_DESC
+		      ,' '                             AS APPLY_PROJECT
+		  FROM STX_DIS_ITEM             SDI 
+		 WHERE SDI.ITEM_CODE              = #{p_mother_by}
+		   AND NOT EXISTS
+		       (SELECT 1
+		          FROM STX_DIS_SD_CATALOG_VALUE SDSCV 
+		         WHERE SDSCV.VALUE_CODE           = '10'
+		           AND SDSCV.VALUE_NAME           = 'Y'
+		           AND SDSCV.ENABLE_FLAG          = 'Y'
+		           AND SDSCV.CATALOG_CODE         = SDI.ITEM_CATALOG
+		       )
+		UNION ALL
+		SELECT A.REPRESENTATIVE_PRO_NUM                                     AS MASTER_SHIP
+		      ,A.ITEM_CODE                                                  AS ITEM_CODE     
+		      ,B.ITEM_DESC                                                  AS ITEM_DESC
+		      ,LISTAGG(PROJECT_NO, ', ') WITHIN GROUP (ORDER BY PROJECT_NO) AS APPLY_PROJECT
+		  FROM (SELECT DISTINCT
+		               SDP.REPRESENTATIVE_PRO_NUM
+		              ,SDSH.PROJECT_NO
+		              ,SDSH.ITEM_CODE
+		          FROM STX_DIS_SSC_HEAD_WORK    SDSH
+		              ,STX_DIS_PROJECT          SDP
+		              ,STX_DIS_PROJECT          SDP_PR
+		              ,STX_DIS_SD_CATALOG_VALUE SDSCV
+		         WHERE SDP.PROJECT_NO             = #{p_project_no}
+		           AND SDP.REPRESENTATIVE_PRO_NUM = SDP_PR.REPRESENTATIVE_PRO_NUM
+                   AND SDSH.PROJECT_NO            = SDP_PR.PROJECT_NO
+		           AND SDSH.ITEM_CODE             = #{p_mother_by}
+		           AND SDSCV.VALUE_CODE           = '10'
+		           AND SDSCV.VALUE_NAME           = 'Y'
+		           AND SDSCV.ENABLE_FLAG          = 'Y'
+		           AND SDSCV.CATALOG_CODE         = SDSH.ITEM_CATALOG
+		        UNION
+		        SELECT DISTINCT
+		               SDP.REPRESENTATIVE_PRO_NUM
+		              ,SDSH.PROJECT_NO
+		              ,SDSH.ITEM_CODE
+		          FROM STX_DIS_SSC_HEAD         SDSH
+		              ,STX_DIS_PROJECT          SDP
+		              ,STX_DIS_PROJECT          SDP_PR
+		              ,STX_DIS_SD_CATALOG_VALUE SDSCV
+		         WHERE SDP.PROJECT_NO             = #{p_project_no}
+		           AND SDP.REPRESENTATIVE_PRO_NUM = SDP_PR.REPRESENTATIVE_PRO_NUM
+                   AND SDSH.PROJECT_NO            = SDP_PR.PROJECT_NO
+		           AND SDSH.ITEM_CODE             = #{p_mother_by}
+		           AND SDSCV.VALUE_CODE           = '10'
+		           AND SDSCV.VALUE_NAME           = 'Y'
+		           AND SDSCV.ENABLE_FLAG          = 'Y'
+		           AND SDSCV.CATALOG_CODE         = SDSH.ITEM_CATALOG
+		           AND NOT EXISTS (SELECT 1
+		                             FROM STX_DIS_SSC_HEAD_WORK SDSHW
+		                            WHERE SDSH.SSC_SUB_ID = SDSHW.SSC_SUB_ID
+		                          )                              
+		       )            A
+		      ,STX_DIS_ITEM B
+		WHERE A.ITEM_CODE = B.ITEM_CODE
+		GROUP BY A.REPRESENTATIVE_PRO_NUM, A.ITEM_CODE, B.ITEM_DESC
+	</select>
+
+	<select id="sscBuyBuyMainDelete"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ CALL STX_DIS_SSC_BUYBUY_PKG.BUYBUY_DELETE_PROC ( p_ssc_sub_id => #{p_ssc_sub_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                  ,p_work_flag  => #{p_work_flag,	jdbcType=VARCHAR,	mode=IN}
+		                                                  ,p_user_id    => #{p_user_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                  ,p_error_code => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+		                                                  ,p_error_msg 	=> #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT}
+		                                                 )
+		}
+	</select>
+	
+	<select id="sscBuyBuyMainRestore"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ CALL STX_DIS_SSC_BUYBUY_PKG.BUYBUY_RESTORE_ACTION ( p_user_id    => #{p_user_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                     ,p_ssc_sub_id => #{p_ssc_sub_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                     ,p_error_code => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+		                                                     ,p_error_msg  => #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT}
+		                                                    )
+		}
+	</select>
+	
+	<select id="sscBuyBuyMainCancel"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ CALL STX_DIS_SSC_BUYBUY_PKG.BUYBUY_CANCEL_ACTION ( p_user_id    => #{p_user_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                    ,p_ssc_sub_id => #{p_ssc_sub_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                    ,p_error_code => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+		                                                    ,p_error_msg  => #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT}
+		                                                   )
+		}
+	</select>
+	
+	<select id="sscBuyBuyMainSave"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ CALL STX_DIS_SSC_BUYBUY_PKG.BUYBUY_SAVE_PROC ( p_ssc_sub_id  => #{p_ssc_sub_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                ,p_ea          => #{p_ea,	jdbcType=VARCHAR,	mode=IN}
+		                                                ,p_supply_type => #{p_supply_type,	jdbcType=VARCHAR,	mode=IN}
+		                                                ,p_work_flag   => #{p_work_flag,	jdbcType=VARCHAR,	mode=IN}
+		                                                ,p_user_id     => #{p_user_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                ,p_error_code  => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+		                                                ,p_error_msg   => #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT}
+		                                               )
+		}
+	</select>
+	
+	<select id="sscBuyBuyAddValidation"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ CALL STX_DIS_SSC_BUYBUY_PKG.BUYBUY_ADD_VALIDATION_PROC ( p_user_id  => #{p_user_id,	jdbcType=VARCHAR,	mode=IN}
+		                                                          ,p_work_key   => #{p_work_key,	jdbcType=VARCHAR,	mode=IN}
+		                                                          ,p_error_code  => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+		                                                          ,p_error_msg   => #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT}
+		                                                         )
+		}
+	</select>
+	
+	<select id="sscBuyBuyAddList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDW.PROJECT_NO          AS PROJECT_NO
+		      ,SDW.DWG_NO              AS DWG_NO
+		      ,SDW.ITEM_CODE           AS ITEM_CODE
+		      ,SDW.ITEM_DESC           AS ITEM_DESC
+		      ,SDW.BOM_QTY             AS EA 
+		      ,SDW.SUPPLY_TYPE         AS SUPPLY_TYPE
+		      ,SDW.ERROR_MSG_ITEM_CODE AS ERROR_MSG_ITEM_CODE
+		      ,CASE WHEN SDW.ERROR_MSG_ITEM_CODE IS NULL
+		            THEN 'OK'
+		            ELSE 'NO' END      AS PROCESS
+		      ,'I'                     AS OPER
+		  FROM STX_DIS_WORK SDW
+		 WHERE WORK_KEY = #{p_work_key}
+		   AND USER_ID  = #{p_user_id}
+	</select>
+	
+	<select id="sscBuyBuyAddBack" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DISTINCT
+		       ''                      AS PROJECT_NO
+		      ,SDW.DWG_NO              AS DWG_NO
+		      ,SDW.ITEM_CODE           AS ITEM_CODE
+		      ,SDW.ITEM_DESC           AS ITEM_DESC
+		      ,SDW.BOM_QTY             AS EA 
+		      ,SDW.SUPPLY_TYPE         AS SUPPLY_TYPE
+		      ,'I'                     AS OPER
+		  FROM STX_DIS_WORK SDW
+		 WHERE WORK_KEY = #{p_work_key}
+		   AND USER_ID  = #{p_user_id}
+	</select>
+	
+	<select id="sscBuyBuyAddApply"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{ CALL STX_DIS_SSC_BUYBUY_PKG.BUYBUY_ADD_PROC ( p_project_no  => #{p_project_no,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_mother_by   => #{p_mother_by,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_dwg_no      => #{p_dwg_no,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_item_code   => #{p_item_code,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_ea          => #{p_ea,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_supply_type => #{p_supply_type,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_chk_series  => #{p_chk_series,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_dept_code   => #{p_dept_code,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_user_id     => #{p_user_id,	jdbcType=VARCHAR,	mode=IN}
+		                                               ,p_error_code  => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+		                                               ,p_error_msg   => #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT}
+		                                              )
+		}
+	</select>
+	
+	<select id="sscBuyBuyDwgNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT SUBSTR(PA.ACTIVITYCODE, 0, 8) AS OBJECT 
+		  FROM DPM_ACTIVITY@STXDP PA 
+		     , LPM_NEWPROJECT@STXDP LN 
+		     , ( SELECT STX_DIS_GET_MASTER_F(#{p_project_no, jdbcType=VARCHAR}) AS MASTER_SHIP FROM DUAL ) A
+		 WHERE 1=1 
+		   AND PA.DWGDEPTCODE        = #{p_dept_code, jdbcType=VARCHAR}
+		   AND PA.PROJECTNO          = LN.PROJECTNO 
+		   AND PA.WORKTYPE           = 'DW' 
+		   AND LN.CASENO             = '1' 
+		   AND LN.CASENO             = PA.CASENO
+		   AND LN.DWGSERIESPROJECTNO   = A.MASTER_SHIP
+		 ORDER BY OBJECT
+	</select>
+
+	<select id="sscBuyBuyAddGetItemDesc" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDI.ITEM_CODE
+		      ,SDI.ITEM_DESC
+		      ,SDI.ITEM_WEIGHT
+		  FROM STX_DIS_ITEM SDI
+		 WHERE SDI.ITEM_CODE = #{p_item_code}
+	</select>
+</mapper>

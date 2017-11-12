@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoManageSpecificStructure">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TO_CHAR(LEVEL) AS LEVEL_NO
+		     , A.*
+		     , '...' AS MOTHER_CATALOG_POPUP
+		     , '...' AS ITEM_CATALOG_POPUP
+		     , '+' AS SUB_LEVEL_ADD_ROW
+		     , DECODE(CONNECT_BY_ISLEAF, 0, 'false', 'true') AS LEAF
+		  FROM (SELECT SDBT.SHIP_TYPE
+		             , SDBT.LEVEL_NO
+		             , SDBT.MOTHER_CATALOG
+		             , SDBT.MOTHER_CODE
+		             , SDBT.ITEM_CATALOG
+		             , SDBT.ITEM_CODE
+		             , SDBT.FINDNUMBER
+		             , SDBT.DWG_NO
+		             , SDBT.ATTRIBUTE01 AS ITEM_ATTRIBUTE01
+		             , SDBT.ATTRIBUTE02 AS ITEM_ATTRIBUTE02
+		             , SDBT.ATTRIBUTE03 AS ITEM_ATTRIBUTE03
+		             , SDBT.ATTRIBUTE04 AS ITEM_ATTRIBUTE04
+		             , SDBT.ATTRIBUTE05 AS ITEM_ATTRIBUTE05
+		             , SDBT.ATTRIBUTE06 AS ITEM_ATTRIBUTE06
+		             , SDBT.ATTRIBUTE07 AS ITEM_ATTRIBUTE07
+		             , SDBT.ATTRIBUTE08 AS ITEM_ATTRIBUTE08
+		             , SDBT.ATTRIBUTE09 AS ITEM_ATTRIBUTE09
+		             , SDBT.ATTRIBUTE10 AS ITEM_ATTRIBUTE10
+		             , SDBT.ATTRIBUTE11 AS ITEM_ATTRIBUTE11
+		             , SDBT.ATTRIBUTE12 AS ITEM_ATTRIBUTE12
+		             , SDBT.ATTRIBUTE13 AS ITEM_ATTRIBUTE13
+		             , SDBT.ATTRIBUTE14 AS ITEM_ATTRIBUTE14
+		             , SDBT.ATTRIBUTE15 AS ITEM_ATTRIBUTE15
+		             , SDBT.BOM10
+		             , SDBT.BOM11
+		             , SDBT.BOM12
+		             , SDBT.BOM13
+		             , SDBT.BOM14
+		             , SDBT.WBS_SUB_MOTHER_ID
+		             , SDBT.WBS_SUB_ITEM_ID
+		             , SDBT.STATES
+		             , SDBT.BOM_STATES
+		             , SDBT.ITEM_CREATE_FLAG
+		             , SDBT.BOM_CONNECT_FLAG
+		             , SDBT.ITEM_CREATE_ERROR
+		             , SDBT.BOM_CONNECT_ERROR
+		             , STX_DIS_SHORT_EMP_NAME_F(SDBT.CREATE_BY) AS CREATE_BY
+		             , TO_CHAR(SDBT.CREATE_DATE, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+		             , STX_DIS_SHORT_EMP_NAME_F(SDBT.MODIFY_BY) AS MODIFY_BY
+		             , TO_CHAR(SDBT.MODIFY_DATE, 'YYYY-MM-DD HH24:MI:SS') AS MODIFY_DATE 
+		             , B.SD_DESC AS SHIP_TYPE_NAME
+		          FROM STX_DIS_SPST_BOM_TEMP SDBT, STX_DIS_SD_CODE B
+		         WHERE SDBT.SHIP_TYPE = B.SD_CODE
+		           AND B.SD_TYPE = #{sd_type}
+		           AND SDBT.ITEM_CATALOG IS NOT NULL
+		           AND SDBT.MOTHER_CATALOG IS NOT NULL
+		           AND SHIP_TYPE = #{p_ship_type} ) A START WITH A.LEVEL_NO = 1 CONNECT BY PRIOR A.WBS_SUB_ITEM_ID = A.WBS_SUB_MOTHER_ID
+	</select>
+</mapper>

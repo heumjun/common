@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingExcelImport">
+
+	<select id="select" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT #{p_ship_kind} AS SHIP_KIND 					                                  
+     ,         #{vDwgNo} AS DWG_NO                                                              
+     , (SELECT SDCM.DESCRIPTION                                                            
+          FROM STX_DWG_CATEGORY_MASTERS@stxerp SDCM                                               
+         WHERE SDCM.DWG_NO_CONCAT = SUBSTR(#{vDwgNo},1,5)) AS DWG_NAME                  
+     , #{vItemCode} AS ITEM_CODE                                                        
+     , (SELECT ITEM_DESC FROM STX_TBC_ITEM@stxerp WHERE ITEM_CODE = #{vItemCode}) AS ITEM_DESC 
+     , (SELECT CASE WHEN COUNT(*) = 0 THEN 'N' ELSE 'Y' END AS IS_EXT_DB_MASTER            
+          FROM STX_EMS_DB_MASTER@stxerp SEDM                                                      
+             , STX_EMS_SHIP@stxerp SES                                                            
+         WHERE SEDM.ITEM_CODE = SES.ITEM_CODE                                              
+           AND SEDM.ITEM_CODE = #{vItemCode}                                            
+           AND SES.SHIP_SIZE || SES.SHIP_TYPE  = #{p_ship_kind}) AS IS_EXT_DB_MASTER    
+	   , #{vEa} AS IN_EA                                                                  
+ FROM DUAL                                                                                 
+
+  	</select>
+	
+</mapper>

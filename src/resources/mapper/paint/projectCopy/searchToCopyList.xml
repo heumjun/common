@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="searchToCopyList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select t3.*
+	  from (  
+	        select t2.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					select t1.*
+					  from (
+					        
+					        <if test="sel_condition == 'block' or sel_condition == 'all' ">
+					        select distinct
+					               'BLOCK'      as gbn
+					               ,null		as team_count
+					               ,block_code  as code 
+					          from stx_dis_pis_block
+					         where project_no = #{to_project_no} 
+					           and revision   = #{to_revision} 
+					        </if>
+					           
+					        <if test="sel_condition == 'all' ">
+					        union all
+					        </if>
+					        
+					        <if test="sel_condition == 'pe' or sel_condition == 'all' ">
+					        select distinct
+					               'PE'         as gbn
+					              ,null			as team_count
+					              ,pe_code      as code 
+					          from stx_dis_pis_pe
+					         where project_no = #{to_project_no} 
+					           and revision   = #{to_revision}   
+					        </if>
+					        
+					        <if test="sel_condition == 'all' ">
+					        union all
+					        </if>
+					        
+					        <if test="sel_condition == 'zone' or sel_condition == 'all' ">
+					        select distinct   
+					               'ZONE'       as gbn
+					              ,null			as team_count 
+					              ,zone_code    as code
+					          from stx_dis_pis_zone   
+					         where project_no = #{to_project_no} 
+					           and revision   = #{to_revision}   
+					        </if> 
+					        
+					        <if test="sel_condition == 'all' ">
+					        union all
+					        </if>
+					        
+					        <if test="sel_condition == 'pattern' or sel_condition == 'all' ">
+					        select distinct
+					               'PATTERN'    as gbn
+					              ,null			as team_count 
+					              ,pattern_code as code
+					          from stx_dis_pis_pattern           
+					         where project_no = #{to_project_no} 
+					           and revision   = #{to_revision}   
+					        </if>  
+					        
+					        <if test="sel_condition == 'all' ">
+					        union all
+					        </if>
+					        
+					        <if test="sel_condition == 'outfitting' or sel_condition == 'all' ">
+					        select distinct
+							       'OUTFITTING'     as gbn
+							      ,t1.team_count	as team_count  
+							      ,(select sd_desc  
+							          from STX_DIS_SD_CODE
+							         where sd_type='PAINT_TEAM'
+									 and attribute2 = 'OUTFITTING'
+									 and attribute1          = t1.team_count
+							           and rownum               = 1)
+							                        as code       
+							  from stx_dis_pis_outfitting t1           
+					         where project_no = #{to_project_no} 
+					           and revision   = #{to_revision}   
+					        </if>  
+					        
+					        <if test="sel_condition == 'all' ">
+					        union all
+					        </if>
+					        
+					        <if test="sel_condition == 'cosmetic' or sel_condition == 'all' ">
+					         select distinct
+							       'COSMETIC'      as gbn
+							       ,t1.team_count  as team_count 
+							       ,(select sd_desc  
+							          from STX_DIS_SD_CODE
+							         where sd_type='PAINT_TEAM'
+									 and attribute2 = 'COSMETIC'
+									 and attribute1          = t1.team_count
+							           and rownum               = 1)
+							                        as code       
+							  from stx_dis_pis_cosmetic t1           
+							 where project_no = #{to_project_no} 
+					           and revision   = #{to_revision}   
+					        </if>  
+					         ) t1
+					 order by t1.gbn, t1.code    
+	
+	   				) t2
+         	) t3
+  	  where page = #{curPageNo}   				  
+  	</select>
+  
+</mapper>  	

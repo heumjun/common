@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="patternExcelExport">  	
+ 	<select id="selectPatternExport" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+	                         select project_no
+	                               ,revision
+	                               ,area_code
+	                               ,min(area_desc)
+	                                as area_desc  
+	                           from stx_dis_pis_block
+	                          where project_no = #{project_no} 
+	                            and revision   = #{revision}
+	                          group by project_no, revision, area_code
+	                         )
+	select t1.project_no
+	      ,t1.revision
+	      ,t1.pattern_code
+	      ,t6.define_flag
+	      ,t1.project_no || '_' || t1.pattern_code
+	       as pattern_desc
+	      ,t1.paint_count
+	      ,t1.paint_dft
+	      ,t1.paint_svr
+	      ,t1.paint_stage
+	      ,t1.pre_loss
+	      ,t1.post_loss
+	      ,t2.area_code
+	      ,nvl(t3.area_desc, sdpa.area_desc ) as area_desc
+	      ,t1.paint_item
+	      ,t4.item_desc 
+	      ,t1.season_code
+	      ,t4.stxsvr
+	  from stx_dis_pis_pattern      t6,
+	       stx_dis_pis_pattern_item t1,
+	       stx_dis_pis_pattern_area t2,
+	       temp_paint_block         t3,
+	       stx_dis_item             t4,
+	       stx_dis_pis_area  		sdpa
+	 where t6.project_no    = t1.project_no
+	   and t6.revision      = t1.revision
+	   and t6.pattern_code  = t1.pattern_code
+	   and t1.project_no    = t2.project_no
+	   and t1.revision      = t2.revision
+	   and t1.pattern_code  = t2.pattern_code
+	   and t2.project_no    = t3.project_no
+	   and t2.revision      = t3.revision
+	   and t2.area_code     = t3.area_code
+	   and t1.paint_item    = t4.item_code
+	   and t2.area_code  	= sdpa.area_code(+)
+	   and t1.project_no    = #{project_no}
+	   and t1.revision      = #{revision}
+	   
+	   <if test="pattern_code != null and pattern_code !='' ">
+       and t1.pattern_code like #{pattern_code} || '%'
+       </if>
+	   
+	  <if test="season_code != '0'.toString() ">
+	   and t1.season_code = #{season_code}
+	   </if>
+	  order by t1.pattern_code, t1.season_code, t1.paint_count, t2.area_code			  
+  	</select>
+ 	
+ 	
+  	<select id="selectPatternExport2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with pattern_item as (select project_no
+	                            ,revision
+	                            ,pattern_code
+	                            ,paint_count
+	                            ,paint_item
+	                            ,paint_dft
+	                            ,paint_stage
+	                            ,paint_svr
+	                            ,season_code
+	                            ,pre_loss
+	                            ,post_loss
+	                            ,row_number() over(partition by project_no, revision, pattern_code order by  project_no, revision, pattern_code, season_code, paint_count)
+	                             as item_cnt
+	                        from stx_dis_pis_pattern_item t1
+	                       where project_no = #{project_no}   
+	                         and revision   = #{revision}
+	                         
+	                         <if test="pattern_code != null and pattern_code !='' ">
+					         and pattern_code like #{pattern_code} || '%'
+					         </if>
+					         
+					        <if test="season_code != '0'.toString() ">
+						  	 and season_code = #{season_code}
+						   	 </if>
+		                    )
+	   ,pattern_area as (select project_no
+	                           ,revision
+	                           ,pattern_code
+	                           ,area_code
+	                           ,row_number() over(partition by project_no, revision, pattern_code order by  project_no, revision, pattern_code, area_code)
+	                            as area_cnt
+	                       from stx_dis_pis_pattern_area
+	                      where project_no = #{project_no}   
+	                        and revision   = #{revision} 
+	                        
+	                        <if test="pattern_code != null and pattern_code !='' ">
+					        and pattern_code like #{pattern_code} || '%'
+					        </if>  
+	                      )  
+	   ,temp_paint_block as (
+	                         select project_no
+	                               ,revision
+	                               ,area_code
+	                               ,min(area_desc)
+	                                as area_desc  
+	                           from stx_dis_pis_block
+	                          where project_no = #{project_no} 
+	                            and revision   = #{revision}
+	                          group by project_no, revision, area_code
+	                         )                    
+	select t1.project_no
+	      ,t1.revision
+	      ,t1.pattern_code
+	      ,t2.paint_count
+	      ,t2.paint_item
+	      ,t4.item_desc
+	      ,t2.paint_dft
+	      ,t2.paint_stage
+	      ,t2.paint_svr
+	      ,t2.season_code
+	      ,t2.pre_loss
+	      ,t2.post_loss
+	      ,t3.area_code
+	      ,nvl(t5.area_desc, sdpa.area_desc ) as area_desc
+	      ,(select loss_code
+	          from stx_dis_pis_area
+	         where area_code = t3.area_code)
+	       as loss_code  
+	  from (select project_no
+	              ,revision
+	              ,pattern_code 
+	              ,item_cnt
+	          from pattern_item
+	        union  
+	        select project_no
+	              ,revision
+	              ,pattern_code 
+	              ,area_cnt
+	         from pattern_area
+	      )                     t1                
+	      , pattern_item        t2
+	      , pattern_area        t3
+	      , stx_dis_item        t4
+	      , temp_paint_block    t5
+	      , stx_dis_pis_area  		sdpa
+	where t1.project_no       = t2.project_no(+)
+	  and t1.revision         = t2.revision(+)
+	  and t1.pattern_code     = t2.pattern_code(+)
+	  and t1.item_cnt         = t2.item_cnt(+)
+	  and t1.project_no       = t3.project_no(+)
+	  and t1.revision         = t3.revision(+)
+	  and t1.pattern_code     = t3.pattern_code(+)
+	  and t1.item_cnt         = t3.area_cnt(+)
+	  and t2.paint_item       = t4.item_code(+)
+	  and t3.project_no       = t5.project_no(+)
+	  and t3.revision         = t5.revision(+)
+	  and t3.area_code        = t5.area_code(+)
+	  and t3.area_code  	  = sdpa.area_code(+)
+	order by  t1.pattern_code, t1.item_cnt		  
+  	</select> 	
+</mapper>

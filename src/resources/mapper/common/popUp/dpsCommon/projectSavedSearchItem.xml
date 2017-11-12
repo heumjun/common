@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="projectSavedSearchItem">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  		<choose>
+  			<when test="selectedProjectList != null and selectedProjectList != ''">
+  				SELECT A.PROJECTNO as PROJECT,
+  					   #{loginID} as USERID,
+  					   'I' as OPER
+				FROM   PLM_SEARCHABLE_PROJECT A
+				WHERE  1 = 1
+				AND    A.CATEGORY = #{category}
+				AND    A.STATE &lt;&gt; 'CLOSED'
+				AND    A.PROJECTNO IN (
+						<foreach collection="selectedProjectList" item="item" separator=",">
+							#{item}
+						</foreach>
+						)
+				ORDER BY PROJECTNO
+  			</when>
+  			<otherwise>
+  				SELECT T.*,'I' as OPER FROM DP_PERSON_SELECT_PROJECT T WHERE T.USERID =  #{loginID}
+  			</otherwise>
+  		</choose>
+  	</select>
+</mapper>

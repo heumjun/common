@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectNotRequired">
+  	<select id="select" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  		select nvl(t3.mail_receiver,'') as mail_receiver from(  
+       select                        
+                  t1.mail_receiver  
+                  ,t1.req_date               
+            from  stx_dis_dwg_trans          t1       
+                 ,stx_dis_dwg_trans_detail  t2       
+                 ,stx_dwg_dw302tbl@stxerp   t3                 
+           where  t1.req_seq = t2.req_seq               
+             and  t2.req_dwg_seq_id = t3.dwg_seq_id           
+             and  t3.shp_no = #{h_ShipNo}  
+             and  t3.dwg_no = #{h_DwgNo}  
+             and  t3.dwg_rev = #{dwg_rev}  
+             order by t1.req_date desc  
+             ) t3  
+             where 1=1  
+             and rownum = 1   
+  	</select>
+</mapper>

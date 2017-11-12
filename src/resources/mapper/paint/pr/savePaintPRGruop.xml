@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintPRGruop">
+  <insert id="deletePaintPRGroup" parameterType="java.util.Map">
+	delete 
+	  from stx_dis_pis_prgroup t1
+	 where t1.project_no =  #{project_no} 
+	   and t1.revision 	 =  #{revision}  
+	   and t1.group_code =  #{group_code}  
+  	</insert>
+ 	
+ 	<insert id="insertManualPaintPRGroup" parameterType="java.util.Map">
+	merge into  stx_dis_pis_prgroup t1
+	       using dual
+	          on (	  t1.project_no =  #{project_no} 
+	          	  and t1.revision 	=  #{revision}  
+	          	  and t1.group_code =  #{group_code}  
+	          	  )  	  
+	  when not matched then
+	  
+		  insert  
+		       ( t1.project_no
+		        ,t1.revision
+		        ,t1.group_code
+		        ,t1.group_desc
+		        ,t1.pr_no
+		        ,t1.created_by
+		        ,t1.creation_date
+		        ,t1.last_updated_by
+		        ,t1.last_update_date 
+		       )
+		       values
+		       (
+		         #{project_no} 
+		        ,#{revision} 
+		        ,(
+		          select nvl(max(to_number(group_code)) + 1,6) as group_code
+  				    from stx_dis_pis_prgroup
+ 				   where project_no =  #{project_no}
+ 				     and revision 	=  #{revision}
+		         ) 
+		        ,#{group_desc} 
+		        ,null
+		        ,-1
+		        ,sysdate
+		        ,-1
+		        ,sysdate
+		       )
+  	</insert>
+</mapper>  	

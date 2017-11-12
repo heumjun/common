@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveBomCopy">
+  <select id="copy" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call STX_DIS_PROJECT_PKG.PROJECT_COPY(
+                                       P_PROJECT_NO					=> #{to_project_no,jdbcType=VARCHAR},
+                                       P_REPRESENTATIVE_PRO_NUM		=> #{from_project_no,jdbcType=VARCHAR},
+                                       P_ECO_NO  					=> #{p_eng_change_order_code,jdbcType=VARCHAR},
+                                       P_LOGIN_ID 					=> #{loginId,jdbcType=VARCHAR},
+                                       p_error_msg				=> #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                       p_error_code				=> #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	
+	</select>
+</mapper>  	

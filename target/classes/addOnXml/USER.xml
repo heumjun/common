@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	  <!--   EBP DB LINK 치환 명 :  @STX_ERP_DBLINK -->
+	  <!--   Replace parameter 형식 :  ## -->
+<SQL>
+	<selectEmployeeInfo>
+		<![CDATA[
+			SELECT SCIU.EMP_NO    AS EMP_NO
+			      ,SCIU.USER_NAME AS USER_NAME
+			      ,SCIU.DEPT_CODE AS INSA_DEPT_CODE
+			      ,SCIU.DEPT_NAME AS INSA_DEPT_NAME
+			      ,DD.DWGDEPTCODE AS DEPT_CODE
+			      ,DD.DEPTNM      AS DEPT_NAME
+			  FROM STX_COM_INSA_USER@STX_ERP_DBLINK SCIU
+			       ,DCC_DEPTCODE@stxdp                   DD
+			 WHERE SCIU.DEPT_CODE = DD.DEPTCODE
+			   AND SCIU.EMP_NO = #employeeID#
+		]]>
+		<notempty name="employeeID">
+			and 1=1
+		</notempty>
+	</selectEmployeeInfo>
+
+	<selectDPUserInfo>
+		<![CDATA[
+			SELECT INSA.ATTRIBUTE1
+			      ,CS.NAME
+			      ,CS.ENGLISH_NAME
+			      ,CS.EMPLOYEE_NUM
+			      ,CS.POSITION
+			      ,DWG.DWGDEPTNM
+			  FROM CCC_SAWON@STXDP.STXSHIP.CO.KR          CS
+			      ,STX_COM_INSA_USER@STX_ERP_DBLINK INSA
+			      ,DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR    DWG
+			      ,DCC_DEPTCODE@STXDP.STXSHIP.CO.KR       DEPT
+			 WHERE 1 = 1
+			   AND CS.EMPLOYEE_NUM = INSA.EMP_NO
+			   AND CS.DEPT_CODE = DEPT.DEPTCODE
+			   AND DEPT.DWGDEPTCODE = DWG.DWGDEPTCODE
+		]]>
+		<notempty name="NAME">
+			AND CS.NAME LIKE #NAME# || '%'
+		</notempty>
+		<notempty name="DWGDEPTCODE">
+			AND DWG.DWGDEPTCODE = #DWGDEPTCODE#
+		</notempty>
+		<![CDATA[
+			AND ROWNUM < 100
+		]]>
+		
+	</selectDPUserInfo>
+	
+	<selectERPUserInsideList>
+		<![CDATA[
+			SELECT SCIU.EMP_NO AS EMP_NO
+	             ,SCIU.USER_NAME AS USER_NAME
+	             ,SCIU.EP_MAIL || '@onestx.com' AS EP_MAIL
+	             ,SDD.DEPT_NAME AS DEPT_NAME
+	             ,SCIU.DEPT_NAME AS INSA_DEPT_NAME
+	             ,SDD.DEPT_ID AS DEPT_ID
+	             ,'사내' AS USER_TYPE
+	         FROM STX_COM_INSA_USER    SCIU
+	             ,STX_DWG_DEPT_MAPPING SDDM
+	             ,STX_DWG_DEPT_MANAGER SDD
+	        WHERE SCIU.DEPT_CODE = SDDM.DEPT_CODE
+	          AND SDDM.DEPT_ID = SDD.DEPT_ID
+	          AND SCIU.DEL_DATE IS NULL
+	          AND ROWNUM < 500
+		]]>
+		<notempty name="DEPT_NAME">
+			AND SCIU.DEPT_NAME LIKE '%' || #DEPT_NAME# || '%'
+		</notempty>
+		<notempty name="USER_NAME">
+			AND SCIU.USER_NAME LIKE '%' || #USER_NAME# || '%'
+		</notempty>
+		<![CDATA[
+			ORDER BY SCIU.USER_NAME,SDD.DEPT_NAME
+		]]>
+	</selectERPUserInsideList>
+	
+	<selectERPUserOutsideList>
+		<![CDATA[
+			SELECT SDUM.EMP_NO AS EMP_NO
+	             ,SDUM.USER_NAME AS USER_NAME
+	             ,SDUM.EP_MAIL AS EP_MAIL
+	             ,SDDM.DEPT_NAME AS DEPT_NAME
+	             ,'' AS INSA_DEPT_NAME
+	             ,SDDM.DEPT_ID AS DEPT_ID
+	             ,'사외' AS USER_TYPE
+	         FROM STX_DWG_USER_MASTER  SDUM
+	             ,STX_DWG_DEPT_MANAGER SDDM
+	        WHERE SDUM.USER_TYPE = 'O'
+	          AND SDUM.DEPT_CODE = SDDM.DEPT_ID
+	          AND ROWNUM < 500
+		]]>
+		<notempty name="DEPT_NAME">
+			AND SDDM.DEPT_NAME LIKE #DEPT_NAME# || '%'
+		</notempty>
+		<notempty name="USER_NAME">
+			AND SDUM.USER_NAME LIKE #USER_NAME# || '%'
+		</notempty>
+		<![CDATA[
+			ORDER BY SDUM.USER_NAME,SDDM.DEPT_NAME
+		]]>
+	</selectERPUserOutsideList>
+	
+	<selectDPJOBUser>
+		<![CDATA[
+		 SELECT AA.DWG_DEPT_CODE AS DWG_DEPT_CODE
+		       ,BB.JOB AS JOB
+		       ,BB.EMPLOYEE_NUM AS EMP_NO
+		       ,BB.NAME AS EMP_NAME
+		       ,ROWNUM
+		   FROM (select C.TEAM_CODE   AS DEPT_CODE
+		               ,D.DWGDEPTCODE AS DWG_DEPT_CODE
+		               ,C.DEPT_NAME   AS DEPT_NAME
+		           from STX_COM_INSA_DEPT@STXERP C
+		               ,DCC_DEPTCODE             D
+		               ,CCC_SAWON                S
+		          WHERE C.DEPT_CODE = D.DEPTCODE
+		            AND C.DEPT_CODE = S.DEPT_CODE
+		            AND S.EMPLOYEE_NUM = #USER#
+		         UNION ALL
+		         select C.DEPT_CODE   AS DEPT_CODE
+		               ,D.DWGDEPTCODE AS DWG_DEPT_CODE
+		               ,C.DEPT_NAME   AS DEPT_NAME
+		           from STX_COM_INSA_DEPT@STXERP C
+		               ,DCC_DEPTCODE             D
+		               ,CCC_SAWON                S
+		          WHERE C.DEPT_CODE = D.DEPTCODE
+		            AND C.DEPT_CODE = S.DEPT_CODE
+		            AND S.EMPLOYEE_NUM = #USER#) AA
+		       ,CCC_SAWON BB
+		  WHERE AA.DEPT_CODE = BB.DEPT_CODE
+		    AND (BB.JOB IN ('파트장', '팀장'))
+			AND BB.TERMINATION_DATE IS NULL
+		  ORDER BY BB.JOB DESC
+		 ]]>
+	</selectDPJOBUser>
+</SQL>		     

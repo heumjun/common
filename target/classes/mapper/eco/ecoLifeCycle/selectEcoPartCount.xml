@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectEcoPartCount">
+	<select id="select" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT COUNT(*) AS CNT
+	  FROM (
+	        SELECT SDB.MOTHER_CODE
+	              ,SDB.ITEM_CODE
+	          FROM STX_DIS_USC_BOM SDB
+	         WHERE SDB.ECO_NO = #{main_code}
+	           AND ROWNUM     = 1
+	           AND NOT EXISTS
+	               (SELECT 1
+	                  FROM STX_DIS_USC_BOM_WORK SDBW_SUB
+	                 WHERE SDBW_SUB.PROJECT_NO = SDB.PROJECT_NO
+	                   AND SDBW_SUB.MOTHER_CODE = SDB.MOTHER_CODE
+	                   AND SDBW_SUB.ITEM_CODE   = SDB.ITEM_CODE)
+	         UNION ALL
+	        SELECT SDBW.MOTHER_CODE
+	              ,SDBW.ITEM_CODE
+	          FROM STX_DIS_USC_BOM_WORK SDBW
+	         WHERE SDBW.ECO_NO = #{main_code}
+	           AND ROWNUM      = 1
+	         UNION ALL
+	         SELECT SDB.JOB_CD      AS MOTHER_CODE
+	               ,SDB.MOTHER_CODE AS ITEM_CODE
+	          FROM STX_DIS_PENDING SDB
+	         WHERE SDB.ECO_NO = #{main_code}
+	           AND ROWNUM     = 1
+	           AND NOT EXISTS
+	               (SELECT 1
+	                  FROM STX_DIS_PENDING_WORK SDBW_SUB
+	                 WHERE SDBW_SUB.PROJECT_NO = SDB.PROJECT_NO
+	                   AND SDBW_SUB.JOB_CD      = SDB.JOB_CD
+	                   AND SDBW_SUB.MOTHER_CODE = SDB.MOTHER_CODE)
+	         UNION ALL
+	         SELECT SDP.JOB_CD      AS MOTHER_CODE
+	               ,SDP.MOTHER_CODE AS ITEM_CODE
+	           FROM STX_DIS_PENDING_WORK SDP
+	          WHERE SDP.ECO_NO = #{main_code}
+	            AND ROWNUM     = 1
+	         UNION ALL
+	         SELECT SDB.MOTHER_CODE
+	               ,SDB.ITEM_CODE
+	           FROM STX_DIS_SSC_HEAD SDB
+	          WHERE SDB.ECO_NO = #{main_code}
+	            AND ROWNUM     = 1
+	            AND NOT EXISTS
+	                (SELECT 1
+	                   FROM STX_DIS_SSC_HEAD_WORK SDBW_SUB
+	                  WHERE SDBW_SUB.SSC_SUB_ID = SDB.SSC_SUB_ID )
+	         UNION ALL
+	         SELECT SDBW.MOTHER_CODE
+	               ,SDBW.ITEM_CODE
+	           FROM STX_DIS_SSC_HEAD_WORK SDBW
+	          WHERE SDBW.ECO_NO = #{main_code}
+	            AND ROWNUM      = 1
+	         UNION ALL
+	         SELECT SDB.MOTHER_CODE
+	               ,SDB.ITEM_CODE
+	           FROM STX_DIS_RAWLEVEL SDB
+	          WHERE SDB.ECO_NO = #{main_code}
+	            AND ROWNUM     = 1
+	            AND NOT EXISTS
+	                (SELECT 1
+	                   FROM STX_DIS_RAWLEVEL_WORK SDBW_SUB
+	                  WHERE SDBW_SUB.SSC_SUB_ID = SDB.SSC_SUB_ID
+	                )
+	         UNION ALL
+	         SELECT SDBW.MOTHER_CODE
+	               ,SDBW.ITEM_CODE
+	           FROM STX_DIS_RAWLEVEL_WORK SDBW
+	          WHERE SDBW.ECO_NO = #{main_code}
+	            AND ROWNUM      = 1
+	       )
+	</select>
+</mapper>

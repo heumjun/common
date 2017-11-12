@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="wpsManage">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="wpsManageList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_DWG_WPS_PKG.MASTER_SELECT_PROC(
+			 P_WPS_NO 		=> #{p_wps_no} 
+			,P_PROCESS_TYPE => #{p_process_type} 
+			,P_PLATE_TYPE 	=> #{p_plate_type} 
+			,P_CURPAGENO 	=> #{curPageNo} 
+			,P_PAGESIZE 	=> #{pageSize} 
+			,P_ERROR_CODE 	=> #{p_error_code,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_ERROR_MSG 	=> #{p_error_msg,   jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_REFER 		=> #{p_refer,       jdbcType=CURSOR,  javaType=ResultSet, resultMap=wpsManage.procResultMap, mode=OUT}
+		)}
+	</select>
+
+	<!-- <select id="wpsManageList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T2.*
+		  FROM (  
+		        SELECT T1.* 
+		              ,FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM
+		              ( 
+		                SELECT SDWM.WPS_ID
+						      ,SDWM.WPS_NO 
+						      ,(SELECT SDWC.CODE_NAME  AS CODE_NAME
+						          FROM STX_DWG_WPS_CODE SDWC
+						         WHERE SDWC.CODE_TYPE = '02'
+						           AND SDWC.CODE_VALUE = SDWM.PROCESS_TYPE ) AS WELDING_PROCESS
+						      ,(SELECT SDWC.CODE_NAME
+						          FROM STX_DWG_WPS_CODE SDWC
+						         WHERE SDWC.CODE_TYPE = '03'
+						           AND SDWC.CODE_VALUE = SDWM.WELDING_TYPE ) AS WELDING_TYPE
+						      ,SDWM.THICK_RANGE_FROM
+						      ,SDWM.THICK_RANGE_TO
+						      ,(SELECT SDWC.CODE_NAME
+						          FROM STX_DWG_WPS_CODE SDWC
+						         WHERE SDWC.CODE_TYPE = '01'
+						           AND SDWC.CODE_VALUE = SDWM.PLATE_TYPE ) AS JOINT_TYPE
+						      ,TO_CHAR(SDWM.APPROVE_DATE, 'YYYY-MM-DD') AS APPROVE_DATE
+						      ,SDWM.CONSUMABLE AS CONSUMABLE
+      						  ,SDWM.REMARK AS REMARK
+						  FROM STX_DWG_WPS_MASTER SDWM
+						 WHERE 1=1
+						 <if test='p_wps_no != null and !p_wps_no.equalsIgnoreCase("")' >
+						   AND SDWM.WPS_NO        = #{p_wps_no}
+						 </if>
+						 <if test='p_plate_type != null and !p_plate_type.equalsIgnoreCase("")' >  
+						   AND SDWM.PLATE_TYPE    = #{p_plate_type}
+						 </if>
+						 <if test='p_process_type != null and !p_process_type.equalsIgnoreCase("")' >  
+						   AND SDWM.PROCESS_TYPE  = #{p_process_type}
+						 </if>  
+		              ) T1
+		       ) T2
+		 WHERE PAGE = #{curPageNo}						   
+  	</select>
+  	
+  	<select id="wpsManageListTotalCount" parameterType="java.util.Map" resultType="String">
+  		  SELECT COUNT(*) 
+            FROM STX_DWG_WPS_MASTER SDWM
+ 		   WHERE 1=1
+ 		     <if test='p_wps_no != null and !p_wps_no.equalsIgnoreCase("")' >
+			   AND SDWM.WPS_NO        = #{p_wps_no}
+			 </if>
+			 <if test='p_plate_type != null and !p_plate_type.equalsIgnoreCase("")' >  
+			   AND SDWM.PLATE_TYPE    = #{p_plate_type}
+			 </if>
+			 <if test='p_process_type != null and !p_process_type.equalsIgnoreCase("")' >  
+			   AND SDWM.PROCESS_TYPE  = #{p_process_type}
+			 </if> 
+  	</select> -->
+  	
+  	<select id="wpsPositionCodeList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		{CALL STX_DWG_WPS_PKG.MASTER_POSITIOIN_SELECT_PROC(
+			 P_WPS_ID 		=> #{p_wps_id}
+			,P_CURPAGENO 	=> #{curPageNo} 
+			,P_PAGESIZE 	=> #{pageSize} 
+			,P_ERROR_CODE 	=> #{p_error_code,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_ERROR_MSG 	=> #{p_error_msg,   jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_REFER 		=> #{p_refer,       jdbcType=CURSOR,  javaType=ResultSet, resultMap=wpsManage.procResultMap, mode=OUT}
+		)}					   
+  	</select>
+  	
+  	<select id="wpsApprovalCodeList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		{CALL STX_DWG_WPS_PKG.MASTER_APPROVAL_SELECT_PROC(
+			 P_WPS_ID 		=> #{p_wps_id}
+			,P_CURPAGENO 	=> #{curPageNo} 
+			,P_PAGESIZE 	=> #{pageSize} 
+			,P_ERROR_CODE 	=> #{p_error_code,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_ERROR_MSG 	=> #{p_error_msg,   jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_REFER 		=> #{p_refer,       jdbcType=CURSOR,  javaType=ResultSet, resultMap=wpsManage.procResultMap, mode=OUT}
+		)}					   
+  	</select>
+  	
+  	<select id="wpsMetalCodeList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		{CALL STX_DWG_WPS_PKG.MASTER_BASE_METAL_SELECT_PROC(
+			 P_WPS_ID 		=> #{p_wps_id}
+			,P_CURPAGENO 	=> #{curPageNo} 
+			,P_PAGESIZE 	=> #{pageSize} 
+			,P_ERROR_CODE 	=> #{p_error_code,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_ERROR_MSG 	=> #{p_error_msg,   jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_REFER 		=> #{p_refer,       jdbcType=CURSOR,  javaType=ResultSet, resultMap=wpsManage.procResultMap, mode=OUT}
+		)}						   
+  	</select>
+  	
+  	<select id="insertWpsManageMaster"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DWG_WPS_PKG.MASTER_UPDATE_PROC( 
+       			 P_OPER               	=> #{p_oper,				jdbcType=VARCHAR,	mode=IN}
+       			,P_WPS_ID		  	  	=> #{i_wps_id,				jdbcType=VARCHAR,	mode=IN}
+       			,P_WPS_NO			  	=> #{i_wps_no,				jdbcType=VARCHAR,	mode=IN}
+       			,P_PLATE_TYPE			=> #{i_plate_type,			jdbcType=VARCHAR,	mode=IN}
+       			,P_PROCESS_TYPE         => #{i_process_type,		jdbcType=VARCHAR,	mode=IN}
+				,P_WELDING_TYPE         => #{i_welding_type,		jdbcType=VARCHAR,	mode=IN}  
+                ,P_THICK_RANGE_FROM     => #{i_thick_range_from,	jdbcType=VARCHAR,	mode=IN}
+                ,P_THICK_RANGE_TO      	=> #{i_thick_range_to,		jdbcType=VARCHAR,	mode=IN} 
+                ,P_CONSUMABLE           => #{i_consumable,			jdbcType=VARCHAR,	mode=IN}
+                ,P_REMARK        		=> #{i_remark,				jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID            	=> #{loginId,				jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         	=> #{p_error_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          	=> #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="wpsMasterSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DWG_WPS_PKG.MASTER_UPDATE_PROC( 
+       			 P_OPER               	=> #{p_oper,				jdbcType=VARCHAR,	mode=IN}
+       			,P_WPS_ID		  	  	=> #{p_wps_id,				jdbcType=VARCHAR,	mode=IN}
+       			,P_WPS_NO			  	=> #{p_wps_no,				jdbcType=VARCHAR,	mode=IN}
+       			,P_PLATE_TYPE			=> #{p_plate_type,			jdbcType=VARCHAR,	mode=IN}
+       			,P_PROCESS_TYPE         => #{p_process_type,		jdbcType=VARCHAR,	mode=IN}
+				,P_WELDING_TYPE         => #{p_welding_type,		jdbcType=VARCHAR,	mode=IN}  
+                ,P_THICK_RANGE_FROM     => #{p_thick_range_from,	jdbcType=VARCHAR,	mode=IN}
+                ,P_THICK_RANGE_TO      	=> #{p_thick_range_to,		jdbcType=VARCHAR,	mode=IN} 
+                ,P_CONSUMABLE           => #{p_consumable,			jdbcType=VARCHAR,	mode=IN}
+                ,P_REMARK        		=> #{p_remark,				jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID            	=> #{p_user_id,				jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         	=> #{p_error_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          	=> #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="wpsPositionSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DWG_WPS_PKG.MASTER_POSTION_UPDATE_PROC( 
+       			 P_WPS_ID			  	=> #{p_wps_id,				jdbcType=VARCHAR,	mode=IN}
+       			,P_POSTION_CODE  		=> #{p_postion_code,		jdbcType=VARCHAR,	mode=IN}
+       			,P_ENABLE_FLAG          => #{p_enable_flag,			jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID            	=> #{p_user_id,				jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         	=> #{p_error_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          	=> #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="wpsApprovalSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DWG_WPS_PKG.MASTER_APPROVAL_UPDATE_PROC( 
+       			 P_WPS_ID			  	=> #{p_wps_id,				jdbcType=VARCHAR,	mode=IN}
+       			,P_APPROVAL_CLASS_CODE  => #{p_approval_class_code,		jdbcType=VARCHAR,	mode=IN}
+       			,P_ENABLE_FLAG          => #{p_enable_flag,			jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID            	=> #{p_user_id,				jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         	=> #{p_error_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          	=> #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="wpsMetalSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DWG_WPS_PKG.MASTER_BASE_METAL_UPDATE_PROC( 
+       			 P_WPS_ID			  	=> #{p_wps_id,				jdbcType=VARCHAR,	mode=IN}
+       			,P_BASE_METAL_CODE      => #{p_base_metal_code,		jdbcType=VARCHAR,	mode=IN}
+       			,P_ENABLE_FLAG          => #{p_enable_flag,			jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID            	=> #{p_user_id,				jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         	=> #{p_error_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          	=> #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+
+</mapper>

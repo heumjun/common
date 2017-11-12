@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveEcrResult">
+	<select id="duplicate" parameterType="string" resultType="int" >
+	 select count(*)
+		 from stx_dis_eng_rel
+		  where sub_code= #{main_code_to}
+		  and main_code= #{main_code}
+	</select> 
+	<insert id="insertEngRel" parameterType="java.util.Map">
+	 insert into STX_DIS_ENG_REL 
+	 	( eng_rel_code,
+	 	  
+		  sub_code,
+		  main_code,
+		  eng_type,
+		  create_by,
+		  create_date
+	 	)
+ 	 values
+ 	 	(
+		  STX_DIS_ENG_REL_SEQ.nextval,
+		  #{main_code_to},
+		  #{main_code},
+		  #{main_type},
+		  #{loginId,jdbcType=VARCHAR},
+		  sysdate
+ 	 	)
+	</insert>
+ 	 	
+ 	<delete id="deleteEngRel" parameterType="java.util.Map">
+		delete from STX_DIS_ENG_REL
+  		where  eng_rel_code = #{eng_rel_code}
+	</delete>
+</mapper>

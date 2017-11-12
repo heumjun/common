@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="catalogMgntTopBomValue">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select assy_value_code as bom_assy_value_code
+	      ,enable_flag	   as bom_enable_flag
+	      ,assy_value_code as org_assy_value_code
+	      ,enable_flag 	   as bom_enable_flag_changed
+	  from stx_dis_sd_catalog_attr_val_de
+	 where attribute_type = 'BOM'
+	   and catalog_code   = #{catalog_code}
+	   and attribute_code = #{attribute_code}
+	   and value_code     = #{value_code}
+  	</select>
+	
+</mapper>

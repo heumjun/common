@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="supplyProjectManageList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T2.*
+			FROM (SELECT T1.*
+			           , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+			        FROM (SELECT SDSP.PROJECT_NO
+			           , SDSP.CLOSE_FLAG
+			           , SDSP.CREATE_BY
+			           , SDSP.CREATE_DATE
+			           , SDSP.MODIFY_BY
+			           , SDSP.MODIFY_DATE
+			        FROM STX_DIS_SUPPLY_PROJECT SDSP
+			       ORDER BY SDSP.PROJECT_NO ASC 
+			       ) T1 ) T2
+				 WHERE PAGE = #{curPageNo}
+  	</select>
+
+</mapper>

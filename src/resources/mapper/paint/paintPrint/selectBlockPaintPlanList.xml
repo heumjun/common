@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectBlockPaintPlanList">
+  <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with temp_paint_block as (
+                             select project_no
+                                   ,revision
+                                   ,area_code
+                                   ,min(area_desc)
+                                    as area_desc  
+                               from stx_dis_pis_block
+                              where project_no = #{project_no}
+                                and revision   = #{revision}
+                              group by project_no, revision, area_code
+                             )
+	select (case  group_id when 15 then null
+	                       when 31 then t12.block_code    
+	                       else (case when t12.item_gbn = 1 then t12.block_code
+	                                                        else null
+	                            end) 
+	       end)  as block_code
+	      ,(case when group_id = 15 then t12.area_code || chr(10) || 'Total'
+	             when group_id = 31 then 'S/P Area'
+	             else (case when t12.item_gbn = 1 then t12.area_code
+	                                              else null
+	                  end) 
+	       end)  as area_code  
+	      ,(case when group_id = 15 then null
+	             when group_id = 31 then to_char(sp_area)
+	             else (case when t12.item_gbn = 1 then t12.area_desc
+	                                              else null
+	                  end) 
+	       end)  as area_desc  
+	      ,(case when group_id in (15,31) then null
+	             else (case when t12.item_gbn = 1 then t12.paint_count
+	                                              else null
+	                  end) 
+	       end)  as paint_count
+	      ,(case when group_id = 15 then null
+	             when group_id = 31 then 'Paint Area'
+	             else t12.paint_item
+	       end)  as paint_item
+	      ,(case when group_id = 15 then null
+	             when group_id = 31 then to_char(paint_area)
+	             else t12.item_desc
+	       end)  as item_desc     
+	      ,(case when group_id = 31 then null 
+	             else t12.paint_dft
+	       end)  as paint_dft 
+	      ,(case when group_id = 31 then null 
+	             else t12.area
+	       end)  as area  
+	      ,(case when group_id = 31 then null 
+	             else t12.quantity
+	       end)  as quantity 
+	      ,(case when group_id = 31 then null 
+	             else t12.theory_quantity
+	       end)  as theory_quantity 
+	      	      
+	      ,(case when group_id = 31 then null 
+                 else t12.pre_pe_quantity
+           end)  as pre_pe_quantity 
+          ,(case when group_id = 31 then null 
+                 else t12.pre_pe_theory_quantity
+           end)  as pre_pe_theory_quantity 
+	      	       
+	      ,(case when group_id in (15,31) then null
+	             else (case when t12.item_gbn = 1 then t12.paint_stage
+	                                              else null
+	                  end) 
+	       end)  as paint_stage   
+	      
+	      ,(case when group_id in (15,31) then null
+	             else (case when t12.item_gbn = 1 then t12.paint_tsr
+	                                              else null
+	                  end) 
+	       end)  as paint_tsr   
+	      
+	      ,(case when group_id in (15,31) then null
+	             else (case when t12.item_gbn = 1 then t12.season_code
+	                                              else null
+	                  end) 
+	       end)  as season_code
+	      , t12.group_id                    
+	 from (
+	        select t10.block_code
+	              ,t10.area_code                                                                                                              
+	              ,(select area_desc from stx_dis_pis_area where area_code = t10.area_code) as area_desc
+	              ,t10.paint_count
+	              ,t10.paint_item
+	              ,t11.item_desc
+	              ,t10.item_gbn
+	              ,t10.season_code
+	             
+	              ,min(t10.paint_tsr)                                         as paint_tsr
+	              ,min(t10.paint_stage)                                       as paint_stage
+	              ,sum(decode(t10.item_gbn, 1, t10.paint_dft, null))          as paint_dft
+	              ,sum(decode(t10.item_gbn, 1, t10.block_area, null))         as area
+	              ,sum(t10.block_quantity)                                    as quantity
+	              ,sum(t10.block_theory_quantity)                             as theory_quantity
+	              ,sum(t10.pre_pe_quantity)                                   as pre_pe_quantity
+                  ,sum(t10.pre_pe_theory_quantity)                            as pre_pe_theory_quantity
+                  
+	              ,sum(decode(t10.paint_count,1,decode(t10.item_gbn,1,t10.block_area,0),0)) as sp_area
+                  ,sum(decode(t10.item_gbn,1,t10.block_area,0))                             as paint_area
+	              
+	              ,grouping_id(t10.block_code, t10.area_code, t10.paint_count,  t10.season_code, t10.paint_item, t10.item_gbn)              
+	                                          								  as  group_id
+	          from (
+	                select t1.project_no
+	                      ,t1.revision
+	                      ,t1.pattern_code
+	                      ,t1.block_code
+	                      ,t1.pe_code
+	                      ,t1.pre_pe_code
+	                      ,t1.zone_code
+	                      ,t1.area_code
+	                      ,t3.area_desc
+	                      ,t1.season_code
+	                      ,t1.paint_count
+	                      ,(case when t4.item_gbn = 1 then t1.paint_item
+	                                                  else (select thinner_code
+	                                                          from stx_dis_item
+	                                                         where item_code = t1.paint_item 
+	                                                           and rownum = 1)
+	                       end) as paint_item         
+	                      ,t1.paint_dft                         
+	                      ,t1.paint_stage                           
+	                      ,round(t1.paint_svr * 10 / t1.paint_dft,3) as paint_tsr 
+	                      ,t1.paint_svr
+	                      ,(case when t4.item_gbn = 1 then t1.pre_loss
+	                                                  else null
+	                       end) as pre_loss                           
+	                      ,(case when t4.item_gbn = 1 then t1.post_loss
+	                                                  else null
+	                       end) as post_loss                          
+	                      ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.pre_loss)) 
+	                                                  else null 
+	                       end) as pre_loss_rate
+	                      ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.post_loss))
+	                                                  else null 
+	                       end) as post_loss_rate
+	                      ,(case when t4.item_gbn = 1 then t1.block_area
+	                                                  else null 
+	                       end) as block_area
+	                      ,(case when t4.item_gbn = 1 then t1.pe_area
+	                                                  else null 
+	                       end) as pe_area
+	                      ,(case when t4.item_gbn = 1 then t1.hull_area
+	                                                  else null 
+	                       end) as hull_area
+	                      ,(case when t4.item_gbn = 1 then t1.quay_area
+	                                                  else null 
+	                       end) as quay_area
+	                      ,(case when t4.item_gbn = 1 then t1.pre_pe_area
+	                                                  else null
+	                       end) as pre_pe_area
+	                      ,(case when t4.item_gbn = 1 then t1.block_quantity
+	                                                    else round(t1.block_quantity * 0.15, 3)
+	                       end) as block_quantity                           
+	                      ,(case when t4.item_gbn = 1 then t1.pe_quantity
+	                                                    else round(t1.pe_quantity * 0.15, 3)
+	                       end) as pe_quantity                               
+	                      ,(case when t4.item_gbn = 1 then t1.hull_quantity
+	                                                    else round(t1.hull_quantity * 0.15, 3)
+	                       end) as hull_quantity                           
+	                      ,(case when t4.item_gbn = 1 then t1.quay_quantity
+	                                                    else round(t1.quay_quantity * 0.15, 3)
+	                       end) as quay_quantity  
+	                      ,(case when t4.item_gbn = 1 and t1.pre_pe_define_flag = 'Y' then t1.pre_pe_quantity
+                                 when t4.item_gbn = 2 and t1.pre_pe_define_flag = 'Y' then round(t1.pre_pe_quantity * 0.15, 3)
+                                 else 0
+                           end) as pre_pe_quantity  
+	                      ,(case when t4.item_gbn = 1 then t1.block_theory_quantity
+	                                                    else round(t1.block_theory_quantity * 0.15, 3)
+	                       end) as block_theory_quantity                           
+	                      ,(case when t4.item_gbn = 1 then t1.pe_theory_quantity
+	                                                    else round(t1.pe_theory_quantity * 0.15, 3)
+	                       end) as pe_theory_quantity                               
+	                      ,(case when t4.item_gbn = 1 then t1.hull_theory_quantity
+	                                                    else round(t1.hull_theory_quantity * 0.15, 3)
+	                       end) as hull_theory_quantity                           
+	                      ,(case when t4.item_gbn = 1 then t1.quay_theory_quantity
+	                                                    else round(t1.quay_theory_quantity * 0.15, 3)
+	                       end) as quay_theory_quantity  
+	                     ,(case when t4.item_gbn = 1 and t1.pre_pe_define_flag = 'Y' then t1.pre_pe_theory_quantity
+                                 when t4.item_gbn = 2 and t1.pre_pe_define_flag = 'Y' then round(t1.pre_pe_theory_quantity * 0.15, 3)
+                                 else 0
+                           end) as pre_pe_theory_quantity                                                
+	                      ,t1.define_flag
+	                      ,t1.block_define_flag
+	                      ,t1.pe_define_flag
+	                      ,t1.pre_pe_define_flag
+	                      ,t1.hull_define_flag
+	                      ,t1.quay_define_flag
+	                      ,t4.item_gbn
+	                  from stx_dis_pis_pattern_scheme          t1
+	                      ,temp_paint_block                    t3
+	                      ,stx_dis_pis_pe                      t5
+	                      ,(select 1 as item_gbn from dual
+	                        union all
+	                        select 2 as item_gbn from dual) t4       
+	                 where t1.project_no  = #{project_no}
+	                   and t1.revision    = #{revision}
+	                   and t1.project_no  = t3.project_no
+	                   and t1.revision    = t3.revision
+	                   and t1.area_code   = t3.area_code
+	                   and t1.project_no  = t5.project_no(+)
+	                   and t1.revision    = t5.revision(+)
+	                   and t1.block_code  = t5.block_code(+)
+	                   and t1.block_define_flag		  =   'Y'
+	                   and t1.block_area     <![CDATA[>]]> 0
+					   and t1.block_quantity <![CDATA[>]]> 0
+					   <if test="code_list != null and code_list !='' ">
+					   and t1.block_code in ( '${code_list}' )
+					   </if>
+	                             
+	                  )                          t10 
+	                 , stx_dis_item              t11
+	        
+	             where t10.paint_item = t11.item_code
+	             group by grouping sets((t10.block_code, t10.area_code, t10.area_desc, t10.paint_count,  t10.season_code, t10.paint_item, t11.item_desc, t10.item_gbn), (t10.block_code, t10.area_code, t10.area_desc),(t10.block_code))
+	             order by t10.block_code, t10.area_code, t10.paint_count, t10.season_code, t10.paint_item
+	      ) t12       
+	</select>
+</mapper>  	

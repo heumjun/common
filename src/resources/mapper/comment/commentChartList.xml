@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="commentChartList">
+	
+	<!-- 집계현황 -->
+	<select id="commentChartList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT TT.TEAM
+				  ,TT.TEAM_CODE
+			      ,SUM(TOTAL_CNT)        AS TOTAL_CNT
+			      ,SUM(USER_CNT)         AS USER_CNT
+			      ,SUM(DWG_CNT)          AS DWG_CNT
+			      ,SUM(TOTAL_CNT) -SUM(CNT) AS NOT_COMMENT_CNT
+			      ,SUM(NO_REPLY_CNT)     AS NO_REPLY_CNT
+			      ,SUM(NOTICE_CNT)       AS NOTICE_CNT
+			      ,SUM(PROGRESS_CNT)     AS PROGRESS_CNT
+			      ,SUM(NO_REPLY_CNT) + SUM(NOTICE_CNT) +  SUM(PROGRESS_CNT) AS OPEN_TOTAL_CNT
+			      ,SUM(CLOSE_FLAG_CNT)   AS CLOSE_FLAG_CNT
+			      ,'T'                   AS GUBUN
+			FROM (
+			SELECT SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1)) AS TEAM
+            	  ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)+1) AS TEAM_CODE
+			      ,0 AS TOTAL_CNT
+			      ,0 AS USER_CNT
+			      ,0 AS DWG_CNT
+			      ,0 AS CNT
+			      ,SUM(CASE WHEN AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) != 'C'     THEN 1 ELSE 0 END) AS NO_REPLY_CNT
+			      ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C' AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'N' THEN 1 ELSE 0 END) AS NOTICE_CNT
+			      ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C' AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'O' THEN 1 ELSE 0 END) AS PROGRESS_CNT
+			      ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'C' THEN 1 ELSE 0 END) AS CLOSE_FLAG_CNT
+			  FROM (
+			        SELECT SDCM.DWG_NO
+			              ,SDCM.ISSUER
+			              ,SDCM.LIST_NO
+			              ,SDCM.CONFIRM_FLAG
+			              ,SDCM.STATUS
+			              ,(SELECT /*+ INDEX_DESC(SDCS STX_DIS_COMMENT_SUB_U1)*/
+			                      SDCS.STATUS || '@' || SDCS.CONFIRM_FLAG || '@' || SDU.USER_NAME || '@' || SDDD_TEAM.DWGDEPTNM || '@' || SDDD_TEAM.DWGDEPTCODE
+			                 FROM STX_DIS_COMMENT_SUB SDCS
+			                     ,STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD
+			                     ,STX_DIS_DWGDEPTCODE            SDDD_TEAM
+			                     ,STX_COM_INSA_USER@STXERP       SDU
+			                     ,STX_DIS_COMMENT_RECEIPT_LIST   SDCRL
+			                WHERE SDCS.PROJECT_NO = SDCM.PROJECT_NO
+			                  AND SDCS.DWG_NO     = SDCM.DWG_NO
+			                  AND SDCS.ISSUER     = SDCM.ISSUER
+			                  AND SDCS.LIST_NO    = SDCM.LIST_NO
+			                  AND SDCS.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID
+			                  AND SDCRL.RECEIPT_ID = SDCRD.RECEIPT_ID
+			                  AND SDCRD.RECEIPT_TEAM_CODE= SDDD_TEAM.DWGDEPTCODE(+)
+			                  AND SDCS.BUILDER_USER_ID   = SDU.EMP_NO(+)
+			                  <if test='p_start_date != null and !p_start_date.equalsIgnoreCase("")' >
+			                  AND SDCRL.ISSUE_DATE            >= TO_DATE(#{p_start_date},'YYYY-MM-DD')
+			                  </if>
+			                  <if test='p_end_date != null and !p_end_date.equalsIgnoreCase("")' >
+							  AND SDCRL.ISSUE_DATE             <![CDATA[<]]> TO_DATE(#{p_end_date},'YYYY-MM-DD') +1
+							  </if>
+			                  
+			                  AND ROWNUM = 1
+			               )  AS SUB_STATUS_FLAG  
+			          FROM STX_DIS_COMMENT_MAIN SDCM
+					<if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+			         WHERE SDCM.PROJECT_NO = #{p_project_no}
+			        </if>
+			        ) AA
+			GROUP BY SUBSTR( AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1) )
+					,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)+1)
+			UNION ALL
+			SELECT SDDD_TEAM.DWGDEPTNM AS TEAM 
+				  ,SDDD_TEAM.DWGDEPTCODE AS TEAM_CODE
+			      ,COUNT(SDCS.RECEIPT_NO) AS TOTAL_CNT
+			      ,COUNT(SDCS.RECEIPT_NO) - COUNT(SDCRD.RECEIPT_USER_ID) AS USER_CNT
+			      ,COUNT(SDCS.RECEIPT_NO) - COUNT(SDCRDW.DWG_NO) AS DWG_CNT
+			      ,SUM(SDCRD.COMMENT_CNT) as CNT
+			      ,0 AS NO_REPLY_CNT
+			      ,0 AS NOTICE_CNT
+			      ,0 AS PROGRESS_CNT
+			      ,0 AS CLOSE_FLAG_CNT
+			  FROM STX_DIS_COMMENT_RECEIPT_LIST   SDCS
+			      ,(SELECT SDCRD.*
+			              ,NVL((SELECT 1
+			                 FROM STX_DIS_COMMENT_SUB SDCSB
+			                WHERE SDCSB.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID
+			                  AND ROWNUM = 1
+			               ),0)   AS COMMENT_CNT
+			          FROM STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD 
+			        )                             SDCRD 
+			      ,STX_DIS_COMMENT_RECEIPT_DWG    SDCRDW
+			      ,STX_DIS_SD_CODE                SDSC
+			      ,STX_DIS_SD_CODE                SDSC_ISSUER
+			      ,STX_COM_INSA_USER@STXERP       SDU
+			      ,STX_DIS_DWGDEPTCODE            SDDD_TEAM
+			WHERE SDCS.DOC_TYPE              = SDSC.SD_CODE
+			<if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+			  AND SDCS.PROJECT_NO           LIKE #{p_project_no} || '%'
+			</if>  
+			  AND SDSC.SD_TYPE               = 'COMMENT_DOC_TYPE'
+			  AND SDCS.ISSUER                = SDSC_ISSUER.SD_CODE
+			  AND SDSC_ISSUER.SD_TYPE        = 'COMMENT_ISSUER_TYPE'
+			  AND SDCS.RECEIPT_ID            = SDCRD.RECEIPT_ID
+			  AND SDCRD.RECEIPT_DETAIL_ID    = SDCRDW.RECEIPT_DETAIL_ID(+)
+			  AND SDCRD.RECEIPT_TEAM_CODE    = SDDD_TEAM.DWGDEPTCODE(+)
+			  AND SDCRD.RECEIPT_USER_ID      = SDU.EMP_NO(+)
+			  <if test='p_start_date != null and !p_start_date.equalsIgnoreCase("")'>
+			  AND SDCS.ISSUE_DATE            >= TO_DATE(#{p_start_date},'YYYY-MM-DD')
+			  </if>
+			  <if test='p_end_date != null and !p_end_date.equalsIgnoreCase("")'>
+        	  AND SDCS.ISSUE_DATE             <![CDATA[<]]> TO_DATE(#{p_end_date},'YYYY-MM-DD') +1
+        	  </if>
+			GROUP BY SDCRD.RECEIPT_TEAM_CODE, SDDD_TEAM.DWGDEPTNM, SDDD_TEAM.DWGDEPTCODE
+			) TT 
+			,STX_DIS_DWGDEPTCODE SDD
+			WHERE TT.TEAM_CODE IS NOT NULL
+			AND TT.TEAM_CODE = SDD.DWGDEPTCODE
+			AND SDD.MHYN = 'Y'
+			AND SDD.USERYN = 'Y'
+			<if test='p_team != null and !p_team.equalsIgnoreCase("")'>
+		      AND TT.TEAM_CODE = #{p_team}
+			</if> 
+			GROUP BY TT.TEAM, TT.TEAM_CODE, SDD.ORDERNO
+			<if test='p_team == null or p_team.equalsIgnoreCase("")'>
+			ORDER BY SDD.ORDERNO
+ 			</if>
+			
+			
+			<if test='p_team != null and !p_team.equalsIgnoreCase("")'>
+			UNION ALL
+			SELECT TT.PART
+				  ,'' AS TEAM_CODE
+			      ,SUM(TOTAL_CNT)        AS TOTAL_CNT
+			      ,SUM(USER_CNT)         AS USER_CNT
+			      ,SUM(DWG_CNT)          AS DWG_CNT
+			      ,SUM(TOTAL_CNT) -SUM(CNT) AS NOT_COMMENT_CNT 
+			      ,SUM(NO_REPLY_CNT)     AS NO_REPLY_CNT
+			      ,SUM(NOTICE_CNT)       AS NOTICE_CNT
+			      ,SUM(PROGRESS_CNT)     AS PROGRESS_CNT
+			      ,SUM(NO_REPLY_CNT) + SUM(NOTICE_CNT) +  SUM(PROGRESS_CNT) AS OPEN_TOTAL_CNT
+			      ,SUM(CLOSE_FLAG_CNT)   AS CLOSE_FLAG_CNT
+			      ,'P'                   AS GUBUN
+			FROM (
+			    SELECT SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1)) AS TEAM
+			          ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1 )                                                                                    AS TEAM_CODE
+          			  ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1)) AS PART
+			          ,0 AS TOTAL_CNT
+			          ,0 AS USER_CNT
+			          ,0 AS DWG_CNT
+			          ,0 AS CNT
+			          ,SUM(CASE WHEN AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) != 'C'     THEN 1 ELSE 0 END) AS NO_REPLY_CNT
+			          ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C' AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'N' THEN 1 ELSE 0 END) AS NOTICE_CNT
+			          ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C' AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'O' THEN 1 ELSE 0 END) AS PROGRESS_CNT
+			          ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'C' THEN 1 ELSE 0 END) AS CLOSE_FLAG_CNT
+			      FROM (
+			            SELECT SDCM.DWG_NO
+			                  ,SDCM.ISSUER
+			                  ,SDCM.LIST_NO
+			                  ,SDCM.CONFIRM_FLAG
+			                  ,SDCM.STATUS
+			                  ,(SELECT /*+ INDEX_DESC(SDCS STX_DIS_COMMENT_SUB_U1)*/
+			                          SDCS.STATUS || '@' || SDCS.CONFIRM_FLAG || '@' || SDU.USER_NAME || '@' || SDDD_TEAM.DWGDEPTNM|| '@' || SDDD_PART.DWGDEPTNM || '@' || SDDD_TEAM.DWGDEPTCODE
+			                     FROM STX_DIS_COMMENT_SUB SDCS
+			                         ,STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD
+			                         ,STX_DIS_DWGDEPTCODE            SDDD_TEAM
+			                         ,STX_DIS_DWGDEPTCODE            SDDD_PART
+			                         ,STX_COM_INSA_USER@STXERP       SDU
+			                         ,STX_DIS_COMMENT_RECEIPT_LIST   SDCRL
+			                    WHERE SDCS.PROJECT_NO = SDCM.PROJECT_NO
+			                      AND SDCS.DWG_NO     = SDCM.DWG_NO
+			                      AND SDCS.ISSUER     = SDCM.ISSUER
+			                      AND SDCS.LIST_NO    = SDCM.LIST_NO
+			                      AND SDCS.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID
+			                      AND SDCRL.RECEIPT_ID = SDCRD.RECEIPT_ID
+			                      AND SDCRD.RECEIPT_TEAM_CODE= SDDD_TEAM.DWGDEPTCODE(+)
+			                      AND SDCRD.RECEIPT_DEPT_CODE= SDDD_PART.DWGDEPTCODE(+)
+			                      AND SDCS.BUILDER_USER_ID   = SDU.EMP_NO(+)
+			                      <if test='p_start_date != null and !p_start_date.equalsIgnoreCase("")'>
+			                      AND SDCRL.ISSUE_DATE            >= TO_DATE(#{p_start_date},'YYYY-MM-DD')
+			                      </if>
+			                      <if test='p_end_date != null and !p_end_date.equalsIgnoreCase("")'>
+                            	  AND SDCRL.ISSUE_DATE             <![CDATA[<]]> TO_DATE(#{p_end_date},'YYYY-MM-DD') +1
+                            	  </if>
+			                      AND ROWNUM = 1
+			                   )  AS SUB_STATUS_FLAG  
+			              FROM STX_DIS_COMMENT_MAIN SDCM
+			              <if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+			              WHERE SDCM.PROJECT_NO = #{p_project_no}
+			              </if>
+			            ) AA 
+			    GROUP BY SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1)) 
+			            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1 )
+			            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1))                           
+			    UNION ALL
+			    SELECT SDDD_TEAM.DWGDEPTNM AS TEAM
+			    	  ,SDDD_TEAM.DWGDEPTCODE AS TEAM_CODE
+			          ,SDDD_PART.DWGDEPTNM AS PART
+			          ,COUNT(SDCS.RECEIPT_NO) AS TOTAL_CNT
+			          ,COUNT(SDCS.RECEIPT_NO) - COUNT(SDCRD.RECEIPT_USER_ID) AS USER_CNT
+			          ,COUNT(SDCS.RECEIPT_NO) - COUNT(SDCRDW.DWG_NO) AS DWG_CNT
+			          ,SUM(SDCRD.COMMENT_CNT) as cnt
+			          ,0 AS NO_REPLY_CNT
+			          ,0 AS NOTICE_CNT
+			          ,0 AS PROGRESS_CNT
+			          ,0 AS CLOSE_FLAG_CNT
+			      FROM STX_DIS_COMMENT_RECEIPT_LIST   SDCS
+			          ,(SELECT SDCRD.*
+			                  ,NVL((SELECT 1
+			                     FROM STX_DIS_COMMENT_SUB SDCSB
+			                    WHERE SDCSB.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID
+			                      AND ROWNUM = 1
+			                   ),0)   AS COMMENT_CNT
+			              FROM STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD 
+			            )                             SDCRD 
+			          ,STX_DIS_COMMENT_RECEIPT_DWG    SDCRDW
+			          ,STX_DIS_SD_CODE                SDSC
+			          ,STX_DIS_SD_CODE                SDSC_ISSUER
+			          ,STX_COM_INSA_USER@STXERP       SDU
+			          ,STX_DIS_DWGDEPTCODE            SDDD_TEAM
+			          ,STX_DIS_DWGDEPTCODE            SDDD_PART 
+			    WHERE SDCS.DOC_TYPE              = SDSC.SD_CODE
+			    <if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+			      AND SDCS.PROJECT_NO            LIKE #{p_project_no} || '%'
+			    </if>  
+			      AND SDSC.SD_TYPE               = 'COMMENT_DOC_TYPE'
+			      AND SDCS.ISSUER                = SDSC_ISSUER.SD_CODE
+			      AND SDSC_ISSUER.SD_TYPE        = 'COMMENT_ISSUER_TYPE'
+			      AND SDCS.RECEIPT_ID            = SDCRD.RECEIPT_ID
+			      AND SDCRD.RECEIPT_DETAIL_ID    = SDCRDW.RECEIPT_DETAIL_ID(+)
+			      AND SDCRD.RECEIPT_TEAM_CODE    = SDDD_TEAM.DWGDEPTCODE(+)
+			      AND SDCRD.RECEIPT_DEPT_CODE    = SDDD_PART.DWGDEPTCODE(+)
+			      AND SDCRD.RECEIPT_USER_ID      = SDU.EMP_NO(+)  
+			      <if test='p_start_date != null and !p_start_date.equalsIgnoreCase("")'>
+			      AND SDCS.ISSUE_DATE            >= TO_DATE(#{p_start_date},'YYYY-MM-DD')
+			      </if>
+			      <if test='p_end_date != null and !p_end_date.equalsIgnoreCase("")'>
+            	  AND SDCS.ISSUE_DATE            <![CDATA[<]]> TO_DATE(#{p_end_date},'YYYY-MM-DD') +1
+            	  </if>
+			    GROUP BY SDDD_TEAM.DWGDEPTNM, SDDD_TEAM.DWGDEPTCODE, SDDD_PART.DWGDEPTNM 
+			) TT
+			WHERE TT.PART IS NOT NULL 
+			  AND TT.TEAM_CODE = #{p_team}
+			GROUP BY  TT.PART
+			</if>
+	</select>	
+	
+	
+	<!-- 상세현황 -->
+  	<select id="list3" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TT.PROJECT_NO 
+		      ,TT.TEAM
+		      ,TT.TEAM_CODE
+		      ,TT.PART
+		      ,TT.PART_CODE
+		      ,TT.DWG_NO
+		      ,TT.USER_NAME
+		      ,TT.USER_NO
+		      ,SUM(NO_REPLY_CNT_O) + SUM(NO_REPLY_CNT_C) || '(' || SUM(NO_REPLY_CNT_O) || '/' || SUM(NO_REPLY_CNT_C) || ')'             AS NO_REPLY_CNT
+	          ,SUM(NOTICE_CNT_O) + SUM(NOTICE_CNT_C) || '(' || SUM(NOTICE_CNT_O) || '/' || SUM(NOTICE_CNT_C) || ')'                     AS NOTICE_CNT
+	          ,SUM(PROGRESS_CNT_O) +  + SUM(PROGRESS_CNT_C) || '(' || SUM(PROGRESS_CNT_O) || '/' || SUM(PROGRESS_CNT_C) || ')'          AS PROGRESS_CNT
+	          ,SUM(NO_REPLY_CNT_O) + SUM(NO_REPLY_CNT_C) + SUM(NOTICE_CNT_O) + SUM(NOTICE_CNT_C) +  SUM(PROGRESS_CNT_O) + SUM(PROGRESS_CNT_C) || '(' || (SUM(NO_REPLY_CNT_O)+SUM(NOTICE_CNT_O)+SUM(PROGRESS_CNT_O)) || '/' || (SUM(NO_REPLY_CNT_C)+SUM(NOTICE_CNT_C)+SUM(PROGRESS_CNT_C)) || ')' AS OPEN_TOTAL_CNT
+	          ,SUM(CLOSE_FLAG_CNT_O) + SUM(CLOSE_FLAG_CNT_C) || '(' || SUM(CLOSE_FLAG_CNT_O) || '/' || SUM(CLOSE_FLAG_CNT_C) || ')'     AS CLOSE_FLAG_CNT
+		FROM (
+		    SELECT AA.PROJECT_NO
+		          ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1)) AS TEAM
+		          ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1)) AS TEAM_CODE
+		          ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1)) AS PART
+		          ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 7)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6) +1)) AS PART_CODE
+		          ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 2) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 2) +1)) AS USER_NAME
+		          ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 7) +1)                                                                                    AS USER_NO
+		          ,AA.DWG_NO
+		          ,SUM(CASE WHEN AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) != 'C' AND AA.ISSUER = 'O'    THEN 1 ELSE 0 END) AS NO_REPLY_CNT_O
+	              ,SUM(CASE WHEN AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) != 'C' AND AA.ISSUER = 'C'    THEN 1 ELSE 0 END) AS NO_REPLY_CNT_C
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C'  AND AA.ISSUER = 'O' AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'N' THEN 1 ELSE 0 END) AS NOTICE_CNT_O
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C'  AND AA.ISSUER = 'C' AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'N' THEN 1 ELSE 0 END) AS NOTICE_CNT_C
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C'  AND AA.ISSUER = 'O' AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'O' THEN 1 ELSE 0 END) AS PROGRESS_CNT_O
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C'  AND AA.ISSUER = 'C' AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'O' THEN 1 ELSE 0 END) AS PROGRESS_CNT_C
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'C' AND AA.ISSUER = 'O' THEN 1 ELSE 0 END) AS CLOSE_FLAG_CNT_O
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'C' AND AA.ISSUER = 'C' THEN 1 ELSE 0 END) AS CLOSE_FLAG_CNT_C
+		      FROM (
+		            SELECT SDCM.PROJECT_NO
+		                  ,SDCM.DWG_NO
+		                  ,SDCM.ISSUER
+		                  ,SDCM.LIST_NO
+		                  ,SDCM.CONFIRM_FLAG
+		                  ,SDCM.STATUS
+		                  ,(SELECT /*+ INDEX_DESC(SDCS STX_DIS_COMMENT_SUB_U1)*/
+		                          SDCS.STATUS || '@' || SDCS.CONFIRM_FLAG || '@' || SDU.USER_NAME || '@' || SDDD_TEAM.DWGDEPTNM|| '@' || SDDD_PART.DWGDEPTNM || '@' || SDDD_TEAM.DWGDEPTCODE || '@' || SDDD_PART.DWGDEPTCODE || '@' || SDU.EMP_NO
+		                     FROM STX_DIS_COMMENT_SUB SDCS
+		                         ,STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD
+		                         ,STX_DIS_DWGDEPTCODE            SDDD_TEAM
+		                         ,STX_DIS_DWGDEPTCODE            SDDD_PART
+		                         ,STX_COM_INSA_USER@STXERP       SDU
+		                    WHERE SDCS.PROJECT_NO = SDCM.PROJECT_NO
+		                      AND SDCS.DWG_NO     = SDCM.DWG_NO
+		                      AND SDCS.ISSUER     = SDCM.ISSUER
+		                      AND SDCS.LIST_NO    = SDCM.LIST_NO
+		                      AND SDCS.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID
+		                      AND SDCRD.RECEIPT_TEAM_CODE= SDDD_TEAM.DWGDEPTCODE(+)
+		                      AND SDCRD.RECEIPT_DEPT_CODE= SDDD_PART.DWGDEPTCODE(+)
+		                      AND SDCS.BUILDER_USER_ID   = SDU.EMP_NO(+)
+		                      AND ROWNUM = 1
+		                   )  AS SUB_STATUS_FLAG  
+		              FROM STX_DIS_COMMENT_MAIN SDCM
+		              <if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+			             WHERE SDCM.PROJECT_NO = #{p_project_no}
+		              </if>
+		            ) AA 
+		    GROUP BY AA.PROJECT_NO
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1)) 
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1))
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1))                      
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 7)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6) +1))
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 2) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 2) +1))
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 7) +1)
+		            ,AA.DWG_NO    
+		) TT
+		WHERE 1=1
+		<if test='p_team_code != null and !p_team_code.equalsIgnoreCase("") and !p_team_code.equalsIgnoreCase("ALL")'>
+		  AND TT.TEAM_CODE = #{p_team_code}
+		</if>
+		<if test='p_part_code != null and !p_part_code.equalsIgnoreCase("") and !p_part_code.equalsIgnoreCase("ALL")'>  
+		  AND TT.PART_CODE = #{p_part_code}
+		</if>
+		<if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("") and !p_dwg_no.equalsIgnoreCase("ALL")'>
+		 AND TT.DWG_NO    = #{p_dwg_no}
+		</if>	 
+		<if test='p_user != null and !p_user.equalsIgnoreCase("") and !p_user.equalsIgnoreCase("ALL")'>  
+		  AND TT.USER_NO = #{p_user}
+		</if>  
+		
+		<if test='p_status != null and !p_status.equalsIgnoreCase("")'>
+			<choose>
+ 				<when test='p_status == "reply"'>
+ 					AND NO_REPLY_CNT_O + NO_REPLY_CNT_C <![CDATA[>]]> 0
+ 				</when>
+ 				<when test='p_status == "notice"'>
+ 					AND NOTICE_CNT_O + NOTICE_CNT_C <![CDATA[>]]> 0
+ 				</when>
+ 				<when test='p_status == "progress"'>
+ 					AND PROGRESS_CNT_O + PROGRESS_CNT_C <![CDATA[>]]> 0
+ 				</when>
+ 				<when test='p_status == "closed"'>
+ 					AND CLOSE_FLAG_CNT_O + CLOSE_FLAG_CNT_C <![CDATA[>]]> 0
+ 				</when>
+ 				<otherwise>
+ 					AND NO_REPLY_CNT_O + NO_REPLY_CNT_C + NOTICE_CNT_O + NOTICE_CNT_C +  PROGRESS_CNT_O + PROGRESS_CNT_C <![CDATA[>]]> 0
+ 				</otherwise>
+			</choose>
+		</if>
+		
+		GROUP BY TT.PROJECT_NO, TT.PART, TT.TEAM, TT.DWG_NO, TT.TEAM_CODE, TT.PART_CODE, TT.USER_NAME, TT.USER_NO
+		ORDER BY TT.TEAM
+			
+	</select>
+	
+	<!-- 상세현황 -->
+  	<select id="commentChartDetailList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT TT.PROJECT_NO 
+		      ,TT.DWG_NO
+		      ,TT.ISSUER
+		      ,TT.TEAM
+		      ,TT.TEAM_CODE
+		      ,TT.PART
+		      ,TT.PART_CODE
+		      ,TT.USER_NAME
+		      ,TT.USER_NO
+		      ,SUM(NO_REPLY_CNT)                                         AS NO_REPLY_CNT
+		      ,SUM(NOTICE_CNT)                                           AS NOTICE_CNT
+		      ,SUM(PROGRESS_CNT)                                         AS PROGRESS_CNT
+		      ,SUM(NO_REPLY_CNT) + SUM(NOTICE_CNT) + SUM(PROGRESS_CNT)   AS OPEN_TOTAL_CNT
+       		  ,SUM(CLOSE_FLAG_CNT)                                       AS CLOSE_FLAG_CNT
+		FROM (
+		    SELECT AA.PROJECT_NO
+	              ,AA.DWG_NO
+	              ,AA.ISSUER
+	              ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1)) AS TEAM
+	              ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1)) AS TEAM_CODE
+	              ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1)) AS PART
+	              ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 7)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6) +1)) AS PART_CODE
+	              ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 2) +1, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 2) +1)) AS USER_NAME
+	              ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 7) +1)                                                                                    AS USER_NO
+	              ,SUM(CASE WHEN AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) != 'C' THEN 1 ELSE 0 END) AS NO_REPLY_CNT
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C'  AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'N' THEN 1 ELSE 0 END) AS NOTICE_CNT
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'O' AND SUBSTR(AA.SUB_STATUS_FLAG,3,1) = 'C'  AND  SUBSTR(AA.SUB_STATUS_FLAG,1,1) = 'O' THEN 1 ELSE 0 END) AS PROGRESS_CNT
+	              ,SUM(CASE WHEN AA.CONFIRM_FLAG = 'C' AND AA.STATUS = 'C' THEN 1 ELSE 0 END) AS CLOSE_FLAG_CNT
+		      FROM (
+		            SELECT SDCM.PROJECT_NO
+		                  ,SDCM.DWG_NO
+		                  ,SDCM.ISSUER
+		                  ,SDCM.LIST_NO
+		                  ,SDCM.CONFIRM_FLAG
+		                  ,SDCM.STATUS
+		                  ,(SELECT /*+ INDEX_DESC(SDCS STX_DIS_COMMENT_SUB_U1)*/
+		                          SDCS.STATUS || '@' || SDCS.CONFIRM_FLAG || '@' || SDU.USER_NAME || '@' || SDDD_TEAM.DWGDEPTNM|| '@' || SDDD_PART.DWGDEPTNM || '@' || SDDD_TEAM.DWGDEPTCODE || '@' || SDDD_PART.DWGDEPTCODE || '@' || SDU.EMP_NO
+		                     FROM STX_DIS_COMMENT_SUB SDCS
+		                         ,STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD
+		                         ,STX_DIS_DWGDEPTCODE            SDDD_TEAM
+		                         ,STX_DIS_DWGDEPTCODE            SDDD_PART
+		                         ,STX_COM_INSA_USER@STXERP       SDU
+		                    WHERE SDCS.PROJECT_NO = SDCM.PROJECT_NO
+		                      AND SDCS.DWG_NO     = SDCM.DWG_NO
+		                      AND SDCS.ISSUER     = SDCM.ISSUER
+		                      AND SDCS.LIST_NO    = SDCM.LIST_NO
+		                      AND SDCS.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID
+		                      AND SDCRD.RECEIPT_TEAM_CODE= SDDD_TEAM.DWGDEPTCODE(+)
+		                      AND SDCRD.RECEIPT_DEPT_CODE= SDDD_PART.DWGDEPTCODE(+)
+		                      AND SDCS.BUILDER_USER_ID   = SDU.EMP_NO(+)
+		                      AND ROWNUM = 1
+		                   )  AS SUB_STATUS_FLAG  
+		              FROM STX_DIS_COMMENT_MAIN SDCM
+		              <if test='p_project_no != null and !p_project_no.equalsIgnoreCase("")'>
+			             WHERE SDCM.PROJECT_NO = #{p_project_no}
+		              </if>
+		            ) AA 
+		    GROUP BY AA.PROJECT_NO
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3) +1)) 
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5) +1))
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 5)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 4) +1))                      
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 7)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 6) +1))
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 2) +1,  INSTR(AA.SUB_STATUS_FLAG, '@', 1, 3)  - (INSTR(AA.SUB_STATUS_FLAG, '@', 1, 2) +1))
+		            ,SUBSTR(AA.SUB_STATUS_FLAG, INSTR(AA.SUB_STATUS_FLAG, '@', 1, 7) +1)
+		            ,AA.DWG_NO 
+		            ,AA.ISSUER   
+		) TT
+		WHERE 1=1
+		<if test='p_team_code != null and !p_team_code.equalsIgnoreCase("") and !p_team_code.equalsIgnoreCase("ALL")'>
+		  AND TT.TEAM_CODE = #{p_team_code}
+		</if>
+		<if test='p_part_code != null and !p_part_code.equalsIgnoreCase("") and !p_part_code.equalsIgnoreCase("ALL")'>  
+		  AND TT.PART_CODE = #{p_part_code}
+		</if>
+		<if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("") and !p_dwg_no.equalsIgnoreCase("ALL")'>
+		 AND TT.DWG_NO    = #{p_dwg_no}
+		</if>	 
+		<if test='p_user != null and !p_user.equalsIgnoreCase("") and !p_user.equalsIgnoreCase("ALL")'>  
+		  AND TT.USER_NO = #{p_user}
+		</if>  
+		
+		<if test='p_status != null and !p_status.equalsIgnoreCase("")'>
+			<choose>
+ 				<when test='p_status == "reply"'>
+ 					AND NO_REPLY_CNT <![CDATA[>]]> 0
+ 				</when>
+ 				<when test='p_status == "notice"'>
+ 					AND NOTICE_CNT <![CDATA[>]]> 0
+ 				</when>
+ 				<when test='p_status == "progress"'>
+ 					AND PROGRESS_CNT <![CDATA[>]]> 0
+ 				</when>
+ 				<when test='p_status == "closed"'>
+ 					AND CLOSE_FLAG_CNT <![CDATA[>]]> 0
+ 				</when>
+ 				<otherwise>
+ 					AND NO_REPLY_CNT + NOTICE_CNT +  PROGRESS_CNT <![CDATA[>]]> 0
+ 				</otherwise>
+			</choose>
+		</if>
+		
+		GROUP BY TT.PROJECT_NO, TT.DWG_NO, TT.ISSUER, TT.PART, TT.TEAM, TT.TEAM_CODE, TT.PART_CODE, TT.USER_NAME, TT.USER_NO
+		ORDER BY TT.TEAM
+			
+	</select>
+	
+	<select id="commentSelectBoxTeamList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDDD_TEAM.DWGDEPTCODE    AS SB_VALUE
+		      ,SDDD_TEAM.DWGDEPTNM      AS SB_NAME
+		      ,CASE WHEN SDDD_TEAM.DWGDEPTCODE = #{p_team_code} THEN 'selected=\"selected\"' 
+		            ELSE '' 
+		       END AS SB_SELECTED
+		  FROM STX_DIS_DWGDEPTCODE SDDD_TEAM
+		 WHERE SDDD_TEAM.USERYN = 'Y'
+		   AND SDDD_TEAM.DWGDEPTFG = 'T'
+		   AND SDDD_TEAM.MHYN = 'Y'
+		 ORDER BY SDDD_TEAM.ORDERNO
+  	</select>
+  	
+  	<select id="commentSelectBoxPartList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDDD_TEAM.DWGDEPTCODE    AS SB_VALUE
+		      ,SDDD_TEAM.DWGDEPTNM      AS SB_NAME
+		  FROM STX_DIS_DWGDEPTCODE SDDD_TEAM
+		 WHERE SDDD_TEAM.USERYN = 'Y'
+		   AND SDDD_TEAM.MHYN = 'Y'
+		   AND SDDD_TEAM.DWGDEPTFG = 'P'
+	       AND UPPERDWGDEPTCODE = #{p_team_code}
+  	</select>
+  	
+  	<select id="commentSelectBoxUserList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SCID.USER_NAME AS SB_NAME
+		      ,SCID.EMP_NO AS SB_VALUE
+		  FROM DCC_DEPTCODE@STXDP DDC
+		 INNER JOIN DCC_DWGDEPTCODE@STXDP DDDC ON DDC.DWGDEPTCODE = DDDC.DWGDEPTCODE
+		 INNER JOIN STX_COM_INSA_USER@STXERP SCID ON DDC.DEPTCODE = SCID.DEPT_CODE
+		 WHERE DDDC.USERYN = 'Y'
+		   AND DDDC.DWGDEPTCODE = #{p_part_code}
+		   AND SCID.DEL_DATE IS NULL
+		 ORDER BY SCID.USER_NAME
+  	</select>
+  	
+
+</mapper>

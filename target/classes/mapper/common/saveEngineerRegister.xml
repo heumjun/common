@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveEngineerRegister">
+	<insert id="insert" parameterType="java.util.Map">
+		MERGE INTO stx_dis_user_register a
+			USING( SELECT #{loginId ,jdbcType=VARCHAR} main_emp_no
+			            , #{sub_emp_no ,jdbcType=VARCHAR} sub_emp_no
+		                , #{register_type ,jdbcType=VARCHAR} register_type
+		                , #{main_type ,jdbcType=VARCHAR} main_type
+	             FROM dual ) b
+	    ON ( a.main_emp_no = b.main_emp_no and a.register_type = b.register_type and a.main_type = b.main_type  )
+	    WHEN MATCHED THEN
+	      UPDATE set a.sub_emp_no = b.sub_emp_no
+	    WHEN NOT MATCHED THEN
+	      INSERT ( a.main_emp_no
+	             , a.sub_emp_no
+	             , a.register_type
+	             , a.main_type)
+	      VALUES ( b.main_emp_no
+	             , b.sub_emp_no
+	             , b.register_type
+	             , b.main_type)
+    </insert>
+</mapper>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgPlanList">
+
+	<insert id="insertPlanTemp" parameterType="java.util.Map">
+		INSERT INTO STX_DIS_SUPPLY_QUERY_TEMP ( PROJECT_NO
+		                                       ,GROUP1
+		                                       ,GROUP2
+		                                       ,DESCRIPTION
+		                                       ,JOIN_DATA
+		                                       ,DEPT_NAME
+		                                       ,REASON
+		                                       ,SESSION_ID
+		)
+		VALUES ( #{i_project}
+		        ,#{i_group1}
+		        ,#{i_group2}
+		        ,#{i_description}
+		        ,#{p_join_data}
+		        ,#{i_dept}
+		        ,#{i_reason}
+		        ,#{i_session_id}
+		)
+		<!-- <selectKey keyProperty="session_id" resultType="String" order="AFTER">
+	        SELECT USERENV('SESSIONID') as sessionId FROM DUAL
+	    </selectKey> -->
+	</insert>
+	
+	<delete id="deletePlanTemp" parameterType="java.util.Map">
+		DELETE STX_DIS_SUPPLY_QUERY_TEMP
+		 WHERE SESSION_ID  = (SELECT USERENV('SESSIONID') FROM DUAL)
+	</delete>
+
+<!-- 	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" > -->
+<!-- 	select t2.* -->
+<!-- 	  from (   -->
+<!-- 	        select t1.*   -->
+<!-- 	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page -->
+<!-- 	          from -->
+<!-- 	              (  -->
+<!-- 					SELECT * -->
+<!-- 					  FROM STX_DIS_SUPPLY_PLAN_V -->
+<!--                 		) t1 -->
+<!--          			) t2 -->
+<!--   			 where page = #{curPageNo}            -->
+<!--   	</select> -->
+  	
+<!--   	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String"> -->
+<!-- 		SELECT COUNT(*) -->
+<!-- 		  FROM STX_DIS_SUPPLY_PLAN_V -->
+<!--   	</select> -->
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT BB.RANK                                              AS RANK
+		      ,BB.PROJECT_NO                                        AS PROJECT
+		      ,BB.SUPPLY_ID                                         AS SUPPLY_ID
+		      ,BB.GROUP1                                            AS GROUP1
+		      ,BB.GROUP2                                            AS GROUP2
+		      ,BB.DESCRIPTION                                       AS DESCRIPTION
+		      ,BB.UOM                                               AS UOM
+		      ,BB.JOIN_DATA                                         AS JOIN_DATA
+		      ,BB.DEPT                                              AS DEPT
+		      ,(SELECT NVL2(A.ATTRIBUTE1, A.ATTRIBUTE1 || ' ', '')
+		          FROM STX_DIS_SD_CODE A
+		         WHERE A.SD_TYPE = 'SUPPLY_PLAN_TRACK'
+		           AND A.SD_CODE = BB.JOIN_DATA_CODE) ||
+		       TO_CHAR(BB.ESTIMATE_SUPPLY ,'FM999,999,990')         AS ESTIMATE_SUPPLY     --견적물량
+		      ,TO_CHAR(BB.PURPOSE_SUPPLY)                           AS PURPOSE_SUPPLY      --사업계획물량
+		      ,TO_CHAR(BB.CORRESPOND_SUPPLY)                        AS CORRESPOND_SUPPLY   --설계목표물량
+		      ,CASE WHEN BB.CORRESPOND_SUPPLY = 0 OR BB.PURPOSE_SUPPLY = 0 OR BB.CORRESPOND_SUPPLY IS NULL OR BB.PURPOSE_SUPPLY IS NULL THEN ''
+		       ELSE TO_CHAR(ROUND(( BB.CORRESPOND_SUPPLY /BB.PURPOSE_SUPPLY)*100,2))  || '%'
+		       END                                                  AS CORRESPOND_PER
+		      ,CASE WHEN BB.RESULT_YN = 'N' AND BB.RESULT_SUPPLY = 0 THEN '-'
+		            WHEN BB.RESULT_YN = 'Y' THEN TO_CHAR(BB.RESULT_SUPPLY)
+		       ELSE TO_CHAR(BB.RESULT_SUPPLY,'FM999,999,990')
+		       END                                                  AS RESULT_SUPPLY
+		      ,CASE WHEN (BB.RESULT_SUPPLY = 0 OR BB.PURPOSE_SUPPLY = 0 OR BB.RESULT_SUPPLY IS NULL OR BB.PURPOSE_SUPPLY IS NULL ) THEN ''
+		            ELSE TO_CHAR(ROUND(BB.RESULT_SUPPLY/BB.PURPOSE_SUPPLY*100,2))  || '%'
+		       END                                                  AS PURPOSE_RATE
+		      ,CASE WHEN (BB.RESULT_SUPPLY = 0 OR BB.CORRESPOND_SUPPLY = 0 OR BB.RESULT_SUPPLY IS NULL OR BB.CORRESPOND_SUPPLY IS NULL ) THEN ''
+		            ELSE TO_CHAR(ROUND(BB.RESULT_SUPPLY/BB.CORRESPOND_SUPPLY*100,2)) || '%'
+		       END                                                  AS RESULT_PER
+		      ,BB.REASON
+		      ,BB.RESULT_YN
+		      ,BB.EDIT_YN
+		      ,BB.SUPPLY_CLOSE_FLAG                                AS SUPPLY_CLOSE_FLAG
+		      ,BB.UNIT_YN                                       AS UNIT_YN
+		      ,BB.SESSION_VAL                                       AS SESSION_VAL
+		FROM (
+		      SELECT /*+ LEADING(SDSQ) USE_NL(SDSQ SDSP SDSM A B) */
+		             SDSP.PROJECT_NO                                    AS PROJECT_NO
+		            ,SDP.SUPPLY_CLOSE_FLAG                              AS SUPPLY_CLOSE_FLAG
+		            ,SDSC.SD_DESC                                       AS JOIN_DATA
+		            ,B.DWGDEPTNM                                        AS DEPT
+		            ,SDSM.RANK                                          AS RANK
+		            ,SDSM.SUPPLY_ID                                     AS SUPPLY_ID
+		            ,SDSM.GROUP1                                        AS GROUP1
+		            ,SDSM.GROUP2                                        AS GROUP2
+		            ,SDSM.DESCRIPTION                                   AS DESCRIPTION
+		            ,SDSM.UOM1                                          AS UOM
+		            ,nvl((SELECT SDSE.ESTIMATE_SUPPLY
+		                FROM STX_DIS_SUPPLY_ESTIMATE SDSE
+		               WHERE SDSE.PROJECT_NO = SDSP.PROJECT_NO
+		                 AND SDSE.JOIN_DATA  = SDSM.JOIN_DATA
+		                 AND SDSE.GROUP2     = SDSM.GROUP2
+		               ),0)                                             AS ESTIMATE_SUPPLY
+		            ,SDSP.PURPOSE_SUPPLY                                AS PURPOSE_SUPPLY
+		            ,SDSP.Correspond_Supply                             AS CORRESPOND_SUPPLY
+		            ,CASE WHEN SDSM.RESULT_YN = 'Y' THEN SDSP.RESULT_SUPPLY
+		             ELSE NVL(stx_dis_supply_pkg.bom_cnt_f(SDSP.PROJECT_NO, SDSP.SUPPLY_ID, SDSM.UOM1, SDSM.UOM2),0)
+		             END AS RESULT_SUPPLY
+		            ,CASE WHEN (SELECT /*+ LEADING(SDSR) USE_NL(SDSR SDSRF) */
+		                               COUNT(*)
+		                          FROM STX_DIS_SUPPLY_REASON      SDSR
+		                              ,STX_DIS_SUPPLY_REASON_FILE SDSRF
+		                         WHERE SDSR.SUPPLY_ID  = SDSM.SUPPLY_ID
+		                           AND SDSR.PROJECT_NO = SDSP.PROJECT_NO
+		                           AND SDSR.SEQ        = SDSRF.SEQ
+		                           AND ROWNUM          = 1
+		                        ) > 0 THEN 'Y'
+		                  ELSE 'N' END                                  AS REASON
+		            ,SDSM.RESULT_YN                                     AS RESULT_YN
+		            ,'N'                                                AS EDIT_YN
+		            ,SDSM.JOIN_DATA                                     AS JOIN_DATA_CODE
+		            ,SDSM.DEPT_CODE                                     AS DEPT_CODE
+		            ,SDSM.UNIT_YN                                       AS UNIT_YN
+		            ,SDSQ.SESSION_ID                                    AS SESSION_VAL
+		        FROM STX_DIS_SUPPLY_MAIN       SDSM
+		            ,STX_DIS_SUPPLY_PLAN       SDSP
+		            ,STX_DIS_SUPPLY_QUERY_TEMP SDSQ
+		            ,DCC_DWGDEPTCODE@STXDP     B
+		            ,STX_DIS_SD_CODE           SDSC
+		            ,STX_DIS_PROJECT           SDP
+		      WHERE SDSM.SUPPLY_ID    = SDSP.SUPPLY_ID
+		         AND SDSQ.SESSION_ID  = #{i_session_id}
+		         AND SDSP.PROJECT_NO  = SDSQ.PROJECT_NO
+		         AND NVL(SDSM.GROUP1,'@')      LIKE SDSQ.GROUP1  || '%'
+		         AND NVL(SDSM.GROUP2,'@')      LIKE SDSQ.GROUP2  || '%'
+		         AND SDSM.DESCRIPTION LIKE '%' || SDSQ.DESCRIPTION || '%'
+		         AND SDSM.DEPT_CODE   = B.DWGDEPTCODE
+		         AND B.DWGDEPTNM     LIKE '%' || SDSQ.DEPT_NAME || '%'
+		         AND SDSM.JOIN_DATA = SDSC.SD_CODE
+		         AND SDSM.JOIN_DATA  LIKE '%' || SDSQ.JOIN_DATA || '%'
+		         AND SDSC.SD_TYPE   = 'SUPPLY_PLAN_TRACK'
+		         AND SDSQ.PROJECT_NO = SDP.PROJECT_NO
+		      UNION ALL
+		      SELECT /*+ LEADING(SDSQ) USE_NL(SDSQ SDSP SDSM A B) */
+		             SDSQ.PROJECT_NO                                    AS PROJECT
+		            ,SDP.SUPPLY_CLOSE_FLAG                              AS SUPPLY_CLOSE_FLAG
+		            ,SDSC.SD_DESC                                       AS JOIN_DATA
+		            ,B.DWGDEPTNM                                        AS DEPT
+		            ,SDSM.RANK                                          AS RANK
+		            ,SDSM.SUPPLY_ID                                     AS SUPPLY_ID
+		            ,SDSM.GROUP1                                        AS GROUP1
+		            ,SDSM.GROUP2                                        AS GROUP2
+		            ,SDSM.DESCRIPTION                                   AS DESCRIPTION
+		            ,SDSM.UOM1                                          AS UOM
+		            ,NVL((SELECT SDSE.ESTIMATE_SUPPLY
+		                FROM STX_DIS_SUPPLY_ESTIMATE SDSE
+		               WHERE SDSE.PROJECT_NO = SDSQ.PROJECT_NO
+		                 AND SDSE.JOIN_DATA  = SDSM.JOIN_DATA
+		                 AND SDSE.GROUP2     = SDSM.GROUP2
+		               ),0)                                                AS ESTIMATE_SUPPLY
+		            ,0                                                  AS PURPOSE_SUPPLY
+		            ,0                                                  AS CORRESPOND_SUPPLY
+		            ,CASE WHEN SDSM.RESULT_YN = 'Y' THEN NULL
+		             ELSE NVL(stx_dis_supply_pkg.bom_cnt_f(SDSQ.PROJECT_NO, SDSM.SUPPLY_ID, SDSM.UOM1, SDSM.UOM2),0)
+		             END                                                AS RESULT_SUPPLY
+		            ,CASE WHEN (SELECT /*+ LEADING(SDSR) USE_NL(SDSR SDSRF) */
+		                               COUNT(*)
+		                          FROM STX_DIS_SUPPLY_REASON      SDSR
+		                              ,STX_DIS_SUPPLY_REASON_FILE SDSRF
+		                         WHERE SDSR.SUPPLY_ID  = SDSM.SUPPLY_ID
+		                           AND SDSR.PROJECT_NO = SDSQ.PROJECT_NO
+		                           AND SDSR.SEQ        = SDSRF.SEQ
+		                           AND ROWNUM          = 1
+		                        ) > 0 THEN 'Y'
+		                  ELSE 'N' END                                  AS REASON
+		            ,SDSM.RESULT_YN                                     AS RESULT_YN
+		            ,'N'                                                AS EDIT_YN
+		            ,SDSM.JOIN_DATA                                     AS JOIN_DATA_CODE
+		            ,SDSM.DEPT_CODE                                     AS DEPT_CODE
+		            ,SDSM.UNIT_YN                                       AS UNIT_YN
+		            ,SDSQ.SESSION_ID                                    AS SESSION_VAL
+		        FROM STX_DIS_SUPPLY_MAIN       SDSM
+		            ,STX_DIS_SUPPLY_QUERY_TEMP SDSQ
+		            ,DCC_DWGDEPTCODE@STXDP     B
+		            ,STX_DIS_SD_CODE           SDSC
+		            ,STX_DIS_PROJECT           SDP
+		      WHERE SDSQ.SESSION_ID            = #{i_session_id}
+		         AND NVL(SDSM.GROUP1,'@')      LIKE SDSQ.GROUP1  || '%'
+		         AND NVL(SDSM.GROUP2,'@')      LIKE SDSQ.GROUP2  || '%'
+		         AND SDSM.DESCRIPTION LIKE '%' || SDSQ.DESCRIPTION || '%'
+		         AND SDSM.DEPT_CODE  = B.DWGDEPTCODE
+		         AND B.DWGDEPTNM     LIKE '%' || SDSQ.DEPT_NAME || '%'
+		         AND SDSM.JOIN_DATA  = SDSC.SD_CODE
+		         AND SDSM.JOIN_DATA  LIKE '%' || SDSQ.JOIN_DATA || '%'
+		         AND SDSC.SD_TYPE   = 'SUPPLY_PLAN_TRACK'
+		         AND SDSQ.PROJECT_NO = SDP.PROJECT_NO
+		         AND NOT EXISTS
+		             (SELECT 1
+		                FROM STX_DIS_SUPPLY_PLAN       SDSP
+		               WHERE SDSP.SUPPLY_ID   = SDSM.SUPPLY_ID
+		                 AND SDSP.PROJECT_NO  = SDSQ.PROJECT_NO
+		             )
+		
+		   ) BB
+		ORDER BY BB.RANK, BB.PROJECT_NO, BB.SUPPLY_ID, BB.GROUP1, BB.GROUP2
+		
+  	</select>
+
+</mapper>

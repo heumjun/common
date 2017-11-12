@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ecrInterfaceList">
+  	
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT T2.*
+	      FROM (  
+	          SELECT T1.* 
+	                ,FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+	              FROM
+	                  ( SELECT NVL( IEE.CD_ECR, '-' ) ECR_NO
+	                                , IEE.CD_OCR FEEDBACK_NO
+	                                , DECODE( NVL( IEE.GB_COMMENT, 'FEEDBACK' ), 'COMMENT', 'COMMENT', 'FEEDBACK' ) TYPE
+	                                , ( SELECT ECR.ENG_CHANGE_DESCRIPTION || chr(13) || chr(10) || chr(13) || chr(10) || IEE.REMARK
+	                                      FROM STX_DIS_ENG_CHANGE_REQ ECR
+	                                     WHERE ECR.ENG_CHANGE_REQ_CODE = IEE.CD_ECR ) DESCRIPTION
+	                                , ( SELECT DECODE( ECR.STATES_CODE, 'COMPLETE', 'CORPORATE', 'CANCEL', 'CORPORATE', STX_DIS_SHORT_EMP_NAME_F( ECR.LOCKER_BY ) )
+	                                      FROM STX_DIS_ENG_CHANGE_REQ ECR
+	                                     WHERE ECR.ENG_CHANGE_REQ_CODE = IEE.CD_ECR ) OWNER
+	                                , DECODE( IEE.ST_IF, 0, 'NOT PROCESSED.', -1, 'ERROR OCCURRED', 'CONDUCT COMPLETE' ) PROCESS_STATUS
+	                             FROM IF_ERPPLM_ECR IEE
+	                            WHERE IEE.YN_PLM_REF = 'N'
+	                              AND IEE.STX_SITE = 'JH'
+		<if test='is_special_ship.equalsIgnoreCase("Y")'>
+		                      	  AND SUBSTR( IEE.PROJECT_CODE, 1, 1 ) = 'N'
+		</if>
+		<if test='is_special_ship.equalsIgnoreCase("N")'>
+		                          AND (
+			                               SUBSTR( IEE.PROJECT_CODE, 1, 1 ) = 'S'
+			                            OR SUBSTR( IEE.PROJECT_CODE, 1, 1 ) = 'B'
+		                              )
+		</if>
+		                        ORDER BY NVL2( IEE.CD_ECR, 2, 1 ), IEE.CD_ECR DESC
+             		) T1
+      	  ) T2
+		 WHERE PAGE = #{curPageNo}
+	</select>
+	
+
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT( * ) count
+		  FROM if_erpplm_ecr x
+		 WHERE x.yn_plm_ref = 'N'
+		   AND x.stx_site = 'JH'
+		<if test='is_special_ship.equalsIgnoreCase("Y")'>
+		   AND SUBSTR( x.project_code, 1, 1 ) = 'N'
+		</if>
+		<if test='is_special_ship.equalsIgnoreCase("N")'>
+		   AND (
+		            SUBSTR( x.project_code, 1, 1 ) = 'S'
+		         OR SUBSTR( x.project_code, 1, 1 ) = 'B'
+		       )	
+		</if>
+	</select>
+	
+	
+  	<select id="selectEcrIFEmpNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT SDU.EMP_NO
+	  FROM STX_DIS_USER SDU
+	 WHERE SDU.ECR_EVALUATOR      = 'Y'
+	   AND SDU.ECR_EVALUATOR_SITE = 'TS'
+	   AND SDU.USE_YN             = 'Y'
+	</select>
+	
+	
+	
+	<select id="stxDisEcrIfProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+	{ call stx_dis_erp_interface.send_ecr2erp_feedback(p_cd_ocr      => #{p_cd_ocr},
+                                                       p_loginid     => #{p_loginid},
+                                                       p_ecr_name    => #{p_ecr_name,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       p_description => #{p_description,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       p_to_mail01   => #{p_to_mail01,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       p_to_mail02   => #{p_to_mail02,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       p_error_code  => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                       p_error_msg   => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+	</select>
+	
+	<update id="updateRemovePLMList" parameterType="java.util.Map">
+		UPDATE if_erpplm_ecr x
+		   SET x.yn_plm_ref = 'Y'
+		 WHERE x.cd_ocr = #{feedback_no}
+		   AND x.st_if >= 1
+	</update >
+	
+</mapper>

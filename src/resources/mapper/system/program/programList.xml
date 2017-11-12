@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="programList">
+  	<!-- 프로그램관리 조회버튼 클릭시 SQL Mapping -->
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T2.*
+		  FROM (SELECT T1.*
+		             , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM (SELECT PGM_ID
+		                     , PGM_NAME
+		                     , DESCRIPTION
+		                     , FILE_URL
+		                     , ATTRIBUTE1
+		                     , ATTRIBUTE2
+		                     , ATTRIBUTE3
+		                     , ATTRIBUTE4
+		                     , ATTRIBUTE5
+		                     , CREATE_BY
+		                     , CREATE_DATE
+		                     , MODIFY_BY
+		                     , MODIFY_DATE
+		                  FROM STX_DIS_PROGRAM
+		                 WHERE 1=1
+						 <if test="p_pgm_name != null">
+						   AND PGM_NAME LIKE '%'||UPPER(#{p_pgm_name})||'%'
+						 </if>
+		                 ORDER BY PGM_ID ) T1 ) T2
+		 WHERE PAGE = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT
+          FROM STX_DIS_PROGRAM
+         WHERE 1=1
+		 <if test="p_pgm_name != null">
+		   AND pgm_name LIKE '%'||UPPER(#{p_pgm_name})||'%'
+		 </if>
+  	</select>
+  	
+</mapper>

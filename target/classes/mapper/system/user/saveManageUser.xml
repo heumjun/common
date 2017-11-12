@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveManageUser">
+  	
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT count(*) as cnt
+		  FROM STX_DIS_USER
+		 WHERE EMP_NO = #{emp_no}
+  	</select>
+  	
+ 	<insert id="insert" parameterType="java.util.Map">
+		INSERT
+		  INTO STX_DIS_USER(EMP_NO , PASSWORD , AUTHOR_CODE , ECR_EVALUATOR , NAME , CREATE_BY , CREATE_DATE , MODIFY_BY , MODIFY_DATE , GROUP_ID , USE_YN , ECR_EVALUATOR_SITE , ADMIN_YN ,ECO_AUTHOR_YN)
+		VALUES(#{emp_no}
+		     , STX_COM_EN_DECODE_PKG.ENCRYPT@STXHR(#{emp_no})
+		     , #{author_code}
+		     , NULL
+		     , #{name}
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE
+		     , NULL
+		     , 'Y'
+		     , NULL
+		     , NULL
+		     , 'N')
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE STX_DIS_USER
+		   SET AUTHOR_CODE = #{author_code}
+		     , ECR_EVALUATOR = #{ecr_evaluator}
+		     , NAME = #{name}
+		     , MODIFY_BY = #{loginId}
+		     , MODIFY_DATE = SYSDATE
+		     , GROUP_ID = #{group_id}
+		     , USE_YN = #{use_yn}
+		     , ECR_EVALUATOR_SITE = #{ecr_evaluator_site}
+		     , ADMIN_YN = NULL
+		     , ECO_AUTHOR_YN = #{eco_author_yn}
+		 WHERE EMP_NO = #{emp_no}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  		DELETE FROM STX_DIS_USER
+		 WHERE EMP_NO = #{emp_no}
+  	</delete>
+  	
+  	<update id="updateControl" parameterType="java.util.Map">
+		UPDATE STX_DIS_USER
+		   SET AUTHOR_CODE = #{controlFlag}
+		 WHERE EMP_NO = #{emp_no}
+	</update>
+	
+  	<delete id="deleteBookmark" parameterType="java.util.Map">
+		DELETE 
+		  FROM STX_DIS_BOOKMARK SDB
+		 WHERE SDB.EMP_NO     = #{loginId}
+		   AND SDB.ROLE_GROUP = #{roleCode}
+  	</delete>
+  	
+  	<insert id="insertBookmark" parameterType="java.util.Map">
+		INSERT INTO STX_DIS_BOOKMARK ( EMP_NO
+		                              ,ROLE_GROUP
+		                              ,MENU_ID
+		                              ,ORDER_BY
+		                              ,CREATE_BY
+		                              ,CREATE_DATE
+		                              ,MODIFY_BY
+		                              ,MODIFY_DATE )
+		VALUES ( #{loginId}
+		        ,#{roleCode}
+		        ,#{menu_id}
+		        ,#{order_by}
+		        ,#{loginId}
+		        ,sysdate
+		        ,#{loginId}
+		        ,sysdate )
+  	</insert>
+</mapper>

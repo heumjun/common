@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveProjectSearchItem">
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) CNT
+		FROM   DP_PERSON_SELECT_PROJECT
+		WHERE  USERID = #{loginId}
+		AND    PROJECT = #{project}
+	</select>
+	
+	<insert id="insert" parameterType="java.util.Map">
+		INSERT INTO DP_PERSON_SELECT_PROJECT VALUES(#{loginId},#{project})
+	</insert>
+	
+	<delete id="delete" parameterType="java.util.Map">
+		DELETE DP_PERSON_SELECT_PROJECT T WHERE T.USERID = #{loginId}
+	</delete>
+	
+	<update id="updateProgressSearchableProjectList" parameterType="java.util.Map">
+		MERGE
+		INTO   PLM_SEARCHABLE_PROJECT A USING (SELECT DISTINCT(PROJECTNO) AS B
+		        FROM   PLM_ACTIVITY) ON (B IN A.PROJECTNO
+		        AND    A.CATEGORY = #{category})
+		       WHEN MATCHED THEN
+		UPDATE
+		SET    UPDATEDATE = UPDATEDATE
+		       WHEN NOT MATCHED THEN
+		INSERT
+		VALUES(#{category},
+		               B,
+		               'ALL',
+		               SYSDATE,
+		               #{loginID},
+		               SYSDATE,
+		               #{loginID})
+	</update>
+</mapper>

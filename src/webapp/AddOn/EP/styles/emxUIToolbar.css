@@ -1,0 +1,172 @@
+/*=================================================================
+ *  Toolbar Stylesheet for Windows/Mac Platforms
+ *  emxUIToolbar.css
+ *  Version 1.0
+ *  Requires: emxUIDefault.css
+ *
+ *  This file contains the style definitions for the toolbar.
+ *
+ *  Copyright (c) 1992-2003 MatrixOne, Inc. All Rights Reserved.
+ *  This program contains proprietary and trade secret information 
+ *  of MatrixOne,Inc. Copyright notice is precautionary only
+ *  and does not evidence any actual or intended publication of such program
+ * 
+ *  static const char RCSID[] = $Id: emxUIToolbar.css,v 1.2 2005/02/15 00:40:20 kgw Exp $
+ *=================================================================
+ */
+
+/*=================================================================
+ *  Toolbar Base Styles
+ *=================================================================
+ */
+* { -moz-box-sizing: border-box; }
+
+/* Container for the toolbar */
+div.toolbar, div.toolbar-panel {
+        border-right: 1px solid #8e8e8e;
+        border-left: 1px #b4b4b4;
+        height: 22px;
+        float: left;
+}
+
+div.toolbar-panel input,
+div.toolbar-panel select {
+        font-family: Verdana, Arial, Helvetica, Sans-serif;
+        font-size: 11px;
+}
+
+.toolbar-panel-label {
+        padding: 0px 10px 0px 5px;
+}
+
+.toolbar-panel-input {
+        padding: 1px 10px 0px 0px;
+}
+
+div.toolbar-container {
+        background-color: #e4e4e4;
+        border-top: 1px solid #b4b4b4;
+        border-right: 1px solid #8e8e8e;
+        border-left: 1px solid #b4b4b4;
+        border-bottom: 1px solid #8e8e8e;
+        margin-top: 2px;
+        margin-bottom: 0px;
+        height: 26px;
+}
+
+div.toolbar-subcontainer {
+        background-color: #e4e4e4;
+        border-top: 1px solid #e4e4e4;
+        border-right: 1px solid #8e8e8e;
+        border-left: 1px solid #b4b4b4;
+        border-bottom: 1px solid #8e8e8e;
+        height: 26px;
+}
+
+div.toolbar-frame {
+        border-top: 1px solid white;
+        border-right: 1px solid #c1c1c1;
+        border-left: 1px solid white;
+        border-bottom: 1px solid #c1c1c1;
+        height: 24px;
+}
+
+/*=================================================================
+ *  Toolbar Button Styles
+ *=================================================================
+
+/* borders are all the same */
+.icon-button, .text-button,
+.icon-and-text-button,
+.overflow-button {
+        border: 1px solid #e4e4e4;
+        cursor: pointer;
+        cursor: hand;
+        padding: 3px;        
+} 
+
+/* menu arrow for combo buttons */
+td.menu-arrow {
+        border: 1px solid #e4e4e4;
+        cursor: pointer;
+        cursor: hand;
+        text-align: center;        
+        width: 9px;
+}
+
+td.combo-button {
+        padding-right: 3px;
+}
+
+/* spacing for the text-only button */
+
+.text-button{      
+        padding: 3px 6px 3px 6px;  
+}
+
+/* background for the overflow button */
+.overflow-button {      
+
+}
+
+/* location of icon for the icon only button */
+.icon-button {      
+        padding: 2px 3px 2px 3px;  
+}
+
+/* location of icon for icon and text button */
+.icon-and-text-button {
+        padding: 3px 6px 3px 6px; 
+}
+
+/* the down arrow when a button has a menu */
+.icon-button span.down-arrow , .text-button span.down-arrow ,
+.icon-and-text-button span.down-arrow {
+        background-image: url(../images/utilMenuArrow.gif);
+        background-repeat: no-repeat;
+        background-position: right center;
+        padding-right: 11px;
+}
+
+/* highlight for hover */
+.button-hover, td.button-hover {
+        border-bottom: 1px solid #666666;
+        border-left: 1px solid #ffffff;
+        border-right: 1px solid #666666;
+        border-top: 1px solid #ffffff;
+}
+
+/* highlight for active (down) state */
+.button-active,
+.menu-button-active,
+td.button-active {
+        background-color: #d5d5d5;
+        border-bottom: 1px solid #ffffff;
+        border-left: 1px solid #8e8e8e;
+        border-right: 1px solid #ffffff;
+        border-top: 1px solid #8e8e8e;
+}
+
+/* disabled style */
+.button-disabled {
+        color: #9a9a9a;
+        cursor: default;
+}
+
+
+/*=================================================================
+ *  Toolbar Separator Styles
+ *=================================================================
+ */
+
+.separator {
+        -moz-box-sizing: border-box;
+        background-color: red;
+        border-left: 1px solid #a8a8a8;
+        border-right: 1px solid white;
+        height: 18px;
+        margin-left: 5px;
+        margin-right: 5px;
+        overflow: hidden;
+        width: 2px;
+}

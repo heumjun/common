@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="manualDetailList">
+	
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+	        <result column="FILENAME"	 	property="FILENAME" />
+	        <result column="BLOBDATA" 		property="BLOBDATA"  javaType="[B" jdbcType="BLOB" />
+	</resultMap>
+
+  	<!-- 프로그램관리 조회버튼 클릭시 SQL Mapping -->
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T2.*
+		  FROM (SELECT T1.*
+		             , FLOOR((ROWNUM - 1) / #{pageSize} + 1 ) AS PAGE
+		          FROM ( SELECT SDMF.PGM_ID            AS PGM_ID
+	                           , SDMF.REVISION_NO      AS REVISION_NO
+	                           , SDMF.REVISION_DESC    AS REVISION_DESC
+	                           , SDMF.FILENAME         AS FILENAME 
+	                           , SDMF.FILENAME         AS FILENAMEOBJ 
+	                           , TO_CHAR(SDMF.CREATE_DATE, 'YY.MM.DD')	   AS CREATE_DATE
+						  FROM STX_DIS_MANUAL_FILE SDMF
+						 WHERE SDMF.PGM_ID = #{p_pgm_id, jdbcType=VARCHAR}
+		                 ORDER BY PGM_ID ) T1 ) T2
+		 WHERE PAGE = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*) AS CNT     
+		  FROM ( SELECT SDMF.PGM_ID            AS PGM_ID
+                       , SDMF.REVISION_NO      AS REVISION_NO
+                       , SDMF.REVISION_DESC    AS REVISION_DESC
+                       , SDMF.FILENAME         AS FILENAME 
+                       , SDMF.FILENAME         AS FILENAMEOBJ 
+                       , SDMF.CREATE_DATE	   AS CREATE_DATE
+	  				FROM STX_DIS_MANUAL_FILE SDMF
+	 				WHERE SDMF.PGM_ID = #{p_pgm_id, jdbcType=VARCHAR}
+	 			)
+  	</select>
+  	
+  	<select id="manualFileDownload" parameterType="java.util.Map" resultMap="fileMaps">
+		 SELECT FILENAME, BLOBDATA        
+          FROM STX_DIS_MANUAL_FILE                    
+         WHERE PGM_ID 		 = #{p_pgm_id, jdbcType=VARCHAR}              
+           AND REVISION_NO   = #{p_revision_no, jdbcType=VARCHAR}                   
+	</select>
+  	
+</mapper>

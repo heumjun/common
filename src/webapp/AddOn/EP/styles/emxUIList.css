@@ -1,0 +1,151 @@
+/*=================================================================
+ *  List Stylesheet for Windows/Mac Platforms
+ *  emxUIList.css
+ *  Version 1.0
+ *  Requires: emxUIDefault.css
+ *
+ *  This file contains the style definitions for the list pages.
+ *  This file should be included after emxUIDefault.css.
+ *
+ *  Copyright (c) 1992-2003 MatrixOne, Inc. All Rights Reserved.
+ *  This program contains proprietary and trade secret information 
+ *  of MatrixOne,Inc. Copyright notice is precautionary only
+ *  and does not evidence any actual or intended publication of such program
+ * 
+ *  
+ *=================================================================
+ */
+
+/* --------------------------------------------------------------------
+// Default Settings 
+// -------------------------------------------------------------------- */
+
+/* Table Header Appearance */
+th { 
+	background-color: #336699; 
+	color: white; 
+	text-align: left; 
+}
+
+/* Table Header Link Appearance */
+th a { 
+	text-align: left; 
+	color: white; 
+	text-decoration: none;  
+}
+th a:hover { 
+	text-decoration: underline; 
+	color: #ccffff; 
+}
+
+/* Table Header Column Group Header */
+th.groupheader { 
+	background-color: white; 
+	color: #1E4365; 
+	font-size: 12px; 
+	font-weight: bold;
+	text-align: left; 
+}
+
+/* Table Header Column Group Header Rule */
+th.rule { 
+	background-color: #1E4365;
+}
+
+/* Required field in an editable table */
+th.required,
+th.required th {
+        background-color: #990000;
+}
+
+/* --------------------------------------------------------------------
+// Main Table Settings 
+// -------------------------------------------------------------------- */
+
+/* Sorted Table Header Appearance */
+th.sorted { 
+	background-color: #336699; 
+}
+
+/* Sub Table Header Appearance */
+th.sub { 
+	text-align: left; 
+	color: white; 
+	background-color: #999999; 
+}
+
+/* Sorted Sub Table Header Appearance */
+th.subSorted { 
+	background-color: #999999; 
+}
+
+
+/* Odd Table Row Appearance */
+tr.odd { 
+	background-color: #ffffff; 
+}
+
+/* Even Table Row Appearance */
+tr.even { 
+	background-color: #eeeeee; 
+}
+
+/* Added Table Row Appearance */
+tr.added { 
+	background-color: #ffeca7; 
+}
+
+/* Table Header Column Group Header Rule */
+tr.rule { 
+	background-color: #1E4365;
+}
+
+/* Separator Appearance */
+td.separator { 
+	background-color: #DDDECB; 
+}
+
+/* Separator Appearance */
+td.whiteseparator { 
+	background-color: white; 
+} 
+
+/* --------------------------------------------------------------------
+// Pagination Control Settings 
+// -------------------------------------------------------------------- */
+
+/* Pagination Control Appearance*/
+select.pagination, option.pagination {  
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
+	font-size: 10px;
+}
+
+/* --------------------------------------------------------------------
+// Filter Control Settings 
+// -------------------------------------------------------------------- */
+
+/* Filter Appearance*/
+td.filter, select.filter, 
+option.filter {  
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
+	font-size: 11px;
+}
+
+p.requiredNotice {
+        color: #990000;
+}
+
+/* --------------------------------------------------------------------
+// Calculations Settings 
+// -------------------------------------------------------------------- */
+
+tr.calculations-seperator {
+        background-color: #cccccc;
+        height: 1px;
+}
+
+tr.calculations-bottom {
+        background-color: #cccccc;
+        height: 4px;
+}
+

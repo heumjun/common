@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgRegisterCommon">
+	<select id="selectAllProjectList"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PROJECTNO,
+		       NVL(DL, SYSDATE + 1) AS DL,
+		       DECODE(SIGN(TRUNC(SYSDATE) - LAST_DAY(ADD_MONTHS(NVL(DL, SYSDATE + 1), 1))), 1, 'N', 0, 'N', -1, 'Y') AS DL_EFFECTIVE
+		FROM   LPM_NEWPROJECT
+		WHERE  CASENO='1'
+		AND    PROJECTNO &lt;&gt; 'S0000'
+		AND    DWGMHYN='Y'
+		ORDER BY PROJECTNO  
+	</select>
+	
+	<select id="selectDeployReasonCodeList" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT B.KEY as GRP_KEY,
+		       B.VALUE as GRP_VALUE,
+		       (SELECT COUNT(1)
+		        FROM   PLM_CODE_TBL
+		        WHERE  CATEGORY = 'ECO_CODE'
+		        AND    SUBSTR(KEY, 1, 1) = B.KEY ) AS CODE_CNT,
+		       A.KEY as CODE_KEY,
+		       A.VALUE as CODE_VALUE
+		FROM   PLM_CODE_TBL A,
+		       PLM_CODE_TBL B
+		WHERE  A.CATEGORY = 'ECO_CODE'
+		AND    B.CATEGORY = 'ECO_GROUP'
+		AND    SUBSTR(A.KEY, 1, 1) = B.KEY 
+	</select>
+	
+	<select id="selectDeployNoPrefix" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DWG_DEPT.DWGABBR_ENG  AS DEPLOY_NO_PREFIX
+		  FROM DCC_DEPTCODE     DEPT
+		      ,DCC_DWGDEPTCODE  DWG_DEPT
+		 WHERE DEPT.DWGDEPTCODE = DWG_DEPT.DWGDEPTCODE
+		   AND DWG_DEPT.USERYN  = 'Y'
+		   AND DEPT.DEPTCODE    = #{dept_code}
+	</select>
+	
+	<select id="selectDrawingListForWork2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DWGCODE,
+	       DWGTITLE,
+	       CASE
+	         WHEN DWGCATEGORY = 'B' THEN DECODE(DW_PLAN_F, NULL, '시공 전',
+	                       CASE
+	                         WHEN DW_PLAN_F + 7 >= SYSDATE THEN '시공 전'
+	                         ELSE '시공 후'
+	                       END)
+	         ELSE DECODE(WK_PLAN_S, NULL, '시공 전',
+	                       CASE
+	                         WHEN WK_PLAN_S >= SYSDATE THEN '시공 전'
+	                         ELSE '시공 후'
+	                       END)
+	       END AS D_TIMING,
+	       DWGCATEGORY
+		FROM   (SELECT SUBSTR(DW.ACTIVITYCODE, 1, 8) AS DWGCODE,
+		               DW.DWGTITLE,
+		               DW.DWGCATEGORY,
+		               DW.DWGTYPE,
+		               DW.PLANFINISHDATE AS DW_PLAN_F,
+		               WK.PLANSTARTDATE AS WK_PLAN_S
+		        FROM   PLM_ACTIVITY DW,
+		               (SELECT D.PROJECTNO,
+		                       D.ACTIVITYCODE,
+		                       D.PLANSTARTDATE,
+		                       D.DWGCATEGORY
+		                FROM   PLM_ACTIVITY D
+		                WHERE  D.WORKTYPE = 'WK' ) WK
+		        WHERE  1 = 1
+		        AND    DW.PROJECTNO = #{project_no}
+		        AND    DW.WORKTYPE = 'DW'
+		        AND    DW.PROJECTNO = WK.PROJECTNO(+)
+		        AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(WK.ACTIVITYCODE(+), 1, 8)
+		        AND    DW.DWGDEPTCODE = (SELECT E.DWGDEPTCODE
+		                FROM   DCC_DEPTCODE E
+		                WHERE  E.DEPTCODE=#{dept_code}
+		                ) )
+	</select>
+	
+	<select id="selectDrawingListForWork3"  parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DWGCODE,
+	       DWGTITLE,
+	       CASE
+	         WHEN DWGCATEGORY = 'B' THEN DECODE(DW_PLAN_F, NULL, '시공 전',
+	                       CASE
+	                         WHEN DW_PLAN_F + 7 >= SYSDATE THEN '시공 전'
+	                         ELSE '시공 후'
+	                       END)
+	         ELSE DECODE(WK_PLAN_S, NULL, '시공 전',
+	                       CASE
+	                         WHEN WK_PLAN_S >= SYSDATE THEN '시공 전'
+	                         ELSE '시공 후'
+	                       END)
+	       END AS D_TIMING,
+	       DWGCATEGORY
+		FROM   (SELECT SUBSTR(DW.ACTIVITYCODE, 1, 8) AS DWGCODE,
+		               DW.DWGTITLE,
+		               DW.DWGCATEGORY,
+		               DW.DWGTYPE,
+		               DW.PLANFINISHDATE AS DW_PLAN_F,
+		               WK.PLANSTARTDATE AS WK_PLAN_S
+		        FROM   PLM_ACTIVITY DW,
+		               (SELECT D.PROJECTNO,
+		                       D.ACTIVITYCODE,
+		                       D.PLANSTARTDATE,
+		                       D.DWGCATEGORY
+		                FROM   PLM_ACTIVITY D
+		                WHERE  D.WORKTYPE = 'WK' ) WK
+		        WHERE  1 = 1
+		        AND    DW.PROJECTNO = #{project_no}
+		        AND    DW.WORKTYPE = 'DW'
+		        AND    DW.PROJECTNO = WK.PROJECTNO(+)
+		        AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = #{dwg_no}
+		        AND    SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(WK.ACTIVITYCODE(+), 1, 8)
+		        AND    DW.DWGDEPTCODE = (SELECT E.DWGDEPTCODE
+		                FROM   DCC_DEPTCODE E
+		                WHERE  E.DEPTCODE=#{dept_code}) ) 
+	</select>
+</mapper>

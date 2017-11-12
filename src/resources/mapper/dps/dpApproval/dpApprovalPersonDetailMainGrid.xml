@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpApprovalPersonDetailMainGrid">
+	<select id="list" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT START_TIME,
+		       PROJECT_NO,
+		       DWG_TYPE,
+		       DWG_CODE,
+		       OP_CODE,
+		       CAUSE_DEPART,
+		       BASIS,
+		       WORK_DESC,
+		       EVENT1,
+		       EVENT2,
+		       EVENT3,
+		       NORMAL_TIME,
+		       OVERTIME,
+		       SPECIAL_TIME,
+		       (SELECT B.VALUE
+		        FROM   PLM_CODE_TBL B
+		        WHERE  B.CATEGORY='OP_CODE'
+		        AND    B.KEY=OP_CODE) AS OP_STR,
+		       (SELECT B.VALUE
+		        FROM   PLM_CODE_TBL B
+		        WHERE  B.CATEGORY='DWG_EVENT'
+		        AND    B.KEY=EVENT1) AS EVENT1_STR,
+		       (SELECT B.VALUE
+		        FROM   PLM_CODE_TBL B
+		        WHERE  B.CATEGORY='DWG_EVENT'
+		        AND    B.KEY=EVENT2) AS EVENT2_STR,
+		       (SELECT B.VALUE
+		        FROM   PLM_CODE_TBL B
+		        WHERE  B.CATEGORY='DWG_EVENT'
+		        AND    B.KEY=EVENT3) AS EVENT3_STR,
+		       SHIP_TYPE
+		FROM   PLM_DESIGN_MH
+		WHERE  EMPLOYEE_NO=#{target_emp_num}
+		AND    WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+		ORDER BY START_TIME ASC 
+	</select>
+</mapper>

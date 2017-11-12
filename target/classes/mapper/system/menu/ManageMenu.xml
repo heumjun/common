@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ManageMenu">
+	
+	<select id="treeMenuList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT LEVEL-1 LEV
+		     , A.MENU_ID
+		     , A.PGM_ID
+		     , A.PGM_NAME
+		     , A.PGM_LINK
+		     , A.UP_MENU_ID
+		     , A.SORT_ORDER
+		     , A.USE_YN
+		     , A.PGM_YN
+		     , A.ATTRIBUTE1
+		     , A.ATTRIBUTE2
+		     , A.ATTRIBUTE3
+		     , A.ATTRIBUTE4
+		     , A.ATTRIBUTE5
+		  FROM STX_DIS_MENU A
+		 WHERE USE_YN = 'Y' CONNECT BY PRIOR(A.MENU_ID) = A.UP_MENU_ID START WITH A.MENU_ID = 'M00000'
+		 ORDER SIBLINGS BY A.SORT_ORDER
+	</select>	
+	
+	<select id="treeMenuListByRole" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT 1           AS LEV
+		      ,#{loginId}  AS EMP_NO
+		      ,'BOOKMARK'  AS MENU_ID
+		      ,''          AS PGM_ID
+		      ,'BOOKMARK'  AS PGM_NAME
+		      ,'대메뉴'    AS PGM_LINK
+		      ,''          AS UP_MENU_ID
+		      ,'Y'         AS PGM_YN
+		      ,1           AS SORT_ORDER
+		      ,'Y'         AS ATTRIBUTE1
+		      ,'Y'         AS ATTRIBUTE2
+		      ,'Y'         AS ATTRIBUTE3
+		      ,'Y'         AS ATTRIBUTE4
+		      ,'Y'         AS ATTRIBUTE5
+		      ,'Y'         AS ATTRIBUTE6
+		      ,'Y'         AS ATTRIBUTE7
+		      ,'N'         AS ATTRIBUTE8
+		      ,'N'         AS ATTRIBUTE9
+		      ,'N'         AS ATTRIBUTE10
+		      ,'bookmark_group' AS NOTE
+		      ,'bookmark'  AS UP_LINK
+		      ,'3'          AS MENU_GROUP
+		  FROM DUAL
+		UNION ALL
+		SELECT * FROM (
+		SELECT 2               AS LEV
+		      ,SDB.EMP_NO      AS EMP_NO
+		      ,SDB.MENU_ID     AS MENU_ID
+		      ,SDM.PGM_ID      AS PGM_ID
+		      ,SDM.PGM_NAME    AS PGM_NAME
+		      ,SDM.PGM_LINK    AS PGM_LINK
+		      ,SDM.UP_MENU_ID  AS UP_MENU_ID
+		      ,SDM.PGM_YN      AS PGM_YN
+		      ,SDB.ORDER_BY    AS SORT_ORDER
+		      ,'Y'             AS ATTRIBUTE1
+		      ,'Y'             AS ATTRIBUTE2
+		      ,'Y'             AS ATTRIBUTE3
+		      ,'Y'             AS ATTRIBUTE4
+		      ,'Y'             AS ATTRIBUTE5
+		      ,'Y'             AS ATTRIBUTE6
+		      ,'Y'             AS ATTRIBUTE7
+		      ,'N'             AS ATTRIBUTE8
+		      ,'N'             AS ATTRIBUTE9
+		      ,'N'             AS ATTRIBUTE10
+		      ,'bookmark_group' AS NOTE
+		      ,SDP.ATTRIBUTE1  AS UP_LINK
+		      ,'3'              AS MENU_GROUP
+		  FROM STX_DIS_BOOKMARK SDB
+		      ,STX_DIS_MENU     SDM
+		      ,STX_DIS_PROGRAM  SDP
+		 WHERE SDB.EMP_NO  = #{loginId}
+		   AND SDB.ROLE_GROUP = 
+		<!-- 권한이 선택된경우 -->
+		<if test='roleCode != null and !roleCode.equalsIgnoreCase("")'>
+		       #{roleCode}
+		</if>
+		<!-- 권한이 선택되지 않는경우 유저의 권한중 첫번째 권한으로 메뉴를 취득 -->
+		<if test='roleCode == null or roleCode.equalsIgnoreCase("")'>
+		<![CDATA[
+		       (SELECT SUBSTR(A.TXT, INSTR(A.TXT, '|', 1, LEVEL) + 1, INSTR(A.TXT, '|', 1, LEVEL + 1) - INSTR(A.TXT, '|', 1, LEVEL) - 1) TXT
+		          FROM (
+		                 SELECT '|'||AUTHOR_CODE||'|' AS TXT
+		                   FROM STX_DIS_USER
+		                  WHERE EMP_NO = #{loginId}) A
+		         WHERE ROWNUM = 1 CONNECT BY LEVEL <= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, '|')) - 1)
+		]]>
+		</if>   
+		   AND SDB.MENU_ID = SDM.MENU_ID
+		   AND SDM.PGM_ID = SDP.PGM_ID
+		ORDER BY SDB.ORDER_BY
+		)
+		UNION ALL
+		SELECT *
+		  FROM (SELECT LEVEL-1 LEV
+				     , A.EMP_NO
+				     , A.MENU_ID
+				     , A.PGM_ID
+				     , A.PGM_NAME
+				     , A.PGM_LINK
+				     , A.UP_MENU_ID
+				     , A.PGM_YN
+				     , A.SORT_ORDER
+				     , A.ATTRIBUTE1
+				     , A.ATTRIBUTE2
+				     , A.ATTRIBUTE3
+				     , A.ATTRIBUTE4
+				     , A.ATTRIBUTE5
+				     , A.ATTRIBUTE6
+				     , A.ATTRIBUTE7
+				     , A.ATTRIBUTE8
+				     , A.ATTRIBUTE9
+				     , A.ATTRIBUTE10
+				     , A.NOTE
+				     , A.UP_LINK
+				     , A.MENU_GROUP
+				  FROM (SELECT A.EMP_NO
+				             , A.MENU_ID
+				             , NVL(A.PGM_ID, '') PGM_ID
+				             , C.PGM_NAME
+				             , NVL(C.FILE_URL, '') PGM_LINK
+				             , NVL(A.UP_MENU_ID, '') UP_MENU_ID
+				             , DECODE(NVL(A.PGM_LINK, ''), ' ', 'N', 'Y') PGM_YN
+				             , NVL(A.SORT_ORDER, 0) SORT_ORDER
+				             , NVL(B.ATTRIBUTE1, 'N') ATTRIBUTE1
+				             , NVL(B.ATTRIBUTE2, 'N') ATTRIBUTE2
+				             , NVL(B.ATTRIBUTE3, 'N') ATTRIBUTE3
+				             , NVL(B.ATTRIBUTE4, 'N') ATTRIBUTE4
+				             , NVL(B.ATTRIBUTE5, 'N') ATTRIBUTE5
+				             , NVL(B.ATTRIBUTE6, 'N') ATTRIBUTE6
+				             , NVL(B.ATTRIBUTE7, 'N') ATTRIBUTE7
+				             , NVL(B.ATTRIBUTE8, 'N') ATTRIBUTE8
+				             , NVL(B.ATTRIBUTE9, 'N') ATTRIBUTE9
+				             , NVL(B.ATTRIBUTE10, 'N') ATTRIBUTE10
+				             , NVL(B.NOTE, '') NOTE
+				             , C.ATTRIBUTE1 AS UP_LINK
+				             , A.ATTRIBUTE1 AS MENU_GROUP
+				          FROM (SELECT A.EMP_NO
+				                     , B.*
+				                  FROM (SELECT *
+				                          FROM STX_DIS_USER
+				                         WHERE EMP_NO = #{loginId}) A
+				                     , (SELECT *
+				                          FROM STX_DIS_MENU
+				                         WHERE USE_YN = 'Y'
+										<!-- AND MENU_ID &lt;> (SELECT DECODE(AA.ADMIN_FLAG,'Y', '@', BB.MENU_ID)
+															FROM (SELECT DECODE(COUNT(1),1,'Y','N') AS ADMIN_FLAG
+															        FROM STX_DIS_ADMIN SDA
+															       WHERE SDA.EMP_NO = #{loginId}
+															      
+															)  AA,
+															(SELECT MENU_ID
+															FROM STX_DIS_MENU a
+															WHERE a.PGM_ID = 'F_SYSTEM') BB) -->
+		                                                 ) B
+				                 WHERE 1=1) A
+				             , (SELECT *
+				                  FROM STX_DIS_USER_MENU
+				                 WHERE ATTRIBUTE1 = 'Y'<!-- CASE WHEN (SELECT DECODE(COUNT(1),1,'Y','N') AS ADMIN_FLAG
+															        FROM STX_DIS_ADMIN SDA
+															       WHERE SDA.EMP_NO = #{loginId}
+															      
+															    ) = 'Y' THEN ATTRIBUTE1  ELSE 'Y' END  -->
+				                   
+				                   AND EMP_NO = 
+				                   <!-- 권한이 선택된경우 -->
+				                   <if test='roleCode != null and !roleCode.equalsIgnoreCase("")'>
+				                   		#{roleCode}
+				                   </if>
+				                   <!-- 권한이 선택되지 않는경우 유저의 권한중 첫번째 권한으로 메뉴를 취득 -->
+				                   <if test='roleCode == null or roleCode.equalsIgnoreCase("")'>
+				                   <![CDATA[
+				                   (SELECT SUBSTR(A.TXT, INSTR(A.TXT, '|', 1, LEVEL) + 1, INSTR(A.TXT, '|', 1, LEVEL + 1) - INSTR(A.TXT, '|', 1, LEVEL) - 1) TXT
+									FROM (
+									    SELECT '|'||AUTHOR_CODE||'|' AS TXT
+									    FROM STX_DIS_USER
+									    WHERE EMP_NO = #{loginId}) A
+									WHERE ROWNUM = 1 CONNECT BY LEVEL <= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, '|')) - 1)
+									]]>
+				                   </if>
+				                   ) B
+				          , STX_DIS_PROGRAM C
+				         WHERE 1=1
+                           AND A.PGM_ID =  C.PGM_ID(+)
+				           AND A.MENU_ID = B.MENU_ID(+)) A CONNECT BY PRIOR(A.MENU_ID) = A.UP_MENU_ID START WITH A.MENU_ID = (SELECT MENU_ID
+				          FROM STX_DIS_MENU
+				         WHERE UP_MENU_ID IS NULL)
+				         ORDER SIBLINGS BY A.SORT_ORDER) A
+		 WHERE A.PGM_ID IS NOT NULL
+		 AND A.ATTRIBUTE1 = 'Y'<!-- CASE WHEN (SELECT DECODE(COUNT(1),1,'Y','N') AS ADMIN_FLAG
+															        FROM STX_DIS_ADMIN SDA
+															       WHERE SDA.EMP_NO = #{loginId}
+															      
+															) = 'Y' THEN A.ATTRIBUTE1  ELSE 'Y' END --> 
+	</select>
+	
+	<select id="getBookmarkList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT *
+		  FROM ( SELECT LEVEL-1 LEV
+		               ,A.EMP_NO
+		               ,A.MENU_ID
+		               ,A.PGM_NAME
+		               ,A.ATTRIBUTE1
+		               ,ROWNUM-1     AS ORDER_BY
+		           FROM ( SELECT A.EMP_NO
+		                        ,A.MENU_ID
+		                        ,C.PGM_NAME
+		                        ,NVL(B.ATTRIBUTE1, 'N') ATTRIBUTE1
+		                        ,NVL(A.UP_MENU_ID, '')  UP_MENU_ID
+		                        ,NVL(A.SORT_ORDER, 0)   SORT_ORDER
+		                    FROM ( SELECT A.EMP_NO
+		                                 ,B.*
+		                             FROM ( SELECT *
+		                                      FROM STX_DIS_USER
+		                                     WHERE EMP_NO = #{loginId}) A
+		                        ,( SELECT *
+		                             FROM STX_DIS_MENU
+		                            WHERE USE_YN = 'Y' ) B
+		                   WHERE 1=1) A
+		               ,( SELECT *
+		                    FROM STX_DIS_USER_MENU
+		                   WHERE ATTRIBUTE1 = 'Y'
+		                     AND EMP_NO = 
+		                     
+		<!-- 권한이 선택된경우 -->
+		<if test='roleCode != null and !roleCode.equalsIgnoreCase("")'>
+				#{roleCode}
+		</if>
+		<!-- 권한이 선택되지 않는경우 유저의 권한중 첫번째 권한으로 메뉴를 취득 -->
+		<if test='roleCode == null or roleCode.equalsIgnoreCase("")'>
+		<![CDATA[
+		              (SELECT SUBSTR(A.TXT, INSTR(A.TXT, '|', 1, LEVEL) + 1, INSTR(A.TXT, '|', 1, LEVEL + 1) - INSTR(A.TXT, '|', 1, LEVEL) - 1) TXT
+		FROM (
+		    SELECT '|'||AUTHOR_CODE||'|' AS TXT
+		    FROM STX_DIS_USER
+		    WHERE EMP_NO = #{loginId}) A
+		WHERE ROWNUM = 1 CONNECT BY LEVEL <= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, '|')) - 1)
+		]]>
+		</if>
+		                   
+		                         ) B
+		               ,STX_DIS_PROGRAM C
+		          WHERE 1=1
+		            AND A.PGM_ID =  C.PGM_ID(+)
+		            AND A.MENU_ID = B.MENU_ID(+)) A CONNECT BY PRIOR(A.MENU_ID) = A.UP_MENU_ID START WITH A.MENU_ID = ( SELECT MENU_ID
+		                                                                                                                  FROM STX_DIS_MENU
+		                                                                                                                 WHERE UP_MENU_ID IS NULL )
+		         ORDER SIBLINGS BY A.SORT_ORDER) A
+		   WHERE A.LEV != 0
+		   AND A.ATTRIBUTE1 = 'Y'
+		   AND NOT EXISTS ( SELECT 1
+		                      FROM STX_DIS_BOOKMARK SDB
+		                     WHERE SDB.EMP_NO     = A.EMP_NO
+		                       AND SDB.MENU_ID    = A.MENU_ID
+		                       AND SDB.ROLE_GROUP = #{roleCode}
+		                  )
+	</select>
+	
+	<select id="getUserBookmarkList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+<!-- 		SELECT '2'  AS LEV -->
+<!-- 		      ,SDB.EMP_NO -->
+<!-- 		      ,SDB.MENU_ID -->
+<!-- 		      ,SDM.PGM_NAME -->
+<!-- 		      ,SDM.ATTRIBUTE1 -->
+<!-- 		      ,SDB.ORDER_BY -->
+<!-- 		  FROM STX_DIS_BOOKMARK SDB -->
+<!-- 		      ,STX_DIS_MENU     SDM -->
+<!-- 		 WHERE SDB.MENU_ID = SDM.MENU_ID -->
+<!-- 		   AND SDB.ROLE_GROUP = #{roleCode} -->
+<!-- 		   AND SDB.EMP_NO     = #{loginId} -->
+<!-- 		ORDER BY SDB.ORDER_BY -->
+	SELECT MENU.LEV
+	      ,MENU.EMP_NO
+	      ,MENU.MENU_ID
+	      ,MENU.PGM_NAME
+	      ,MENU.ATTRIBUTE1
+	      ,MENU.ORDER_BY
+	  FROM (
+
+		SELECT *
+		  FROM ( SELECT LEVEL-1 LEV
+		               ,A.EMP_NO
+		               ,A.MENU_ID
+		               ,A.PGM_NAME
+		               ,A.ATTRIBUTE1
+		               ,ROWNUM-1     AS ORDER_BY
+		           FROM ( SELECT A.EMP_NO
+		                        ,A.MENU_ID
+		                        ,C.PGM_NAME
+		                        ,NVL(B.ATTRIBUTE1, 'N') ATTRIBUTE1
+		                        ,NVL(A.UP_MENU_ID, '')  UP_MENU_ID
+		                        ,NVL(A.SORT_ORDER, 0)   SORT_ORDER
+		                    FROM ( SELECT A.EMP_NO
+		                                 ,B.*
+		                             FROM ( SELECT *
+		                                      FROM STX_DIS_USER
+		                                     WHERE EMP_NO = #{loginId}) A
+		                        ,( SELECT *
+		                             FROM STX_DIS_MENU
+		                            WHERE USE_YN = 'Y' ) B
+		                   WHERE 1=1) A
+		               ,( SELECT *
+		                    FROM STX_DIS_USER_MENU
+		                   WHERE ATTRIBUTE1 = 'Y'
+		                     AND EMP_NO = 
+		                     
+		<!-- 권한이 선택된경우 -->
+		<if test='roleCode != null and !roleCode.equalsIgnoreCase("")'>
+				#{roleCode}
+		</if>
+		<!-- 권한이 선택되지 않는경우 유저의 권한중 첫번째 권한으로 메뉴를 취득 -->
+		<if test='roleCode == null or roleCode.equalsIgnoreCase("")'>
+		<![CDATA[
+		              (SELECT SUBSTR(A.TXT, INSTR(A.TXT, '|', 1, LEVEL) + 1, INSTR(A.TXT, '|', 1, LEVEL + 1) - INSTR(A.TXT, '|', 1, LEVEL) - 1) TXT
+		FROM (
+		    SELECT '|'||AUTHOR_CODE||'|' AS TXT
+		    FROM STX_DIS_USER
+		    WHERE EMP_NO = #{loginId}) A
+		WHERE ROWNUM = 1 CONNECT BY LEVEL <= LENGTH(A.TXT) - LENGTH(REPLACE(A.TXT, '|')) - 1)
+		]]>
+		</if>
+		                   
+		                         ) B
+		               ,STX_DIS_PROGRAM C
+		          WHERE 1=1
+		            AND A.PGM_ID =  C.PGM_ID(+)
+		            AND A.MENU_ID = B.MENU_ID(+)) A CONNECT BY PRIOR(A.MENU_ID) = A.UP_MENU_ID START WITH A.MENU_ID = ( SELECT MENU_ID
+		                                                                                                                  FROM STX_DIS_MENU
+		                                                                                                                 WHERE UP_MENU_ID IS NULL )
+		         ORDER SIBLINGS BY A.SORT_ORDER) A
+		   WHERE A.LEV != 0
+		   AND A.ATTRIBUTE1 = 'Y'
+		   AND EXISTS ( SELECT 1
+		                  FROM STX_DIS_BOOKMARK SDB
+		                 WHERE SDB.EMP_NO     = A.EMP_NO
+		                   AND SDB.MENU_ID    = A.MENU_ID
+		                   AND SDB.ROLE_GROUP = #{roleCode}
+		                  )
+		                  
+		)                 MENU
+	,STX_DIS_BOOKMARK SDB
+	WHERE MENU.EMP_NO  = SDB.EMP_NO
+	  AND MENU.MENU_ID = SDB.MENU_ID
+	  AND SDB.ROLE_GROUP = #{roleCode}
+	ORDER BY SDB.ORDER_BY
+	</select>
+	
+	<select id="menuId" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  		  SELECT STM.MENU_ID
+			FROM STX_DIS_PROGRAM SDP
+			     ,STX_DIS_MENU STM
+			     ,STX_DIS_MENU STM_UP
+			WHERE STM.PGM_ID = SDP.PGM_ID
+			AND STM.UP_MENU_ID = STM_UP.MENU_ID
+			AND STM_UP.USE_YN = 'Y'
+		    AND SDP.FILE_URL = #{fileUrl}
+  	</select>
+ 	
+</mapper>

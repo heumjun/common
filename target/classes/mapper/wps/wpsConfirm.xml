@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="wpsConfirm">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="wpsConfirmList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_DWG_WPS_PKG.MASTER_LIST_SELECT_PROC(
+			 P_WPS_NO 				=> #{p_wps_no,				jdbcType=VARCHAR,	mode=IN} 
+			,P_PROCESS_TYPE 		=> #{p_process_type,		jdbcType=VARCHAR,	mode=IN} 
+			,P_PLATE_TYPE 			=> #{p_plate_type,			jdbcType=VARCHAR,	mode=IN} 
+			,P_THICK_RANG_VALUE    	=> #{p_thick_rang_value,	jdbcType=VARCHAR,	mode=IN}
+            ,P_APPROVE_FLAG        	=> #{p_approve_flag,		jdbcType=VARCHAR,	mode=IN}
+            ,P_POSITION_TYPE       	=> #{p_position_type,		jdbcType=VARCHAR,	mode=IN} 
+            ,P_APPROVAL_CLASS_CODE 	=> #{p_approval_class_code,	jdbcType=VARCHAR,	mode=IN}
+            ,P_BASE_METAL_CODE     	=> #{p_base_metal_code,		jdbcType=VARCHAR,	mode=IN}
+			,P_CURPAGENO 			=> #{curPageNo,				jdbcType=VARCHAR,	mode=IN} 
+			,P_PAGESIZE 			=> #{pageSize,				jdbcType=VARCHAR,	mode=IN} 
+			,P_ERROR_CODE 			=> #{p_error_code,  		jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_ERROR_MSG 			=> #{p_error_msg,   		jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_REFER 				=> #{p_refer,       		jdbcType=CURSOR,  javaType=ResultSet, resultMap=wpsConfirm.procResultMap, mode=OUT}
+		)}
+	</select>
+	
+	<select id="saveWpsConfirmAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DWG_WPS_PKG.MASTER_LIST_UPDATE_PROC( 
+       			 P_WPS_ID			  	=> #{p_wps_id,				jdbcType=VARCHAR,	mode=IN}
+       			,P_APPROVE_FLAG      	=> #{p_approve_flag,		jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID            	=> #{p_user_id,				jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         	=> #{p_error_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          	=> #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+
+</mapper>

@@ -1,0 +1,903 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CodeMaster">  	
+  	<!-- infoMainSdCode.xml로 이관 -->
+  	<!-- <select id="mainlist" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT *
+		FROM ( select 'MAIN' as sd_code
+		            , 'MAIN' as sd_desc  FROM dual 
+		        UNION ALL
+		       select sd_code
+		            , sd_desc 
+		         from STX_DIS_SD_CODE  
+		        where SD_TYPE='MAIN'
+		     )
+		 WHERE 1 = 1
+		<if test="p_code_find != null and p_code_find !='' ">
+		   AND sd_code like  upper(#{p_code_find}) || '%'
+		</if>
+  	</select>
+  	
+  	codeMaster code tap(MAIN이 아닐시 ) 시 SQL Mapping
+  	<select id="mainsdtypelist" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select sd_type as sd_code
+	 		,sd_code	as sd_desc
+	   from STX_DIS_SD_CODE  
+	  where 1=1
+	    and sd_type = #{p_find_main}
+	 <if test="p_code_find != null and p_code_find !='' ">
+        and sd_code like  #{p_code_find} || '%'
+     </if>
+  	</select> -->
+  	
+  	<!-- infoCategoryType.xml이관 -->
+  	<!-- codeMasterMainSearch 찾기 버튼  클릭시 SQL Mapping -->
+  	<!-- <select id="categoryTypeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	  select t1.category_type		as sd_code
+	        ,t1.category_type_desc	as sd_desc
+	  from stx_dis_sd_category_type t1
+	  where 1=1
+	  and enable_flag   = 'Y' 
+	 <if test='p_code_find != null and !p_code_find.equalsIgnoreCase("")'>
+       and upper(category_type) like  UPPER(#{p_code_find}) ||'%'
+     </if>
+      order by t1.category_type 
+  	</select> -->
+  	
+  	<!-- popUpCategoryMgnt.xml 로 이관 -->
+  	<!-- 2014.05.13 add 최경호 카테고리 mgnt 에서 속성값 가져올때 사용하는 팝업 -->
+  	<!-- <select id="categoryMgntAttribute" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		  SELECT A.ATTRIBUTE_ID   AS id
+		      ,A.ATTRIBUTE_CODE AS sd_code
+		      ,A.ATTRIBUTE_NAME AS sd_desc
+		  FROM (   
+		       SELECT '01'               AS CATEGORY_TYPE 
+		            , T.TEMPLATE_ID      AS ATTRIBUTE_ID
+		            , T.TEMPLATE_NAME    AS ATTRIBUTE_CODE
+		            , T.DESCRIPTION      AS ATTRIBUTE_NAME
+		         FROM MTL_ITEM_TEMPLATES@stxerp T
+		        UNION ALL
+		       SELECT '02'               AS CATEGORY_TYPE 
+		            , T.RESOURCE_ID      AS ATTRIBUTE_ID
+		            , T.RESOURCE_CODE    AS ATTRIBUTE_CODE
+		            , T.EXPENDITURE_TYPE AS ATTRIBUTE_NAME
+		         FROM BOM.BOM_RESOURCES@stxerp T
+		        WHERE T.ORGANIZATION_ID = 82
+		          AND T.COST_ELEMENT_ID = 1
+		          AND T.DISABLE_DATE IS NULL ) A
+		 WHERE A.CATEGORY_TYPE = #{p_sd_type}
+		 
+		 <if test="p_code_find != null and p_code_find !='' ">
+		  and a.attribute_name like #{p_code_find}||'%'
+ 		</if>
+  	</select> -->
+  	
+ 	
+	<!-- catalogMgnt/popup/infoCatalogCode.xml로 이관 -->
+	<!-- <select id="catalogCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					select catalog_code
+					      ,catalog_desc
+				      from stx_dis_sd_catalog
+				     where 1=1
+				       and catalog_code like #{p_code_find} || '%'
+				       and catalog_desc	like #{p_desc_find} || '%'
+				       <if test="p_bomCheck != null and p_bomCheck !='' ">
+				        <if test='p_bomCheck == "WBS" '>
+				          and wbs_flag='Y'
+				        </if>
+				       </if>
+				     order by catalog_code
+				  ) t1
+     	   ) t2
+	 where page = #{curPageNo}       			     
+  	</select>
+  	
+  	<select id="catalogCodeListCnt" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+      from stx_dis_sd_catalog
+     where 1=1
+       and catalog_code like #{p_code_find} || '%'
+       and catalog_desc	like #{p_desc_find} || '%'
+       <if test="p_bomCheck != null and p_bomCheck !='' ">
+	        <if test='p_bomCheck == "WBS" '>
+	          and wbs_flag='Y'
+	        </if>
+	   </if>
+  	</select> -->
+  	<!-- infoPartFamilyCode.xml로 이관 -->
+  	<!-- <select id="partfamilyCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select part_family_code
+	      ,part_family_desc 
+	  from stx_dis_sd_part_family
+	 where 1=1
+	   and part_family_code like #{p_code_find} || '%'
+  	</select> -->
+	
+	<!-- infoCategoryBase.xml로 이관 --> 	
+  	<!-- <select id="sdTypeCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	  select sd_code  as sd_code,
+	      	 sd_desc  as sd_desc
+        from stx_dis_sd_code   
+       where enable_flag = 'Y'
+         and sd_type 	 = #{p_sd_type}
+         and sd_code like  #{p_code_find} || '%'
+        <if test="p_table_id == 'itemAttributeBase'">
+	     and sd_code not in (select attribute_code
+                                from stx_dis_sd_catalog_attribute
+                               where attribute_type = 'ITEM'
+                                 and catalog_code   = #{p_catalog_code}
+                               )                     
+	    and attribute1 = 'ITEM'
+	    </if>
+	    
+	    <if test="p_table_id == 'bomAttributeBase'">
+	     and sd_code not in (select attribute_code
+                                from stx_dis_sd_catalog_attribute
+                               where attribute_type = 'BOM'
+                                 and catalog_code   = #{p_catalog_code}
+                               )  
+         and attribute2 = 'BOM'                      
+	    </if>
+	    
+	    <if test="p_table_id == 'itemAddAttributeBase'">
+	     and sd_code not in (select attribute_code
+                               from stx_dis_sd_catalog_attribute
+                              where attribute_type = 'ADDITEM'
+                                and catalog_code   = #{p_catalog_code}
+                              )  
+         and attribute1 = 'ADDITEM'                      
+	    </if>
+	    
+	    <if test="p_table_id == 'catalogInfo'">
+	     and sd_code not in (select value_code 
+                               from stx_dis_sd_catalog_value    
+                              where value_type   = #{p_sd_type}
+                                and catalog_code = #{p_catalog_code} 
+                             )    	
+	    </if>
+        
+        <if test="p_table_id == 'item'">
+         and attribute1 = 'ITEM'
+        </if>
+        
+        <if test="p_table_id == 'bom'">
+         and attribute2 = 'BOM'
+        </if> 
+        
+        <if test="p_table_id == 'additem'">
+         and attribute3 = 'ADDITEM'
+        </if>
+         
+       order by sd_code, sd_desc   
+  	</select> -->
+  	<!-- infoHighRankAttrValue 이관 -->
+  	<!-- <select id="catalogHighRankAttrValue" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select value_code
+	       ,item_make_value 
+	   from stx_dis_sd_catalog_attr_value
+	  where catalog_code   = #{p_catalog_code}
+	    and attribute_type = #{p_attribute_type}
+	    and attribute_code = #{p_assy_attribute_code}
+  	</select> -->
+  	
+  	<select id="selectPartFamilyType" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select pf.part_family_code
+	      ,pf.part_family_desc
+	  from stx_dis_sd_part_family pf
+	 where pf.enable_flag = 'Y'
+	   and pf.part_family_desc like #{p_code_find} || '%'
+	 order by pf.part_family_code    	
+  	</select>
+  	
+  	<select id="selectCostCategory" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select cg.category_id                             as cost_category_id
+	      ,cg.category_code1||'.'||cg.category_code2  as cost_category_code
+	      ,cg.category_desc                           as cost_category_desc
+	  from stx_dis_sd_part_family pf
+	      ,stx_dis_sd_category    cg
+	 where pf.category_type    = cg.category_code1
+	   and cg.type_code        = '02'
+	   and pf.enable_flag      = 'Y'
+	   and cg.enable_flag      = 'Y'
+	   and pf.part_family_code like #{part_family_code} || '%'
+	   and cg.category_desc    like #{p_code_find} || '%'
+	 group by cg.category_id 
+	      ,cg.category_code1
+	      ,cg.category_code2
+	      ,cg.category_desc
+	 order by cg.category_code1, cg.category_code2  	
+  	</select>
+  	
+  	<select id="selectCostCategoryFromInvCategory" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select a.category_id    as cost_category_id
+	      ,a.category_code1 as cost_category_code1
+	      ,a.category_code2 as cost_category_code2
+	      ,a.category_desc  as cost_category_desc
+	      ,a.category_code1 || '.' || a.category_code2
+	                        as cost_category_code
+	  from stx_dis_sd_category a
+	 where a.type_code      = '02'
+	   and a.enable_flag    = 'Y'
+	   and (a.category_code1, a.category_code2) in (select category_code1,category_code2
+                                                 	  from stx_dis_sd_category
+                                                	 where category_id = #{category_id})
+	 order by a.category_code1, a.category_code2    
+ 	</select>
+  	
+  	<select id="selectInvCategory" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select cg.category_id   as inv_category_id
+	      ,cg.category_code1||'.'||cg.category_code2||'.'||cg.category_code3 as inv_category_code
+	      ,cg.category_desc as inv_category_desc
+	  from stx_dis_sd_part_family pf
+	      ,stx_dis_sd_category    cg
+	 where pf.category_type    = cg.category_code1
+	   and cg.type_code        = '01'
+	   and pf.enable_flag      = 'Y'
+	   and cg.enable_flag      = 'Y'
+	   and pf.part_family_code like #{part_family_code} || '%'
+	   and cg.category_code1   like substr(#{cost_category_code},1,1) || '%'
+	   and cg.category_code2   like substr(#{cost_category_code},3,1) || '%'
+	   and cg.category_desc    like #{p_code_find} || '%'
+	 group by cg.category_id 
+	         ,cg.category_code1
+	         ,cg.category_code2
+	         ,cg.category_code3 
+	         ,cg.category_desc
+	 order by cg.category_code1, cg.category_code2, cg.category_code3
+  	</select>
+  	
+  	<select id="selectCatalog" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+				  	select ca.catalog_code  as catalog_code
+					      ,ca.catalog_desc  as catalog_desc
+					  from stx_dis_sd_catalog     ca
+					      ,stx_dis_sd_category    cg
+					      ,stx_dis_sd_part_family pf
+					 where ca.category_id      = cg.category_id(+)
+					   and ca.part_family_code = pf.part_family_code(+)
+					   and pf.enable_flag      = 'Y'
+					   and cg.enable_flag      = 'Y'
+					   and ca.enable_flag      = 'Y'
+				       and ca.catalog_code 	   like #{p_code_find} 		|| '%'
+				       and pf.part_family_code like #{part_family_code} || '%'
+				       and cg.category_code1   like substr(#{cost_category_code},1,1) || '%'
+				       and cg.category_code2   like substr(#{cost_category_code},3,1) || '%'
+				       and to_char(ca.category_id) like to_char(#{inv_category_id})   || '%'
+				       
+				       <if test='p_bomCheck.equalsIgnoreCase("WBS")'>
+								and ca.wbs_flag='Y'
+					   </if>
+				       
+				     order by  ca.catalog_code
+	  			) t1
+	       ) t2
+	 where page = #{curPageNo}  				     
+  	</select>
+  	
+  	<select id="selectCatalogCnt" parameterType="java.util.Map" resultType="int" >
+  	select count(*) as cnt
+	  from stx_dis_sd_catalog     ca
+	      ,stx_dis_sd_category    cg
+	      ,stx_dis_sd_part_family pf
+	 where ca.category_id      = cg.category_id(+)
+	   and ca.part_family_code = pf.part_family_code(+)
+	   and pf.enable_flag      = 'Y'
+	   and cg.enable_flag      = 'Y'
+	   and ca.enable_flag      = 'Y'
+       and ca.catalog_code 	   like #{p_code_find} 		|| '%'
+       and pf.part_family_code like #{part_family_code} || '%'
+       and cg.category_code1   like substr(#{cost_category_code},1,1) || '%'
+       and cg.category_code2   like substr(#{cost_category_code},3,1) || '%'
+       and to_char(ca.category_id) like to_char(#{inv_category_id})   || '%'
+       
+       <if test='p_bomCheck.equalsIgnoreCase("WBS")'>
+				and ca.wbs_flag='Y'
+	   </if>
+					   
+  	</select>
+  	
+  	<select id="selectCatalogDescription" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+				  	select ca.catalog_desc  as catalog_desc
+					      ,ca.catalog_code  as catalog_code
+					  from stx_dis_sd_catalog     ca
+					      ,stx_dis_sd_category    cg
+					      ,stx_dis_sd_part_family pf
+					 where ca.category_id      = cg.category_id(+)
+					   and ca.part_family_code = pf.part_family_code(+)
+					   and pf.enable_flag      = 'Y'
+					   and cg.enable_flag      = 'Y'
+					   and ca.enable_flag      = 'Y'
+					   and ca.catalog_desc 	   like #{p_code_find} 		|| '%'
+					   and pf.part_family_code like #{part_family_code} || '%'
+					   and cg.category_code1   like substr(#{cost_category_code},1,1) || '%'
+					   and cg.category_code2   like substr(#{cost_category_code},3,1) || '%'
+					   and to_char(ca.category_id) like to_char(#{inv_category_id})   || '%'
+					 order by  ca.catalog_desc
+	       			) t1
+	       ) t2
+	 where page = #{curPageNo}  					 
+  	</select>
+  	
+  	<select id="selectCatalogDescriptionCnt" parameterType="java.util.Map" resultType="int" >
+  	select count(*) as cnt
+	  from stx_dis_sd_catalog     ca
+	      ,stx_dis_sd_category    cg
+	      ,stx_dis_sd_part_family pf
+	 where ca.category_id      = cg.category_id(+)
+	   and ca.part_family_code = pf.part_family_code(+)
+	   and pf.enable_flag      = 'Y'
+	   and cg.enable_flag      = 'Y'
+	   and ca.enable_flag      = 'Y'
+	   and ca.catalog_desc 	   like #{p_code_find} 		|| '%'
+	   and pf.part_family_code like #{part_family_code} || '%'
+	   and cg.category_code1   like substr(#{cost_category_code},1,1) || '%'
+	   and cg.category_code2   like substr(#{cost_category_code},3,1) || '%'
+	   and to_char(ca.category_id) like to_char(#{inv_category_id})   || '%'				 
+  	</select>
+  	
+  	<select id="selectAllCatalog" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select ca.category_id          as inv_category_id
+	      ,cg.category_code1 || '.' || cg.category_code2 || '.' || cg.category_code3
+	                               as inv_category_code
+	      ,cg.category_desc        as inv_category_desc
+	      ,cg1.cost_category_id    as cost_category_id
+	      ,cg1.cost_category_code1 || '.' || cg1.cost_category_code2
+	                               as cost_category_code
+	      ,cg1.cost_category_desc  as cost_category_desc
+	      ,pf.part_family_code     as part_family_code
+	      ,pf.part_family_desc     as part_family_desc
+	      ,ca.uom_code             as uom_code 
+	      ,stx_dis_erp_uom_f(ca.uom_code)
+                                   as unit_of_measure  
+	      ,ca.catalog_desc         as catalog_desc                                      
+	  from stx_dis_sd_catalog     ca
+	      ,stx_dis_sd_category    cg
+	      ,stx_dis_sd_part_family pf
+	      ,(select a.category_id    as cost_category_id
+	              ,a.category_code1 as cost_category_code1
+	              ,a.category_code2 as cost_category_code2
+	              ,a.category_desc  as cost_category_desc
+	          from stx_dis_sd_category a
+	         where a.type_code   = '02'
+	           and a.enable_flag = 'Y') cg1
+	 where ca.category_id      = cg.category_id(+)
+	   and ca.part_family_code = pf.part_family_code(+)    
+	   and cg.category_code1   = cg1.cost_category_code1(+)
+	   and cg.category_code2   = cg1.cost_category_code2(+)
+	   and ca.catalog_code     = #{catalog_code}
+	   and pf.enable_flag      = 'Y'
+	   and cg.enable_flag      = 'Y'
+	   and ca.enable_flag      = 'Y'
+	   and rownum              = 1
+  	</select>
+  	
+  	<select id="selectCatalogAttribute" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select t1.*
+	  from (
+	        select b.value_code
+	             , b.item_make_value
+	          from stx_dis_sd_catalog_attribute  a
+	              ,stx_dis_sd_catalog_attr_value b
+	         where a.catalog_code   = b.catalog_code
+	           and a.attribute_type = b.attribute_type
+	           and a.attribute_code = b.attribute_code
+	           and b.attribute_type = 'ITEM'
+	           and b.catalog_code   = #{catalog_code}
+	           and b.attribute_code = #{type_code}
+	           and a.assy_attribute_code is null
+	        union all      
+	        select c.value_code
+	            ,c.item_make_value
+	        from stx_dis_sd_catalog_attribute   a  
+	            ,stx_dis_sd_catalog_attr_val_de c
+	        where a.catalog_code   = c.catalog_code
+	         and a.attribute_type  = c.attribute_type
+	         and a.attribute_code  = c.attribute_code
+	         and a.attribute_type  = 'ITEM'
+	         and a.catalog_code    = #{catalog_code}
+	         and a.attribute_code  = #{type_code}
+	         and c.enable_flag     = 'Y'
+	         and a.assy_attribute_code is not null    
+	         and c.assy_value_code = decode(a.assy_attribute_code,'00',#{attr00}
+	                                                             ,'01',#{attr01}
+	                                                             ,'02',#{attr02}
+	                                                             ,'03',#{attr03}
+	                                                             ,'04',#{attr04}
+	                                                             ,'05',#{attr05}
+	                                                             ,'06',#{attr06}
+	                                                             ,'07',#{attr07}
+	                                                             ,'08',#{attr08}
+	                                                             ,'09',#{attr09}
+	                                                             ,'10',#{attr10}
+	                                                             ,'11',#{attr11}
+	                                                             ,'12',#{attr12}
+	                                                             ,'13',#{attr13}
+	                                                             ,'14',#{attr14}
+	                                                             ,'15',#{attr15})
+	        <if test="type_code != '00'">
+	        union all
+	        select #{value_code}  as value_code
+	              ,null           as item_make_value
+	        from dual
+	        where not exists
+	             (select 1
+	                from stx_dis_sd_catalog_attribute  a
+	                    ,stx_dis_sd_catalog_attr_value b
+	               where a.catalog_code   = b.catalog_code
+	                 and a.attribute_type = b.attribute_type
+	                 and a.attribute_code = b.attribute_code
+	                 and b.attribute_type = 'ITEM'
+	                 and b.catalog_code   = #{catalog_code}
+	                 and b.attribute_code = #{type_code}
+	                 and a.assy_attribute_code is null
+	               union all      
+	              select 1
+	                from stx_dis_sd_catalog_attribute   a  
+	                    ,stx_dis_sd_catalog_attr_val_de c
+	               where a.catalog_code    = c.catalog_code
+	                 and a.attribute_type  = c.attribute_type
+	                 and a.attribute_code  = c.attribute_code
+	                 and a.attribute_type  = 'ITEM'
+	                 and a.catalog_code    = #{catalog_code}
+	                 and a.attribute_code  = #{type_code}
+	                 and c.enable_flag     = 'Y'
+	                 and a.assy_attribute_code is not null    
+	                 and c.assy_value_code = decode(a.assy_attribute_code,'00',#{attr00}
+	                                                                     ,'01',#{attr01}
+	                                                                     ,'02',#{attr02}
+	                                                                     ,'03',#{attr03}
+	                                                                     ,'04',#{attr04}
+	                                                                     ,'05',#{attr05}
+	                                                                     ,'06',#{attr06}
+	                                                                     ,'07',#{attr07}
+	                                                                     ,'08',#{attr08}
+	                                                                     ,'09',#{attr09}
+	                                                                     ,'10',#{attr10}
+	                                                                     ,'11',#{attr11}
+	                                                                     ,'12',#{attr12}
+	                                                                     ,'13',#{attr13}
+	                                                                     ,'14',#{attr14}
+	                                                                     ,'15',#{attr15})
+	              )
+	        </if>      
+	        ) t1
+	 where t1.value_code like #{p_code_find} || '%' 
+  	</select>
+  	
+  	<select id="selectStatesMgnt" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select states_var1        as code
+	      ,states_description as data
+	  from stx_dis_states_mgnt
+	 where states_main_category = #{states_main}
+	   and states_type          = #{states_type}
+	   and enable_flag          = 'Y'
+	   and states_var1 like #{p_code_find} || '%' 
+	 order by states_var1 
+  	</select>
+  	
+  	<select id="selectCatalogAddAttribute" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select t1.*
+	  from (
+	        select b.value_code
+	              ,b.item_make_value
+	          from stx_dis_sd_catalog_attribute  a
+	              ,stx_dis_sd_catalog_attr_value b
+	         where a.catalog_code   = b.catalog_code
+	           and a.attribute_type = b.attribute_type
+	           and a.attribute_code = b.attribute_code
+	           and b.attribute_type = 'ADDITEM'
+	           and b.catalog_code   = #{catalog_code}
+	           and b.attribute_code = #{type_code}
+	           and a.assy_attribute_code is null 
+	        union all
+	        select #{value_code}  as value_code
+	               ,null          as item_make_value
+	        from dual
+	        where not exists
+	                       (select 0
+	                          from stx_dis_sd_catalog_attribute  a
+	                              ,stx_dis_sd_catalog_attr_value b
+	                         where a.catalog_code   = b.catalog_code
+	                           and a.attribute_type = b.attribute_type
+	                           and a.attribute_code = b.attribute_code
+	                           and b.attribute_type = 'ADDITEM'
+	                           and b.catalog_code   = #{catalog_code}
+	                           and b.attribute_code = #{type_code}
+	                           and a.assy_attribute_code is null
+	                         )               
+	        ) t1
+	 where t1.value_code like #{p_code_find} || '%'    
+  	</select>
+  	
+  	<!-- <select id="selectDPShipList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT DISTINCT DA_DP.PROJECTNO
+	  FROM DPM_ACTIVITY@STXDP DA_DP
+	      ,DCC_DEPTCODE@STXDP DDC_DP
+	 WHERE DDC_DP.DWGDEPTCODE = DA_DP.DWGDEPTCODE
+	   AND DA_DP.WORKTYPE = 'DW'
+	   AND DA_DP.CASENO = '1'
+		<if test='p_deptGubun != null and !p_deptGubun.equalsIgnoreCase("")'>
+	   AND 'S' = #{p_deptGubun}
+		</if>
+		<if test='DpGubun.equalsIgnoreCase("Y") and !GrCode.equalsIgnoreCase("M1")'>
+	   AND DDC_DP.DWGDEPTCODE = #{dept}
+		</if>
+		<if test='p_code_find != null and !p_code_find.equalsIgnoreCase("")'>
+	   AND DA_DP.PROJECTNO LIKE #{p_code_find} || '%'
+		</if>
+	 UNION ALL
+	SELECT DISTINCT DA_DPSP.PROJECTNO
+	  FROM DPM_ACTIVITY@STXDPSP DA_DPSP
+	      ,DCC_DEPTCODE@STXDPSP DDC_DPSP
+	 WHERE DDC_DPSP.DWGDEPTCODE = DA_DPSP.DWGDEPTCODE
+	   AND DA_DPSP.WORKTYPE = 'DW'
+	   AND DA_DPSP.CASENO = '1'
+		<if test='p_deptGubun != null and !p_deptGubun.equalsIgnoreCase("")'>
+	   AND 'N' = #{p_deptGubun}
+		</if>
+		<if test='!DpGubun.equalsIgnoreCase("Y") and !GrCode.equalsIgnoreCase("M1")'>
+	   AND DDC_DPSP.DWGDEPTCODE = #{dpsp_dept}
+		</if>
+		<if test='p_code_find != null and !p_code_find.equalsIgnoreCase("")'>
+	   AND DA_DPSP.PROJECTNO LIKE #{p_code_find} || '%'
+		</if>
+	 ORDER BY PROJECTNO
+  	</select> -->
+  	
+  	<!-- <select id="selectDPDwgList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT DISTINCT SUBSTR(DA_DP.ACTIVITYCODE, 0, 8) AS OBJECT
+	  FROM DPM_ACTIVITY@STXDP DA_DP
+	      ,DCC_DEPTCODE@STXDP DDC_DP
+	 WHERE DDC_DP.DWGDEPTCODE = DA_DP.DWGDEPTCODE
+	   AND DA_DP.WORKTYPE = 'DW'
+	   AND DA_DP.CASENO = '1'
+		<if test='p_deptGubun != null and !p_deptGubun.equalsIgnoreCase("")'>
+	   AND 'S' = #{p_deptGubun}
+		</if>
+	   AND DA_DP.PROJECTNO LIKE #{shipNo} || '%'
+		<if test='DpGubun.equalsIgnoreCase("Y") and !GrCode.equalsIgnoreCase("M1")'>
+	   AND DDC_DP.dwgdeptcode = #{dept}
+		</if>
+		<if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>
+	   AND SUBSTR(DA_DP.ACTIVITYCODE, 0, 5) LIKE #{p_dwg_no} || '%'
+		</if>
+		<if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+	   AND SUBSTR(DA_DP.ACTIVITYCODE, 6, 8) LIKE #{p_block_no} || '%'
+		</if>
+	 UNION ALL
+	SELECT DISTINCT SUBSTR(DA_DPSP.ACTIVITYCODE, 0, 8) AS OBJECT
+	  FROM DPM_ACTIVITY@STXDP DA_DPSP
+	      ,DCC_DEPTCODE@STXDP DDC_DPSP
+	 WHERE DDC_DPSP.DWGDEPTCODE = DA_DPSP.DWGDEPTCODE
+	   AND DA_DPSP.WORKTYPE = 'DW'
+	   AND DA_DPSP.CASENO = '1'
+		<if test='p_deptGubun != null and !p_deptGubun.equalsIgnoreCase("")'>
+	   AND 'N' = #{p_deptGubun}
+		</if>
+	   AND DA_DPSP.PROJECTNO LIKE #{shipNo} || '%'
+		<if test='!DpGubun.equalsIgnoreCase("Y") and !GrCode.equalsIgnoreCase("M1")'>
+	   AND DDC_DPSP.dwgdeptcode = #{dpsp_dept}
+		</if>
+		<if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>
+	   AND SUBSTR(DA_DPSP.ACTIVITYCODE, 0, 5) LIKE #{p_dwg_no} || '%'
+		</if>
+		<if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+	   AND SUBSTR(DA_DPSP.ACTIVITYCODE, 6, 8) LIKE #{p_block_no} || '%'
+		</if>
+	 ORDER BY OBJECT
+  	</select> -->
+  	<!-- infoAreaCodeList이관 -->
+  	<!-- <select id="selectAreaCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select  area_code
+    	   ,area_desc
+    	   ,loss_code
+	       ,af_code
+	  from stx_dis_pis_area
+	 where 1=1
+	   and area_code like #{p_code_find} || '%'
+	   and area_desc like #{p_desc_find} || '%'	
+	 order by area_code   	  
+  	</select> -->
+  	
+  	<select id="selectLossPerAreaCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.area_code
+	      ,t1.area_desc
+	      ,t1.af_code
+	  from stx_dis_pis_area t1
+	 where not exists (select '0'
+	                     from stx_dis_pis_lossperarea
+	                    where area_code = t1.area_code)
+	   and area_code like #{p_code_find} || '%'
+	   and area_desc like #{p_desc_find} || '%'	             
+	 order by area_code     	  
+  	</select>
+  	
+  	<select id="selectZoneAreaCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+	                           select project_no
+	                                 ,revision
+	                                 ,area_code
+	                                 ,min(area_desc)
+	                                  as area_desc  
+	                             from stx_dis_pis_block
+	                            where project_no = #{project_no} 
+	                              and revision   = #{revision}
+	                            group by project_no, revision, area_code
+	                          )
+	select sdpb.area_code					  as area_code
+		  ,nvl(sdpb.area_desc,sdpa.area_desc) as area_desc
+		  ,sdpa.loss_code 					  as loss_code 
+     from temp_paint_block  sdpb
+         ,stx_dis_pis_area  sdpa
+    where 1=1
+      and sdpb.area_code  = sdpa.area_code(+)
+      and sdpb.project_no = #{project_no}
+      and sdpb.revision	  = #{revision}
+      and not exists (select '0'
+                        from stx_dis_pis_zone
+                       where project_no = sdpb.project_no
+                         and revision   = sdpb.revision
+                         and area_code  = sdpb.area_code
+                      )
+	  and sdpb.area_code like #{p_code_find} || '%'
+	  and sdpb.area_desc like #{p_desc_find} || '%'	
+	order by area_code   	  
+  	</select>
+  	
+  	<select id="selectLossCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select distinct
+	       loss_code
+	      ,loss_desc  
+	  from stx_dis_pis_loss
+	 where 1=1
+	   and loss_code like #{p_code_find} || '%'       
+	 order by loss_code     	  
+  	</select>
+
+	<!-- selectPaintPlanProjectNo.xml로 이관 -->
+	<!--  <select id="selectPaintPlanProjectNo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select project_no
+	      ,revision
+	      ,(case state when 'D' then 'Release'
+			                    else 'Preliminary'
+		   end) as state_desc  
+	  from stx_dis_pis_plan
+	 where project_no like #{project_no} || '%'
+	   and revision   like #{revision} 	 || '%'
+	 order by project_no, revision  
+  	</select>-->
+  	
+  	<!-- selectPaintPlanProjectNo.xml로 이관 -->
+  	<!-- <select id="selectPaintPlanProjectNoCnt" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_pis_plan
+	 where project_no like #{project_no} || '%'
+	   and revision   like #{revision} 	 || '%'
+  	</select> -->
+  	<!-- selectPaintBlockList이관 -->
+  	<!-- <select id="selectPaintBlockList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+    select t1.block_code
+          ,row_number() over(order by block_code) as num
+      from 
+          ( 
+            select distinct a.block_code                     
+              from stx_dis_pis_block a
+             where a.project_no = #{project_no}
+               and a.revision   = #{revision}
+               and not exists (select '0'
+					             from stx_dis_pis_pe
+					            where project_no = a.project_no
+					              and revision   = a.revision
+					              and block_code = a.block_code)
+			                  
+				<if test="blockCodeForm != null and blockCodeForm !='' ">
+				and a.block_code <![CDATA[>=]]>  #{blockCodeForm} 
+			    </if>
+				 
+				<if test="blockCodeTo != null and blockCodeTo !='' ">
+				and a.block_code <![CDATA[<=]]>  #{blockCodeTo} 
+				</if>
+	 
+	      ) t1      
+  	</select> -->
+  	
+	
+  	<!-- infoPaintCodeList.xml로 이관 -->
+  	<!-- <select id="selectPaintCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+      from (  
+            select t1.* 
+                  ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+              from
+                  ( 
+					select /*+ INDEX_ASC(stx_dis_item stx_dis_item_idx03) */ 
+						   item_code 		 as paint_code
+					      ,item_desc 	     as paint_desc
+					      ,stxsvr	 		 as stxsvr
+					      ,nvl(can_size,0)   as can_size
+					  from stx_dis_item
+				     where 1 = 1
+				       and item_code like #{item_code} || '%'
+				       and item_desc like #{item_desc} || '%' 
+  				   ) t1
+       		) t2
+ 	where page = #{curPageNo}
+  	</select> 
+  	
+  	<select id="selectPaintCodeCnt" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_item
+	 where item_code like #{item_code} || '%'
+	   and item_desc like #{item_desc} || '%'
+  	</select>
+  	-->
+	
+	<select id="selectPaintAreaCodeListFromBlock" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	  with temp_paint_block as (
+	                         select project_no
+	                               ,revision
+	                               ,area_code
+	                               ,min(area_desc)
+	                                as area_desc  
+	                           from stx_dis_pis_block
+	                          where project_no = #{project_no} 
+	                            and revision   = #{revision}
+	                           
+							    <if test="area_code != null and area_code !='' ">
+							    and area_code like #{area_code} || '%' 
+							    </if>
+	                          group by project_no, revision, area_code
+	                         )
+	select t1.area_code 
+	      ,t1.area_desc
+	      ,t2.loss_code
+	  from temp_paint_block  t1
+	      ,stx_dis_pis_area  t2
+	 where t1.project_no = #{project_no}
+	   and t1.revision   = #{revision}
+	   and t1.area_code  = t2.area_code(+)
+	   <if test="loss_code != null and loss_code !='' ">
+	   and t2.loss_code like #{loss_code} || '%' 
+	   </if>
+	   and not exists (select '0'
+	                     from stx_dis_pis_pattern_area
+	                    where project_no  =  t1.project_no
+	                      and revision    =  t1.revision
+	                      and area_code   =  t1.area_code)
+	 order by t1.area_code     
+ 	</select>
+	
+	<select id="selectPaintStageCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select stage_code
+	      ,block_rate
+	      ,pe_rate
+	      ,dock_rate
+	      ,quay_rate
+	 from stx_dis_pis_stage 
+	where stage_code like #{stage_code} || '%' 
+	order by stage_code
+ 	</select>
+ 	
+ 	<select id="selectPaintQuantityBlockCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with pis_block as 
+		(select t1.block_code
+		       ,substr(block_code,1,1) as col
+		       ,row_number() over(partition by substr(block_code,1,1) order by block_code) as num
+		   from 
+		       ( 
+		         select distinct a.block_code                     
+		           from stx_dis_pis_block a
+		          where a.project_no =  #{project_no} 
+		            and a.revision   =  #{revision} 
+		        ) t1
+		)
+		select *
+		  from (
+		        select max(decode(col,'0',block_code)) as block0
+		              ,max(decode(col,'1',block_code)) as block1
+		              ,max(decode(col,'2',block_code)) as block2
+		              ,max(decode(col,'3',block_code)) as block3
+		              ,max(decode(col,'4',block_code)) as block4
+		              ,max(decode(col,'5',block_code)) as block5
+		              ,max(decode(col,'6',block_code)) as block6
+		              ,max(decode(col,'7',block_code)) as block7
+		              ,max(decode(col,'8',block_code)) as block8
+		              ,max(decode(col,'9',block_code)) as block9
+		          from pis_block
+		          group by num  
+		        ) t1
+		 order by 1,2,3,4,5,6,7,8,9,10 
+ 	</select>
+ 	
+ 	<select id="selectPaintQuantityAreaCodeList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with pis_block as 
+	(select t1.area_code
+	       ,substr(area_code,1,1) as col
+	       ,row_number() over(partition by substr(area_code,1,1) order by area_code) as num
+	   from 
+	       ( 
+	         select distinct a.area_code                     
+	           from stx_dis_pis_block a
+	          where a.project_no = #{project_no} 
+	            and a.revision   = #{revision} 
+	        ) t1
+	)
+	select *
+	  from (
+	        select max(decode(col,'A',area_code)) as area1
+	              ,max(decode(col,'B',area_code)) as area2
+	              ,max(decode(col,'C',area_code)) as area3
+	              ,max(decode(col,'D',area_code)) as area4
+	              ,max(decode(col,'E',area_code)) as area5
+	              ,max(decode(col,'F',area_code)) as area6
+	              ,max(decode(col,'G',area_code)) as area7
+	              ,max(decode(col,'H',area_code)) as area8
+	              ,max(decode(col,'I',area_code)) as area9
+	              ,max(decode(col,'J',area_code)) as area10
+	              ,max(decode(col,'K',area_code)) as area11
+	              ,max(decode(col,'L',area_code)) as area12
+	              ,max(decode(col,'N',area_code)) as area13
+	              ,max(decode(col,'M',area_code)) as area14
+	              ,max(decode(col,'O',area_code)) as area15
+	              ,max(decode(col,'P',area_code)) as area16
+	              ,max(decode(col,'Q',area_code)) as area17
+	              ,max(decode(col,'R',area_code)) as area18
+	              ,max(decode(col,'S',area_code)) as area19
+	              ,max(decode(col,'T',area_code)) as area20
+	              ,max(decode(col,'U',area_code)) as area21
+	              ,max(decode(col,'V',area_code)) as area22
+	              ,max(decode(col,'W',area_code)) as area23
+	              ,max(decode(col,'X',area_code)) as area24
+	              ,max(decode(col,'Y',area_code)) as area25
+	              ,max(decode(col,'Z',area_code)) as area26
+	          from pis_block
+	          group by num  
+	        ) t1
+	 order by 1,2,3,4,5,6,7,8,9,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26 
+ 	</select>
+ 	<!-- infoComboCodeMaster -->
+ 	<!-- <select id="selectComboCodeMaster" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT x.sd_code AS value
+	     , x.sd_desc AS text
+	  FROM stx_dis_sd_code x
+	 WHERE x.sd_type = #{sd_type}
+	   AND x.enable_flag = 'Y'
+	 ORDER BY x.sd_code
+ 	</select> -->
+ 	
+ 	<select id="selectDwgGroupType" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT x.sd_code AS CODE
+	     , x.sd_desc AS DESCRIPTION
+	  FROM stx_dis_sd_code x
+	 WHERE x.sd_type = 'DWG_GROUP_TYPE'
+		<if test='p_dwg_group_type != null and !p_dwg_group_type.equalsIgnoreCase("")'>
+	   AND x.sd_code LIKE #{p_dwg_group_type} || '%'
+		</if>
+		<if test='p_dwg_group_type_desc != null and !p_dwg_group_type_desc.equalsIgnoreCase("")'>
+	   AND x.sd_desc LIKE #{p_dwg_group_type_desc} || '%'
+		</if>
+	 ORDER BY x.sd_code
+ 	</select>
+ 	
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="catalogMgntAdditionalPurchaseInfo">
+  
+	<select id="selectAdditionalPurchaseInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  	select t2.meaning         as mrp_planning_desc
+	      ,t1.full_lead_time  as full_lead_time
+	      ,t1.buyer           as buyer
+	  from stx_po_property_template@stxerp t1
+	      ,fnd_lookup_values@stxerp    	   t2
+	 where t1.segment1      = #{catalog_code}
+	   and t2.lookup_type   = 'MRP_PLANNING_CODE'
+	   and t2.language      = 'KO'
+	   and t2.lookup_code   = t1.mrp_planning_code  
+	</select>
+	
+</mapper>

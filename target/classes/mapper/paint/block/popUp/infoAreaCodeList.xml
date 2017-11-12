@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoAreaCodeList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select  area_code
+    	   ,area_desc
+    	   ,loss_code
+	       ,af_code
+	  from stx_dis_pis_area
+	 where 1=1
+	   and area_code like #{p_code_find} || '%'
+	   and area_desc like '%' || #{p_desc_find} || '%'	
+	 order by area_code   	  
+  	</select>
+
+</mapper>

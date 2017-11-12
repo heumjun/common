@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpEmsDbMasterShipAppList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT COUNT(*) OVER() AS CNT, Z.* 
+	   FROM ( 
+	         SELECT DISTINCT 
+					A.SHIP_TYPE 
+				  , A.SHIP_SIZE 
+				  , 'N' AS USE_YN
+				  , 'N' AS USE_YN_TEMP 
+			   FROM STX_PO_EQUIP_EVENT_V A 
+			  WHERE A.SHIP_TYPE IS NOT NULL 
+				AND A.SHIP_SIZE IS NOT NULL 
+				AND NOT EXISTS(SELECT 1 FROM STX_EMS_SHIP B WHERE A.SHIP_TYPE = B.SHIP_TYPE AND A.SHIP_SIZE = B.SHIP_SIZE AND B.ITEM_CODE IN ( #{p_itemCodeFirst} )) 
+			UNION 	 
+			 SELECT DISTINCT 
+					A.SHIP_TYPE 
+	        , A.SHIP_SIZE 
+	        , A.USE_YN
+	        , A.USE_YN AS USE_YN_TEMP
+	       FROM STX_EMS_SHIP A 
+	      WHERE A.ITEM_CODE IN ( #{p_itemCodeFirst} ) 
+	       ) Z 
+	  ORDER BY USE_YN DESC, SHIP_TYPE
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	SELECT COUNT(*) AS CNT 
+	   FROM ( 
+	         SELECT DISTINCT 
+					A.SHIP_TYPE 
+				  , A.SHIP_SIZE 
+				  , 'N' AS USE_YN 
+				  , 'N' AS USE_YN_TEMP 
+			   FROM STX_PO_EQUIP_EVENT_V A 
+			  WHERE A.SHIP_TYPE IS NOT NULL 
+				AND A.SHIP_SIZE IS NOT NULL 
+				AND NOT EXISTS(SELECT 1 FROM STX_EMS_SHIP B WHERE A.SHIP_TYPE = B.SHIP_TYPE AND A.SHIP_SIZE = B.SHIP_SIZE AND B.ITEM_CODE IN ( #{p_itemCodeFirst} )) 
+			UNION 	 
+			 SELECT DISTINCT 
+					A.SHIP_TYPE 
+	        , A.SHIP_SIZE 
+	        , A.USE_YN 
+	        , A.USE_YN AS USE_YN_TEMP
+	       FROM STX_EMS_SHIP A 
+	      WHERE A.ITEM_CODE IN ( #{p_itemCodeFirst} ) 
+	       )      
+  	</select>
+	
+</mapper>

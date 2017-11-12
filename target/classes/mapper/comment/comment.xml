@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="comment">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_DIS_COMMENT_PKG.COMMENT_SELECT_PROC(
+				P_PROJECT_NO				=> #{p_project_no}
+				, P_DWG_NO					=> #{p_dwg_no}
+				, P_ISSUER					=> #{p_issuer}
+				, P_RECEIPT_NO				=> #{p_receipt_no}
+				, P_SUB_NO 					=> #{p_sub_no}
+				, P_STATUS					=> #{p_status}
+				, P_CURPAGENO 				=> #{curPageNo}
+				, P_PAGESIZE 				=> #{pageSize}
+				, P_ERROR_CODE 				=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 				=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_REFER 					=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=comment.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	<select id="commentMainSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.COMMENT_SAVE_PROC( 
+       			 P_OPER               => #{p_oper,				jdbcType=VARCHAR,	mode=IN}
+                ,P_PROJECT_NO         => #{p_project_no,		jdbcType=VARCHAR,	mode=IN}
+                ,P_DWG_NO             => #{p_dwg_no,			jdbcType=VARCHAR,	mode=IN}
+                ,P_ISSUER			  => #{p_issuer,			jdbcType=VARCHAR,	mode=IN}
+                ,P_RECEIPT_DETAIL_ID  => #{p_receipt_detail_id,	jdbcType=VARCHAR,	mode=IN}
+                ,P_LIST_NO            => #{p_list_no,			jdbcType=VARCHAR,	mode=IN}   
+                ,P_SUB_NO             => #{p_sub_no,			jdbcType=VARCHAR,	mode=IN}
+                ,P_SUB_TITLE          => #{p_sub_title,			jdbcType=VARCHAR,	mode=IN}
+                ,P_INITIALS           => #{p_initials,			jdbcType=VARCHAR,	mode=IN}
+                ,P_BUILDERS_REPLY     => #{p_builders_reply,	jdbcType=VARCHAR,	mode=IN}
+                ,P_BUILDER_USER_ID    => #{p_builder_user_id,	jdbcType=VARCHAR,	mode=IN}
+                ,P_BUILDER_DATE       => #{p_builder_date,		jdbcType=VARCHAR,	mode=IN}
+                ,P_SEND_ID            => #{p_send_id,			jdbcType=VARCHAR,	mode=IN} 
+                ,P_USER_ID            => #{p_user_id,			jdbcType=VARCHAR,	mode=IN}
+                ,P_STATUS             => #{p_status,			jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         => #{p_err_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          => #{p_err_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="commentMainAttachSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.COMMENT_DOC_SAVE_PROC( 
+       			 P_OPER               => #{p_oper,				jdbcType=VARCHAR,	mode=IN}
+       			,P_PROJECT_NO		  => #{p_project_no,		jdbcType=VARCHAR,	mode=IN}
+       			,P_DWG_NO			  => #{p_dwg_no,			jdbcType=VARCHAR,	mode=IN}
+       			,P_ISSUER			  => #{p_issuer,			jdbcType=VARCHAR,	mode=IN}
+       			,P_LIST_NO            => #{p_list_no,			jdbcType=VARCHAR,	mode=IN}
+				,P_SUB_NO             => #{p_sub_no,			jdbcType=VARCHAR,	mode=IN}  
+                ,P_DOCUMENT_NAME      => #{p_document_name,		jdbcType=VARCHAR,	mode=IN}
+                ,P_DOCUMENT_DATA      => #{p_document_data,		jdbcType=VARCHAR,	mode=IN} 
+                ,P_USER_ID            => #{p_user_id,			jdbcType=VARCHAR,	mode=IN}
+                ,P_DOCUMENT_ID        => #{p_document_id,		jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         => #{p_err_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          => #{p_err_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="pcfHeader" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			 SELECT SA.DWGTITLE AS DWG_TITLE,
+			       SDCM.PROJECT_NO AS PROJECT_NO,
+			       SDCM.DWG_NO AS DWG_NO,
+			       COUNT(*) AS TOTAL_COMMENT,
+			       SUM(CASE
+			             WHEN SDCM.STATUS = 'O' THEN
+			              1
+			             ELSE
+			              0
+			           END) AS OPEN_CMMENT,
+			       (select listagg(SDP.PROJECT_NO, ',') within group(order by SDP.PROJECT_NO)
+			          from STX_DIS_PROJECT SDP
+			         WHERE SDP.DOC_PROJECT_NO = SDCM.PROJECT_NO
+			           AND SDP.DOC_ENABLE_FLAG = 'Y') AS HULL_NO,
+			       SDP.MARKETING_TEXT AS MARKETING_TEXT
+			  FROM DPM_ACTIVITY@STXDP   SA,
+			       STX_DIS_COMMENT_MAIN SDCM,
+			       STX_DIS_PROJECT      SDP
+			 WHERE SA.CASENO = '1'
+			   AND SA.WORKTYPE = 'WK'
+			   AND SDCM.PROJECT_NO = SA.PROJECTNO
+			   AND SDCM.DWG_NO = SUBSTR(SA.ACTIVITYCODE, 1, 8)
+			   AND SDCM.PROJECT_NO = SDP.PROJECT_NO
+			   AND SA.PROJECTNO = #{p_project_no, jdbcType=VARCHAR}
+			   AND SA.ACTIVITYCODE LIKE #{p_dwg_no, jdbcType=VARCHAR} || '%'
+			   AND SDCM.ISSUER = #{p_issuer, jdbcType=VARCHAR}
+			 GROUP BY SA.DWGTITLE, SDCM.PROJECT_NO, SDCM.DWG_NO, SDP.MARKETING_TEXT
+	</select>			 
+	
+	<select id="pcfHistoryList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT SDCR.COM_NO AS COM_NO,
+			       TO_CHAR(SDCR.ISSUE_DATE, 'YYYY-MM-DD') AS ISSUE_DATE,
+			       SDCSL.REF_NO AS BUILDER_REF_NO,
+			       TO_CHAR(SDCS.BUILDER_DATE, 'YYYY-MM-DD') AS BUILDER_DATE
+			  FROM STX_DIS_COMMENT_SUB            SDCS,
+			       STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD,
+			       STX_DIS_COMMENT_RECEIPT_LIST   SDCR,
+			       STX_DIS_COMMENT_SEND_LIST      SDCSL
+			 WHERE SDCS.SEND_ID = SDCSL.SEND_ID(+)
+			   AND SDCS.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID(+)
+			   AND SDCRD.RECEIPT_ID = SDCR.RECEIPT_ID(+)
+			   AND SDCS.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+			   AND SDCS.DWG_NO = #{p_dwg_no, jdbcType=VARCHAR}
+			   AND SDCS.ISSUER = #{p_issuer, jdbcType=VARCHAR}
+			 GROUP BY SDCR.COM_NO, SDCR.ISSUE_DATE, SDCSL.REF_NO, SDCS.BUILDER_DATE
+			 ORDER BY SDCR.COM_NO, SDCR.ISSUE_DATE, SDCSL.REF_NO, SDCS.BUILDER_DATE
+	</select>
+	
+	<select id="pcfHeaderList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT 'Subtitle : ' || SDCM.LIST_TITLE AS SUB_TITLE,
+			       SDSC.SD_DESC AS STATUS,
+			       SDCM.PROJECT_NO AS PROJECT_NO,
+			       SDCM.DWG_NO AS DWG_NO,
+			       SDCM.LIST_NO AS LIST_NO
+			  FROM STX_DIS_COMMENT_MAIN SDCM, STX_DIS_SD_CODE SDSC
+			 WHERE SDSC.SD_TYPE = 'COMMENT_STATUS'
+			   AND SDSC.SD_CODE = SDCM.STATUS
+			   AND SDCM.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+			   AND SDCM.DWG_NO = #{p_dwg_no, jdbcType=VARCHAR}
+			   AND SDCM.ISSUER = #{p_issuer, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="pcfSubList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT A.SUB_TITLE,
+			       A.INITIALS,
+			       A.BUILDERS_REPLY,
+			       A.BUILDER_USER_NAME,
+			       SDSC.SD_DESC AS STATUS,
+			       A.COM_NO,
+			       A.LIST_NO,
+			       A.SUB_NO,
+			       A.RECEIPT_NO,
+			       A.ISSUE_DATE,
+			       A.REF_NO,
+			       A.BUILDER_DATE
+			  FROM (SELECT SDCS.SUB_TITLE      AS SUB_TITLE,
+			               SDCS.INITIALS       AS INITIALS,
+			               SDCS.BUILDERS_REPLY AS BUILDERS_REPLY,
+			               SDU.NAME            AS BUILDER_USER_NAME,
+			               SDCS.STATUS         AS STATUS,
+			               SDCR.COM_NO         AS COM_NO,
+			               SDCS.PROJECT_NO     AS PROJECT_NO,
+			               SDCS.DWG_NO         AS DWG_NO,
+			               SDCS.LIST_NO        AS LIST_NO,
+			               SDCS.SUB_NO         AS SUB_NO,
+			               SDCR.RECEIPT_NO     AS RECEIPT_NO,
+			               TO_CHAR(SDCR.ISSUE_DATE ,'YYYY-MM-DD')     AS ISSUE_DATE,
+	                       SDCSL.REF_NO        AS REF_NO,
+	                       TO_CHAR(SDCS.BUILDER_DATE ,'YYYY-MM-DD')   AS BUILDER_DATE
+			          FROM STX_DIS_COMMENT_SUB            SDCS,
+			               STX_DIS_COMMENT_RECEIPT_LIST   SDCR,
+			               STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD,
+			               STX_DIS_COMMENT_SEND_LIST      SDCSL,
+			               STX_DIS_USER                   SDU,
+			               STX_DIS_USER                   SDU_C
+			         WHERE SDCRD.RECEIPT_ID = SDCR.RECEIPT_ID(+)
+			           AND SDCS.RECEIPT_DETAIL_ID = SDCRD.RECEIPT_DETAIL_ID(+)
+			           AND SDCS.SEND_ID = SDCSL.SEND_ID(+)
+			           AND SDCS.BUILDER_USER_ID = SDU.EMP_NO(+)
+			           AND SDCS.CONFIRM_USER_ID = SDU_C.EMP_NO(+)
+			           AND SDCS.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+			           AND SDCS.DWG_NO = #{p_dwg_no, jdbcType=VARCHAR}
+			           AND SDCS.ISSUER = #{p_issuer, jdbcType=VARCHAR} ) A,
+			       STX_DIS_SD_CODE SDSC
+			 WHERE SDSC.SD_TYPE = 'COMMENT_STATUS'
+			   AND SDSC.SD_CODE = A.STATUS
+			 ORDER BY A.PROJECT_NO, A.DWG_NO, A.LIST_NO, A.SUB_NO
+	</select>
+	
+	<select id="commentReqeustApplyAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.COMMENT_APPLY_REQEUST_PROC( 
+       			P_PROJECT_NO		  => #{p_project_no,		jdbcType=VARCHAR,	mode=IN}
+       			,P_DWG_NO			  => #{p_dwg_no,			jdbcType=VARCHAR,	mode=IN}
+       			,P_ISSUER			  => #{p_issuer,			jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID            => #{p_user_id,			jdbcType=VARCHAR,	mode=IN}
+                ,P_RECEIPT_USER_ID    => #{p_receipt_user_id,	jdbcType=VARCHAR,	mode=IN}
+                ,P_MAIL_ID         	  => #{p_mail_id,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_CODE         => #{p_err_code,			jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          => #{p_err_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="popUpCommentCommentAttachList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_DIS_COMMENT_PKG.COMMENT_DOC_SELECT_PROC(
+				  P_COMMENT_SUB_ID 		=> #{p_comment_sub_id}
+				, p_error_code 			=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, p_error_msg 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, p_refer 				=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=commentReceipt.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	
+	<update id="commentConfirmUserUpdateAction" parameterType="java.util.Map">	
+		UPDATE STX_DIS_USER
+		   SET CONFIRM_USER = #{p_receipt_user_id, jdbcType=VARCHAR}
+		 WHERE EMP_NO = #{p_user_id, jdbcType=VARCHAR}
+	</update>
+	
+
+</mapper>

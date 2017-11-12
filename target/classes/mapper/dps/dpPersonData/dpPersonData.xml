@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpPersonData">
+	<select id="selectAverageOvertimeOfAll" parameterType="java.util.HashMap" resultType="String">
+		WITH EMP_CNT_TBL AS (SELECT COUNT(DISTINCT(EMPLOYEE_NO)) AS EMP_CNT
+        FROM   PLM_DESIGN_MH
+        WHERE  WORK_DAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD') )SELECT ROUND(TOTAL_OVERTIME / (SELECT DECODE(EMP_CNT, 0, 1, EMP_CNT)
+                FROM   EMP_CNT_TBL), 2) AS OVERTIME_AVG
+		FROM   (SELECT NVL(SUM((OVERTIME + SPECIAL_TIME) * MH_FACTOR), 0) AS TOTAL_OVERTIME
+		        from   (SELECT OVERTIME,
+		                       SPECIAL_TIME,
+		                       (SELECT FACTOR_VALUE
+		                        FROM   (SELECT CAREER_MONTH_FROM,
+		                                       CAREER_MONTH_TO,
+		                                       FACTOR_VALUE
+		                                FROM   PLM_DESIGN_MH_FACTOR
+		                                WHERE  1 = 1
+		                                AND    CASE_NO = #{factorCaseList} )
+		                        WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+		                        AND    NVL(CAREER_MONTH_TO, 9999) >= CAREER_MONTHS ) AS MH_FACTOR
+		                FROM   (SELECT A.OVERTIME,
+		                               A.SPECIAL_TIME,
+		                               NVL( ( ((TO_CHAR(A.WORK_DAY, 'YYYY')-TO_CHAR(B.DESIGN_APPLY_DATE, 'YYYY'))*12 + (TO_CHAR(A.WORK_DAY, 'MM') - TO_CHAR(B.DESIGN_APPLY_DATE, 'MM'))) +
+		                                                                                       CASE
+		                                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+		                                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') > 15 THEN 0
+		                                                                                       END + NVL(ROUND(B.BEFORE_ENTRANCE_CAREER * 12, 0), 0) ) , 9999) AS CAREER_MONTHS
+		                        FROM   PLM_DESIGN_MH_CLOSE A,
+		                               CCC_SAWON B
+		                        WHERE  1 = 1
+		                        AND    B.EMPLOYEE_NUM(+) = A.EMPLOYEE_NO
+		                        AND    A.WORK_DAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD') ) ) ) 
+	</select>
+	
+	<select id="selectAverageOvertimeOfSelectedDepts" parameterType="java.util.HashMap" resultType="String">
+		WITH EMP_CNT_TBL AS (SELECT COUNT(DISTINCT(EMPLOYEE_NO)) AS EMP_CNT
+	        FROM   PLM_DESIGN_MH
+	        WHERE  WORK_DAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		<if test="dept_code_list != null and dept_code_list.size > 0">
+		        AND    DEPT_CODE IN (<foreach collection="dept_code_list" item="item" separator=",">#{item}</foreach>) 
+		</if>
+		)
+		SELECT ROUND(TOTAL_OVERTIME / (SELECT DECODE(EMP_CNT, 0, 1, EMP_CNT) FROM   EMP_CNT_TBL), 2) AS OVERTIME_AVG
+		FROM   (SELECT NVL(SUM((OVERTIME + SPECIAL_TIME) * MH_FACTOR), 0) AS TOTAL_OVERTIME
+		        from   (SELECT OVERTIME,
+		                       SPECIAL_TIME,
+		                       (SELECT FACTOR_VALUE
+		                        FROM   (SELECT CAREER_MONTH_FROM,
+		                                       CAREER_MONTH_TO,
+		                                       FACTOR_VALUE
+		                                FROM   PLM_DESIGN_MH_FACTOR
+		                                WHERE  1 = 1
+		                                AND    CASE_NO = #{factorCaseList} )
+		                        WHERE  CAREER_MONTH_FROM  &lt;= CAREER_MONTHS
+		                        AND    NVL(CAREER_MONTH_TO, 9999) >= CAREER_MONTHS ) AS MH_FACTOR
+		                FROM   (SELECT A.OVERTIME,
+		                               A.SPECIAL_TIME,
+		                               NVL( ( ((TO_CHAR(A.WORK_DAY, 'YYYY')-TO_CHAR(B.DESIGN_APPLY_DATE, 'YYYY'))*12 + (TO_CHAR(A.WORK_DAY, 'MM') - TO_CHAR(B.DESIGN_APPLY_DATE, 'MM'))) +
+		                                                                                       CASE
+		                                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+		                                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') > 15 THEN 0
+		                                                                                       END + NVL(ROUND(B.BEFORE_ENTRANCE_CAREER * 12, 0), 0) ) , 9999) AS CAREER_MONTHS
+		                        FROM   PLM_DESIGN_MH_CLOSE A,
+		                               CCC_SAWON B
+		                        WHERE  1 = 1
+		                        AND    B.EMPLOYEE_NUM(+) = A.EMPLOYEE_NO
+							<if test="dept_code_list != null and dept_code_list.size > 0">
+		                        AND    A.DEPT_CODE IN (<foreach collection="dept_code_list" item="item" separator=",">#{item}</foreach>)
+		                    </if>
+		                        AND    A.WORK_DAY BETWEEN TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD') AND TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD') ) ) ) 
+	</select>
+	
+</mapper>

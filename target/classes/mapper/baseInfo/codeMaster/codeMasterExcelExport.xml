@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="codeMasterExcelExport">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 
+					 select sds.sd_type     as sd_type
+					       ,case when sds.sd_type = 'MAIN' then 'MAIN'
+					        else
+					             (select sdsc.sd_desc 
+					                from stx_dis_sd_code sdsc
+					               where sdsc.sd_type = 'MAIN' 
+					                 and sdsc.sd_code = sds.sd_type
+					             )    
+					        end             as sd_type_desc
+					       ,sds.sd_code     as sd_code
+					       ,sds.sd_desc     as sd_desc
+					       ,sds.sd_meaning  as sd_meaning  
+					       ,sds.attribute1  as attribute1  
+					       ,sds.attribute2  as attribute2  
+					       ,sds.attribute3  as attribute3  
+					       ,sds.attribute4  as attribute4  
+					       ,sds.attribute5  as attribute5
+					       ,sds.order_by  as order_by    
+					       ,sds.enable_flag as enable_flag 
+					       ,sds.enable_flag as enable_flag_changed
+					   from stx_dis_sd_code sds
+				  	  where 1=1
+				  	  <if test="cmtype!=null and cmtype!='' ">
+				  	    and sd_type like #{cmtype} || '%'
+				  	  </if>
+					  <if test="cmcode != null and cmcode !='' ">
+					    and sd_code like #{cmcode} || '%'
+					  </if>
+					  <if test="cmdescription != null and cmdescription !='' ">
+					    and sd_desc like #{cmdescription} || '%'
+					  </if>
+					  <if test="cmuseone != null and cmuseone !='' and cmuseone !='all'">
+					    and enable_flag like '%' || #{cmuseone} || '%'
+					  </if>
+					  order by sds.sd_type,sds.sd_code,sds.order_by
+	  
+  	</select>
+</mapper>

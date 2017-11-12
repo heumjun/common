@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="wpsCodeManage">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="wpsCodeManageList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_DWG_WPS_PKG.CODE_SELECT_PROC(
+			 P_CODE_TYPE 	=> #{p_code_type} 
+			,P_CURPAGENO 	=> #{curPageNo} 
+			,P_PAGESIZE 	=> #{pageSize} 
+			,P_ERROR_CODE 	=> #{p_error_code,  jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_ERROR_MSG 	=> #{p_error_msg,   jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT} 
+			,P_REFER 		=> #{p_refer,       jdbcType=CURSOR,  javaType=ResultSet, resultMap=wpsCodeManage.procResultMap, mode=OUT}
+		)}
+	</select>	
+	
+	<select id="saveWpsCodeManage"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DWG_WPS_PKG.CODE_UPDATE_PROC( 
+       			 P_OPER             => #{p_oper,		jdbcType=VARCHAR,	mode=IN}
+                ,P_ROW_ID         	=> #{p_row_id,		jdbcType=VARCHAR,	mode=IN}
+                ,P_CODE_TYPE        => #{p_code_type,	jdbcType=VARCHAR,	mode=IN}
+                ,P_CODE_NAME		=> #{p_code_name,	jdbcType=VARCHAR,	mode=IN}
+                ,P_CODE_VALUE  		=> #{p_code_value,	jdbcType=VARCHAR,	mode=IN}
+                ,P_CODE_DESC        => #{p_code_desc,	jdbcType=VARCHAR,	mode=IN}   
+                ,P_USER_ID          => #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE       => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG        => #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>									
+
+</mapper>

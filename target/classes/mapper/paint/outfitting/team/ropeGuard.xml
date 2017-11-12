@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ropeGuard">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with temp_paint_block as (
+					            select b1.project_no ,
+					                     b1.revision ,
+					                     b1.area_code ,
+					                     min(b2.area_desc) as area_desc
+					               from  stx_dis_pis_block b1
+					                    ,stx_dis_pis_area  b2
+					              where  b1.project_no = #{project_no}
+					                and  b1.revision   = #{revision}
+					                and  b1.area_code  = b2.area_code
+					              group by b1.project_no, b1.revision, b1.area_code    	                           
+	                         )
+	                         
+select max(area_desc) as area_desc
+       , max(paint_count) as paint_count 
+       , paint_item
+       , max(item_desc) as item_desc 
+       , quantity as quantity 
+       , min(chk) as chk
+       , decode(min(chk),'삭제',1,2) as ob 
+   from (
+	                         
+	select t12.area_desc     as area_desc           
+	      ,listagg(t12.paint_count,',') within group(order by  t12.paint_count) 
+	                         as paint_count
+	      ,t12.paint_item    as paint_item
+	      ,t12.item_desc     as item_desc
+	      ,ceil(sum(t12.quantity)/t12.can_size)*t12.can_size as quantity
+	      ,(case when #{isLastRev} = 'Y' and nvl(#{revStates},' ') <![CDATA[<>]]> 'D' then
+									      											   (case when (select count(*) as cnt
+																			                         from stx_dis_pis_outfitting
+																			                        where project_no   = #{project_no}
+																			                          and revision     = #{revision}
+																			                          and team_count   = #{team_count}
+																			                          and paint_gbn    = #{paint_gbn}
+																			                          and paint_item   = t12.paint_item) > 0 then '─'
+																			                                                                 else '+'
+																			           end)
+																			           else null                                                      
+	       end)              as chk  
+	  from (
+	        select t10.*
+	              ,t11.item_desc      as item_desc
+	              ,t11.can_size       as can_size  
+	              <!-- ,(t11.can_size * 1) as quantity -->
+	             ,(case when t10.item_gbn = 1 then (t11.can_size * 1)
+	                                                  else round(t10.g1_can_size*0.15,3)
+                                                      end) as quantity
+	          from (
+	                select distinct  
+	                       'SIDE BOTTOM*' as area_desc
+	                      ,t1.paint_count
+	                      ,(select can_size                       
+                             from stx_dis_item                                              
+                             where item_code = t1.paint_item                                             
+                             and rownum = 1) as g1_can_size
+	                      ,(case when t4.item_gbn = 1 then t1.paint_item
+	                                                  else (select thinner_code
+	                                                          from stx_dis_item
+	                                                         where item_code = t1.paint_item 
+	                                                           and rownum = 1)
+	                        end) as paint_item         
+	                      ,t4.item_gbn
+	                  from stx_dis_pis_pattern_scheme          t1
+	                      ,temp_paint_block                    t3
+	                      ,(select 1 as item_gbn from dual
+	                        union all
+	                        select 2 as item_gbn from dual) t4       
+	                  where t1.project_no  = #{project_no}
+	                    and t1.revision    = #{revision}
+	                    and t1.project_no  = t3.project_no
+	                    and t1.revision    = t3.revision
+	                    and t1.area_code   = t3.area_code
+	                    and t3.area_desc   like 'SIDE BOTTOM%'     
+	               )                           t10 
+	              ,stx_dis_item                t11
+	         where t10.paint_item = t11.item_code
+	        ) t12  
+	 group by t12.area_desc,t12.item_gbn,t12.paint_item,t12.item_desc,t12.can_size  
+	 union all
+select '' as area_desc,
+       '' as paint_count
+       , t1.paint_item
+	      ,t2.item_desc
+	      ,t1.quantity
+	      ,(case when 'Y' = 'Y'
+ and nvl('',' ')  <![CDATA[<>]]>  'D' then '삭제' 
+	       																			  else null
+	       end) as chk 
+	 
+ from stx_dis_pis_outfitting t1
+	      ,stx_dis_item           t2
+	
+ where project_no     = #{project_no}
+	  
+ and revision       = #{revision}
+	  
+ and team_count     = #{team_count}
+	  
+ and paint_gbn      =  #{paint_gbn}  
+	  
+ and t1.paint_item  = t2.item_code)
+ 
+ GROUP BY paint_item,quantity
+ order by ob, to_char(TRANSLATE(paint_count, '0123456789'||paint_count, '0123456789'), '00000'), PAINT_ITEM
+  	</select>
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	with temp_paint_block as (
+					            select b1.project_no ,
+					                     b1.revision ,
+					                     b1.area_code ,
+					                     min(b2.area_desc) as area_desc
+					               from  stx_dis_pis_block b1
+					                    ,stx_dis_pis_area  b2
+					              where  b1.project_no = #{project_no}
+					                and  b1.revision   = #{revision}
+					                and  b1.area_code  = b2.area_code
+					              group by b1.project_no, b1.revision, b1.area_code  
+	                         )
+	select count(*) cnt
+	  from (
+			select t12.area_desc     as area_desc           
+			      ,listagg(t12.paint_count,',') within group(order by  t12.paint_count) 
+			                         as paint_count
+			      ,t12.paint_item    as paint_item
+			      ,t12.item_desc     as item_desc
+			      ,sum(t12.quantity) as quantity
+			      ,(case when (select count(*) as cnt
+			                         from stx_dis_pis_outfitting
+			                        where project_no   = #{project_no}
+			                          and revision     = #{revision}
+			                          and team_count   = #{teamCode}
+			                          and paint_gbn    = #{paintGbn}
+			                          and paint_item   = t12.paint_item) > 0 then '─'
+			                                                                 else '+'
+			       end)              as chk  
+			  from (
+			        select t10.*
+			              ,t11.item_desc      as item_desc 
+			              ,(t11.can_size * 1) as quantity
+			             
+			          from (
+			                select distinct  
+			                       'SIDE BOTTOM*' as area_desc
+			                      ,t1.paint_count
+			                      ,(case when t4.item_gbn = 1 then t1.paint_item
+			                                                  else (select thinner_code
+			                                                          from stx_dis_item
+			                                                         where item_code = t1.paint_item 
+			                                                           and rownum = 1)
+			                        end) as paint_item         
+			                      ,t4.item_gbn
+			                  from stx_dis_pis_pattern_scheme          t1
+			                      ,temp_paint_block                    t3
+			                      ,(select 1 as item_gbn from dual
+			                        union all
+			                        select 2 as item_gbn from dual) t4       
+			                  where t1.project_no  = #{project_no}
+			                    and t1.revision    = #{revision}
+			                    and t1.project_no  = t3.project_no
+			                    and t1.revision    = t3.revision
+			                    and t1.area_code   = t3.area_code
+			                    and t3.area_desc   like 'SIDE BOTTOM%'     
+			                )                           t10 
+			               ,stx_dis_item                t11
+			         where t10.paint_item = t11.item_code
+			        ) t12  
+			 group by t12.area_desc,t12.item_gbn,t12.paint_item,t12.item_desc 
+			) t13	  
+  	</select>
+</mapper>

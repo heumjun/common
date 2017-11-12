@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoLossCodeList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select distinct
+	       loss_code
+	      ,loss_desc  
+	  from stx_dis_pis_loss
+	 where 1=1
+	   and loss_code like #{p_code_find} || '%'       
+	 order by loss_code     	  
+  	</select>
+
+</mapper>

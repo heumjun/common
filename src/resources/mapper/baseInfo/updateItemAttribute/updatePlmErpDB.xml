@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="updatePlmErpDB">
+	
+	<update id="updatePlmItemAttribute" parameterType="java.util.Map">
+		UPDATE stx_dis_item x
+		   SET x.attr1 = CASE WHEN #{attr0,jdbcType=VARCHAR} != nvl( x.attr1, ' ' ) THEN decode( #{attr0,jdbcType=VARCHAR}, 'DEL', '', #{attr0,jdbcType=VARCHAR} ) ELSE x.attr1 END
+		     , x.attr2 = CASE WHEN #{attr1,jdbcType=VARCHAR} != nvl( x.attr2, ' ' ) THEN decode( #{attr1,jdbcType=VARCHAR}, 'DEL', '', #{attr1,jdbcType=VARCHAR} ) ELSE x.attr2 END
+		     , x.attr3 = CASE WHEN #{attr2,jdbcType=VARCHAR} != nvl( x.attr3, ' ' ) THEN decode( #{attr2,jdbcType=VARCHAR}, 'DEL', '', #{attr2,jdbcType=VARCHAR} ) ELSE x.attr3 END
+		     , x.attr4 = CASE WHEN #{attr3,jdbcType=VARCHAR} != nvl( x.attr4, ' ' ) THEN decode( #{attr3,jdbcType=VARCHAR}, 'DEL', '', #{attr3,jdbcType=VARCHAR} ) ELSE x.attr4 END
+		     , x.attr5 = CASE WHEN #{attr4,jdbcType=VARCHAR} != nvl( x.attr5, ' ' ) THEN decode( #{attr4,jdbcType=VARCHAR}, 'DEL', '', #{attr4,jdbcType=VARCHAR} ) ELSE x.attr5 END
+		     , x.attr6 = CASE WHEN #{attr5,jdbcType=VARCHAR} != nvl( x.attr6, ' ' ) THEN decode( #{attr5,jdbcType=VARCHAR}, 'DEL', '', #{attr5,jdbcType=VARCHAR} ) ELSE x.attr6 END
+		     , x.attr7 = CASE WHEN #{attr6,jdbcType=VARCHAR} != nvl( x.attr7, ' ' ) THEN decode( #{attr6,jdbcType=VARCHAR}, 'DEL', '', #{attr6,jdbcType=VARCHAR} ) ELSE x.attr7 END
+		     , x.attr8 = CASE WHEN #{attr7,jdbcType=VARCHAR} != nvl( x.attr8, ' ' ) THEN decode( #{attr7,jdbcType=VARCHAR}, 'DEL', '', #{attr7,jdbcType=VARCHAR} ) ELSE x.attr8 END
+		     , x.attr9 = CASE WHEN #{attr8,jdbcType=VARCHAR} != nvl( x.attr9, ' ' ) THEN decode( #{attr8,jdbcType=VARCHAR}, 'DEL', '', #{attr8,jdbcType=VARCHAR} ) ELSE x.attr9 END
+		     , x.attr10 = CASE WHEN #{attr9,jdbcType=VARCHAR} != nvl( x.attr10, ' ' ) THEN decode( #{attr9,jdbcType=VARCHAR}, 'DEL', '', #{attr9,jdbcType=VARCHAR} ) ELSE x.attr10 END
+		     , x.attr11 = CASE WHEN #{attr10,jdbcType=VARCHAR} != nvl( x.attr11, ' ' ) THEN decode( #{attr10,jdbcType=VARCHAR}, 'DEL', '', #{attr10,jdbcType=VARCHAR} ) ELSE x.attr11 END
+		     , x.attr12 = CASE WHEN #{attr11,jdbcType=VARCHAR} != nvl( x.attr12, ' ' ) THEN decode( #{attr11,jdbcType=VARCHAR}, 'DEL', '', #{attr11,jdbcType=VARCHAR} ) ELSE x.attr12 END
+		     , x.attr13 = CASE WHEN #{attr12,jdbcType=VARCHAR} != nvl( x.attr13, ' ' ) THEN decode( #{attr12,jdbcType=VARCHAR}, 'DEL', '', #{attr12,jdbcType=VARCHAR} ) ELSE x.attr13 END
+		     , x.attr14 = CASE WHEN #{attr13,jdbcType=VARCHAR} != nvl( x.attr14, ' ' ) THEN decode( #{attr13,jdbcType=VARCHAR}, 'DEL', '', #{attr13,jdbcType=VARCHAR} ) ELSE x.attr14 END
+		     , x.attr15 = CASE WHEN #{attr14,jdbcType=VARCHAR} != nvl( x.attr15, ' ' ) THEN decode( #{attr14,jdbcType=VARCHAR}, 'DEL', '', #{attr14,jdbcType=VARCHAR} ) ELSE x.attr15 END
+		     , x.item_desc = CASE WHEN #{item_desc,jdbcType=VARCHAR} != nvl( x.item_desc, ' ' ) THEN decode( #{item_desc,jdbcType=VARCHAR}, 'DEL', '', #{item_desc,jdbcType=VARCHAR} ) ELSE x.item_desc END
+		     , x.item_weight = CASE WHEN #{weight,jdbcType=FLOAT} != nvl( x.item_weight, 0 ) THEN decode( #{weight,jdbcType=FLOAT}, 'DEL', 0, #{weight,jdbcType=FLOAT} ) ELSE x.item_weight END
+		     , x.cable_outdia = CASE WHEN #{cable_outdia,jdbcType=VARCHAR} != nvl( x.cable_outdia, ' ' ) THEN decode( #{cable_outdia,jdbcType=VARCHAR}, 'DEL', '', #{cable_outdia,jdbcType=VARCHAR} ) ELSE x.cable_outdia END
+		     , x.can_size = CASE WHEN #{can_size,jdbcType=VARCHAR} != nvl( x.can_size, ' ' ) THEN decode( #{can_size,jdbcType=VARCHAR}, 'DEL', '', #{can_size,jdbcType=VARCHAR} ) ELSE x.can_size END
+		     , x.stxsvr = CASE WHEN #{stxsvr,jdbcType=VARCHAR} != nvl( x.stxsvr, ' ' ) THEN decode( #{stxsvr,jdbcType=VARCHAR}, 'DEL', '', #{stxsvr,jdbcType=VARCHAR} ) ELSE x.stxsvr END
+		     , x.thinner_code = CASE WHEN #{thinner_code,jdbcType=VARCHAR} != nvl( x.thinner_code, ' ' ) THEN decode( #{thinner_code,jdbcType=VARCHAR}, 'DEL', '', #{thinner_code,jdbcType=VARCHAR} ) ELSE x.thinner_code END
+		     , x.paint_code = CASE WHEN #{paint_code,jdbcType=VARCHAR} != nvl( x.paint_code, ' ' ) THEN decode( #{paint_code,jdbcType=VARCHAR}, 'DEL', '', #{paint_code,jdbcType=VARCHAR} ) ELSE x.paint_code END
+		     , x.cable_type = CASE WHEN #{cable_type,jdbcType=VARCHAR} != nvl( x.cable_type, ' ' ) THEN decode( #{cable_type,jdbcType=VARCHAR}, 'DEL', '', #{cable_type,jdbcType=VARCHAR} ) ELSE x.cable_type END
+		     , x.cable_length = CASE WHEN #{cable_length,jdbcType=VARCHAR} != nvl( x.cable_length, ' ' ) THEN decode( #{cable_length,jdbcType=VARCHAR}, 'DEL', '', #{cable_length,jdbcType=VARCHAR} ) ELSE x.cable_length END
+		     , x.stx_standard = CASE WHEN #{stxstandard,jdbcType=VARCHAR} != nvl( x.stx_standard, ' ' ) THEN decode( #{stxstandard,jdbcType=VARCHAR}, 'DEL', '', #{stxstandard,jdbcType=VARCHAR} ) ELSE x.stx_standard END
+		     , x.paint_code1 = CASE WHEN #{tbc_paint_code,jdbcType=VARCHAR} != nvl( x.paint_code1, ' ' ) THEN decode( #{tbc_paint_code,jdbcType=VARCHAR}, 'DEL', '', #{tbc_paint_code,jdbcType=VARCHAR} ) ELSE x.paint_code1 END
+		     , x.LAST_UPDATED_BY = #{p_login_id}
+		     , x.LAST_UPDATE_DATE = sysdate
+		 WHERE x.item_code = #{item,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updatePlmFlag" parameterType="java.util.Map">
+		UPDATE stx_plmerp_item_update x
+		   SET x.plmflag = 'Y'
+		 WHERE x.item = #{item}
+	</update>
+	
+	<select id="updateErpItemAttribute"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ #{p_rtn,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT} = call STX_ERP_ITEM_UPDATE_F(
+		#{p_item,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_item_desc,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr0,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr1,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr2,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr3,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr4,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr5,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr6,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr7,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr8,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr9,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr10,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr11,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr12,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr13,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_attr14,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		' ',
+		' ',
+		' ',
+		' ',
+		' ',
+		#{p_weight,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_cable_outdia,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_cable_length,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_cable_type,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_can_size,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_stxsvr,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_stxstandard,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_paint_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN},
+		#{p_thinner_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=IN}
+		)
+    }
+	</select>
+
+	<update id="updateErpFlag" parameterType="java.util.Map">
+		UPDATE stx_plmerp_item_update x
+		   SET x.erpflag = 'Y'
+		 WHERE x.item = #{item}
+	</update>
+	
+</mapper>

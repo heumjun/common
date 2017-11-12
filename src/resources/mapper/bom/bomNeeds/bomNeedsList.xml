@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="bomNeedsList">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	{call stx_dis_bom_needs_pkg.select_proc(
+								   p_chk_series 	=> #{p_chk_series} 
+								 , p_dwg_no 		=> #{p_dwg_no}
+								 , p_block_no 		=> #{p_block_no}
+								 , p_stage_no 		=> #{p_stage_no}
+								 , p_str_flag 		=> #{p_str_flag}
+								 , p_dept_code 		=> #{p_dept_code} 
+								 , p_user_id 		=> #{p_user_id}
+								 , p_mother_code 	=> #{p_mother_code} 
+								 , p_item_code 		=> #{p_item_code}
+								 , p_item_desc 		=> #{p_item_desc} 
+								 , p_item_type_cd 	=> #{p_item_type_cd} 
+								 , p_eco_no 		=> #{p_eco_no}
+								 , p_is_eco 		=> #{p_is_eco} 
+								 , p_job_cd 		=> #{p_job_cd}
+								 , p_state_flag 	=> #{p_state_flag}
+								 , p_erp_check_type => #{p_erp_check_type} 
+								 , p_activity_no	=> #{p_activity_no} 
+								 , p_job_no 		=> #{p_job_no} 
+                                 , p_curpageno 		=> #{curPageNo}
+                                 , p_pagesize 		=> #{pageSize}
+                                 , p_error_code 	=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                                 , p_error_msg 		=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                                 , p_refer 			=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=bomNeedsList.procResultMap, mode=OUT}
+	)}
+	</select>
+	<!-- <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT  BOM_ALL_LIST.PROJECT_NO     AS PROJECT_NO 
+	       ,BOM_ALL_LIST.DWG_NO        AS DWG_NO      
+	       ,BOM_ALL_LIST.BLOCK_NO      AS BLOCK_NO    
+	       ,BOM_ALL_LIST.STR_FLAG      AS STR_FLAG    
+	       ,BOM_ALL_LIST.USC_JOB_TYPE  AS USC_JOB_TYPE 
+	       ,BOM_ALL_LIST.STAGE_NO      AS STAGE_NO    
+	       ,BOM_ALL_LIST.MOTHER_CODE   AS MOTHER_CODE 
+	       ,BOM_ALL_LIST.ITEM_CODE     AS ITEM_CODE   
+	       ,BOM_ALL_LIST.ITEM_DESC     AS ITEM_DESC   
+	       ,BOM_ALL_LIST.ITEM_CATALOG  AS ITEM_CATALOG 
+	       ,BOM_ALL_LIST.EA            AS EA          
+	       ,BOM_ALL_LIST.ITEM_WEIGHT   AS ITEM_WEIGHT 
+	       ,BOM_ALL_LIST.ECO_NO        AS ECO_NO     
+	       ,ECO.ENG_CHANGE_ORDER_CAUSE                 AS CAUSE 
+	       ,TO_CHAR(ECO.LAST_UPDATE_DATE,'YYYY-MM-DD') AS RELEASE 
+	       ,SDU.NAME                   AS ECO_USER 
+	       ,SDU.EMP_NO                 AS ECO_USER_ID 
+	       ,SDW.DWGDEPTNM              AS ECO_DEPT
+	       ,SDW.DWGDEPTCODE            AS DWGDEPTCODE 
+	       ,BOM_ALL_LIST.JOB_CD        AS JOB_CD     
+	       ,BOM_ALL_LIST.KEY_NO        AS KEY_NO      
+	       ,(SELECT SUB_CODE
+	              FROM STX_DIS_ENG_REL          SDER
+	                  ,STX_DIS_ENG_CHANGE_REQ   SDECR 
+	             WHERE SDER.ENG_TYPE     = 'ECR'
+	               AND SDER.MAIN_CODE     = SDECR.ENG_CHANGE_REQ_CODE
+	               AND SDER.SUB_CODE    = BOM_ALL_LIST.ECO_NO 
+	               and rownum = 1)     AS ECR_NO
+	       ,(SELECT DWGDEPTNM
+	              FROM STX_DIS_ENG_REL          SDER
+	                  ,STX_DIS_ENG_CHANGE_REQ   SDECR 
+	                  ,STX_DIS_STATEREQ         SDS
+	                  ,STX_DIS_USER             SDU 
+	                  ,STX_DIS_DEPTCODE         SDD 
+	                  ,STX_DIS_DWGDEPTCODE      SDW     
+	             WHERE SDER.ENG_TYPE    = 'ECR'
+	               AND SDER.MAIN_CODE   = SDECR.ENG_CHANGE_REQ_CODE
+	               AND SDER.SUB_CODE    = BOM_ALL_LIST.ECO_NO
+	               AND SDER.MAIN_CODE   = SDS.MAIN_CODE
+	               AND SDU.EMP_NO       = SDS.EMP_NO  
+	               AND SDU.DEPT_CODE    = SDD.DEPTCODE 
+	               AND SDD.DWGDEPTCODE  = SDW.DWGDEPTCODE 
+	               and rownum = 1)     AS ECR_DEPT
+	          ,SIPV.ITEM_MRP_PLANNING         AS ITEM_MRP_PLANNING
+	          ,SIPV.ACTIVITY_NO               AS ACTIVITY_NO		 
+		      ,TO_CHAR(SIPV.ACTIVITY_SCH_START_DATE, 'YYYY-MM-DD')   AS ACTIVITY_SCH_START_DATE		 
+		      ,TO_CHAR(SIPV.ACTIVITY_SCH_FINISH_DATE, 'YYYY-MM-DD')   AS ACTIVITY_SCH_FINISH_DATE		 
+		      ,SIPV.WIP_CLASS_DISP            AS WIP_CLASS_DISP		 
+		      ,SIPV.WIP_ENTITY_NAME           AS WIP_ENTITY_NAME		 
+		      ,SIPV.WIP_DEPARTMENT_CLASS_DISP AS WIP_DEPARTMENT_CLASS_DISP		 
+		      ,SIPV.WIP_DEPARTMENT_DISP       AS WIP_DEPARTMENT_DISP		 
+		      ,SIPV.WIP_RESOURCE_DISP         AS WIP_RESOURCE_DISP		 
+		      ,TO_CHAR(SIPV.WIP_SCH_START_DATE, 'YYYY-MM-DD')   AS WIP_SCH_START_DATE		 
+		      ,TO_CHAR(SIPV.WIP_SCH_COMPLETION_DATE, 'YYYY-MM-DD')   AS WIP_SCH_COMPLETION_DATE		 
+		      ,SIPV.WIP_STATUS_DISP           AS WIP_STATUS_DISP		 
+		      ,SIPV.WIP_DATE_RELEASED         AS WIP_DATE_RELEASED		 
+		      ,SIPV.WIP_REQUIRED_QUANTITY     AS WIP_REQUIRED_QUANTITY		 
+		      ,SIPV.WIP_QUANTITY_ISSUED       AS WIP_QUANTITY_ISSUED		 
+		      ,SIPV.REQ_ORDER_QUANTITY        AS REQ_ORDER_QUANTITY		 
+		      ,TO_CHAR(SIPV.REQ_REQUESTED_DATE, 'YYYY-MM-DD')   AS REQ_REQUESTED_DATE		 
+		      ,TO_CHAR(SIPV.REQ_REQUIRED_DATE, 'YYYY-MM-DD')   AS REQ_REQUIRED_DATE		 
+		      ,SIPV.REQO_ISSUE_ORDER_ID       AS REQO_ISSUE_ORDER_ID		 
+		      ,SIPV.REQO_ISSUEORDER_QTY       AS REQO_ISSUEORDER_QTY		 
+		      ,TO_CHAR(SIPV.REQO_DIRECTOR_DATE, 'YYYY-MM-DD')   AS REQO_DIRECTOR_DATE		 
+		      ,SIPV.REQO_DIRECTOR_DISP        AS REQO_DIRECTOR_DISP		 
+		      ,SIPV.ONHANDDB_QUANTITY         AS ONHANDDB_QUANTITY		 
+		      ,TO_CHAR(SIPV.MMT_TRANSACTION_DATE, 'YYYY-MM-DD')   AS MMT_TRANSACTION_DATE		 
+		      ,SIPV.MMT_CREATED_BY_DISP       AS MMT_CREATED_BY_DISP
+	  FROM ( 
+	           SELECT BOM_LIST.PROJECT_NO                                                           AS PROJECT_NO 
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(BOM_LIST.DWG_NO,'@'),'@',NULL)                    AS DWG_NO 
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(CASE WHEN BOM_LIST.WORK_YN = 'Y' THEN 
+	                                                        BOM_LIST.BLOCK_NO 
+	                                              ELSE NULL END ,'@'),'@',NULL)                     AS BLOCK_NO 
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(CASE WHEN BOM_LIST.WORK_YN = 'Y' THEN 
+	                                                        BOM_LIST.STR_FLAG 
+	                                              ELSE NULL END ,'@'),'@',NULL)                     AS STR_FLAG 
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(CASE WHEN BOM_LIST.WORK_YN = 'Y' THEN 
+	                                                        BOM_LIST.USC_JOB_TYPE 
+	                                              ELSE NULL END ,'@'),'@',NULL)                     AS USC_JOB_TYPE  
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(BOM_LIST.STAGE_NO,'@'),'@',NULL)                  AS STAGE_NO 
+	                 ,BOM_LIST.MOTHER_CODE                                                          AS MOTHER_CODE 
+	                 ,BOM_LIST.ITEM_CODE                                                            AS ITEM_CODE 
+	                 ,BOM_LIST.ITEM_DESC                                                            AS ITEM_DESC  
+	                 ,BOM_LIST.ITEM_CATALOG                                                         AS ITEM_CATALOG   
+	                 ,BOM_LIST.EA                                                                   AS EA  
+	                 ,BOM_LIST.ITEM_WEIGHT                                                          AS ITEM_WEIGHT  
+	                 ,BOM_LIST.ECO_NO                                                               AS ECO_NO  
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(BOM_LIST.JOB_CD,'@'),'@',NULL)                    AS JOB_CD  
+	                 ,BOM_LIST.KEY_NO        AS KEY_NO  
+	                 ,BOM_LIST.SSC_FLAG      AS SSC_FLAG 
+	            FROM ( 
+	                  SELECT SDUB.PROJECT_NO                                              AS PROJECT_NO            
+	                       ,NULL                                                          AS DWG_NO                
+	                       ,SDUB.BLOCK_NO                                                 AS BLOCK_NO              
+	                       ,SDUB.STR_FLAG                                                 AS STR_FLAG              
+	                       ,REPLACE(SDUB.USC_JOB_TYPE,'N/A',NULL)                         AS USC_JOB_TYPE          
+	                       ,NULL                                                          AS STAGE_NO              
+	                       ,SDUB.MOTHER_CODE                                              AS MOTHER_CODE           
+	                       ,SDUB.ITEM_CODE                                                AS ITEM_CODE              
+	                       ,NULL                                                          AS ITEM_DESC 
+	                       ,NULL                                                          AS ITEM_CATALOG 
+	                       ,NULL                                                          AS EA           
+	                       ,NULL                                                          AS ITEM_WEIGHT 
+	                       ,NULL                                                          AS ECO_NO 
+	                       ,NULL                                                          AS JOB_CD  
+	                       ,NULL                                                          AS KEY_NO 
+	                       ,'N'                                                           AS SSC_FLAG 
+	                       ,'U'                                                           AS BOM_TYPE 
+	                       ,SDUB.WORK_YN                                                  AS WORK_YN 
+	                   FROM STX_DIS_USC_BOM          SDUB    
+	                  WHERE SDUB.PROJECT_NO    = #{p_project_no} 
+	                  UNION ALL 
+	                  SELECT SDP.PROJECT_NO                                              AS PROJECT_NO            
+	                        ,SDP.DWG_NO                                                    AS DWG_NO                
+	                        ,SDP.BLOCK_NO                                                  AS BLOCK_NO              
+	                        ,SDP.STR_FLAG                                                  AS STR_FLAG              
+	                        ,SDP.USC_JOB_TYPE                                              AS USC_JOB_TYPE          
+	                        ,SDP.STAGE_NO                                                  AS STAGE_NO              
+	                        ,SDP.JOB_CD                                                    AS MOTHER_CODE           
+	                        ,SDP.MOTHER_CODE                                               AS ITEM_CODE             
+	                        ,NULL                                                          AS ITEM_DESC 
+	                        ,SDP.ITEM_CATALOG                                              AS ITEM_CATALOG 
+	                        ,NULL                                                          AS EA           
+	                        ,NULL                                                          AS ITEM_WEIGHT 
+	                        ,SDP.ECO_NO                                                    AS ECO_NO 
+	                        ,SDP.JOB_CD                                                    AS JOB_CD  
+	                        ,NULL                                                          AS KEY_NO 
+	                        ,'N'                                                           AS SSC_FLAG 
+	                        ,'P'                                                           AS BOM_TYPE 
+	                        ,'N'                                                           AS WORK_YN 
+	                    FROM STX_DIS_PENDING          SDP  
+	                   WHERE SDP.PROJECT_NO    = #{p_project_no}                
+	                 UNION ALL 
+	                 SELECT SDSH.PROJECT_NO                                               AS PROJECT_NO            
+	                       ,NULL                                                          AS DWG_NO                
+	                       ,NULL                                                          AS BLOCK_NO              
+	                       ,NULL                                                          AS STR_FLAG              
+	                       ,NULL                                                          AS USC_JOB_TYPE          
+	                       ,NULL                                                          AS STAGE_NO              
+	                       ,SDSH.MOTHER_CODE                                              AS MOTHER_CODE           
+	                       ,SDSH.ITEM_CODE                                                AS ITEM_CODE             
+	                       ,STI.ITEM_DESC                                                 AS ITEM_DESC 
+	                       ,SDSH.ITEM_CATALOG                                             AS ITEM_CATALOG 
+	                       ,TO_CHAR(SDSH.BOM_QTY)                                         AS EA           
+	                       ,TO_CHAR(STI.ITEM_WEIGHT)                                      AS ITEM_WEIGHT 
+	                       ,SDSH.ECO_NO                                                   AS ECO_NO 
+	                       ,NULL                                                          AS JOB_CD  
+	                       ,SDSH.KEY_NO                                                   AS KEY_NO 
+	                       ,'Y'                                                          AS SSC_FLAG 
+	                       ,'S'                                                          AS BOM_TYPE 
+	                       ,'N'                                                          AS WORK_YN 
+	                   FROM STX_DIS_SSC_HEAD         SDSH 
+	                       ,STX_DIS_ITEM             STI  
+	                   WHERE SDSH.PROJECT_NO    = #{p_project_no} 
+	                     AND SDSH.ITEM_CODE     = STI.ITEM_CODE 
+	                 UNION ALL 
+	                 SELECT SDR.PROJECT_NO                                                AS PROJECT_NO            
+	                       ,NULL                                                          AS DWG_NO                
+	                       ,NULL                                                          AS BLOCK_NO              
+	                       ,NULL                                                          AS STR_FLAG              
+	                       ,NULL                                                          AS USC_JOB_TYPE          
+	                       ,NULL                                                          AS STAGE_NO              
+	                       ,SDR.MOTHER_CODE                                               AS MOTHER_CODE           
+	                       ,SDR.ITEM_CODE                                                 AS ITEM_CODE             
+	                       ,STI.ITEM_DESC                                                 AS ITEM_DESC 
+	                       ,SDR.ITEM_CATALOG                                              AS ITEM_CATALOG 
+	                       ,TO_CHAR(SDR.BOM_QTY)                                          AS EA           
+	                       ,TO_CHAR(STI.ITEM_WEIGHT)                                      AS ITEM_WEIGHT 
+	                       ,SDR.ECO_NO                                                    AS ECO_NO 
+	                       ,NULL                                                          AS JOB_CD  
+	                       ,SDR.KEY_NO                                                    AS KEY_NO 
+	                       ,'N'                                                          AS SSC_FLAG 
+	                       ,'R'                                                          AS BOM_TYPE 
+	                       ,'N'                                                          AS WORK_YN 
+	                  FROM STX_DIS_RAWLEVEL         SDR 
+	                      ,STX_DIS_ITEM             STI  
+	                  WHERE SDR.PROJECT_NO = #{p_project_no} 
+	                    AND STI.ITEM_CODE   = SDR.ITEM_CODE  
+	                ) BOM_LIST 
+	              START WITH  BOM_LIST.MOTHER_CODE = #{p_project_no} 
+	            CONNECT BY PRIOR  BOM_LIST.ITEM_CODE = BOM_LIST.MOTHER_CODE 
+	         )                         BOM_ALL_LIST 
+	         ,STX_DIS_ENG_CHANGE_ORDER ECO 
+	         ,STX_DIS_USER             SDU 
+	         ,STX_DIS_DEPTCODE         SDD 
+	         ,STX_DIS_DWGDEPTCODE      SDW 
+	         ,STX_DIS_ERP_INV_PMT     SIPV
+	    WHERE BOM_ALL_LIST.ECO_NO   = ECO.ENG_CHANGE_ORDER_CODE 
+	      AND BOM_ALL_LIST.SSC_FLAG = 'Y' 
+	      AND ECO.DESIGN_ENGINEER   = SDU.EMP_NO   
+	      AND SDU.DEPT_CODE         = SDD.DEPTCODE 
+	      AND SDD.DWGDEPTCODE       = SDW.DWGDEPTCODE
+	      AND BOM_ALL_LIST.PROJECT_NO = SIPV.PROJECT_NO(+)
+          AND BOM_ALL_LIST.JOB_CD = SIPV.PRIMARY_ITEM_CODE(+)
+          AND BOM_ALL_LIST.ITEM_CODE = SIPV.ITEM_CODE(+)
+	    <if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.DWG_NO LIKE REPLACE(#{p_dwg_no} , '*', '%') || '%'
+         </if>
+         <if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.BLOCK_NO LIKE REPLACE(#{p_block_no} , '*', '%') || '%'
+         </if>
+         <if test='p_stage != null and !p_stage.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.STAGE_NO  LIKE REPLACE(#{p_stage} , '*', '%') || '%'
+         </if>
+         <if test='p_str_flag != null and !p_str_flag.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.STR_FLAG = #{p_str_flag}
+         </if>
+         <if test='p_usc_job_type != null and !p_usc_job_type.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.USC_JOB_TYPE  LIKE REPLACE(NVL(#{p_usc_job_type}, 'N/A') , '*', '%') || '%'
+         </if>
+         <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.ITEM_CODE  LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+         </if>
+         <if test='p_eco_no != null and !p_eco_no.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.ECO_NO  LIKE REPLACE(#{p_eco_no} , '*', '%') || '%'
+         </if>
+         <if test='p_user_id != null and !p_user_id.equalsIgnoreCase("ALL")'>
+          AND SDU.EMP_NO = #{p_user_id}
+         </if>         
+         <if test='p_dept_code != null and !p_dept_code.equalsIgnoreCase("ALL")'>
+          AND SDW.DWGDEPTCODE = #{p_dept_code}
+         </if>
+         <if test='p_activity_no != null and !p_activity_no.equalsIgnoreCase("")'>
+          AND SIPV.ACTIVITY_NO = #{p_activity_no}
+         </if>
+         <if test='p_job_no != null and !p_job_no.equalsIgnoreCase("")'>
+          AND SIPV.WIP_ENTITY_NAME = #{p_job_no}
+         </if>
+	   ORDER BY BOM_ALL_LIST.DWG_NO, BOM_ALL_LIST.BLOCK_NO, BOM_ALL_LIST.STR_FLAG, BOM_ALL_LIST.USC_JOB_TYPE, BOM_ALL_LIST.STAGE_NO, BOM_ALL_LIST.MOTHER_CODE
+	</select> -->
+	
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT  COUNT(*) AS CNT
+	      FROM (
+	             SELECT BOM_LIST.PROJECT_NO                                                           AS PROJECT_NO 
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(BOM_LIST.DWG_NO,'@'),'@',NULL)                    AS DWG_NO 
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(CASE WHEN BOM_LIST.WORK_YN = 'Y' THEN 
+	                                                        BOM_LIST.BLOCK_NO 
+	                                              ELSE NULL END ,'@'),'@',NULL)                     AS BLOCK_NO 
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(CASE WHEN BOM_LIST.WORK_YN = 'Y' THEN 
+	                                                        BOM_LIST.STR_FLAG 
+	                                              ELSE NULL END ,'@'),'@',NULL)                     AS STR_FLAG 
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(CASE WHEN BOM_LIST.WORK_YN = 'Y' THEN 
+	                                                        BOM_LIST.USC_JOB_TYPE 
+	                                              ELSE NULL END ,'@'),'@',NULL)                     AS USC_JOB_TYPE  
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(BOM_LIST.STAGE_NO,'@'),'@',NULL)                  AS STAGE_NO 
+	                 ,BOM_LIST.MOTHER_CODE                                                          AS MOTHER_CODE 
+	                 ,BOM_LIST.ITEM_CODE                                                            AS ITEM_CODE 
+	                 ,BOM_LIST.ITEM_DESC                                                            AS ITEM_DESC  
+	                 ,BOM_LIST.ITEM_CATALOG                                                         AS ITEM_CATALOG   
+	                 ,BOM_LIST.EA                                                                   AS EA  
+	                 ,BOM_LIST.ITEM_WEIGHT                                                          AS ITEM_WEIGHT  
+	                 ,BOM_LIST.ECO_NO                                                               AS ECO_NO  
+	                 ,REPLACE(SYS_CONNECT_BY_PATH(BOM_LIST.JOB_CD,'@'),'@',NULL)                    AS JOB_CD  
+	                 ,BOM_LIST.KEY_NO        AS KEY_NO  
+	                 ,BOM_LIST.SSC_FLAG      AS SSC_FLAG 
+	            FROM ( 
+	                  SELECT SDUB.PROJECT_NO                                              AS PROJECT_NO            
+	                       ,NULL                                                          AS DWG_NO                
+	                       ,SDUB.BLOCK_NO                                                 AS BLOCK_NO              
+	                       ,SDUB.STR_FLAG                                                 AS STR_FLAG              
+	                       ,REPLACE(SDUB.USC_JOB_TYPE,'N/A',NULL)                         AS USC_JOB_TYPE          
+	                       ,NULL                                                          AS STAGE_NO              
+	                       ,SDUB.MOTHER_CODE                                              AS MOTHER_CODE           
+	                       ,SDUB.ITEM_CODE                                                AS ITEM_CODE              
+	                       ,NULL                                                          AS ITEM_DESC 
+	                       ,NULL                                                          AS ITEM_CATALOG 
+	                       ,NULL                                                          AS EA           
+	                       ,NULL                                                          AS ITEM_WEIGHT 
+	                       ,NULL                                                          AS ECO_NO 
+	                       ,NULL                                                          AS JOB_CD  
+	                       ,NULL                                                          AS KEY_NO 
+	                       ,'N'                                                           AS SSC_FLAG 
+	                       ,'U'                                                           AS BOM_TYPE 
+	                       ,SDUB.WORK_YN                                                  AS WORK_YN 
+	                   FROM STX_DIS_USC_BOM          SDUB    
+	                  WHERE SDUB.PROJECT_NO    = #{p_project_no} 
+	                  UNION ALL 
+	                  SELECT SDP.PROJECT_NO                                              AS PROJECT_NO            
+	                        ,SDP.DWG_NO                                                    AS DWG_NO                
+	                        ,SDP.BLOCK_NO                                                  AS BLOCK_NO              
+	                        ,SDP.STR_FLAG                                                  AS STR_FLAG              
+	                        ,SDP.USC_JOB_TYPE                                              AS USC_JOB_TYPE          
+	                        ,SDP.STAGE_NO                                                  AS STAGE_NO              
+	                        ,SDP.JOB_CD                                                    AS MOTHER_CODE           
+	                        ,SDP.MOTHER_CODE                                               AS ITEM_CODE             
+	                        ,NULL                                                          AS ITEM_DESC 
+	                        ,SDP.ITEM_CATALOG                                              AS ITEM_CATALOG 
+	                        ,NULL                                                          AS EA           
+	                        ,NULL                                                          AS ITEM_WEIGHT 
+	                        ,SDP.ECO_NO                                                    AS ECO_NO 
+	                        ,SDP.JOB_CD                                                    AS JOB_CD  
+	                        ,NULL                                                          AS KEY_NO 
+	                        ,'N'                                                           AS SSC_FLAG 
+	                        ,'P'                                                           AS BOM_TYPE 
+	                        ,'N'                                                           AS WORK_YN 
+	                    FROM STX_DIS_PENDING          SDP  
+	                   WHERE SDP.PROJECT_NO    = #{p_project_no}                
+	                 UNION ALL 
+	                 SELECT SDSH.PROJECT_NO                                               AS PROJECT_NO            
+	                       ,NULL                                                          AS DWG_NO                
+	                       ,NULL                                                          AS BLOCK_NO              
+	                       ,NULL                                                          AS STR_FLAG              
+	                       ,NULL                                                          AS USC_JOB_TYPE          
+	                       ,NULL                                                          AS STAGE_NO              
+	                       ,SDSH.MOTHER_CODE                                              AS MOTHER_CODE           
+	                       ,SDSH.ITEM_CODE                                                AS ITEM_CODE             
+	                       ,STI.ITEM_DESC                                                 AS ITEM_DESC 
+	                       ,SDSH.ITEM_CATALOG                                             AS ITEM_CATALOG 
+	                       ,TO_CHAR(SDSH.BOM_QTY)                                         AS EA           
+	                       ,TO_CHAR(STI.ITEM_WEIGHT)                                      AS ITEM_WEIGHT 
+	                       ,SDSH.ECO_NO                                                   AS ECO_NO 
+	                       ,NULL                                                          AS JOB_CD  
+	                       ,SDSH.KEY_NO                                                   AS KEY_NO 
+	                       ,'Y'                                                          AS SSC_FLAG 
+	                       ,'S'                                                          AS BOM_TYPE 
+	                       ,'N'                                                          AS WORK_YN 
+	                   FROM STX_DIS_SSC_HEAD         SDSH 
+	                       ,STX_DIS_ITEM             STI  
+	                   WHERE SDSH.PROJECT_NO    = #{p_project_no} 
+	                     AND SDSH.ITEM_CODE     = STI.ITEM_CODE 
+	                 UNION ALL 
+	                 SELECT SDR.PROJECT_NO                                                AS PROJECT_NO            
+	                       ,NULL                                                          AS DWG_NO                
+	                       ,NULL                                                          AS BLOCK_NO              
+	                       ,NULL                                                          AS STR_FLAG              
+	                       ,NULL                                                          AS USC_JOB_TYPE          
+	                       ,NULL                                                          AS STAGE_NO              
+	                       ,SDR.MOTHER_CODE                                               AS MOTHER_CODE           
+	                       ,SDR.ITEM_CODE                                                 AS ITEM_CODE             
+	                       ,STI.ITEM_DESC                                                 AS ITEM_DESC 
+	                       ,SDR.ITEM_CATALOG                                              AS ITEM_CATALOG 
+	                       ,TO_CHAR(SDR.BOM_QTY)                                          AS EA           
+	                       ,TO_CHAR(STI.ITEM_WEIGHT)                                      AS ITEM_WEIGHT 
+	                       ,SDR.ECO_NO                                                    AS ECO_NO 
+	                       ,NULL                                                          AS JOB_CD  
+	                       ,SDR.KEY_NO                                                    AS KEY_NO 
+	                       ,'N'                                                          AS SSC_FLAG 
+	                       ,'R'                                                          AS BOM_TYPE 
+	                       ,'N'                                                          AS WORK_YN 
+	                  FROM STX_DIS_RAWLEVEL         SDR 
+	                      ,STX_DIS_ITEM             STI  
+	                  WHERE SDR.PROJECT_NO = #{p_project_no} 
+	                    AND STI.ITEM_CODE   = SDR.ITEM_CODE  
+	                ) BOM_LIST 
+	              START WITH  BOM_LIST.MOTHER_CODE = #{p_project_no} 
+	            CONNECT BY PRIOR  BOM_LIST.ITEM_CODE = BOM_LIST.MOTHER_CODE 
+	         )                         BOM_ALL_LIST 
+	         ,STX_DIS_ENG_CHANGE_ORDER ECO 
+	         ,STX_DIS_USER             SDU 
+	         ,STX_DIS_DEPTCODE         SDD 
+	         ,STX_DIS_DWGDEPTCODE      SDW 
+	         ,STX_DIS_ERP_INV_PMT     SIPV
+	    WHERE BOM_ALL_LIST.ECO_NO   = ECO.ENG_CHANGE_ORDER_CODE 
+	      AND BOM_ALL_LIST.SSC_FLAG = 'Y' 
+	      AND ECO.DESIGN_ENGINEER   = SDU.EMP_NO   
+	      AND SDU.DEPT_CODE         = SDD.DEPTCODE 
+	      AND SDD.DWGDEPTCODE       = SDW.DWGDEPTCODE
+	      AND BOM_ALL_LIST.PROJECT_NO = SIPV.PROJECT_NO(+)
+          AND BOM_ALL_LIST.JOB_CD = SIPV.PRIMARY_ITEM_CODE(+)
+          AND BOM_ALL_LIST.ITEM_CODE = SIPV.ITEM_CODE(+)
+	    <if test='p_dwg_no != null and !p_dwg_no.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.DWG_NO LIKE REPLACE(#{p_dwg_no} , '*', '%') || '%'
+         </if>
+         <if test='p_block_no != null and !p_block_no.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.BLOCK_NO LIKE REPLACE(#{p_block_no} , '*', '%') || '%'
+         </if>
+         <if test='p_stage != null and !p_stage.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.STAGE_NO  LIKE REPLACE(#{p_stage} , '*', '%') || '%'
+         </if>
+         <if test='p_str_flag != null and !p_str_flag.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.STR_FLAG = #{p_str_flag}
+         </if>
+         <if test='p_usc_job_type != null and !p_usc_job_type.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.USC_JOB_TYPE  LIKE REPLACE(NVL(#{p_usc_job_type}, 'N/A') , '*', '%') || '%'
+         </if>
+         <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.ITEM_CODE  LIKE REPLACE(#{p_item_code} , '*', '%') || '%'
+         </if>
+         <if test='p_eco_no != null and !p_eco_no.equalsIgnoreCase("")'>
+          AND BOM_ALL_LIST.ECO_NO  LIKE REPLACE(#{p_eco_no} , '*', '%') || '%'
+         </if>
+         <if test='p_user_id != null and !p_user_id.equalsIgnoreCase("ALL")'>
+          AND SDU.EMP_NO = #{p_user_id}
+         </if>         
+         <if test='p_dept_code != null and !p_dept_code.equalsIgnoreCase("ALL")'>
+          AND SDW.DWGDEPTCODE = #{p_dept_code}
+         </if>
+         <if test='p_activity_no != null and !p_activity_no.equalsIgnoreCase("")'>
+          AND SIPV.ACTIVITY_NO = #{p_activity_no}
+         </if>
+         <if test='p_job_no != null and !p_job_no.equalsIgnoreCase("")'>
+          AND SIPV.WIP_ENTITY_NAME = #{p_job_no}
+         </if>
+	</select>
+
+</mapper>

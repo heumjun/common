@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="allQuantityExcelExport">
+  	<select id="selectAllQuantityListExport" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+                             select project_no
+                                   ,revision
+                                   ,area_code
+                                   ,min(area_desc)
+                                    as area_desc  
+                               from stx_dis_pis_block
+                              where project_no = #{project_no}
+                                and revision   = #{revision}
+                              group by project_no, revision, area_code
+                             )
+	
+	select t10.*
+	      ,t11.item_desc
+	  from (
+	        select t1.project_no
+	              ,t1.revision
+	              ,t1.pattern_code
+	              ,t1.block_code
+	              ,tz.zone_code
+	              ,tz.quay
+	              ,t5.pe_code
+	              ,t5.pre_pe_code
+	              ,t1.area_code
+	              ,nvl(t3.area_desc, sdpa.area_desc ) as area_desc
+	              ,t1.season_code
+	              ,t1.paint_count
+	              ,(case when t4.item_gbn = 1 then t1.paint_item
+	                                          else (select thinner_code
+	                                                  from stx_dis_item
+	                                                 where item_code = t1.paint_item 
+	                                                   and rownum = 1)
+	               end) as paint_item         
+	              ,(case when t4.item_gbn = 1 then t1.paint_dft 
+	                                          else null
+	               end) as paint_dft                         
+	              ,(case when t4.item_gbn = 1 then t1.paint_stage
+	                                          else null
+	               end) as paint_stage                           
+	              ,(case when t4.item_gbn = 1 then round(t1.paint_svr * 10 / t1.paint_dft,3) 
+	                                          else null
+	               end) as tsr 
+	              ,t1.paint_svr
+	              ,(case when t4.item_gbn = 1 then t1.pre_loss
+	                                          else null
+	               end) as pre_loss                           
+	              ,(case when t4.item_gbn = 1 then t1.post_loss
+	                                          else null
+	               end) as post_loss                          
+	              ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.pre_loss)) 
+	                                          else null 
+	               end) as pre_loss_rate
+	              ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.post_loss)) 
+	                                          else null
+	               end) as post_loss_rate
+	              ,(case when t4.item_gbn = 1 then t1.block_area
+	                                          else null
+	               end) as block_area
+	              ,(case when t4.item_gbn = 1 then t1.pe_area
+	                                          else null 
+	               end) as pe_area
+	              ,(case when t4.item_gbn = 1 then t1.hull_area
+	                                          else null 
+	               end) as hull_area
+	              ,(case when t4.item_gbn = 1 then t1.quay_area
+	                                          else null 
+	               end) as quay_area
+	              ,(case when t4.item_gbn = 1 then t1.pre_pe_area 
+					                                          else null 
+				   end) as pre_pe_area
+	              ,(case when t4.item_gbn = 1 then t1.block_quantity
+	              							  else round(t1.block_quantity * 0.15, 3)
+	               end) as block_quantity 						  
+	              ,(case when t4.item_gbn = 1 then t1.pe_quantity
+	              							  else round(t1.pe_quantity * 0.15, 3)
+	               end) as pe_quantity 							  
+	              ,(case when t4.item_gbn = 1 then t1.hull_quantity
+	              							  else round(t1.hull_quantity * 0.15, 3)
+	               end) as hull_quantity 						  
+	              ,(case when t4.item_gbn = 1 then t1.quay_quantity
+	              							  else round(t1.quay_quantity * 0.15, 3)
+	               end) as quay_quantity							  
+	              ,(case when t4.item_gbn = 1 then t1.pre_pe_quantity
+										  	  else round(t1.pre_pe_quantity * 0.15, 3)
+				   end) as pre_pe_quantity
+				  ,(case when t4.item_gbn = 1 then t1.block_theory_quantity
+	              							  else round(t1.block_theory_quantity * 0.15, 3)
+	               end) as block_theory_quantity 						  
+	              ,(case when t4.item_gbn = 1 then t1.pe_theory_quantity
+	              							  else round(t1.pe_theory_quantity * 0.15, 3)
+	               end) as pe_theory_quantity 							  
+	              ,(case when t4.item_gbn = 1 then t1.hull_theory_quantity
+	              							  else round(t1.hull_theory_quantity * 0.15, 3)
+	               end) as hull_theory_quantity 						  
+	              ,(case when t4.item_gbn = 1 then t1.quay_theory_quantity
+	              							  else round(t1.quay_theory_quantity * 0.15, 3)
+	               end) as quay_theory_quantity							  
+	              ,(case when t4.item_gbn = 1 then t1.pre_pe_theory_quantity
+										  	  else round(t1.pre_pe_theory_quantity * 0.15, 3)
+				   end) as pre_pe_theory_quantity	 		
+	              ,t4.item_gbn
+                  ,tz.master_area_code
+                  ,tz.master_area_code_desc              
+	          from stx_dis_pis_pattern_scheme  		t1
+	              ,temp_paint_block            		t3
+	              ,stx_dis_pis_pe              		t5
+	              , stx_dis_pis_area  				sdpa
+                  ,(      select a.*,
+                                  nvl(( select area_code 
+                                            from stx_dis_pis_zone b
+                                            where b.project_no = a.project_no
+                                              and b.revision   = a.revision
+                                              and b.zone_code  = a.zone_code
+                                              and b.area_group is not null
+                                              and b.area_master = 'Y'
+                                              and b.area_group = a.area_group
+                                   ),a.area_code) as master_area_code,
+                                   NVL (( SELECT MASTER_AREA_DESC 
+							                FROM STX_DIS_PIS_ZONE B 
+							                WHERE B.PROJECT_NO = A.PROJECT_NO 
+							                  AND B.REVISION   = A.REVISION 
+							                  AND B.ZONE_CODE  = A.ZONE_CODE 
+							                  AND B.QUAY       = A.QUAY 
+							                  AND B.AREA_GROUP IS NOT NULL 
+							                  AND B.AREA_MASTER = 'Y' 
+							                  AND B.AREA_GROUP = A.AREA_GROUP 
+			                         ), (SELECT SDPA.AREA_DESC     
+			                                   FROM STX_DIS_PIS_AREA SDPA     
+			                                  WHERE SDPA.AREA_CODE =  A.AREA_CODE      
+			                                 ))  as master_area_code_desc
+                                   
+                            from stx_dis_pis_zone a
+                   )tz	            
+	              ,(select 1 as item_gbn from dual
+	                union all
+	                select 2 as item_gbn from dual) t4       
+	         where t1.project_no  = #{project_no}
+	           and t1.revision    = #{revision}
+	           and t1.season_code = #{season_code}
+	           and t1.project_no  = t3.project_no
+	           and t1.revision    = t3.revision
+	           and t1.area_code   = t3.area_code
+	           and t1.project_no  = t5.project_no(+)
+	           and t1.revision    = t5.revision(+)
+	           and t1.block_code  = t5.block_code(+)
+	           and t1.project_no  = tz.project_no(+)
+	           and t1.revision    = tz.revision(+)
+	           and t1.area_code   = tz.area_code(+)
+	           and t1.area_code   = sdpa.area_code(+)
+	           <if test="block_code != null and block_code !='' ">
+			   and t1.block_code in ( ${block_code} )
+			   </if>
+			   
+			   <if test="area_code != null and area_code !='' ">
+			   and t1.area_code in ( ${area_code} )
+			   </if>	 
+	      )                            t10 
+	      ,stx_dis_item                t11
+	 where t10.paint_item = t11.item_code   
+	 order by t10.project_no, t10.revision, t10.block_code, t10.pe_code, t10.area_code, t10.paint_count, t10.paint_item, t10.item_gbn
+  	</select> 
+  	
+  	<select id="selectAllQuantityListExport2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+                             select project_no
+                                   ,revision
+                                   ,area_code
+                                   ,min(area_desc)
+                                    as area_desc  
+                               from stx_dis_pis_block
+                              where project_no = #{project_no}
+                                and revision   = #{revision}
+                              group by project_no, revision, area_code
+                             )
+	select t12.*
+	  from ( 
+	        select t10.project_no
+	              ,t10.revision
+	              ,t10.block_code
+	              ,t10.item_gbn   
+	                      
+	              ,sum(t10.block_area) 	   as block_area     
+	              ,sum(t10.pe_area)    	   as pe_area 
+	              ,sum(t10.hull_area)  	   as hull_area
+	              ,sum(t10.quay_area)  	   as quay_area
+	                      
+	              ,sum(t10.block_quantity) as block_quantity
+	              ,sum(t10.pe_quantity)    as pe_quantity
+	              ,sum(t10.hull_quantity)  as hull_quantity
+	              ,sum(t10.quay_quantity)  as quay_quantity   
+	              
+	              ,sum(t10.block_theory_quantity) as block_theory_quantity
+	              ,sum(t10.pe_theory_quantity)    as pe_theory_quantity
+	              ,sum(t10.hull_theory_quantity)  as hull_theory_quantity
+	              ,sum(t10.quay_theory_quantity)  as quay_theory_quantity       
+	        from (
+	              select t1.project_no
+	                    ,t1.revision
+	                    ,t1.pattern_code
+	                    ,t1.block_code
+	                    ,t5.pe_code
+	                    ,t5.pre_pe_code
+	                    ,t1.area_code
+	                    ,t3.area_desc
+	                    ,t1.season_code
+	                    ,t1.paint_count
+	                    ,(case when t4.item_gbn = 1 then t1.paint_item
+	                                                else (select thinner_code
+	                                                        from stx_dis_item
+	                                                       where item_code = t1.paint_item 
+	                                                         and rownum = 1)
+	                     end) as paint_item         
+	                    ,(case when t4.item_gbn = 1 then t1.paint_dft 
+	                                                else null
+	                     end) as paint_dft                         
+	                    ,(case when t4.item_gbn = 1 then t1.paint_stage
+	                                                else null
+	                     end) as paint_stage                           
+	                    ,(case when t4.item_gbn = 1 then round(t1.paint_svr * 10 / t1.paint_dft,3) 
+	                                                else null
+	                     end) as tsr 
+	                    ,t1.paint_svr
+	                    ,(case when t4.item_gbn = 1 then t1.pre_loss
+	                                                else null
+	                     end) as pre_loss                           
+	                    ,(case when t4.item_gbn = 1 then t1.post_loss
+	                                                else null
+	                     end) as post_loss                          
+	                    ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.pre_loss)) 
+	                                                else null 
+	                     end) as pre_loss_rate
+	                    ,(case when t4.item_gbn = 1 then round(10000 / (100 - t1.post_loss)) 
+	                                                else null
+	                     end) as post_loss_rate
+	                    ,(case when t4.item_gbn = 1 then t1.block_area
+	                                                else null
+	                     end) as block_area
+	                    ,(case when t4.item_gbn = 1 then t1.pe_area
+	                                                else null 
+	                     end) as pe_area
+	                    ,(case when t4.item_gbn = 1 then t1.hull_area
+	                                                else null 
+	                     end) as hull_area
+	                    ,(case when t4.item_gbn = 1 then t1.quay_area
+	                                                else null 
+	                     end) as quay_area
+	                    ,(case when t4.item_gbn = 1 then 0 
+	                                                else null 
+	                     end) as pre_pe_area
+	                    ,(case when t4.item_gbn = 1 then t1.block_quantity
+			            						    else round(t1.block_quantity * 0.15, 3)
+			             end) as block_quantity 						  
+			            ,(case when t4.item_gbn = 1 then t1.pe_quantity
+			            						    else round(t1.pe_quantity * 0.15, 3)
+			             end) as pe_quantity 							  
+			            ,(case when t4.item_gbn = 1 then t1.hull_quantity
+			             							else round(t1.hull_quantity * 0.15, 3)
+			             end) as hull_quantity 						  
+			            ,(case when t4.item_gbn = 1 then t1.quay_quantity
+			            							else round(t1.quay_quantity * 0.15, 3)
+			             end) as quay_quantity							  
+	                    ,0 as pre_pe_quantity
+	                    
+	                    ,(case when t4.item_gbn = 1 then t1.block_theory_quantity
+			            						    else round(t1.block_theory_quantity * 0.15, 3)
+			             end) as block_theory_quantity 						  
+			            ,(case when t4.item_gbn = 1 then t1.pe_theory_quantity
+			            						    else round(t1.pe_theory_quantity * 0.15, 3)
+			             end) as pe_theory_quantity 							  
+			            ,(case when t4.item_gbn = 1 then t1.hull_theory_quantity
+			             							else round(t1.hull_theory_quantity * 0.15, 3)
+			             end) as hull_theory_quantity 						  
+			            ,(case when t4.item_gbn = 1 then t1.quay_theory_quantity
+			            							else round(t1.quay_theory_quantity * 0.15, 3)
+			             end) as quay_theory_quantity							  
+	                    ,0 as pre_pe_theory_quantity
+	                    ,t4.item_gbn
+	                from stx_dis_pis_pattern_scheme          t1
+	                    ,temp_paint_block                    t3
+	                    ,stx_dis_pis_pe                      t5
+	                    ,(select 1 as item_gbn from dual
+	                      union all
+	                      select 2 as item_gbn from dual) t4       
+	                where t1.project_no  = #{project_no}
+			          and t1.revision    = #{revision}
+			          and t1.season_code = #{season_code}
+			          and t1.project_no  = t3.project_no
+			          and t1.revision    = t3.revision
+			          and t1.area_code   = t3.area_code
+			          and t1.project_no  = t5.project_no(+)
+			          and t1.revision    = t5.revision(+)
+			          and t1.block_code  = t5.block_code(+)
+			          
+			          <if test="block_code != null and block_code !='' ">
+					  and t1.block_code in ( ${block_code} )
+					  </if>
+					   
+					  <if test="area_code != null and area_code !='' ">
+					  and t1.area_code in ( ${area_code} )
+					  </if>	 
+	                     
+	            )                            t10 
+	            ,stx_dis_item                t11
+	        where t10.paint_item = t11.item_code 
+	        group by t10.project_no, t10.revision, t10.block_code, t10.item_gbn ) t12
+	  order by t12.block_code, t12.item_gbn      
+  	</select>  	
+  	
+</mapper>

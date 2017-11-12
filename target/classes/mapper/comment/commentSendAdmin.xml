@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="commentSendAdmin">
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+
+	<select id="list" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_DIS_COMMENT_PKG.SEND_APPLY_SELECT_PROC(
+			  P_PROJECT			    => #{p_project_no}
+			, P_REF_NO				=> #{p_ref_no}
+			, P_DWG_NO				=> #{p_dwg_no}
+			, P_SEND_TYPE			=> #{p_send_type}
+			, P_SUBJECT 		    => #{p_subject}
+			, P_REQUEST_TEAM_CODE   => #{p_request_team_code}
+			, P_REQUEST_DEPT_CODE   => #{p_request_dept_code}
+			, P_CURPAGENO			=> #{curPageNo}
+			, P_PAGESIZE 		    => #{pageSize}
+			, p_error_code 			=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, p_error_msg 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, p_refer 				=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=commentReceipt.procResultMap, mode=OUT}
+		)}
+	</select>
+	
+	<select id="headInsert"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+			{CALL STX_DIS_COMMENT_PKG.SEND_APPLY_HEAD_INSERT_PROC(
+				  P_USER_ID				=> #{p_user_id}
+				, P_MAIL_TYPE			=> #{p_mail_type}
+				, P_MAIL_COMMENT		=> #{p_mail_comment}
+				, P_MAIL_ID 			=> #{p_mail_id,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_CODE 			=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</select>
+	
+	<select id="listInsert"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+			{CALL STX_DIS_COMMENT_PKG.SEND_APPLY_LIST_INSERT_PROC(
+				  P_MAIL_ID	            => #{p_mail_id}
+				, P_MAIL_TYPE           => #{p_mail_type}
+				, P_LIST_ID             => #{p_send_id}
+				, P_USER_ID				=> #{p_user_id}
+				, P_ERROR_CODE 			=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</select>
+	
+	<select id="applyMail"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+			{CALL STX_DIS_COMMENT_PKG.SEND_APPLY_CONFIRM_PROC(
+				  P_MAIL_ID	            => #{p_mail_id}
+				, P_USER_ID				=> #{p_user_id}
+				, P_ERROR_CODE 			=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+				, P_ERROR_MSG 			=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</select>
+	
+	<select id="commentRequestDeptSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DD.DWGDEPTCODE AS VALUE  
+		      ,DD.DWGDEPTNM   AS TEXT
+		      ,CASE WHEN DD.DWGDEPTCODE = #{p_dept_code} THEN 'selected=\"selected\"' 
+		       ELSE '' 
+		       END AS SELECTED
+		  FROM DCC_DWGDEPTCODE@STXDP DD
+		 WHERE DD.UPPERDWGDEPTCODE = #{p_upper_dept_code}
+		   AND DD.UPPERDWGDEPTCODE != DD.DWGDEPTCODE 
+		   AND DD.USERYN = 'Y'
+		 GROUP BY DD.DWGDEPTCODE, DD.DWGDEPTNM
+		 ORDER BY DD.DWGDEPTNM
+  	</select>
+	
+</mapper>

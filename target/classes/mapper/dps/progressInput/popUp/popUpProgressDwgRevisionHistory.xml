@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpProgressDwgRevisionHistory">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DEPLOY_REV,                                                                    
+               TO_CHAR(A.REQUEST_DATE, 'YYYY-MM-DD') AS DEPLOY_DATE,                            
+               A.EMPLOYEE_NO,                                                                   
+               C.NAME AS USER_NAME,                                                             
+               A.REASON_CODE,                                                                   
+               B.DEPT_NAME,                                                                     
+               A.DEPLOY_DESC,                                                                   
+               A.ECO_NO,                                                                        
+               A.REV_TIMING                                                                     
+          FROM PLM_HARDCOPY_DWG A,                                                              
+               STX_COM_INSA_DEPT@STXERP B,                                                      
+               CCC_SAWON C                                                                      
+         WHERE 1 = 1                                                                            
+           AND A.PROJECT_NO = #{projectNo}                                          
+           AND A.DWG_CODE = #{dwgNo}
+           AND A.DEPT_CODE = B.DEPT_CODE                                                        
+           AND A.EMPLOYEE_NO = C.EMPLOYEE_NUM                                                   
+        UNION ALL                                                                               
+        SELECT CASE WHEN SUBSTR(SDDALV.DWG_REV, 1, 1) = '0' THEN SUBSTR(SDDALV.DWG_REV, 2, 1)   
+               ELSE SDDALV.DWG_REV                                                              
+               END AS DEPLOY_REV                                                                
+              ,SDDALV.DWG_INP_DATE AS DEPLOY_DATE                                               
+              ,SDDALV.EMP_NO AS EMPLOYEE_NO                                                     
+              ,SDDALV.USER_NAME                                                                 
+              ,SDDALV.ECO_REASON_CODE AS REASON_CODE                                            
+              ,NULL AS CAUSE_DEPART                                                             
+              ,SDDALV.ECO_REASON_DESC AS DEPLOY_DESC                                            
+              ,SDDALV.ECO_NO AS ECO_NO                                                          
+              ,F_GET_PLM_ACTIVITY(#{projectNo}, #{dwgNo}, SDDALV.DWG_INP_DATE)    
+               AS REV_TIMING                                                                   
+          FROM STX_DWG_DPS_ALL_LIST_V@STXERP SDDALV                                             
+         WHERE SDDALV.MASTER_PROJECT_NO = #{projectNo}
+           AND SDDALV.DWG_NO_CONCAT = #{dwgNoSubStr}
+           AND SDDALV.DWG_BLOCK = #{dwgNoSubStr1}
+         ORDER BY DEPLOY_DATE DESC
+	</select>
+</mapper>

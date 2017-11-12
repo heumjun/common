@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgRegisterMainGridSave">
+	<update id="update" parameterType="java.util.Map">
+		UPDATE PLM_HARDCOPY_DWG
+		SET    GUBUN = #{gubun},
+		       DEPLOY_REV = #{deploy_rev},
+		       DEPLOY_DATE = TO_DATE(#{deploy_date}, 'YYYY-MM-DD'),
+		       REASON_CODE = #{reason_code},
+		       CAUSE_DEPART = #{cause_depart_code},
+		       REV_TIMING = #{rev_timing},
+		       DEPLOY_DESC = #{deploy_desc},
+		       UPDATE_DATE = SYSDATE,
+		       UPDATE_BY = #{loginId},
+		       ECO_NO = #{eco_no}
+		WHERE  DEPLOY_NO = #{deploy_no}
+		AND    DWG_CODE = #{dwg_code}
+	</update>
+	<delete id="delete" parameterType="java.util.Map">
+		DELETE PLM_HARDCOPY_DWG
+		WHERE  DEPLOY_NO = #{deploy_no}
+		AND    DWG_CODE = #{dwg_code}
+	</delete>
+</mapper>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectZoneAreaCodeList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+		                         select project_no
+		                               ,revision
+		                               ,area_code
+		                               ,min(area_desc)
+		                                as area_desc  
+		                           from stx_dis_pis_block
+		                          where project_no = #{project_no} 
+		                            and revision   = #{revision}
+		                          group by project_no, revision, area_code
+		                       )
+	
+	select sdpb.area_code					  as area_code
+		  ,nvl(sdpb.area_desc,sdpa.area_desc) as area_desc
+		  ,sdpa.loss_code 					  as loss_code 
+     from temp_paint_block  sdpb
+         ,stx_dis_pis_area  sdpa
+    where 1=1
+      and sdpb.area_code  = sdpa.area_code(+)
+      and sdpb.project_no = #{project_no}
+      and sdpb.revision	  = #{revision}
+      and not exists (select '0'
+                        from stx_dis_pis_zone
+                       where project_no = sdpb.project_no
+                         and revision   = sdpb.revision
+                         and area_code  = sdpb.area_code
+                      )
+	  and sdpb.area_code like #{area_code} || '%'
+	 order by area_code  
+  	</select>
+
+</mapper>

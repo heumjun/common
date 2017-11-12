@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpProjectDataERPIFFSMainGridSave">
+	<select id="selectTargetData" parameterType="java.util.Map" resultType="int">
+		SELECT count(*)
+		FROM   STX_PA_CST_MASTER_INFO@STXERP
+		WHERE  1 = 1
+		AND    COLLECTION_CODE = 'PLM_J_01'
+		AND    UNIT_SEGMENT = #{targetSelect}
+		AND    PROJECT_NAME_S = #{project_no}
+		AND    CURRENT_MONTH = substr(#{dateFrom},0,6)
+	</select>
+	
+	<select id="selectTargetData2" parameterType="java.util.Map" resultType="int">
+		SELECT count(*)
+		FROM   STX_IFRS_PA_CST_MASTER_INFO@STXERP
+		WHERE  1 = 1
+		AND    COLLECTION_CODE = 'PLM_J_01'
+		AND    UNIT_SEGMENT = #{targetSelect}
+		AND    PROJECT_NAME_S = #{project_no}
+		AND    CURRENT_MONTH = substr(#{dateFrom},0,6)
+	</select>
+	
+	<insert id="insert" parameterType="java.util.Map">
+		<choose>
+			<when test="type == 1">
+				INSERT
+				INTO   STX_PA_CST_MASTER_INFO@STXERP A (COLLECTION_CODE, UNIT_SEGMENT, CURRENT_MONTH, QTY2, PROJECT_ID, PROJECT_NAME_S, PROJECT_ID_T, CREATION_DATE)
+				VALUES ('PLM_J_01',
+				               #{targetSelect},
+				               substr(#{dateFrom}, 0, 6),
+				               #{mh_value},
+				               -1,
+				               #{project_no},
+				               -1,
+				               SYSDATE)
+			</when>
+			<when test="type == 2">
+				INSERT
+				INTO   STX_IFRS_PA_CST_MASTER_INFO@STXERP A (COLLECTION_CODE, UNIT_SEGMENT, CURRENT_MONTH, QTY2, PROJECT_ID, PROJECT_NAME_S, PROJECT_ID_T, CREATION_DATE, SET_OF_BOOKS_ID)
+				VALUES ('PLM_J_01',
+				               #{targetSelect},
+				               substr(#{dateFrom}, 0, 6),
+				               #{mh_value},
+				               -1,
+				               #{project_no},
+				               -1,
+				               SYSDATE,
+				               2) 
+			</when>
+		</choose>
+		 
+	</insert>
+	
+	
+</mapper>

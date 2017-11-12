@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectDWGPringSummaryList">
+  	<select id = "list" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+  	WITH DWG_TMP AS (SELECT SDPSL.PROJECT_NO
+                        ,SDPSL.DWG_PROJECT_NO
+                        ,SDPSL.PRINT_USER_ID
+                        ,SDPSL.PRINT_USER_NAME
+                        ,SDPSL.PRINT_DEPT_NAME
+                        ,SDPSL.PRINT_DEPT_ID
+                        ,MAX(SDPSL.PRINT_DATE) AS PRINT_DATE
+                        ,SDPSL.DWG_NO
+                        ,SDD.DWG_REV
+                    FROM STX_DWG_PRINT_SUMMARY_LIST@stxerp SDPSL
+                        ,STX_DWG_DW302TBL@stxerp           SDD
+                   WHERE SDPSL.DWG_PROJECT_NO = #{DWG_PROJECT_NO}
+                     AND SDPSL.DWG_NO = #{DWG_NO}
+                     AND SDPSL.DWG_PROJECT_NO = SDD.SHP_NO
+                     AND SDPSL.FILE_NAME      = SDD.FILE_NAME
+                     AND SDPSL.PRINT_DEPT_ID > 0
+                   GROUP BY SDPSL.PROJECT_NO
+                           ,SDPSL.DWG_PROJECT_NO
+                           ,SDPSL.PRINT_USER_ID
+                           ,SDPSL.PRINT_USER_NAME
+                           ,SDPSL.PRINT_DEPT_NAME
+                           ,SDPSL.PRINT_DEPT_ID
+                           ,SDPSL.DWG_NO
+                           ,SDD.DWG_REV
+              ) 
+  SELECT SDPSL.PROJECT_NO
+      ,SDPSL.DWG_PROJECT_NO
+      ,SDPSL.PRINT_USER_ID
+      ,SDPSL.PRINT_USER_NAME
+      ,SDPSL.PRINT_DEPT_NAME
+      ,SDPSL.PRINT_DEPT_ID
+      ,to_char(SDPSL.PRINT_DATE,'yyyy-mm-dd hh24:mi') as PRINT_DATE
+      ,SDPSL.DWG_REV
+      ,EMPINFO.EMAIL
+      ,EMPINFO.USER_TYPE
+      ,'RE' as DRAWING_STATUS
+  FROM DWG_TMP SDPSL
+   ,(SELECT SCIU.EMP_NO AS EMP_NO
+                      ,SCIU.USER_NAME AS USER_NAME
+                      ,SCIU.EP_MAIL || '@onestx.com' AS EMAIL
+                      ,SDD.DEPT_NAME AS DEPT_NAME
+                      ,SDD.DEPT_ID AS DEPT_ID
+                      ,'사내' AS USER_TYPE
+                  FROM STX_COM_INSA_USER@stxerp    SCIU
+                      ,STX_DWG_DEPT_MAPPING@stxerp SDDM
+                      ,STX_DWG_DEPT_MANAGER@stxerp SDD
+                 WHERE SCIU.DEPT_CODE = SDDM.DEPT_CODE
+                   AND SDDM.DEPT_ID = SDD.DEPT_ID
+                UNION ALL
+       SELECT SDUM.EMP_NO AS EMP_NO
+                      ,SDUM.USER_NAME AS USER_NAME
+                      ,SDUM.EP_MAIL AS EP_MAIL
+                      ,SDDM.DEPT_NAME AS DEPT_NAME
+                      ,SDDM.DEPT_ID AS DEPT_ID
+                      ,'사외' AS USER_TYPE
+                  FROM STX_DWG_USER_MASTER@stxerp  SDUM
+                      ,STX_DWG_DEPT_MANAGER@stxerp SDDM
+                 WHERE SDUM.USER_TYPE = 'O'
+                   AND SDUM.DEPT_CODE = SDDM.DEPT_ID) EMPINFO
+     WHERE SDPSL.PRINT_USER_ID = EMPINFO.EMP_NO(+)
+     AND NOT EXISTS (SELECT '0'
+                       FROM DWG_TMP
+                      WHERE PRINT_USER_ID   =  SDPSL.PRINT_USER_ID
+                        AND DWG_REV         >  SDPSL.DWG_REV)
+     ORDER BY SDPSL.PRINT_DATE
+    
+  	</select>
+</mapper>

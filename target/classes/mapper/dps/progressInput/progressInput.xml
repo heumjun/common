@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="progressInput">
+	
+	<select id="selectPLM_DATE_CHANGE_ABLE_DWG_TYPE" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT T.DWG_KIND ,
+		       T.DWG_TYPE
+		FROM   PLM_DATE_CHANGE_ABLE_DWG_TYPE T
+		ORDER BY T.DWG_KIND 
+	</select>
+	
+	<insert id="insertPLM_DATE_CHANGE_ABLE_DWG_TYPE" parameterType="java.util.Map">
+		INSERT INTO   PLM_DATE_CHANGE_ABLE_DWG_TYPE (DWG_KIND , DWG_TYPE)
+		VALUES (#{dwg_kind} ,#{dwg_type}) 
+	</insert>
+	
+	<delete id="deletePLM_DATE_CHANGE_ABLE_DWG_TYPE" parameterType="java.util.Map">
+		DELETE PLM_DATE_CHANGE_ABLE_DWG_TYPE T
+		WHERE  T.DWG_KIND = #{dwg_kind}
+		AND    T.DWG_TYPE = #{dwg_type}
+	</delete>
+	
+	<select id="selectChangableDateDPList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DWG.*
+		      ,NVL((SELECT 'Y' 
+		              FROM PLM_ACTIVITY_NO_DTS_DWG_LIST A
+		             WHERE DWG.DWGNO LIKE A.DWG_NO 
+		               AND DWG.DWG_KIND = '생설도'), 'N') AS CHECKFLAG 
+		FROM   PLM_DATE_CHANGE_ABLE_PROJECT PDCAP ,
+		       PLM_DATE_CHANGE_ABLE_DWG_TYPE PDCADT ,
+		       (SELECT PA.PROJECTNO ,
+		               PA.DWGDEPTCODE ,
+		                       case pa.dwgcategory
+		                         WHEN 'P' THEN '생설도'
+		                         ELSE
+		                         CASE SUBSTR(PA.ACTIVITYCODE , 0 , 1)
+		                           WHEN 'V' then 'MAKER'
+		                           ELSE '기본도'
+		                         END
+		                       END DWG_KIND ,
+		               SUBSTR(PA.ACTIVITYCODE, 0, 8) DWGNO ,
+		               SUBSTR(PA.ACTIVITYCODE, 9, 2) DWG_TYPE
+		        FROM   PLM_ACTIVITY PA
+		        WHERE  PA.PROJECTNO = #{project_no}
+		        AND    PA.ACTIVITYCODE = #{activity_code}) DWG
+		WHERE  PDCAP.PROJECTNO = DWG.PROJECTNO
+		AND    DWG.DWG_KIND = PDCAP.DWG_KIND
+		AND    DWG.DWG_KIND = PDCADT.DWG_KIND
+		AND    DWG.DWGDEPTCODE IN('000017',
+		               '000014',
+		               '000024',
+		               '000016',
+		               '000023',
+		               '000027',
+		               '000029',
+		               '000051',
+		               '000141',
+		               '000033',
+		               '000036',
+		               '000038',
+		               '000039',
+		               '000041',
+		               '000139',
+		               '000042',
+		               '000043',
+		               '000044',
+		               '000045',
+		               '000046',
+		               '000047',
+		               '000057',
+		               '000002')
+		AND    DWG.DWG_TYPE || #{start_finish_code} = PDCADT.DWG_TYPE
+		AND    ((DWG.DWG_KIND = 'MAKER'
+		                AND    DWG.DWGNO IN (SELECT PVDPC.DWG_CODE
+		                        FROM   PLM_VENDOR_DWG_PR_CATALOG PVDPC))
+		        OR     (DWG.DWG_KIND != 'MAKER'))
+	</select>
+</mapper>

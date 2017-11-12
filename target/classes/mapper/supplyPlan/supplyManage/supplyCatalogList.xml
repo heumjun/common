@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="supplyCatalogList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+	  from (  
+	        select t1.*  
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+					SELECT SDSC.SEQ          AS SEQ
+					      ,SDSC.SUPPLY_ID    AS SUPPLY_ID
+						  ,SDSC.CATALOG      AS CATALOG
+						  ,SSSC.CATALOG_DESC AS CATALOG_DESC
+						  ,SDSC.ATTR         AS ATTR
+						  ,SDSC.VALUE        AS VALUE
+					  FROM STX_DIS_SUPPLY_CATALOG SDSC
+					      ,STX_STD_SD_CATALOG     SSSC
+					 WHERE 1=1
+					   AND SDSC.SUPPLY_ID = #{h_supplyId}
+					   AND SDSC.CATALOG   = SSSC.CATALOG_CODE(+)
+                		) t1
+         			) t2
+  			 where page = #{curPageNo}           
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*)
+		  FROM STX_DIS_SUPPLY_CATALOG SDSC
+		      ,STX_STD_SD_CATALOG     SSSC
+		 WHERE 1=1
+		   AND SDSC.SUPPLY_ID = #{h_supplyId}
+		   AND SDSC.CATALOG   = SSSC.CATALOG_CODE(+)
+  	</select>
+</mapper>

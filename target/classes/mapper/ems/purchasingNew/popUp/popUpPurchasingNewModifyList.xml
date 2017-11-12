@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingNewModifyList">
+	
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<insert id="emsPurchasingModifyTempInstProc"  statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_MODIFY_INSERT_PROC (
+					P_WORK_KEY 				=> #{p_work_key},
+					P_WORK_FLAG				=> #{p_work_flag},
+					P_EMS_PUR_NO			=> #{p_ems_pur_no},
+					P_ERROR_CODE 			=> #{p_error_code,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 			=> #{p_error_msg,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT})
+			}
+	</insert>
+	
+	<select id="selectEmsPurchasingModifyFirstList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_MODIFY_SELECT_PROC (
+					P_WORK_KEY 			=>  #{p_work_key},
+					P_CURPAGENO 		=>  #{curPageNo}, 
+					P_PAGESIZE 			=>  #{pageSize}, 
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=popUpPurchasingNewModifyList.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	<insert id="emsPurchasingModifyTempDeleteProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_MODIFY_DELETE_PROC (
+					P_WORK_KEY 			=>  #{p_work_key},
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</insert>
+	
+	<insert id="emsPurchasingModifySecondTempInstProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_MODIFY_NEXT_PROC (
+					P_WORK_KEY 			=>  #{p_work_key},
+					P_EMS_PUR_NO		=>  #{ems_pur_no},
+					P_ORGIN_EA			=>  #{ea},
+					P_MODIFY_EA			=>  #{modi_ea},
+					P_POS_REV			=>  #{pos_rev},
+					P_FILE_ID			=>  #{file_id},
+					P_USER_ID			=>  #{p_user_id},
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</insert>
+	
+	<insert id="emsPurchasingModifySecondChkProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_MODIFY_NEXT_CHECK_PROC (
+					P_WORK_KEY 			=>  #{p_work_key},
+					P_RESULT_FLAG  		=> 	#{p_result_flag,		jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_RESULT_MSG  		=> 	#{p_result_msg,			jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_CODE 		=>  #{p_error_code,      	jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       	jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</insert>
+	
+	<insert id="emsPurchasingPosModifyApplyProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_MODIFY_CONFIRM_PROC (
+					P_WORK_KEY 			=>  #{p_work_key},
+					P_EMS_PUR_NO		=>  #{ems_pur_no},
+					P_USER_ID			=>  #{p_user_id},
+					P_ERROR_CODE 		=>  #{p_error_code,      	jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       	jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</insert>
+	
+	 
+	
+	
+	<select id="selectEmsPurchasingModifySecondList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_MODIFY_NEXT_SELECT_PROC (
+					P_WORK_KEY 			=>  #{p_work_key},
+					P_CURPAGENO 		=>  #{curPageNo}, 
+					P_PAGESIZE 			=>  #{pageSize}, 
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=popUpPurchasingNewModifyList.procResultMap, mode=OUT}
+			)}
+	</select>
+</mapper>

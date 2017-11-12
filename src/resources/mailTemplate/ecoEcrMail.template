@@ -1,0 +1,12 @@
+<font size=2><p><b>수고 많으십니다. </b></p></font>
+<font size=2><p><b> 발행하신 ECR No. ${ecr_main_name} 의 ECO가 ${states_desc} 되었습니다. </b></p></font>
+<font size=2><p><b> 사유 :  ${notify_msg} </b></p></font>
+<font size=2><p><b> 확인 하시기 바랍니다. </b></p></font>
+<font size=2><p>&nbsp;--------------------- 아래-----------------------</p>
+&nbsp;&nbsp;&nbsp;&nbsp;- ECR NO : ${ecr_main_name}
+<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECR Based On : ${ecr_baseOn}
+<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECR Description : ${ecr_main_desc}
+<br />
+<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO NO : ${main_code}
+<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO 원인 CODE : ${mail_eco_cause}
+<br />&nbsp;&nbsp;&nbsp;&nbsp;- ECO Description : ${mail_main_desc}</font>

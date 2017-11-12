@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="standardInfoTransDbList">
+
+	<select id="selectListType" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT	 COMMON_CODE AS SB_VALUE
+				,COMMON_NAME AS SB_NAME	
+		FROM	 STX_DIS_INFO_CODE_LIST	
+		WHERE	 LIST_TYPE = #{list_type_desc}
+		ORDER BY  SB_VALUE				
+	</select>
+	
+	<select id="selectApproverList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT T11.APROVE_SIGN
+					 , T11.APROVE_TYPE
+				     , T12.COMMON_NAME
+				     , T11.SB_VALUE
+				     , T11.SB_NAME
+				     , T11.CONFIRM_COMMENT
+				  FROM( SELECT STILA.APROVE_TYPE	 AS APROVE_TYPE
+				  			 , ''                    AS APROVE_SIGN
+				             , STILA.CONFIRM_EMP_NO  AS SB_VALUE
+				             , SCIU.USER_NAME        AS SB_NAME
+				             , 1                     AS ORDER_BY
+				             , STILA.CONFIRM_COMMENT AS CONFIRM_COMMENT
+				          FROM STX_DIS_INFO_LIST_APPROVAL STILA
+				             , STX_COM_INSA_USER@STXERP SCIU
+				         WHERE 1 = 1
+				<if test='list_id != null and list_id != ""'> 
+				
+					AND STILA.LIST_ID        =  #{list_id}
+				</if>
+				<if test='list_id == null or list_id == ""'>
+					AND STILA.LIST_ID        = 0
+				</if>
+				           AND
+				               STILA.PROCESS_TYPE = '02'
+				           AND
+				               STILA.CONFIRM_EMP_NO = SCIU.EMP_NO
+				     
+				     UNION ALL
+				        SELECT T1.APROVE_TYPE	AS APROVE_TYPE
+				        	 , T1.APROVE_SIGN   AS APROVE_SIGN
+				             , T1.APROVE_EMP_NO AS SB_VALUE
+				             , T4.USER_NAME     AS SB_NAME
+				             , 2                AS ORDER_BY
+				             , ''               AS CONFIRM_COMMENT
+				          FROM STX_DIS_INFO_APPROVAL T1
+				             , STX_DIS_INFO_CODE_LIST T2
+				             , STX_DIS_INFO_CODE_LIST T3
+				             , STX_COM_INSA_USER@STXERP T4
+				         WHERE T1.APROVE_TYPE = T2.COMMON_CODE
+				           AND
+				               T2.LIST_TYPE = 'APROVE_TYPE'
+				           AND
+				               T1.APROVE_SIGN = T3.COMMON_CODE
+				           AND
+				               T3.LIST_TYPE = 'APROVE_SIGN'
+				           <!-- AND T3.COMMON_CODE = '01' -->
+				           AND
+				               T1.APROVE_EMP_NO = T4.EMP_NO
+				           AND
+				               T1.LIST_TYPE =  #{list_type}
+				 AND T1.ENABLE_FLAG = 'Y'
+				           AND
+				               NOT EXISTS
+				               ( SELECT 1
+				                  FROM STX_DIS_INFO_LIST_APPROVAL STILA
+				                 WHERE 1 = 1
+				<if test='list_id != null and list_id != ""'>
+							  AND STILA.LIST_ID        =  #{list_id}
+				</if>
+				<if test='list_id == null or list_id == ""'>
+							  AND STILA.LIST_ID        = 0
+				</if>
+				                   AND
+				                       STILA.PROCESS_TYPE = '02'
+				                   AND
+				                       STILA.APROVE_TYPE = T1.APROVE_TYPE
+				                   AND
+				                       STILA.CONFIRM_EMP_NO = T1.APROVE_EMP_NO
+				               )
+				       )
+				       T11
+				     , STX_DIS_INFO_CODE_LIST T12
+				 WHERE T11.APROVE_TYPE = T12.COMMON_CODE
+				   AND
+				       T12.LIST_TYPE = 'APROVE_TYPE'
+					  AND T12.ATTRIBUTE_01 = 'Y'
+				ORDER BY APROVE_TYPE
+				     , ORDER_BY
+				     , SB_VALUE			
+	</select>
+	<select id="selectApproverListId" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+				SELECT   
+				       T1.APROVE_TYPE  
+				      ,T2.COMMON_NAME  
+				      ,CONFIRM_COMMENT 
+				      ,T1.CONFIRM_EMP_NO AS SB_VALUE 
+				      ,T3.USER_NAME      AS SB_NAME  
+				 FROM STX_DIS_INFO_LIST_APPROVAL     T1  
+				      ,STX_DIS_INFO_CODE_LIST         T2  
+				      ,STX_COM_INSA_USER@STXERP       T3 
+				WHERE 1=1  
+				  AND T1.APROVE_TYPE = T2.COMMON_CODE  
+				  AND T2.LIST_TYPE = 'APROVE_TYPE'  
+				  AND T1.CONFIRM_EMP_NO = T3.EMP_NO 
+				  AND T1.LIST_ID = #{list_id}
+				  AND T2.ATTRIBUTE_01 = 'Y'	
+	</select>
+	
+	<select id="selectAdminUser" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+				SELECT *
+					FROM STX_DIS_INFO_CODE_LIST
+				 WHERE LIST_TYPE = 'ADMIN_USER'
+	</select>
+	<select id="selectDocList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+				SELECT DOCUMENT_ID , DOCUMENT_NAME	
+					FROM STX_DIS_INFO_DOC	
+				 WHERE LIST_ID = #{list_id}
+	</select>
+	<select id="selectCatalogList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+				SELECT A.ROWID||'' AS ID ,A.*	
+						,(SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE EMP_NO = A.BUYER_EMP_NO) AS BUYER_USER_NAME	
+						,(SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE EMP_NO = A.PROCESS_EMP_NO) AS PROCESS_USER_NAME	
+				  FROM STX_DIS_INFO_LIST_CATALOG	A	
+				 WHERE LIST_ID = #{list_id}	
+	</select>
+	<select id="selectItemList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+				SELECT A.ROWID||'' AS ID ,A.*	
+				  FROM STX_DIS_INFO_LIST_ITEM	A	
+				 WHERE LIST_ID = #{list_id}		
+	</select>
+	<select id="selectRefUser" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+					SELECT REF_EMP_NO AS PRINT_USER_ID
+				       ,T2.USER_NAME AS PRINT_USER_NAME
+				  FROM STX_DIS_INFO_LIST_REF_USER T1
+				       ,STX_COM_INSA_USER@STXERP  T2
+				 WHERE T1.REF_EMP_NO = T2.EMP_NO
+					 AND T1.LIST_ID = #{list_id}
+	</select>
+	<select id="userSearchList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT SCIU.EMP_NO AS PRINT_USER_ID 
+				      ,SCIU.USER_NAME AS PRINT_USER_NAME 
+				      ,SCIU.EP_MAIL || '@onestx.com' AS EMAIL 
+				      ,SDD.DEPT_NAME AS PRINT_DEPT_NAME 
+				      ,SCIU.DEPT_NAME AS INSA_DEPT_NAME 
+				      ,SDD.DEPT_ID AS PRINT_DEPT_ID 
+				      ,'사내' AS USER_TYPE 
+				 FROM STX_COM_INSA_USER@stxerp    SCIU 
+				     ,STX_DWG_DEPT_MAPPING@stxerp SDDM 
+				     ,STX_DWG_DEPT_MANAGER@stxerp SDD 
+				WHERE SCIU.DEPT_CODE = SDDM.DEPT_CODE 
+				  AND SDDM.DEPT_ID = SDD.DEPT_ID 
+				  AND SCIU.DEL_DATE IS NULL 
+					AND SCIU.EP_MAIL IS NOT NULL	
+					<![CDATA[
+				  AND ROWNUM < 500 
+				  	]]>
+				<if test='deptName != null and deptName != ""'>
+					  AND SCIU.DEPT_NAME LIKE '%'||#{deptName}||'%' 
+				</if>
+				<if test='userName != null and userName != ""'>
+					  AND SCIU.USER_NAME LIKE '%'||#{userName}||'%' 
+				</if>
+				ORDER BY SCIU.USER_NAME,SDD.DEPT_NAME 
+	</select>
+	<select id="mainListExport" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT	*																					
+			FROM	(SELECT STICL_LIST.COMMON_NAME AS LIST_TYPE_DESC <!-- 유형 -->
+							  ,'' AS DESCRIPTION --DESCRIPTION
+							  ,SCIDE.DEPT_NAME AS DEPT_NAME <!-- 부서이름 -->
+							  ,SCIDE.DEPT_CODE AS DEPT_CODE <!-- 부서코드 -->
+							  ,SCIUE.USER_NAME AS USER_NAME <!-- 유저이름 -->
+							  ,SCIUE.EMP_NO AS EMP_NO <!-- 사번 -->
+							  ,STICL_STAUTS.COMMON_NAME AS LIST_STATUS_DESC <!-- 상태값 -->
+							  ,TO_CHAR(STIL.REQUEST_DATE, 'YYYY-MM-DD') AS REQUEST_DATE <!-- 요청일자 -->
+							  ,STIL.LIST_ID AS LIST_ID --LIST_ID (KEY)
+							  ,STIL.LIST_TYPE AS LIST_TYPE <!-- 유형코드 -->
+							  ,STIL.LIST_STATUS AS LIST_STATUS <!-- 상태코드 -->
+							  ,STIL.REQUEST_TITLE AS REQUEST_TITLE <!-- 서브 타이틀 -->
+							  ,CASE
+							    WHEN STIL.COMPLETE_DATE IS NOT NULL THEN TO_CHAR(STIL.COMPLETE_DATE, 'YYYY-MM-DD')
+							    WHEN STIL.FEEDBACK_DATE IS NOT NULL THEN TO_CHAR(STIL.FEEDBACK_DATE, 'YYYY-MM-DD')
+							    WHEN STIL.CONFIRM_DATE IS NOT NULL THEN TO_CHAR(STIL.CONFIRM_DATE, 'YYYY-MM-DD')
+							  END AS JOCHI_DATE
+							FROM STX_DIS_INFO_LIST STIL ,
+							  STX_DIS_INFO_CODE_LIST STICL_LIST ,
+							  STX_DIS_INFO_CODE_LIST STICL_STAUTS ,
+							  STX_COM_INSA_DEPT@STXERP SCIDE ,
+							  STX_COM_INSA_USER@STXERP SCIUE
+							WHERE STIL.LIST_TYPE = STICL_LIST.COMMON_CODE
+							  AND STICL_LIST.LIST_TYPE = 'LIST_TYPE'
+							  AND STIL.LIST_STATUS = STICL_STAUTS.COMMON_CODE
+							  AND STICL_STAUTS.LIST_TYPE = 'PROCESS_TYPE'
+							  AND STIL.REQUEST_DEPT_CODE = SCIDE.DEPT_CODE
+							  AND STIL.REQUEST_EMP_NO = SCIUE.EMP_NO
+							ORDER BY LIST_ID DESC )																	
+		WHERE	1=1
+		 <if test='fromDate != null and fromDate != ""'> 
+		AND	REQUEST_DATE	>=	#{fromDate}
+		</if>
+		 <if test='ToDate != null and ToDate != ""'> 
+		<![CDATA[
+		AND	REQUEST_DATE	<=	#{ToDate}
+		]]>
+		 </if>									
+	</select>
+	<select id="catalogExcelPrint" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT A.ROWID||'' ,A.*	
+			,(SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE EMP_NO = A.BUYER_EMP_NO) AS BUYER_USER_NAME	
+			,(SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE EMP_NO = A.PROCESS_EMP_NO) AS PROCESS_USER_NAME	
+	  FROM STX_DIS_INFO_LIST_CATALOG	A	
+	 WHERE LIST_ID = #{list_id}	
+	</select>
+	
+	<select id="itemExcelPrint" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.ROWID||'' AS ID ,A.*	
+		  FROM STX_DIS_INFO_LIST_ITEM	A	
+		 WHERE LIST_ID = #{list_id}	
+	</select>
+	
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectZoneExport">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+		                         select project_no
+		                               ,revision
+		                               ,area_code
+		                               ,min(area_desc)
+		                                as area_desc  
+		                           from stx_dis_pis_block
+		                          where project_no = #{project_no} 
+		                            and revision   = #{revision}
+		                          group by project_no, revision, area_code
+	                       )
+	select sdpz.zone_code
+		  ,sdpz.quay
+		  ,sdpz.area_code
+		  ,nvl(sdpb.area_desc, (select area_desc
+                   				  from stx_dis_pis_area
+                  				 where area_code = sdpz.area_code)
+              ) 
+           as area_desc          
+          ,decode(sdpz.area_master, 'Y', sdpz.area_master, null) as area_master
+          ,sdpz.area_group            
+          ,cast(sdpz.rowid as char(18))  as main_rowid
+      FROM stx_dis_pis_zone   sdpz
+          ,temp_paint_block   sdpb
+     where 1=1
+       and sdpz.project_no = sdpb.project_no(+)
+       and sdpz.revision   = sdpb.revision(+)
+       and sdpz.area_code  = sdpb.area_code(+)
+       and sdpz.project_no = #{project_no}  
+       and sdpz.revision   = #{revision}
+       
+       <if test="zoneCode != null and zoneCode !='' ">
+       and sdpz.zone_code like #{zoneCode} || '%' 
+       </if>  
+       
+       <if test="quayCode != null and quayCode !='' ">
+	   and sdpz.quay like #{quayCode} || '%' 
+	   </if>
+	 order by sdpz.zone_code, sdpz.area_code
+	  
+	</select>
+
+</mapper>

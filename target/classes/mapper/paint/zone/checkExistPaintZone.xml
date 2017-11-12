@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="checkExistPaintZone">
+
+	<select id="checkExistPaintZone" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT (CASE WHEN  COUNT(*) > 0
+		             THEN 'Y'
+		             ELSE 'N'
+		        END)                AS EXIST_PAINT_ZONE 
+		  FROM STX_DIS_PIS_ZONE
+		 WHERE PROJECT_NO = #{project_no}
+		   AND REVISION   = #{revision}
+		   AND ZONE_CODE  = #{zoneCode}
+	  	</select>
+
+</mapper>

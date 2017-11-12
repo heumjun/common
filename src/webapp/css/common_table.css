@@ -1,0 +1,120 @@
+@CHARSET "UTF-8";
+
+.commonList {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:0px; display:inline;}
+.commonList thead tr th {background-color:#0C66BC; color:#FFFFFF; border:1px solid #999999; height:24px; text-align:center; }
+.commonList thead tr .th_etc {background-color:#0492DE; color:#FFFFFF; border:1px solid #999999; height:24px; text-align:center; }
+
+.commonList thead .head_info {border:0px;}
+.commonList thead .head_info td{height:18px; border:0px; text-align:center}
+.commonList thead .head_info .tot{background-color:#D7E4BC; font-weight:bold; border:1px solid #999999;}	
+.commonList thead .head_info .border1{border:1px solid #999999;}
+.commonList thead .head_info .trTotalCnt{text-align:left; font-weight:bold;}
+.commonList thead .head_info .trTotalCnt #tCnt{color:#017CE6; font-size:14pt;}
+.commonList thead .head_info .trTotalCnt #tSelCnt{color:#DC0A0A; font-size:14pt;}
+
+.commonList tbody .rawTr {background-color:#D9D9D9; height:18px; color:#666666; }
+.commonList tbody .selectTr {border:3px #316194 solid;}
+.commonList tbody .checkedTr {background-color:#F7D729;}
+.commonList tbody .even {background-color:#E4EFF3; }
+.commonList tbody .chgText {color:red;}
+
+.commonList tbody tr td{border:1px solid #cccccc; height:20px; text-align:center}
+.commonList tbody tr:hover {background-color:#FFF6B0;}
+.commonList tbody tr .t_center {text-align:center}
+.commonList tbody tr .t_right {text-align:right}
+.commonList tbody tr .t_left {text-align:left}
+.commonList tbody tr .errorField {background-color:red; color:#FFFFFF; font-weight:bold}
+.commonList tbody tr .warningField {background-color:#F8C15D;}
+.commonList tbody tr .errorRow {text-align:center; font-weight:bold; color:red;}
+.commonList tbody tr td input[type=text]{width:90%;}
+.commonList tbody tr td select {width:95%;}
+.commonList tbody tr td select option{width:100px;}
+
+.commonListBody {overflow-y:scroll; display:block; width:100%; height:100%; overflow-x:hidden;}
+
+.inputTable {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:0px; display:inline; }
+.inputTable tr th {background-color:#FFFFFF; color:#333333; border:1px solid #aaa; height:24px; text-align:left; width:120px; padding:5px; }
+.inputTable tr td {border:1px solid #aaa; padding:5px;}
+.inputTable tr td input[type=text]{width:98%;}
+.inputTable tr td input[type=file]{width:98%;}
+
+.commonList7 {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:0px; display:inline;}
+.commonList7 thead tr th {background-color:#960707; color:#FFFFFF; border:1px solid #999999; height:22px; text-align:center; }
+.commonList7 thead .head_info {border:0px;}
+.commonList7 thead .head_info td{height:20px; border:0px; text-align:center}
+.commonList7 thead .head_info .tot{background-color:#D7E4BC; font-weight:bold; border:1px solid #999999;}	
+.commonList7 thead .head_info .border1{border:1px solid #999999;}		
+.commonList7 tbody tr td{border:1px solid #cccccc; height:20px; text-align:center}
+.commonList7 tbody .even {background-color:#E4EFF3; }
+/*.commonList7 tbody tr:hover {background-color:#DBE6F9;}*/
+.commonList7 tbody tr .t_center {text-align:center}
+.commonList7 tbody tr .t_right {text-align:right}
+.commonList7 tbody tr .t_left {text-align:left}
+.commonList7 tbody tr .errorField {background-color:red; color:#FFFFFF; font-weight:bold}
+
+
+.commonList2 {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:1px solid #999999; width:1300px; display:inline;}
+.commonList2 thead tr th {background-color:#376091; color:#FFFFFF; border:1px solid #999999; height:22px;}
+.commonList2 thead .colspan1{text-align:center; background-color:#E6FFFF; border:2px solid #EDEDED; font-weight:bold;}
+.commonList2 tbody tr td{border:1px solid #cccccc; height:20px;}
+/*.commonList2 tbody tr:hover {background-color:#DBE6F9;}*/
+.commonList2 tbody tr .t_center {text-align:center}
+.commonList2 tbody tr .t_left {text-align:left}
+
+.commonList3 {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:1px solid #999999; width:1284px; background-color:#FFFFE9; padding:0px 0px 0px 4px; display:inline;}
+.commonList3 thead tr th {background-color:#960707; color:#FFFFFF; border:1px solid #999999; height:22px; padding:0px 0px 0px 2px;}
+.commonList3 tbody tr td{border:1px solid #cccccc; height:20px; padding:0px 0px 0px 2px;}
+/*.commonList3 tbody tr:hover {background-color:#DBE6F9;}*/
+.commonList3 tbody tr .t_center {text-align:center}
+.commonList3 tbody tr .t_left {text-align:left}
+.commonList3 thead .subbtn {cursor:hand; width:70px;float:left;}
+.commonList3 thead .subbtn2 {cursor:hand; width:120px;float:left;}
+.commonList3 thead .subbtn3 {cursor:hand; width:30px;float:left;}
+
+.commonList4 {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:1px solid #999999; width:1520px; display:inline;}
+.commonList4 thead tr th {background-color:#126978; color:#FFFFFF; border:1px solid #999999; height:22px;}
+.commonList4 tbody tr td{border:1px solid #cccccc; height:20px;}
+.commonList4 thead .colspan1{text-align:center; background-color:#EBF7FF; border:2px solid #EDEDED; font-weight:bold;}
+/*.commonList4 tbody tr:hover {background-color:#DBE6F9;}*/
+.commonList4 tbody tr .t_center {text-align:center}
+.commonList4 tbody tr .t_left {text-align:left}
+
+.commonList5 {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:1px solid #999999; width:1504px; background-color:#FFFFE9; padding:0px 0px 0px 4px; display:inline;}
+.commonList5 thead tr th {background-color:#A50000; color:#FFFFFF; border:1px solid #999999; height:22px; padding:0px 0px 0px 2px;}
+.commonList5 tbody tr td{border:1px solid #cccccc; height:20px; padding:0px 0px 0px 2px;}
+/*.commonList5 tbody tr:hover {background-color:#DBE6F9;}*/
+.commonList5 tbody tr .t_center {text-align:center}
+.commonList5 tbody tr .t_left {text-align:left}
+.commonList5 thead .subbtn {cursor:hand; width:70px;float:left;}
+.commonList5 thead .subbtn2 {cursor:hand; width:120px;float:left;}
+.commonList5 thead .subbtn3 {cursor:hand; width:30px;float:left;}
+
+.commonList8 {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:1px solid #999999; width:1100px; display:inline;}
+.commonList8 thead tr th {background-color:#376091; color:#FFFFFF; border:1px solid #999999; height:22px;}
+.commonList8 tbody tr td{border:1px solid #cccccc; height:20px;}
+/*.commonList8 tbody tr:hover {background-color:#DBE6F9;}*/
+.commonList8 tbody tr .t_center {text-align:center}
+.commonList8 tbody tr .t_left {text-align:left}
+.commonList8 tbody .even {background-color:#E6FFFF; }
+
+
+.commonList9 {font-size:9pt; font-family:맑은 고딕; margin:0; word-break:break-all; border-collapse:collapse; border:0px; display:inline;}
+.commonList9 thead tr th {background-color:#3D5620; color:#FFFFFF; border:1px solid #999999; height:22px; text-align:center; }
+.commonList9 thead .head_info {border:0px;}
+.commonList9 thead .head_info td{height:20px; border:0px; text-align:center}
+.commonList9 thead .head_info .tot{background-color:#D7E4BC; font-weight:bold; border:1px solid #999999;}	
+.commonList9 thead .head_info .border1{border:1px solid #999999;}		
+.commonList9 tbody tr td{border:1px solid #cccccc; height:20px; text-align:center}
+.commonList9 tbody .even {background-color:#DAE2ED; }
+/*.commonList9 tbody tr:hover {background-color:#DBE6F9;}*/
+.commonList9 tbody tr .t_center {text-align:center}
+.commonList9 tbody tr .t_right {text-align:right}
+.commonList9 tbody tr .t_left {text-align:left}
+.commonList9 tbody tr .errorField {background-color:red; color:#FFFFFF; font-weight:bold}
+
+
+.commonListAfColor1 thead tr th {background-color:#E6B8B7; color:#333333; border:1px solid #999999; height:22px; text-align:center; }
+.commonListAfColor2 thead tr th {background-color:#CCC0DA; color:#333333; border:1px solid #999999; height:22px; text-align:center; }
+
+
+.commonSelect {width:100px;}

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintArea">
+
+	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_area
+	  where 1=1 
+	    and area_code = upper( #{area_code} )
+	</select> 
+	<select id="selectExistAreaDescCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_area
+	  where 1=1 
+	  	and area_code != upper( #{area_code} )
+	    and area_desc  = #{area_desc} 
+	</select>    
+	
+	<select id="selectExistLossCodeCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_loss
+	  where 1=1 
+	    and loss_code = #{loss_code}
+	</select>   
+	<insert id="insert" parameterType="java.util.Map">
+	insert into stx_dis_pis_area
+	   (
+	    area_code
+	   ,area_desc
+	   ,af_code
+	   ,loss_code
+	   ,created_by        
+	   ,creation_date
+	   ,last_updated_by
+	   ,last_update_date    
+	   )
+	   values
+	   (
+	    upper( #{area_code} )
+	   ,#{area_desc}
+	   ,#{af_code}
+	   ,#{loss_code}
+	   ,#{loginId}
+	   ,sysdate
+	   ,#{loginId}
+	   ,sysdate     
+	   )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+	update stx_dis_pis_area
+	   set area_desc        = #{area_desc}
+	      ,af_code          = #{af_code}
+	      ,loss_code		= #{loss_code}
+	      ,last_updated_by  = -1
+	      ,last_update_date = sysdate
+	 where area_code = #{area_code}
+	</update>
+	
+	<delete id="delete" parameterType="java.util.Map">
+	delete from stx_dis_pis_area
+	      where area_code = #{area_code}
+	</delete>
+	<select id="selectExistUsingAreaCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_block
+	  where 1=1 
+	    and area_code = upper( #{area_code} )
+	</select> 
+</mapper>

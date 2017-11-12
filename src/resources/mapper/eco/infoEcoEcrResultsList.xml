@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoEcoEcrResultsList">
+	<!-- eco에 연결된 ecr 혹은 eco 검색 -->
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+			SELECT SDECR.ENG_CHANGE_REQ_CODE    AS MAIN_CODE
+			      ,SDECR.ENG_CHANGE_DESCRIPTION AS MAIN_NAME
+			      ,SDSC.SD_DESC                 AS STATES_DESC
+			      ,SDSC.SD_CODE                 AS STATES_CODE
+			      ,SCIU.DEPT_CODE               AS USER_GROUP
+			      ,SDECR.LOCKER_BY              AS LOCKER_BY
+			      ,SDER.ENG_REL_CODE            AS ENG_REL_CODE
+			  FROM STX_DIS_ENG_REL          SDER
+			      ,STX_DIS_ENG_CHANGE_REQ   SDECR
+			      ,STX_DIS_SD_CODE          SDSC
+			      ,STX_COM_INSA_USER@STXERP SCIU
+			 WHERE SDER.ENG_TYPE     = 'ECR'
+			   AND SDER.MAIN_CODE     = SDECR.ENG_CHANGE_REQ_CODE
+			   AND SDECR.STATES_CODE = SDSC.SD_CODE(+)
+			   AND SDSC.SD_TYPE(+)      = 'ECR_STATES'
+			   AND SDECR.CREATE_BY   = SCIU.EMP_NO
+		     AND SDER.SUB_CODE    = #{main_code}
+ 
+  	</select>
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+			SELECT COUNT(*) AS COUNT
+			  FROM STX_DIS_ENG_REL          SDER
+			      ,STX_DIS_ENG_CHANGE_REQ   SDECR 
+			 WHERE SDER.ENG_TYPE     = 'ECR'
+			   AND SDER.MAIN_CODE     = SDECR.ENG_CHANGE_REQ_CODE 
+			   AND SDER.SUB_CODE    = #{main_code}
+  	</select>
+  	
+</mapper>

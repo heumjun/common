@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveSupplyList">
+
+	<insert id="insertManage" parameterType="java.util.Map">
+		INSERT INTO STX_DIS_SUPPLY_MAIN ( SUPPLY_ID
+		                                 ,GBN
+		                                 ,GROUP1
+		                                 ,GROUP2
+		                                 ,DESCRIPTION
+		                                 ,UOM1
+		                                 ,UOM2
+		                                 ,RANK
+		                                 ,JOIN_DATA
+		                                 ,DEPT_CODE
+		                                 ,RESULT_YN
+		                                 ,UNIT_YN
+		                                 ,REMARK
+		                                 ,CREATE_BY
+		                                 ,CREATE_DATE
+		                                 ,MODIFY_BY
+		                                 ,MODIFY_DATE
+		)
+		VALUES (  TO_CHAR(STX_DIS_SUPPLY_MAIN_S.NEXTVAL,'FM0000')
+		         ,#{gbn}
+                 ,#{group1}
+                 ,#{group2}
+                 ,#{description}
+                 ,#{uom1}
+                 ,#{uom2}
+                 ,#{rank}
+                 ,#{join_data}
+                 ,#{dept_code}
+                 ,#{result_yn}
+                 ,#{unit_yn}
+                 ,#{remark}
+                 ,#{loginId}
+                 ,SYSDATE
+                 ,#{loginId}
+                 ,SYSDATE
+		)
+	</insert>
+  	
+	<update id="updateManage" parameterType="java.util.Map">
+		UPDATE STX_DIS_SUPPLY_MAIN SET
+		       GBN         = #{gbn}
+		      ,GROUP1      = #{group1}
+		      ,GROUP2      = #{group2}
+		      ,DESCRIPTION = #{description}
+		      ,UOM1        = #{uom1}
+		      ,UOM2        = #{uom2}
+		      ,RANK        = #{rank}
+		      ,JOIN_DATA   = #{join_data}
+		      ,DEPT_CODE   = #{dept_code}        
+		      ,RESULT_YN   = #{result_yn}
+		      ,UNIT_YN     = #{unit_yn}
+		      ,REMARK      = #{remark}
+		      ,MODIFY_BY   = #{loginId}
+		      ,MODIFY_DATE = SYSDATE
+		 WHERE SUPPLY_ID = #{supply_id} 
+	</update>
+	
+	<delete id="deleteManage" parameterType="java.util.Map">
+		DELETE STX_DIS_SUPPLY_MAIN
+		 WHERE SUPPLY_ID = #{supply_id}
+	</delete>
+	
+	<delete id="deleteManageDwg" parameterType="java.util.Map">
+		DELETE STX_DIS_SUPPLY_TYPE
+		 WHERE SUPPLY_ID = #{supply_id}
+	</delete>
+	
+	<delete id="deleteManageCatalog" parameterType="java.util.Map">
+		DELETE STX_DIS_SUPPLY_CATALOG
+		 WHERE SUPPLY_ID = #{supply_id}
+	</delete>
+
+	<insert id="insertDwg" parameterType="java.util.Map">
+		INSERT INTO STX_DIS_SUPPLY_TYPE ( SUPPLY_ID 
+										 ,SUPPLY_TYPE 
+										 ,VALUE 
+										 ,CREATE_BY 
+										 ,CREATE_DATE 
+										 ,MODIFY_BY 
+										 ,MODIFY_DATE 
+		)
+		VALUES ( #{h_supplyId} 
+				,#{p_supply_type} 
+				,#{value} 
+				,#{loginId} 
+				,SYSDATE 
+				,#{loginId} 
+				,SYSDATE 
+		)
+	</insert>
+  	
+	<update id="updateDwg" parameterType="java.util.Map">
+		UPDATE STX_DIS_SUPPLY_TYPE SET
+		       VALUE = #{value}
+		      ,MODIFY_BY    = #{loginId}
+		      ,MODIFY_DATE  = SYSDATE
+		 WHERE SUPPLY_ID = #{h_supplyId}
+		   AND SUPPLY_TYPE = #{supply_type}
+		   AND VALUE = #{old_value}
+	</update>
+	
+	<delete id="deleteDwg" parameterType="java.util.Map">
+		DELETE STX_DIS_SUPPLY_TYPE
+		 WHERE SUPPLY_ID = #{h_supplyId}
+		   AND SUPPLY_TYPE = #{supply_type}
+		   AND VALUE = #{old_value}
+	</delete>
+	
+	<insert id="insertCatalog" parameterType="java.util.Map">
+		INSERT INTO STX_DIS_SUPPLY_CATALOG ( SEQ 
+											,SUPPLY_ID 
+											,CATALOG 
+											,ATTR 
+											,VALUE 
+											,CREATE_BY 
+											,CREATE_DATE 
+											,MODIFY_BY 
+											,MODIFY_DATE 
+		)
+		VALUES ( STX_DIS_SUPPLY_CATALOG_S.NEXTVAL 
+				,#{h_supplyId} 
+				,#{catalog} 
+				,#{attr} 
+				,#{value} 
+				,#{loginId} 
+				,SYSDATE
+				,#{loginId} 
+				,SYSDATE 
+		)
+	</insert>
+  	
+	<update id="updateCatalog" parameterType="java.util.Map">
+		UPDATE STX_DIS_SUPPLY_CATALOG SET
+			   CATALOG     = #{catalog}
+			  ,ATTR        = #{attr}
+			  ,VALUE       = #{value}
+		      ,MODIFY_BY   = #{loginId}
+		      ,MODIFY_DATE = SYSDATE
+		 WHERE SEQ = #{seq}
+	</update>
+	
+	<delete id="deleteCatalog" parameterType="java.util.Map">
+		DELETE STX_DIS_SUPPLY_CATALOG
+		 WHERE SEQ = #{seq}
+	</delete>
+</mapper>

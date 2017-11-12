@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	  <!--   EBP DB LINK 치환 명 :  @STX_ERP_DBLINK -->
+	  <!--   Replace parameter 형식 :  ## -->
+<SQL>
+	<selectDWGDeptAll>
+		<![CDATA[
+SELECT 
+	DWGDEPTCODE
+	,DWGGB
+	,DWGDEPTCODE
+	,DWGDEPTNM
+	,COUNTYN
+	,MHYN
+	,USERYN
+	,GRPCD
+	,DWGDEPTFG
+	,UPPERDWGDEPTCODE
+	,ORDERNO
+	,DWGDEPTNM_ENG
+	,DWGABBR
+	,DWGABBR_ENG
+	,PRINT1
+	,PRINT2
+	,PRINT3
+	,PRINT4
+	,PRINT5
+	,PRINT6
+	,PRINT7
+	,PRINT8
+	,PRINT9
+	,REMARK
+	,CREATEDATE
+	,CREATEBY
+	,UPDATEDATE
+	,UPDATEBY
+	,UPPERDWGDEPTCODE2
+	,UPPERDWGDEPTCODE3
+	,DOCUMENTSECURITYYN
+FROM DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR
+	ORDER BY DWGDEPTNM
+		]]>
+		<notempty name="employeeID">
+			and 1=1
+		</notempty>
+	</selectDWGDeptAll>
+	
+	<selectDWGDept>
+		<![CDATA[
+	SELECT DISTINCT DWGDEPTCODE AS VALUE
+	                 ,DWGDEPTNM   AS DISPLAY
+	    FROM DCC_DWGDEPTCODE@STXDP.STXSHIP.CO.KR DWG
+	   WHERE 1 = 1
+		]]>
+		<notempty name="USERID">
+		AND DWG.DWGDEPTCODE IN
+	         (SELECT DEPT.DWGDEPTCODE
+	            FROM CCC_SAWON@STXDP.STXSHIP.CO.KR    SAWON
+	                ,DCC_DEPTCODE@STXDP.STXSHIP.CO.KR DEPT
+	           WHERE SAWON.EMPLOYEE_NUM = #USERID#
+	             AND DEPT.DEPTCODE = SAWON.DEPT_CODE)
+		</notempty>
+		<notempty name="SORT">
+			ORDER BY DISPLAY
+		</notempty>
+	</selectDWGDept>
+	
+	<selectDWGDeptOffshore>
+		<![CDATA[
+	SELECT DISTINCT DWGDEPTCODE AS VALUE
+	                 ,DWGDEPTNM   AS DISPLAY
+	    FROM DCC_DWGDEPTCODE DWG
+	   WHERE 1 = 1
+		]]>
+		<notempty name="USERID">
+		AND DWG.DWGDEPTCODE IN
+	         (SELECT DEPT.DWGDEPTCODE
+	            FROM CCC_SAWON    SAWON
+	                ,DCC_DEPTCODE DEPT
+	           WHERE SAWON.EMPLOYEE_NUM = #USERID#
+	             AND DEPT.DEPTCODE = SAWON.DEPT_CODE)
+		</notempty>
+		<notempty name="SORT">
+			ORDER BY DISPLAY
+		</notempty>
+	</selectDWGDeptOffshore>
+</SQL>		     

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="standardInfoTransDbData">
+		<select id="selectInfoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT *	
+				FROM (SELECT STICL_LIST.COMMON_NAME AS LIST_TYPE_DESC <!-- 유형 -->
+							  ,'' AS DESCRIPTION --DESCRIPTION
+							  ,SCIDE.DEPT_NAME AS DEPT_NAME <!-- 부서이름 -->
+							  ,SCIDE.DEPT_CODE AS DEPT_CODE <!-- 부서코드 -->
+							  ,SCIUE.USER_NAME AS USER_NAME <!-- 유저이름 -->
+							  ,SCIUE.EMP_NO AS EMP_NO <!-- 사번 -->
+							  ,STICL_STAUTS.COMMON_NAME AS LIST_STATUS_DESC <!-- 상태값 -->
+							  ,TO_CHAR(STIL.REQUEST_DATE, 'YYYY-MM-DD') AS REQUEST_DATE <!-- 요청일자 -->
+							  ,STIL.LIST_ID AS LIST_ID --LIST_ID (KEY)
+							  ,STIL.LIST_TYPE AS LIST_TYPE <!-- 유형코드 -->
+							  ,STIL.LIST_STATUS AS LIST_STATUS <!-- 상태코드 -->
+							  ,STIL.REQUEST_TITLE AS REQUEST_TITLE <!-- 서브 타이틀 -->
+							  ,CASE
+							    WHEN STIL.COMPLETE_DATE IS NOT NULL THEN TO_CHAR(STIL.COMPLETE_DATE, 'YYYY-MM-DD')
+							    WHEN STIL.FEEDBACK_DATE IS NOT NULL THEN TO_CHAR(STIL.FEEDBACK_DATE, 'YYYY-MM-DD')
+							    WHEN STIL.CONFIRM_DATE IS NOT NULL THEN TO_CHAR(STIL.CONFIRM_DATE, 'YYYY-MM-DD')
+							  END AS JOCHI_DATE
+							FROM STX_DIS_INFO_LIST STIL ,
+							  STX_DIS_INFO_CODE_LIST STICL_LIST ,
+							  STX_DIS_INFO_CODE_LIST STICL_STAUTS ,
+							  STX_COM_INSA_DEPT@STXERP SCIDE ,
+							  STX_COM_INSA_USER@STXERP SCIUE
+							WHERE STIL.LIST_TYPE = STICL_LIST.COMMON_CODE
+							  AND STICL_LIST.LIST_TYPE = 'LIST_TYPE'
+							  AND STIL.LIST_STATUS = STICL_STAUTS.COMMON_CODE
+							  AND STICL_STAUTS.LIST_TYPE = 'PROCESS_TYPE'
+							  AND STIL.REQUEST_DEPT_CODE = SCIDE.DEPT_CODE
+							  AND STIL.REQUEST_EMP_NO = SCIUE.EMP_NO
+							ORDER BY LIST_ID DESC )	
+			 WHERE LIST_ID = #{list_id}	
+		</select>
+		<!-- <select id="selectChkApproval" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			select	
+						count(*) as cnt	
+				from	stx_tbc_info_list_approval	
+			 where	list_id = #{list_id}	
+		</select> -->
+	<select id="selectGrantorChk" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			SELECT COUNT(*) AS CNT
+			  FROM STX_DIS_INFO_LIST_APPROVAL
+			 WHERE LIST_ID = #{list_id}
+				 AND PROCESS_TYPE = '02'
+				 AND CONFIRM_EMP_NO = #{user_id}
+	</select>
+	<select id="selectListApproval" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	 SELECT SUM( 
+				        CASE 
+				                WHEN T1.CONFIRM_FLAG = 'N' 
+				                THEN 1 
+				                ELSE 0 
+				        END )                 AS CNT 
+				      , MAX( T3.LIST_STATUS ) AS LIST_STATUS 
+				      ,( SELECT T2.ATTRIBUTE_01 
+				           FROM STX_DIS_INFO_CODE_LIST T2 
+				          WHERE 1 = 1 
+				            AND 
+				                T2.COMMON_CODE = #{list_type} 
+				            AND 
+				                T2.LIST_TYPE = 'LIST_TYPE' 
+				        ) 
+				        AS ATTRIBUTE_01 
+				   FROM STX_DIS_INFO_LIST_APPROVAL T1 
+				      , STX_DIS_INFO_LIST T3 
+				  WHERE T3.LIST_ID = #{list_id} 
+				    AND 
+				        T1.LIST_ID = T3.LIST_ID 
+					  AND T1.PROCESS_TYPE = '02'  
+				GROUP BY T3.LIST_ID 
+	</select>
+	<select id="getListId" parameterType="java.util.Map" resultType="String">
+	SELECT TO_CHAR(STX_DIS_INFO_LIST_S.NEXTVAL) AS LIST_ID FROM DUAL
+	</select>	
+	<select id="selectDetail" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	
+				 SELECT TO_CHAR(T1.LIST_ID) AS LIST_ID 
+				      , T1.LIST_TYPE 
+				      , T2.COMMON_NAME AS LIST_TYPE_DESC 
+				      , T1.LIST_STATUS 
+				      , T3.COMMON_NAME AS LIST_STATUS_DESC 
+				      , TO_CHAR(T1.REQUEST_DATE,'YYYY-MM-DD') AS REQUEST_DATE 
+						, REQUEST_DESC	
+						, REQUEST_EMP_NO	
+						, T4.USER_NAME	
+					 	, T1.REQUEST_TITLE	
+				   FROM STX_DIS_INFO_LIST T1 
+				      , STX_DIS_INFO_CODE_LIST T2 
+				      , STX_DIS_INFO_CODE_LIST T3 
+						, STX_COM_INSA_USER@STXERP T4 
+				  WHERE T1.LIST_TYPE = T2.COMMON_CODE 
+				    AND 
+				        T2.LIST_TYPE = 'LIST_TYPE' 
+				    AND 
+				        T1.LIST_STATUS = T3.COMMON_CODE 
+				    AND 
+				        T3.LIST_TYPE = 'PROCESS_TYPE' 
+					  AND T1.REQUEST_EMP_NO = T4.EMP_NO	
+				    AND 
+				        T1.LIST_ID = #{list_id} 
+	</select>
+	<select id="selectConfirmList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT	CONFIRM_FLAG	
+			FROM	STX_DIS_INFO_LIST_APPROVAL	
+		 WHERE	LIST_ID = #{list_id}
+			 AND 	CONFIRM_EMP_NO = #{user_id}	
+		 GROUP BY CONFIRM_FLAG	
+	</select>
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+	        <result column="document_name"	 	property="document_name" />
+	        <result column="document_data" 		property="document_data"  javaType="[B" jdbcType="BLOB" />
+	</resultMap> 
+	<select id="itemTransDownload" parameterType="java.util.Map" resultMap="fileMaps">
+		SELECT DOCUMENT_NAME,DOCUMENT_DATA
+			FROM STX_DIS_INFO_DOC
+			WHERE DOCUMENT_ID = #{document_id}	
+	</select>
+	
+</mapper>

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgSearchList">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT t13.*
+	  FROM ( SELECT t12.* 
+	              , floor( ( rownum - 1 ) / #{pageSize} + 1 ) as page
+	           FROM ( SELECT T4.*
+	                       , T5.DESCRIPTION 
+	                       , CASE WHEN T4.TRANS_PLM='Y' THEN 'Release'
+	                              WHEN T4.TRANS_PLM='S' THEN 'Request'
+	                              WHEN T4.TRANS_PLM='R' THEN 'Return'
+	                              ELSE 'Preliminary'
+	                         END AS STATE
+	                       , CASE WHEN T4.TRANS_PLM ='Y' THEN 'N'
+	                              WHEN T4.TRANS_PLM ='S' THEN 'N'
+	                              WHEN T4.TRANS_PLM ='R' AND  DWG_REV &lt; ( SELECT MAX(DWG_REV)
+	                                                                           FROM STX_DWG_DW302TBL@stxerp
+	                                                                          WHERE SHP_NO       = T4.SHP_NO
+	                                                                            AND DWG_NO       = T4.DWG_NO
+	                                                                            AND TRANS_PLM    IN ('Y', 'S')
+	                                                                            AND WORKING_FLAG = T4.WORKING_FLAG
+	                                                                       ) THEN 'N'
+	                              WHEN T4.TRANS_PLM IS NULL AND  DWG_REV &lt; ( SELECT MAX(DWG_REV)
+	                                                                              FROM STX_DWG_DW302TBL@stxerp
+	                                                                             WHERE SHP_NO       = T4.SHP_NO
+	                                                                               AND DWG_NO       = T4.DWG_NO
+	                                                                               AND TRANS_PLM    IN ('Y', 'S')
+	                                                                               AND WORKING_FLAG = T4.WORKING_FLAG
+	                                                                          ) THEN 'N'
+	                              ELSE 'Y'
+	                         END AS IS_YN
+	                    FROM ( SELECT T2.*
+	                                , T3.USER_NAME
+	                             FROM ( SELECT T1.SHP_NO
+	                                         , T1.DWG_NO
+	                                         , T1.DWG_REV
+	                                         , MAX(T1.TRANS_PLM) AS TRANS_PLM
+	                                         , DP.DEPT_CODE      AS DEPT_CODE
+	                                         , T1.WORKING_FLAG
+	                                         , MIN(T1.EMP_NO)   AS EMP_NO
+	                                      FROM STX_DWG_DW302TBL@stxerp                 T1
+	                                         , ( SELECT DA.PROJECTNO AS PROJECT_NO
+	                                                  , SUBSTR(DA.ACTIVITYCODE, 1, 8) AS DWG_NO
+	                                                  , DA.DWGDEPTCODE                AS DEPT_CODE
+	                                               FROM DPM_ACTIVITY@STXDP DA
+	                                              WHERE DA.CASENO      = '1'
+	                                                AND DA.PROJECTNO   = #{shipNo}
+	                                                AND 'S'            = #{p_deptGubun}
+		<if test='dwgNo != null and !dwgNo.equalsIgnoreCase("")'>
+	                                                AND DA.ACTIVITYCODE LIKE #{dwgNo} || '%' || 'DW'
+		</if>
+		<if test='blockNo != null and !blockNo.equalsIgnoreCase("")'>
+	                                                AND DA.ACTIVITYCODE LIKE '%' || #{blockNo} ||'DW'
+		</if>
+		<if test='!GrCode.equalsIgnoreCase("M1")'>
+	                                                AND DA.DWGDEPTCODE = #{dept}
+		</if>
+	                                              UNION ALL
+	                                             SELECT DA.PROJECTNO                AS PROJECT_NO
+	                                                  , SUBSTR(DA.ACTIVITYCODE, 1, 8) AS DWG_NO
+	                                                  , DA.DWGDEPTCODE              AS DEPT_CODE
+	                                               FROM DPM_ACTIVITY@STXDPSP DA
+	                                              WHERE DA.CASENO = '1'
+	                                                AND DA.PROJECTNO    = #{shipNo}
+	                                                AND 'N' = #{p_deptGubun}
+		<if test='dwgNo != null and !dwgNo.equalsIgnoreCase("")'>
+	                                                AND DA.ACTIVITYCODE LIKE #{dwgNo} || '%' || 'DW'
+		</if>
+		<if test='blockNo != null and !blockNo.equalsIgnoreCase("")'>
+	                                                AND DA.ACTIVITYCODE LIKE '%' || #{blockNo} || 'DW'
+		</if>
+		<if test='!GrCode.equalsIgnoreCase("M1")'>
+	                                                AND DA.DWGDEPTCODE  = #{dept}
+		</if>
+	                                           ) DP
+	                                     WHERE T1.SHP_NO = DP.PROJECT_NO
+	                                       AND T1.DWG_NO = DP.DWG_NO
+		<if test='!GrCode.equalsIgnoreCase("M1")'>
+	                                       AND T1.DWG_REV LIKE '%' || #{revNo} || '%'
+		</if>
+	                                     GROUP BY T1.SHP_NO
+	                                            , T1.DWG_NO
+	                                            , T1.DWG_REV
+	                                            , T1.WORKING_FLAG
+	                                            , DP.DEPT_CODE
+	                                  ) T2
+	                                , STX_COM_INSA_USER@stxerp T3
+	                            WHERE T2.EMP_NO = T3.EMP_NO(+)
+	                         ) T4
+	                       , STX_DWG_CATEGORY_MASTERS@stxerp T5
+	                   WHERE SUBSTR(T4.DWG_NO, 1, 5) = T5.DWG_NO_CONCAT
+		<if test='state != null and state.equalsIgnoreCase("YY")'>
+	                     AND T4.TRANS_PLM = 'Y'
+		</if>
+		<if test='state != null and state.equalsIgnoreCase("RR")'>
+	                     AND T4.TRANS_PLM = 'R'
+		</if>
+		<if test='state != null and state.equalsIgnoreCase("SS")'>
+	                     AND T4.TRANS_PLM = 'S'
+		</if>
+		<if test='state != null and state.equalsIgnoreCase("PP")'>
+	                     AND 1 = CASE WHEN ( SELECT MAX(SDW.TRANS_PLM)
+	                                           FROM STX_DWG_DW302TBL@stxerp SDW
+	                                          WHERE SDW.SHP_NO  = T4.SHP_NO
+	                                            AND SDW.DWG_NO  = T4.DWG_NO
+	                                            AND SDW.DWG_REV = T4.DWG_REV
+	                                       ) IS NULL
+	                                  THEN 1
+	                                  ELSE 2
+	                             END
+		</if>
+		<if test='p_description != null and !p_description.equalsIgnoreCase("")'>
+	                     AND T5.DESCRIPTION LIKE '%' || #{p_description} || '%'
+		</if>
+		<if test='p_user_name != null and !p_user_name.equalsIgnoreCase("")'>
+	                     AND T4.USER_NAME LIKE #{p_user_name} || '%'
+		</if>
+		<if test='revNo != null and !revNo.equalsIgnoreCase("")'>
+	                     AND T4.DWG_REV = #{revNo}
+		</if>
+	                   ORDER BY T4.DWG_NO
+	                          , T4.DWG_REV
+				          ) t12
+			   ) t13
+	 WHERE page = #{curPageNo}
+  	</select>
+  	
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(*) AS cnt
+	  FROM ( SELECT T4.*
+	              , T5.DESCRIPTION 
+	              , CASE WHEN T4.TRANS_PLM='Y' THEN 'Release'
+	                     WHEN T4.TRANS_PLM='S' THEN 'Request'
+	                     WHEN T4.TRANS_PLM='R' THEN 'Return'
+	                     ELSE 'Preliminary'
+	                END AS STATE
+	              , CASE WHEN T4.TRANS_PLM ='Y' THEN 'N'
+	                     WHEN T4.TRANS_PLM ='S' THEN 'N'
+	                     WHEN T4.TRANS_PLM ='R' AND  DWG_REV &lt; ( SELECT MAX(DWG_REV)
+	                                                                  FROM STX_DWG_DW302TBL@stxerp
+	                                                                 WHERE SHP_NO       = T4.SHP_NO
+	                                                                   AND DWG_NO       = T4.DWG_NO
+	                                                                   AND TRANS_PLM    IN ('Y', 'S')
+	                                                                   AND WORKING_FLAG = T4.WORKING_FLAG
+	                                                              ) THEN 'N'
+	                     WHEN T4.TRANS_PLM IS NULL AND  DWG_REV &lt; ( SELECT MAX(DWG_REV)
+	                                                                     FROM STX_DWG_DW302TBL@stxerp
+	                                                                    WHERE SHP_NO       = T4.SHP_NO
+	                                                                      AND DWG_NO       = T4.DWG_NO
+	                                                                      AND TRANS_PLM    IN ('Y', 'S')
+	                                                                      AND WORKING_FLAG = T4.WORKING_FLAG
+	                                                                 ) THEN 'N'
+	                     ELSE 'Y'
+	                END AS IS_YN
+	           FROM ( SELECT T2.*
+	                       , T3.USER_NAME
+	                    FROM ( SELECT T1.SHP_NO
+	                                , T1.DWG_NO
+	                                , T1.DWG_REV
+	                                , MAX(T1.TRANS_PLM) AS TRANS_PLM
+	                                , DP.DEPT_CODE      AS DEPT_CODE
+	                                , T1.WORKING_FLAG
+	                                , MIN(T1.EMP_NO)   AS EMP_NO
+	                             FROM STX_DWG_DW302TBL@stxerp                 T1
+	                                , ( SELECT DA.PROJECTNO AS PROJECT_NO
+	                                         , SUBSTR(DA.ACTIVITYCODE, 1, 8) AS DWG_NO
+	                                         , DA.DWGDEPTCODE                AS DEPT_CODE
+	                                      FROM DPM_ACTIVITY@STXDP DA
+	                                     WHERE DA.CASENO      = '1'
+	                                       AND DA.PROJECTNO   = #{shipNo}
+	                                       AND 'S'            = #{p_deptGubun}
+		<if test='dwgNo != null and !dwgNo.equalsIgnoreCase("")'>
+	                                       AND DA.ACTIVITYCODE LIKE #{dwgNo} || '%' || 'DW'
+		</if>
+		<if test='blockNo != null and !blockNo.equalsIgnoreCase("")'>
+	                                       AND DA.ACTIVITYCODE LIKE '%' || #{blockNo} ||'DW'
+		</if>
+		<if test='!GrCode.equalsIgnoreCase("M1")'>
+	                                       AND DA.DWGDEPTCODE = #{dept}
+		</if>
+	                                     UNION ALL
+	                                    SELECT DA.PROJECTNO                AS PROJECT_NO
+	                                         , SUBSTR(DA.ACTIVITYCODE, 1, 8) AS DWG_NO
+	                                         , DA.DWGDEPTCODE              AS DEPT_CODE
+	                                      FROM DPM_ACTIVITY@STXDPSP DA
+	                                     WHERE DA.CASENO = '1'
+	                                       AND DA.PROJECTNO    = #{shipNo}
+	                                       AND 'N' = #{p_deptGubun}
+		<if test='dwgNo != null and !dwgNo.equalsIgnoreCase("")'>
+	                                       AND DA.ACTIVITYCODE LIKE #{dwgNo} || '%' || 'DW'
+		</if>
+		<if test='blockNo != null and !blockNo.equalsIgnoreCase("")'>
+	                                       AND DA.ACTIVITYCODE LIKE '%' || #{blockNo} || 'DW'
+		</if>
+		<if test='!GrCode.equalsIgnoreCase("M1")'>
+	                                       AND DA.DWGDEPTCODE  = #{dept}
+		</if>
+	                                  ) DP
+	                   WHERE T1.SHP_NO = DP.PROJECT_NO
+	                     AND T1.DWG_NO = DP.DWG_NO
+		<if test='!GrCode.equalsIgnoreCase("M1")'>
+	                     AND T1.DWG_REV LIKE '%' || #{revNo} || '%'
+		</if>
+	                   GROUP BY T1.SHP_NO
+	                                   , T1.DWG_NO
+	                                   , T1.DWG_REV
+	                                   , T1.WORKING_FLAG
+	                                   , DP.DEPT_CODE
+	                         ) T2
+	                       , STX_COM_INSA_USER@stxerp T3
+	                  WHERE T2.EMP_NO = T3.EMP_NO(+)
+	                ) T4
+	              , STX_DWG_CATEGORY_MASTERS@stxerp T5
+	          WHERE SUBSTR(T4.DWG_NO, 1, 5) = T5.DWG_NO_CONCAT
+		<if test='state != null and state.equalsIgnoreCase("YY")'>
+	            AND T4.TRANS_PLM = 'Y'
+		</if>
+		<if test='state != null and state.equalsIgnoreCase("RR")'>
+	            AND T4.TRANS_PLM = 'R'
+		</if>
+		<if test='state != null and state.equalsIgnoreCase("SS")'>
+	            AND T4.TRANS_PLM = 'S'
+		</if>
+		<if test='state != null and state.equalsIgnoreCase("PP")'>
+	            AND 1 = CASE WHEN ( SELECT MAX(SDW.TRANS_PLM)
+	                                  FROM STX_DWG_DW302TBL@stxerp SDW
+	                                 WHERE SDW.SHP_NO  = T4.SHP_NO
+	                                   AND SDW.DWG_NO  = T4.DWG_NO
+	                                   AND SDW.DWG_REV = T4.DWG_REV
+	                              ) IS NULL
+	                         THEN 1
+	                         ELSE 2
+	                    END
+		</if>
+		<if test='p_description != null and !p_description.equalsIgnoreCase("")'>
+	            AND T5.DESCRIPTION LIKE '%' || #{p_description} || '%'
+		</if>
+		<if test='p_user_name != null and !p_user_name.equalsIgnoreCase("")'>
+	            AND T4.USER_NAME LIKE #{p_user_name} || '%'
+		</if>
+		<if test='revNo != null and !revNo.equalsIgnoreCase("")'>
+	            AND T4.DWG_REV = #{revNo}
+		</if>
+	       )
+  	</select>
+</mapper>

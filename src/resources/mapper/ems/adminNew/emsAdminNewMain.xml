@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="emsAdminNewMain">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="emsAdminMainList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADMIN_SELECT_PROC (
+					P_CHK_SERIES 		=>  #{p_chk_series},
+					P_DWG_NO 			=>  #{p_dwg_no},
+					P_DWG_DESC 			=>  #{p_dwg_desc}, 
+					P_ITEM_CODE 		=>  #{p_item_code}, 
+					P_DP_DEPT_CODE 		=>  #{p_dp_dept_code}, 
+					P_STATUS 			=>  #{p_status}, 
+					P_PR_NO 			=>  #{p_pr_no}, 
+					P_PO_NO 			=>  #{p_po_no}, 
+					P_SPEC_STATE 		=>  #{p_spec_state}, 
+					P_BOM 				=>  #{p_bom}, 
+					P_CURPAGENO 		=>  #{curPageNo}, 
+					P_PAGESIZE 			=>  #{pageSize}, 
+					P_ERROR_CODE 		=>  #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_ERROR_MSG 		=>  #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT},
+					P_REFER 			=>  #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=emsAdminNewMain.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+	<select id="selectEmsApprovedBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DU.EMP_NO AS SB_VALUE  
+			  ,DU.NAME AS SB_NAME 
+			  ,X.POSITION_NAME AS POSITION_NAME 
+			  ,DW.DWGDEPTNM AS DEPT_NAME 
+			  ,DW.DWGDEPTCODE AS DEPT_CODE 
+		FROM STX_DIS_USER DU 
+			,STX_COM_INSA_USER@STXERP X 
+			,STX_DIS_DEPTCODE DD 
+			,STX_DIS_DWGDEPTCODE DW 
+			WHERE DU.DEPT_CODE = DD.DEPTCODE 
+			AND DD.DWGDEPTCODE = DW.DWGDEPTCODE 
+			AND (DU.AUTHOR_CODE LIKE '%0%' OR DU.AUTHOR_CODE LIKE '%4%') 
+			AND DU.USE_YN = 'Y' 
+			AND DU.EMP_NO = X.EMP_NO 
+			AND X.DEL_DATE IS NULL 
+			AND X.EMP_KIND_CD IN ( '01', '02', '04' ) 
+			AND X.USER_NAME LIKE UPPER( '' ) || '%' 
+			AND DW.DWGDEPTCODE = #{p_dept_code} 
+			ORDER BY X.user_name
+	</select>
+	
+	<select id="emsDwgNoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT DISTINCT SUBSTR(PA.ACTIVITYCODE, 0, 8) AS OBJECT 
+		  FROM DPM_ACTIVITY@STXDP PA 
+		     , LPM_NEWPROJECT@STXDP LN 
+		     , ( SELECT STX_DIS_GET_MASTER_F(#{p_project_no, jdbcType=VARCHAR}) AS MASTER_SHIP FROM DUAL ) A
+		 WHERE 1=1 
+		   AND PA.DWGDEPTCODE        = #{p_dp_dept_code, jdbcType=VARCHAR}
+		   AND PA.PROJECTNO          = LN.PROJECTNO 
+		   AND PA.WORKTYPE           = 'DW' 
+		   AND LN.CASENO             = '1' 
+		   AND LN.CASENO             = PA.CASENO
+		   AND LN.DWGSERIESPROJECTNO   = A.MASTER_SHIP
+		 ORDER BY OBJECT
+	</select>
+	
+	<resultMap id="fileMaps"  type="java.util.HashMap" >
+		<result column="file_name"	 	property="file_name" />
+		<result column="file_blob" 		property="file_blob"  javaType="[B" jdbcType="BLOB" />
+	</resultMap> 
+	
+	<select id="posDownloadFile" parameterType="java.util.Map" resultMap="fileMaps" >    
+		SELECT FILE_NAME
+		      ,FILE_BLOB      
+		  FROM STX_PO_EPMS_FILE             
+		 WHERE 1=1                       
+		   AND FILE_ID = #{p_file_id}         
+	</select> 
+	
+	<select id="selectPosChk" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT SDI.PROJECT_NO 
+			  ,SUBSTR(PA.ACTIVITYCODE, 1,8) AS DWG_NO 
+		FROM DPM_ACTIVITY@STXDP PA 
+			,( 
+				SELECT SDI.REPRESENTATIVE_PRO_NUM AS PROJECT_NO 
+				FROM STX_DIS_PROJECT@STXDIS SDI 
+				WHERE SDI.PROJECT_NO = #{p_project_no} 
+				AND SDI.ENABLE_FLAG = 'Y' 
+			 ) SDI 
+		WHERE 1 = 1 
+		AND PA.PROJECTNO = SDI.PROJECT_NO 
+		AND PA.CASENO = '1' 
+		AND PA.WORKTYPE = 'DW' 
+		AND PA.ACTIVITYCODE = #{p_dwg_no} ||'DW' 
+		AND PA.DWGDEPTCODE = #{p_dept_code}
+	</select>
+	
+	<insert id="emsAdminDeleteTempProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADMIN_TEMP_DELETE_PROC
+					(	
+						P_WORK_KEY	 		=> #{p_work_key			},
+						P_ERROR_CODE 		=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}, 
+						P_ERROR_MSG 		=> #{p_error_msg,        jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+					)}
+	</insert>
+	
+	<insert id="emsAdminInsertTempProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADMIN_TEMP_INSERT_PROC
+					(	
+						P_WORK_KEY	 		=> #{p_work_key			},
+						P_EMS_PUR_NO 		=> #{ems_pur_no			},
+						P_ERROR_CODE 		=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}, 
+						P_ERROR_MSG 		=> #{p_error_msg,        jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+					)}
+	</insert>
+	
+	<insert id="emsAdminConfrimNReturnProc" statementType="CALLABLE" parameterType="java.util.Map">
+			{CALL STX_EMS_PURCHASING_PKG.EMS_ADMIN_CONFIRM_PROC
+					(	
+						P_WORK_KEY	 		=> #{p_work_key			},
+						P_RESULT_FLAG 		=> #{p_result_flag		},
+						P_USER_ID 			=> #{p_user_id			}, 
+						P_ERROR_CODE 		=> #{p_error_code,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}, 
+						P_ERROR_MSG 		=> #{p_error_msg,        jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			)}
+	</insert>
+</mapper>

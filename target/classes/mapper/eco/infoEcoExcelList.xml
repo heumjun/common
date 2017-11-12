@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoEcoExcelList">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 
+		  SELECT SDECO.ENG_CHANGE_ORDER_CODE                              AS MAIN_NAME
+			      ,SDECO.ENG_CHANGE_ORDER_DESC                              AS MAIN_DESCRIPTION
+			      ,(SELECT MAX(R.ENG_CHANGE_REQ_CODE)      
+		           FROM STX_DIS_ENG_REL        T
+		               ,STX_DIS_ENG_CHANGE_REQ R
+		          WHERE T.MAIN_CODE   = SDECO.ENG_CHANGE_ORDER_CODE
+		            AND T.SUB_CODE    = R.ENG_CHANGE_REQ_CODE
+		            AND T.ENG_TYPE    = 'ECR'
+		         )                                                       AS ENG_CHANGE_NAME
+		       ,SDSC.SD_DESC                                             AS COUSE_DESC
+		       ,DECODE(SDECO.PERMANENT_TEMPORARY_FLAG,5,'영구',7,'잠정') AS PERMANENT_TEMPORARY_FLAG
+		       ,SDECO.ENG_ECO_PROJECT                                    AS ENG_ECO_PROJECT 
+		       ,STX_DIS_SHORT_EMP_NAME_F(SDECO.DESIGN_ENGINEER)          AS DESIGN_ENGINEER
+		       ,STX_DIS_SHORT_EMP_NAME_F(SDECO.MANUFACTURING_ENGINEER)   AS MANUFACTURING_ENGINEER
+		   FROM STX_DIS_ENG_CHANGE_ORDER SDECO
+		       ,STX_DIS_SD_CODE          SDSC
+			     ,STX_COM_INSA_USER@STXERP SCIU
+		  WHERE SDECO.ENG_CHANGE_ORDER_CAUSE = SDSC.SD_CODE
+		    AND SDSC.SD_TYPE                 = 'CAUSE'
+			  AND SDECO.CREATE_BY              = SCIU.EMP_NO
+	     <if test="main_name != null and main_name !='' ">
+				and SDECO.ENG_CHANGE_ORDER_CODE like #{main_name}||'%'
+		 </if>
+		 <if test="created_by != null and created_by !='' ">
+		 		and SDECO.create_by = #{created_by}
+		</if>
+		<if test="user_group != null and user_group !='' ">
+				and SCIU.DEPT_CODE  = #{user_group}
+		</if>	
+		<if test="created_date_start != null and created_date_start !='' "> 
+		<![CDATA[
+				 AND SDECO.create_date >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+		]]>
+		</if>		
+		<if test="created_date_end != null and created_date_end !='' "> 
+		<![CDATA[
+				 AND SDECO.create_date <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+		]]>
+		</if>
+		         ORDER BY SDECO.create_date DESC
+ 	 				 
+  	</select>
+  	
+</mapper>

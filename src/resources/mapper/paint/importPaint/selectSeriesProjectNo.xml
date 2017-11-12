@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectSeriesProjectNo">
+
+  	<select id="selectSeriesProjectNo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select project_no, PIS_REPRESENTATIVE_PRO_NUM as delegate_project_no ,(select DECODE(COUNT(*),0
+											,decode(t1.PIS_REPRESENTATIVE_PRO_NUM,#{project_no},'NO','PLAN')
+											,decode(t1.project_no,#{project_no},'ME','PLAN'))
+									          from stx_dis_pis_plan a
+									          where a.project_no = t1.project_no) as planFlag
+  	  from stx_dis_project t1
+ 	 where t1.PIS_REPRESENTATIVE_PRO_NUM in (
+                                    	select PIS_REPRESENTATIVE_PRO_NUM 
+                                      	  from stx_dis_project
+                                     	  where project_no = #{project_no}
+                                     )
+ 	 order by t1.project_no                                
+
+  	</select>
+
+</mapper>

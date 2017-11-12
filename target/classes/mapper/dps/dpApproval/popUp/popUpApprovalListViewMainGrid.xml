@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpApprovalListViewMainGrid">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT WORK_DAY,
+		       CASE
+		         WHEN ISWORKDAY = 'N' THEN (
+		                       CASE
+		                         WHEN PART_INPUT_EMP_COUNT = 0 THEN '-'
+		                         WHEN CONFIRM_NO_COUNT = 0 THEN 'Y'
+		                         ELSE 'N'
+		                       END )
+		         ELSE (
+		                       CASE
+		                         WHEN CONFIRM_NO_COUNT = 0
+		        AND    PART_EMP_COUNT = PART_INPUT_EMP_COUNT THEN 'Y'
+		                         ELSE 'N'
+		                       END )
+		       END AS CONFIRM_YN
+		FROM   (SELECT TO_CHAR(WORKINGDAY, 'YYYY-MM-DD') AS WORK_DAY,
+		               ISWORKDAY,
+		               CONFIRM_NO_COUNT,
+		               (SELECT COUNT(*)
+		                FROM   CCC_SAWON
+		                WHERE  1= 1
+		                AND    TERMINATION_DATE IS NULL
+		                AND    INPUT_MAN_HOUR_ENABLED = 'Y'
+		                AND    DEPT_CODE = #{dept_code} ) AS PART_EMP_COUNT,
+		               (SELECT COUNT(DISTINCT EMPLOYEE_NO)
+		                FROM   PLM_DESIGN_MH C
+		                WHERE  C.WORK_DAY = WORKINGDAY
+		                AND    DEPT_CODE = #{dept_code} ) AS PART_INPUT_EMP_COUNT
+		        FROM   (SELECT B.WORKINGDAY,
+		                       B.ISWORKDAY,
+		                       A.CONFIRM_NO_COUNT
+		                FROM   (SELECT B.WORK_DAY,
+		                               SUM(DECODE(B.CONFIRM_YN, 'N', 1, 0)) AS CONFIRM_NO_COUNT
+		                        FROM   CCC_SAWON A,
+		                               PLM_DESIGN_MH B
+		                        WHERE  A.EMPLOYEE_NUM = B.EMPLOYEE_NO
+		                        AND    A.DEPT_CODE = #{dept_code}
+		                        AND    B.WORK_DAY >= TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')
+		                        AND    B.WORK_DAY &lt;= TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		                        GROUP BY B.WORK_DAY ) A,
+		                       CCC_CALENDAR B
+		                WHERE  1 = 1
+		                AND    B.WORKINGDAY >= TO_DATE(#{dateSelected_from}, 'YYYY-MM-DD')
+		                AND    B.WORKINGDAY &lt;= TO_DATE(#{dateSelected_to}, 'YYYY-MM-DD')
+		                AND    B.WORKINGDAY = A.WORK_DAY(+) ) )
+		ORDER BY WORK_DAY  
+	</select>
+</mapper>

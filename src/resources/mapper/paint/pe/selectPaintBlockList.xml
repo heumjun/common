@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="selectPaintBlockList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select t1.block_code
+          ,row_number() over(order by block_code) as num
+      from 
+          ( 
+            select distinct a.block_code                     
+              from stx_dis_pis_block a
+             where a.project_no = #{project_no}
+               and a.revision   = #{revision}
+               and not exists (select '0'
+					             from stx_dis_pis_pe
+					            where project_no = a.project_no
+					              and revision   = a.revision
+					              and block_code = a.block_code)
+			                  
+				<if test="blockCodeForm != null and blockCodeForm !='' ">
+				and a.block_code <![CDATA[>=]]>  #{blockCodeForm} 
+			    </if>
+				 
+				<if test="blockCodeTo != null and blockCodeTo !='' ">
+				and a.block_code <![CDATA[<=]]>  #{blockCodeTo} 
+				</if>
+	 
+	      ) t1 
+  	</select>
+
+</mapper>

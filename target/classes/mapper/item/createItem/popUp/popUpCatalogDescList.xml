@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpCatalogDescList">
+    <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select t2.*
+	  from (  
+	        select t1.* 
+	              ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+	          from
+	              ( 
+				  	select ca.catalog_desc  as catalog_desc
+					      ,ca.catalog_code  as catalog_code
+					  from stx_dis_sd_catalog     ca
+					      ,stx_dis_sd_category    cg
+					      ,stx_dis_sd_part_family pf
+					 where ca.category_id      = cg.category_id(+)
+					   and ca.part_family_code = pf.part_family_code(+)
+					   and pf.enable_flag      = 'Y'
+					   and cg.enable_flag      = 'Y'
+					   and ca.enable_flag      = 'Y'
+					   and ca.catalog_desc 	   like #{p_code_find} 		|| '%'
+					   and pf.part_family_code like #{part_family_code} || '%'
+					   and cg.category_code1   like substr(#{cost_category_code},1,1) || '%'
+					   and cg.category_code2   like substr(#{cost_category_code},3,1) || '%'
+					   and to_char(ca.category_id) like to_char(#{inv_category_id})   || '%'
+					 order by  ca.catalog_desc
+	       			) t1
+	       ) t2
+	 where page = #{curPageNo}  					 
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+  	select count(*) as cnt
+	  from stx_dis_sd_catalog     ca
+	      ,stx_dis_sd_category    cg
+	      ,stx_dis_sd_part_family pf
+	 where ca.category_id      = cg.category_id(+)
+	   and ca.part_family_code = pf.part_family_code(+)
+	   and pf.enable_flag      = 'Y'
+	   and cg.enable_flag      = 'Y'
+	   and ca.enable_flag      = 'Y'
+	   and ca.catalog_desc 	   like #{p_code_find} 		|| '%'
+	   and pf.part_family_code like #{part_family_code} || '%'
+	   and cg.category_code1   like substr(#{cost_category_code},1,1) || '%'
+	   and cg.category_code2   like substr(#{cost_category_code},3,1) || '%'
+	   and to_char(ca.category_id) like to_char(#{inv_category_id})   || '%'				 
+  	</select>
+</mapper>

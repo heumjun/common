@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoEcoNewPartsList">
+
+   <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+   SELECT T2.*
+           FROM (SELECT T1.*
+                       ,FLOOR((ROWNUM - 1) / #{pageSize} + 1) AS PAGE
+                  FROM (SELECT /*+ LEADING(BOM_LIST) USE_NL(BOM_LIST SDI SDM) */
+                                BOM_LIST.PROJECT_NO  AS PROJECT_NO
+                               ,BOM_LIST.MOTHER_CODE AS MOTHER_CODE
+                               ,BOM_LIST.ITEM_CODE   AS ITEM_CODE
+                               ,BOM_LIST.BOM_QTY     AS BOM_QTY
+                               ,SDI.UOM              AS UOM
+                               ,SDI.ITEM_DESC        AS MAIN_DESCRIPTION
+                               ,SDSC.SD_DESC         AS STATES_DESC
+                               ,CASE WHEN BOM_LIST.STATES = 'A' THEN '추가'
+                                     WHEN BOM_LIST.STATES = 'C' THEN '수정'
+                                     WHEN BOM_LIST.STATES = 'D' THEN '삭제'
+                                END                                         AS ACD_DESC
+                              ,TO_CHAR(BOM_LIST.CREATE_DATE, 'YYYY-MM-DD') AS MODIFY_DATE
+                           FROM (
+                                 
+                                 SELECT SDP.PROJECT_NO  AS PROJECT_NO
+                                       ,SDP.JOB_CD      AS MOTHER_CODE
+                                       ,SDP.MOTHER_CODE AS ITEM_CODE
+                                       ,1               AS BOM_QTY
+                                       ,SDP.STATE_FLAG  AS STATES
+                                       ,SDP.ECO_NO      AS ECO_NO
+                                       ,SDP.CREATE_DATE AS CREATE_DATE
+                                   FROM STX_DIS_PENDING_WORK SDP
+                                  WHERE SDP.ECO_NO = #{eco_no}
+                                    AND NOT EXISTS
+                                        (SELECT /*+ INDEX(SDPA_SUB STX_DIS_PENDING_ACT_N2) */
+                                                 1
+                                           FROM STX_DIS_PENDING_ACT SDPA_SUB
+                                          WHERE SDPA_SUB.JOB_CD      = SDP.JOB_CD
+                                            AND SDPA_SUB.MOTHER_CODE = SDP.MOTHER_CODE
+                                            AND SDPA_SUB.PROJECT_NO  = SDP.PROJECT_NO
+                                            AND SDPA_SUB.ECO_NO      = SDP.ECO_NO
+                                            AND ROWNUM=1
+                                        )
+                                 UNION ALL
+                                 SELECT /*+ INDEX(SDPA STX_DIS_PENDING_ACT_U1) */
+                                        SDPA.PROJECT_NO  AS PROJECT_NO
+                                       ,SDPA.JOB_CD      AS MOTHER_CODE
+                                       ,SDPA.MOTHER_CODE AS ITEM_CODE
+                                       ,1               AS BOM_QTY
+                                       ,SDPA.STATE_FLAG  AS STATES
+                                       ,SDPA.ECO_NO      AS ECO_NO
+                                       ,SDPA.CREATE_DATE AS CREATE_DATE
+                                   FROM STX_DIS_PENDING_ACT SDPA
+                                  WHERE SDPA.ECO_NO = #{eco_no}
+                                 UNION ALL
+                                 SELECT SDSH.PROJECT_NO  AS PROJECT_NO
+                                       ,SDSH.MOTHER_CODE AS MOTHER_CODE
+                                       ,SDSH.ITEM_CODE   AS ITEM_CODE
+                                       ,SDSH.BOM_QTY     AS BOM_QTY
+                                       ,SDSH.STATE_FLAG  AS STATES
+                                       ,SDSH.ECO_NO      AS ECO_NO
+                                       ,SDSH.CREATE_DATE AS CREATE_DATE
+                                   FROM STX_DIS_SSC_HEAD_WORK SDSH
+                                  WHERE SDSH.ECO_NO = #{eco_no}
+                                    AND NOT EXISTS
+                                        (SELECT /*+ INDEX(SDSHA_SUB STX_DIS_SSC_HEAD_ACT_N5)*/
+                                                1
+                                           FROM STX_DIS_SSC_HEAD_ACT SDSHA_SUB
+                                          WHERE SDSHA_SUB.PROJECT_NO  = SDSH.PROJECT_NO
+                                            AND SDSHA_SUB.MOTHER_CODE = SDSH.MOTHER_CODE
+                                            AND SDSHA_SUB.ITEM_CODE   = SDSH.ITEM_CODE
+                                            AND SDSHA_SUB.ECO_NO = SDSH.ECO_NO
+                                            AND ROWNUM=1
+                                        )
+                                 UNION ALL
+                                 SELECT /*+ INDEX(SDSHA STX_DIS_SSC_HEAD_ACT_N1)*/
+                                        SDSHA.PROJECT_NO  AS PROJECT_NO
+                                       ,SDSHA.MOTHER_CODE AS MOTHER_CODE
+                                       ,SDSHA.ITEM_CODE   AS ITEM_CODE
+                                       ,SDSHA.BOM_QTY     AS BOM_QTY
+                                       ,SDSHA.STATE_FLAG  AS STATES
+                                       ,SDSHA.ECO_NO      AS ECO_NO
+                                       ,SDSHA.CREATE_DATE AS CREATE_DATE
+                                   FROM STX_DIS_SSC_HEAD_ACT SDSHA
+                                  WHERE SDSHA.ECO_NO = #{eco_no}
+                                 UNION ALL
+                                  SELECT DUBW.PROJECT_NO  AS PROJECT_NO
+                                        ,DUBW.MOTHER_CODE AS MOTHER_CODE
+                                        ,DUBW.ITEM_CODE   AS ITEM_CODE
+                                        ,DUBW.QTY         AS BOM_QTY
+                                        ,DUBW.STATE_FLAG  AS STATES
+                                        ,DUBW.ECO_NO      AS ECO_NO
+                                        ,DUBW.CREATE_DATE AS CREATE_DATE
+                                  FROM   STX_DIS_USC_BOM_WORK DUBW
+                                  WHERE  DUBW.ECO_NO = #{eco_no}
+                                  AND    NOT EXISTS (
+                                                       SELECT 1
+                                                       FROM   STX_DIS_USC_BOM_ACTION DUBA
+                                                       WHERE  DUBA.PROJECT_NO  = DUBW.PROJECT_NO
+                                                       AND    DUBA.MOTHER_CODE = DUBW.MOTHER_CODE
+                                                       AND    DUBA.ITEM_CODE   = DUBW.ITEM_CODE
+                                                       AND    DUBA.ECO_NO      = DUBW.ECO_NO
+                                                    )
+                                  UNION ALL
+                                  SELECT DUBA.PROJECT_NO  AS PROJECT_NO
+                                        ,DUBA.MOTHER_CODE AS MOTHER_CODE
+                                        ,DUBA.ITEM_CODE   AS ITEM_CODE
+                                        ,DUBA.QTY         AS BOM_QTY
+                                        ,DUBA.STATE_FLAG  AS STATES
+                                        ,DUBA.ECO_NO      AS ECO_NO
+                                        ,DUBA.CREATE_DATE AS CREATE_DATE
+                                  FROM   STX_DIS_USC_BOM_ACTION DUBA
+                                  WHERE  DUBA.ECO_NO = #{eco_no}
+                                  UNION ALL
+                                  SELECT DUBW.PROJECT_NO  AS PROJECT_NO
+                                        ,DUBW.MOTHER_CODE AS MOTHER_CODE
+                                        ,DUBW.ITEM_CODE   AS ITEM_CODE
+                                        ,DUBW.BOM_QTY     AS BOM_QTY
+                                        ,DUBW.STATE_FLAG  AS STATES
+                                        ,DUBW.ECO_NO      AS ECO_NO
+                                        ,DUBW.CREATE_DATE AS CREATE_DATE
+                                  FROM   STX_DIS_RAWLEVEL_WORK DUBW
+                                  WHERE  DUBW.ECO_NO = #{eco_no}
+                                  AND    NOT EXISTS (
+                                                       SELECT 1
+                                                       FROM   STX_DIS_RAWLEVEL_ACT DUBA
+                                                       WHERE  DUBA.PROJECT_NO  = DUBW.PROJECT_NO
+                                                       AND    DUBA.MOTHER_CODE = DUBW.MOTHER_CODE
+                                                       AND    DUBA.ITEM_CODE   = DUBW.ITEM_CODE
+                                                       AND    DUBA.ECO_NO      = DUBW.ECO_NO
+                                                    )
+                                  UNION ALL
+                                  SELECT DUBA.PROJECT_NO  AS PROJECT_NO
+                                        ,DUBA.MOTHER_CODE AS MOTHER_CODE
+                                        ,DUBA.ITEM_CODE   AS ITEM_CODE
+                                        ,DUBA.BOM_QTY     AS BOM_QTY
+                                        ,DUBA.STATE_FLAG  AS STATES
+                                        ,DUBA.ECO_NO      AS ECO_NO
+                                        ,DUBA.CREATE_DATE AS CREATE_DATE
+                                  FROM   STX_DIS_RAWLEVEL_ACT DUBA
+                                  WHERE  DUBA.ECO_NO = #{eco_no}
+                          ) BOM_LIST 
+                       ,STX_DIS_ITEM              SDI
+                       ,STX_DIS_ENG_CHANGE_ORDER  SDECO
+                       ,STX_DIS_SD_CODE           SDSC
+                  WHERE BOM_LIST.ITEM_CODE = SDI.ITEM_CODE
+                    AND BOM_LIST.ECO_NO    = SDECO.ENG_CHANGE_ORDER_CODE
+                    AND SDECO.STATES_CODE  = SDSC.SD_CODE
+                    AND SDSC.SD_TYPE       = 'ECO_STATES'
+                  ORDER BY BOM_LIST.PROJECT_NO
+                          ,BOM_LIST.MOTHER_CODE
+                          ,BOM_LIST.ITEM_CODE
+                ) T1
+       ) T2
+   WHERE PAGE = #{curPageNo}
+   </select>
+   
+   
+ <select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+   SELECT COUNT(*) AS CNT
+    FROM (
+        
+            SELECT /*+ LEADING(BOM_LIST) USE_NL(BOM_LIST SDI SDM) */
+                      BOM_LIST.PROJECT_NO  AS PROJECT_NO
+                     ,BOM_LIST.MOTHER_CODE AS MOTHER_CODE
+                     ,BOM_LIST.ITEM_CODE   AS ITEM_CODE
+                     ,BOM_LIST.BOM_QTY     AS BOM_QTY
+                     ,SDI.UOM              AS UOM
+                     ,SDI.ITEM_DESC        AS MAIN_DESCRIPTION
+                     ,SDSC.SD_DESC         AS STATES_DESC
+                     ,CASE WHEN BOM_LIST.STATES = 'A' THEN '추가'
+                           WHEN BOM_LIST.STATES = 'C' THEN '수정'
+                           WHEN BOM_LIST.STATES = 'D' THEN '삭제'
+                      END                                         AS ACD_DESC
+                    ,TO_CHAR(BOM_LIST.CREATE_DATE, 'YYYY-MM-DD') AS MODIFY_DATE
+                 FROM (
+                       
+                       SELECT SDP.PROJECT_NO  AS PROJECT_NO
+                             ,SDP.JOB_CD      AS MOTHER_CODE
+                             ,SDP.MOTHER_CODE AS ITEM_CODE
+                             ,1               AS BOM_QTY
+                             ,SDP.STATE_FLAG  AS STATES
+                             ,SDP.ECO_NO      AS ECO_NO
+                             ,SDP.CREATE_DATE AS CREATE_DATE
+                         FROM STX_DIS_PENDING_WORK SDP
+                        WHERE SDP.ECO_NO = #{eco_no}
+                          AND NOT EXISTS
+                              (SELECT /*+ INDEX(SDPA_SUB STX_DIS_PENDING_ACT_N2) */
+                                       1
+                                 FROM STX_DIS_PENDING_ACT SDPA_SUB
+                                WHERE SDPA_SUB.JOB_CD      = SDP.JOB_CD
+                                  AND SDPA_SUB.MOTHER_CODE = SDP.MOTHER_CODE
+                                  AND SDPA_SUB.PROJECT_NO  = SDP.PROJECT_NO
+                                  AND SDPA_SUB.ECO_NO      = SDP.ECO_NO
+                                  AND ROWNUM=1
+                              )
+                       UNION ALL
+                       SELECT /*+ INDEX(SDPA STX_DIS_PENDING_ACT_U1) */
+                              SDPA.PROJECT_NO  AS PROJECT_NO
+                             ,SDPA.JOB_CD      AS MOTHER_CODE
+                             ,SDPA.MOTHER_CODE AS ITEM_CODE
+                            ,1               AS BOM_QTY
+                             ,SDPA.STATE_FLAG  AS STATES
+                             ,SDPA.ECO_NO      AS ECO_NO
+                             ,SDPA.CREATE_DATE AS CREATE_DATE
+                         FROM STX_DIS_PENDING_ACT SDPA
+                        WHERE SDPA.ECO_NO = #{eco_no}
+                       UNION ALL
+                       SELECT SDSH.PROJECT_NO  AS PROJECT_NO
+                             ,SDSH.MOTHER_CODE AS MOTHER_CODE
+                             ,SDSH.ITEM_CODE   AS ITEM_CODE
+                             ,SDSH.BOM_QTY     AS BOM_QTY
+                             ,SDSH.STATE_FLAG  AS STATES
+                             ,SDSH.ECO_NO      AS ECO_NO
+                             ,SDSH.CREATE_DATE AS CREATE_DATE
+                         FROM STX_DIS_SSC_HEAD_WORK SDSH
+                        WHERE SDSH.ECO_NO = #{eco_no}
+                          AND NOT EXISTS
+                              (SELECT /*+ INDEX(SDSHA_SUB STX_DIS_SSC_HEAD_ACT_N5)*/
+                                      1
+                                 FROM STX_DIS_SSC_HEAD_ACT SDSHA_SUB
+                                WHERE SDSHA_SUB.PROJECT_NO  = SDSH.PROJECT_NO
+                                  AND SDSHA_SUB.MOTHER_CODE = SDSH.MOTHER_CODE
+                                  AND SDSHA_SUB.ITEM_CODE   = SDSH.ITEM_CODE
+                                  AND SDSHA_SUB.ECO_NO = SDSH.ECO_NO
+                                  AND ROWNUM=1
+                              )
+                       UNION ALL
+                       SELECT /*+ INDEX(SDSHA STX_DIS_SSC_HEAD_ACT_N1)*/
+                              SDSHA.PROJECT_NO  AS PROJECT_NO
+                             ,SDSHA.MOTHER_CODE AS MOTHER_CODE
+                             ,SDSHA.ITEM_CODE   AS ITEM_CODE
+                             ,SDSHA.BOM_QTY     AS BOM_QTY
+                             ,SDSHA.STATE_FLAG  AS STATES
+                             ,SDSHA.ECO_NO      AS ECO_NO
+                             ,SDSHA.CREATE_DATE AS CREATE_DATE
+                         FROM STX_DIS_SSC_HEAD_ACT SDSHA
+                        WHERE SDSHA.ECO_NO = #{eco_no}
+                       UNION ALL
+                        SELECT DUBW.PROJECT_NO  AS PROJECT_NO
+                              ,DUBW.MOTHER_CODE AS MOTHER_CODE
+                              ,DUBW.ITEM_CODE   AS ITEM_CODE
+                              ,DUBW.QTY         AS BOM_QTY
+                              ,DUBW.STATE_FLAG  AS STATES
+                              ,DUBW.ECO_NO      AS ECO_NO
+                              ,DUBW.CREATE_DATE AS CREATE_DATE
+                        FROM   STX_DIS_USC_BOM_WORK DUBW
+                        WHERE  DUBW.ECO_NO = #{eco_no}
+                        AND    NOT EXISTS (
+                                             SELECT 1
+                                             FROM   STX_DIS_USC_BOM_ACTION DUBA
+                                             WHERE  DUBA.PROJECT_NO  = DUBW.PROJECT_NO
+                                             AND    DUBA.MOTHER_CODE = DUBW.MOTHER_CODE
+                                             AND    DUBA.ITEM_CODE   = DUBW.ITEM_CODE
+                                             AND    DUBA.ECO_NO      = DUBW.ECO_NO
+                                          )
+                        UNION ALL
+                        SELECT DUBA.PROJECT_NO  AS PROJECT_NO
+                              ,DUBA.MOTHER_CODE AS MOTHER_CODE
+                              ,DUBA.ITEM_CODE   AS ITEM_CODE
+                              ,DUBA.QTY         AS BOM_QTY
+                              ,DUBA.STATE_FLAG  AS STATES
+                              ,DUBA.ECO_NO      AS ECO_NO
+                              ,DUBA.CREATE_DATE AS CREATE_DATE
+                        FROM   STX_DIS_USC_BOM_ACTION DUBA
+                        WHERE  DUBA.ECO_NO = #{eco_no}
+                        UNION ALL
+                        SELECT DUBW.PROJECT_NO  AS PROJECT_NO
+                              ,DUBW.MOTHER_CODE AS MOTHER_CODE
+                              ,DUBW.ITEM_CODE   AS ITEM_CODE
+                              ,DUBW.BOM_QTY     AS BOM_QTY
+                              ,DUBW.STATE_FLAG  AS STATES
+                              ,DUBW.ECO_NO      AS ECO_NO
+                              ,DUBW.CREATE_DATE AS CREATE_DATE
+                        FROM   STX_DIS_RAWLEVEL_WORK DUBW
+                        WHERE  DUBW.ECO_NO = #{eco_no}
+                        AND    NOT EXISTS (
+                                             SELECT 1
+                                             FROM   STX_DIS_RAWLEVEL_ACT DUBA
+                                             WHERE  DUBA.PROJECT_NO  = DUBW.PROJECT_NO
+                                             AND    DUBA.MOTHER_CODE = DUBW.MOTHER_CODE
+                                             AND    DUBA.ITEM_CODE   = DUBW.ITEM_CODE
+                                             AND    DUBA.ECO_NO      = DUBW.ECO_NO
+                                          )
+                        UNION ALL
+                        SELECT DUBA.PROJECT_NO  AS PROJECT_NO
+                              ,DUBA.MOTHER_CODE AS MOTHER_CODE
+                              ,DUBA.ITEM_CODE   AS ITEM_CODE
+                              ,DUBA.BOM_QTY     AS BOM_QTY
+                              ,DUBA.STATE_FLAG  AS STATES
+                              ,DUBA.ECO_NO      AS ECO_NO
+                              ,DUBA.CREATE_DATE AS CREATE_DATE
+                        FROM   STX_DIS_RAWLEVEL_ACT DUBA
+                        WHERE  DUBA.ECO_NO = #{eco_no}
+                ) BOM_LIST 
+             ,STX_DIS_ITEM              SDI
+             ,STX_DIS_ENG_CHANGE_ORDER  SDECO
+             ,STX_DIS_SD_CODE           SDSC
+        WHERE BOM_LIST.ITEM_CODE = SDI.ITEM_CODE
+          AND BOM_LIST.ECO_NO    = SDECO.ENG_CHANGE_ORDER_CODE
+          AND SDECO.STATES_CODE  = SDSC.SD_CODE
+          AND SDSC.SD_TYPE       = 'ECO_STATES' 
+        )
+   </select>
+
+  	
+</mapper>

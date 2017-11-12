@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PaintPlan">
+  
+
+  	<!-- savePaintPlan.xml로 이관 -->
+  	<!--  <select id="selectExistPlanCnt" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt 
+	   from stx_dis_pis_plan
+	  where 1=1 
+	    and project_no = #{project_no}
+	    and state      is null 	  
+	</select>  --> 
+	
+	<!--  paintPlanProjectNoCheck.xml로 이관 -->
+	<!--  <select id="selectPaintPlanProjectNoCheck" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT (CASE WHEN (SELECT SDPP_SUB.REVISION
+	                     FROM STX_DIS_PIS_PLAN SDPP_SUB
+	                    WHERE SDPP_SUB.PROJECT_NO = SDPP.PROJECT_NO
+	                      AND SDPP_SUB.REVISION > SDPP.REVISION) IS NULL
+	             THEN 'Y'
+	             ELSE 'N'
+	        END)                                               AS LAST_REVISION_YN 
+	      ,SDPP.STATE                                          AS STATE
+	      ,(SELECT COUNT(1)
+	          FROM STX_DIS_PAINT_BOM_IF_HEAD SDPBIH
+	         WHERE SDPBIH.PROJECT_NO = SDPP.PROJECT_NO
+	           AND SDPBIH.REVISION   = SDPP.REVISION
+	           AND SDPBIH.STATES_FLAG = '04')                  AS PLAN_RELEASE_CNT
+	  FROM STX_DIS_PIS_PLAN SDPP
+	 WHERE PROJECT_NO = #{project_no}
+	   AND REVISION   = #{revision}
+  	</select>-->
+	
+	<!-- savePaintPlan.xml로 이관 -->
+	<!--  <insert id="insertPaintPlan" parameterType="java.util.Map">
+	insert into stx_dis_pis_plan
+	   (
+	     project_no
+		,revision
+		,description
+	    ,state
+	    ,created_by        
+	    ,creation_date
+	    ,last_updated_by
+	    ,last_update_date    
+	   )
+	   values
+	   (
+	    #{project_no}
+	   ,STX_DIS_PAINTPLAN_REVISION_F(#{project_no})
+	   ,#{description}
+	   ,null
+	   ,-1
+	   ,sysdate
+	   ,-1
+	   ,sysdate     
+	   )
+	</insert>-->
+	
+	<!-- savePaintPlan.xml로 이관 -->
+	<!--  <update id="updatePaintPlan">
+	update stx_dis_pis_plan
+	   set description		= #{description}
+	      ,last_updated_by  = -1
+	      ,last_update_date = sysdate
+	 where 1=1 
+	   and project_no = #{project_no}
+	   and revision   = #{revision} 
+	</update>-->
+		
+	<select id="selectPlanExport" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t1.plan_code
+		  ,t1.area_code
+		  ,t1.area
+		  ,t1.pre_loss
+		  ,t1.post_loss    
+	  from stx_dis_pis_plan
+	  from stx_dis_pis_plan t1
+		  ,stx_dis_pis_area  t2
+	  where 1=1
+	    and t1.project_no = #{project_no}    
+	    and t1.area_code  = t2.area_code(+)
+	
+	  <if test="planCodeForm != null and planCodeForm !='' ">
+	    and t1.plan_code <![CDATA[>=]]>  #{planCodeForm} 
+	  </if>	 
+	  <if test="planCodeTo != null and planCodeTo !='' ">
+	    and t1.plan_code <![CDATA[<=]]>  #{planCodeTo} 
+	  </if>
+	 order by t1.plan_code, t1.area_code  
+	</select>
+	
+	<!--  paint_plan_rev_add.xml 로 이관 -->
+	<!--  
+	<select id="savePlanRevAdd"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_plan_rev_add_proc(p_project_no => #{p_project_no},
+                                                     p_revision => #{p_revision},
+                                                     p_login_id => #{p_login_id},
+                                                     p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                     p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+  	</select>-->
+</mapper>  	

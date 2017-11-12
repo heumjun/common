@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpApprovalPersonDetailOceanMainGrid">
+	<select id="list" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PROJECT_NO,
+		       DWG_CODE,
+		       PLAN_MH,
+		       ACTUAL_MH,
+		       DECODE(SIGN(ACTUAL_MH - PLAN_MH), -1, '', 0, '', 1, ACTUAL_MH - PLAN_MH) AS DIFF_MH
+		FROM   (SELECT A.PROJECT_NO,
+		               A.DWG_CODE,
+		               NVL(B.PLANSTDMH, 0) + NVL(B.PLANFOLLOWMH, 0) AS PLAN_MH,
+		               NVL(A.TOTAL_MH, 0) + NVL(B.ACTUALSTDMH, 0) + NVL(B.ACTUALFOLLOWMH, 0) AS ACTUAL_MH
+		        FROM   (SELECT PROJECT_NO,
+		                       DWG_CODE,
+		                       SUM(TOTAL_MH * MH_FACTOR) AS TOTAL_MH
+		                FROM   (SELECT PROJECT_NO,
+		                               DWG_CODE,
+		                               TOTAL_MH,
+		                                                       CASE
+		                                                         WHEN CAREER_MONTHS IS NULL THEN 1
+		                                                         ELSE (SELECT FACTOR_VALUE
+		                                FROM   (SELECT CAREER_MONTH_FROM,
+		                                               CAREER_MONTH_TO,
+		                                               FACTOR_VALUE
+		                                        FROM   PLM_DESIGN_MH_FACTOR A
+		                                        WHERE  1 = 1
+		                                        AND    A.CASE_NO = (SELECT VALUE
+		                                                FROM   PLM_CODE_TBL A
+		                                                WHERE  A.CATEGORY = 'MH_FACTOR'
+		                                                AND    A.KEY = 'ACTIVE_CASE' ) )
+		                                WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+		                                AND    NVL(CAREER_MONTH_TO, 9999) >= CAREER_MONTHS )
+		                                                       END AS MH_FACTOR
+		                        FROM   (SELECT A.PROJECT_NO,
+		                                       A.DWG_CODE,
+		                                       A.NORMAL_TIME + A.OVERTIME + A.SPECIAL_TIME AS TOTAL_MH,
+		                                       ((TO_CHAR(A.WORK_DAY, 'YYYY') - TO_CHAR(B.DESIGN_APPLY_DATE, 'YYYY'))* 12 + (TO_CHAR(A.WORK_DAY, 'MM') - TO_CHAR(B.DESIGN_APPLY_DATE, 'MM'))) +
+		                                                                       CASE
+		                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+		                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') > 15 THEN 0
+		                                                                       END + NVL(ROUND(B.BEFORE_ENTRANCE_CAREER * 12, 0), 0) AS CAREER_MONTHS
+		                                FROM   PLM_DESIGN_MH A,
+		                                       CCC_SAWON B
+		                                WHERE  1 = 1
+		                                AND    A.WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+		                                AND    A.EMPLOYEE_NO = #{target_emp_num}
+		                                AND    A.CONFIRM_YN &lt;&gt; 'Y'
+		                                AND    SUBSTR(A.DWG_CODE, 1, 1) &lt;&gt; '*'
+		                                AND    A.DWG_CODE IS NOT NULL
+		                                AND    A.EMPLOYEE_NO = B.EMPLOYEE_NUM ) )
+		                GROUP BY PROJECT_NO, DWG_CODE ) A,
+		               PLM_ACTIVITY B
+		        WHERE  1 = 1
+		        AND    A.PROJECT_NO = B.PROJECTNO
+		        AND    A.DWG_CODE || 'DW' = B.ACTIVITYCODE )
+		ORDER BY PROJECT_NO, DWG_CODE 
+	</select>
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveHighRankCatalog">  	
+  	<select id="selectExistCatalogValueAssy" parameterType="java.util.Map" resultType="int">
+	select count(assy_catalog_code) as cnt
+	  from stx_dis_sd_catalog_value_assy
+	 where catalog_code      = #{catalog_code}
+	   and assy_catalog_code = #{assy_catalog_code}
+	</select>
+	<update id="updateCatalogValueAssy" parameterType="java.util.Map">
+	update stx_dis_sd_catalog_value_assy
+	   set enable_flag       = #{enable_flag}
+	      ,last_updated_by   = -1
+	      ,last_update_date  = SYSDATE
+	 where catalog_code      = #{catalog_code}
+	   and assy_catalog_code = #{assy_catalog_code} 
+	</update>
+	
+	<update id="insertCatalogValueAssy" parameterType="java.util.Map">
+	insert into stx_dis_sd_catalog_value_assy
+        (
+          catalog_code 
+         ,assy_catalog_code 
+         ,enable_flag 
+         ,created_by 
+         ,creation_date 
+         ,last_updated_by 
+         ,last_update_date 
+		)
+        values
+        (
+          #{catalog_code}
+         ,#{assy_catalog_code} 
+         ,#{enable_flag}
+         ,-1
+         ,sysdate
+         ,-1
+         ,sysdate  
+        ) 
+	</update>
+</mapper>

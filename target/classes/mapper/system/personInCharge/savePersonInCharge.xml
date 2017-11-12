@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePersonInCharge">
+  	
+  	<!-- insert 전 중복 체크  -->
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*) AS CNT
+		  FROM STX_DIS_CONTACTUS
+		 WHERE CONTACT_SEQ = #{contact_seq}
+  	</select>
+  	
+ 	<insert id="insert" parameterType="java.util.Map">
+		INSERT
+		  INTO STX_DIS_CONTACTUS(CONTACT_SEQ, DEPT_NAME, MANAGER_NAME, MANAGER_TASK, MANAGER_TEL, MANAGER_MOBILE, EMAIL_ADDRESS, CREATE_BY, CREATE_DATE, MODIFY_BY, MODIFY_DATE, POSITION_NAME )
+		VALUES( #{contact_seq}
+		     , #{dept_name}
+		     , #{manager_name}
+		     , #{manager_task}
+		     , #{manager_tel}
+		     , #{manager_mobile}
+		     , #{email_address}
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE
+		     , #{position_name})
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+		UPDATE STX_DIS_CONTACTUS
+		   SET DEPT_NAME = #{dept_name}
+		     , MANAGER_NAME = #{manager_name}
+		     , MANAGER_TASK = #{manager_task}
+		     , MANAGER_TEL = #{manager_tel}
+		     , MANAGER_MOBILE = #{manager_mobile}
+		     , EMAIL_ADDRESS = #{email_address}
+		     , MODIFY_BY = #{loginId}
+		     , MODIFY_DATE = SYSDATE
+		     , POSITION_NAME = #{position_name}
+		 WHERE CONTACT_SEQ = #{contact_seq}
+	</update>
+  	
+  	<delete id="delete" parameterType="java.util.Map">
+  		DELETE FROM STX_DIS_CONTACTUS
+		 WHERE CONTACT_SEQ = #{contact_seq}
+  	</delete>
+ 	
+</mapper>

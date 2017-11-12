@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscMainListPI">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="sscMainList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+<!-- 			{call STX_DIS_SSC_PKG_3.PI_SELECT_PROC_TEST( -->
+<!-- 								 p_item_type_cd 	=> #{p_item_type_cd} -->
+<!--                                  , p_chk_series 	=> #{p_chk_series} -->
+<!--                                  , p_dwg_no 		=> #{p_dwg_no} -->
+<!--                                  , p_block_no 		=> #{p_block_no} -->
+<!--                                  , p_stage_no 		=> #{p_stage_no} -->
+<!--                                  , p_str_flag 		=> #{p_str_flag} -->
+<!--                                  , p_piece_no 		=> #{p_piece_no} -->
+<!--                                  , p_dept_code		=> #{p_dept_code} -->
+<!--                                  , p_mother_code 	=> #{p_mother_code} -->
+<!--                                  , p_item_code 		=> #{p_item_code} -->
+<!--                                  , p_eco_no 		=> #{p_eco_no} -->
+<!--                                  , p_start_date 	=> #{p_start_date} -->
+<!--                                  , p_end_date 		=> #{p_end_date} -->
+<!--                                  , p_state_flag 	=> #{p_state_flag} -->
+<!--                                  , p_is_eco 		=> #{p_is_eco} -->
+<!--                                  , p_release 		=> #{p_release} -->
+<!--                                  , p_upperaction 	=> #{p_upperaction} -->
+<!--                                  , p_job_status 	=> #{p_job_status} -->
+<!--                                  , p_curpageno 		=> #{curPageNo} -->
+<!--                                  , p_pagesize 		=> #{pageSize} -->
+<!--                                  , p_error_code 	=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT} -->
+<!--                                  , p_error_msg 		=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT} -->
+<!--                                  , p_refer 			=> #{p_refer,           jdbcType= RECORD,  javaType=ResultSet, resultMap=sscMainListPI.procResultMap, mode=OUT} -->
+<!-- 			)} -->
+			{call STX_DIS_SSC_PKG.PI_SELECT_PROC(
+								 p_item_type_cd 	=> #{p_item_type_cd}
+                                 , p_chk_series 	=> #{p_chk_series}
+                                 , p_dwg_no 		=> #{p_dwg_no}
+                                 , p_block_no 		=> #{p_block_no}
+                                 , p_stage_no 		=> #{p_stage_no}
+                                 , p_str_flag 		=> #{p_str_flag}
+                                 , p_usc_job_type 	=> #{p_usc_job_type}
+                                 , p_piece_no 		=> #{p_piece_no}
+                                 , p_dept_code		=> #{p_dept_code}
+                                 , p_mother_code 	=> #{p_mother_code}
+                                 , p_item_code 		=> #{p_item_code}
+                                 , p_eco_no 		=> #{p_eco_no}
+                                 , p_start_date 	=> #{p_start_date}
+                                 , p_end_date 		=> #{p_end_date}
+                                 , p_state_flag 	=> #{p_state_flag}
+                                 , p_is_eco 		=> #{p_is_eco}
+                                 , p_release 		=> #{p_release}
+                                 , p_upperaction 	=> #{p_upperaction}
+                                 , p_job_status 	=> #{p_job_status}
+								 , p_job_cd 	    => #{p_job_cd}
+                                 , p_tribon_flag 	=> #{p_tribon_flag}
+                                 , p_curpageno 		=> #{curPageNo}
+                                 , p_pagesize 		=> #{pageSize}
+                                 , p_error_code 	=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                                 , p_error_msg 		=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+                                 , p_refer 			=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=sscMainListPI.procResultMap, mode=OUT}
+			)}
+	</select>
+	
+</mapper>

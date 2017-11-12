@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintImportCreateBom">
+
+	<select id="insertPaintHead" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_head_insert_proc(p_project_no => #{p_project_no},
+                                                    p_revision => #{p_revision},
+                                                    p_series_project_no => #{p_series_project_no},
+                                                    p_paint_stage_type => #{p_paint_stage_type},
+                                                    p_eco_no => #{p_eco_no},
+                                                    p_login_id => #{p_login_id},
+                                                    p_paint_head_id => #{p_paint_head_id,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                    p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                            p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>
+    
+	<delete id="deletePaintLine">
+	delete from STX_DIS_PAINT_BOM_IF_LINE
+     where 1=1
+	   and PAINT_HEAD_ID   = #{p_paint_head_id}
+
+	</delete>  
+	
+   <select id="insertPaintLine" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_line_insert_proc(p_paint_head_id => #{p_paint_head_id,jdbcType=VARCHAR},
+                                                    p_pe_code => #{p_pe_code,jdbcType=VARCHAR},
+                                                    p_pre_pe_code => #{p_pre_pe_code,jdbcType=VARCHAR},
+                                                    p_zone_code => #{p_zone_code,jdbcType=VARCHAR},
+                                                    p_block_code => #{p_block_code,jdbcType=VARCHAR},
+                                                    p_team_count => #{p_team_count,jdbcType=VARCHAR},
+                                                    p_team_desc => #{p_team_desc,jdbcType=VARCHAR},
+                                                    p_quay_code => #{p_quay_code,jdbcType=VARCHAR},
+                                                    p_area_code => #{p_area_code,jdbcType=VARCHAR},
+                                                    p_area => #{p_area,jdbcType=VARCHAR},
+                                                    p_paint_count => #{p_paint_count,jdbcType=VARCHAR},
+                                                    p_paint_item => #{p_paint_item,jdbcType=VARCHAR},
+                                                    p_thinner_code => #{p_thinner_code,jdbcType=VARCHAR},
+                                                    p_quantity => #{p_quantity,jdbcType=VARCHAR},
+                                                    p_theory_quantity => #{p_theory_quantity,jdbcType=VARCHAR},
+                                                    p_thinner_quantity => #{p_thinner_quantity,jdbcType=VARCHAR},
+                                                    p_thinner_theory_quantity => #{p_thinner_theory_quantity,jdbcType=VARCHAR},
+                                                    p_acd_type => #{p_acd_type,jdbcType=VARCHAR},
+                                                    p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                            p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>	 
+    
+    <select id="savePaintMain" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+	{ call stx_dis_paint_pkg.paint_main_proc(p_paint_head_id => #{p_paint_head_id},
+                                             p_login_id => #{p_login_id},
+                                             p_error_code => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+		                                     p_error_msg => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>      
+
+</mapper>

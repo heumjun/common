@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpEmsDbMasterAdd">
+
+	<select id="getCatalogName" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DESCRIPTION   
+		  FROM MTL_ITEM_CATALOG_GROUPS
+		 WHERE SEGMENT1 = #{p_catalog_code}
+  	</select>
+
+	<select id="addItemLastCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT LPAD(MAX(ITEM_CODE+1), 4, '0') AS ITEM_SEQ
+		  FROM STX_EMS_ITEM
+		 WHERE CATALOG_CODE = #{p_catalog_code}
+  	</select>
+
+	<select id="addSpecLastCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT LPAD(MAX(SPEC_CODE+1), 5, '0') AS SPEC_SEQ
+		  FROM STX_EMS_ITEM_SPEC
+		 WHERE CATALOG = #{p_catalog_code1}
+		   AND ITEM_CODE = #{p_itemcode}
+  	</select>
+  	
+  	<insert id="insertItem" parameterType="java.util.Map">
+		INSERT INTO STX_EMS_ITEM ( CATALOG_CODE 
+		                                 ,ITEM_CODE 
+		                                 ,ITEM_DESC         
+		                                 ,CREATED_BY 
+		                                 ,CREATION_DATE 
+		                                 ,LAST_UPDATED_BY 
+		                                 ,LAST_UPDATE_DATE 
+		)
+		VALUES ( #{catalog_code}
+		        ,#{i_item_code}
+		        ,#{i_item_desc}
+		        ,#{user_id}
+		        ,sysdate
+		        ,#{user_id}
+		        ,sysdate
+		)
+	</insert>
+	
+	<insert id="insertSpec" parameterType="java.util.Map">
+		INSERT INTO STX_EMS_ITEM_SPEC ( CATALOG 
+		                                      ,ITEM_CODE 
+		                                      ,ITEM_DESC 
+		                                      ,SPEC_CODE 
+		                                      ,SPEC_NAME1 
+		                                      ,SPEC_NAME2 
+		                                      ,SPEC_NAME3 
+		                                      ,CREATED_BY 
+		                                      ,CREATION_DATE 
+		                                      ,LAST_UPDATED_BY 
+		                                      ,LAST_UPDATE_DATE 
+		)
+		VALUES ( #{catalog_code}
+		        ,#{i_item_code}
+		        ,#{i_item_desc}
+		        ,#{spec_code}
+		        ,#{spec_name1}
+		        ,#{spec_name2}
+		        ,#{spec_name3}
+		        ,#{user_id}
+		        ,sysdate
+		        ,#{user_id}
+		        ,sysdate
+		)
+	</insert>
+	
+	<select id="getEquipment" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SSSCV.VALUE_NAME   
+		  FROM STX_DIS_SD_CATALOG_VALUE@STXDIS SSSCV 
+		 WHERE SSSCV.VALUE_TYPE = 'CATALOG_PO' 
+		   AND SSSCV.VALUE_CODE = '02' 
+		   AND SSSCV.ENABLE_FLAG = 'Y'  
+		   AND SSSCV.CATALOG_CODE = #{catalog_code}
+  	</select>
+
+	<select id="getMiddle" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SMBI.LINE_CODE MIDDLE_CODE, SMBI.LINE_DESC MIDDLE_DESC                    
+		  FROM STX_DT_MAT_BASE_LIST_V SMBI 
+		 WHERE LIST_TYPE = 'U' 
+		   AND EXISTS_FLAG = 'Y' 
+		   AND LIST_CODE = #{catalog_code}
+		   AND ROWNUM = 1 
+  	</select>
+  	
+  	<select id="getDwg" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SSSCV.VALUE_NAME AS DWG_CODE 
+		  FROM STX_DIS_SD_CATALOG@STXDIS       SSSC 
+		      ,STX_DIS_SD_CATALOG_VALUE@STXDIS SSSCV 
+		 WHERE SSSC.CATALOG_CODE = SSSCV.CATALOG_CODE         
+		   AND SSSCV.VALUE_TYPE  = 'CATALOG_DESIGN' 
+		   AND SSSCV.VALUE_CODE  = '12' 
+		   AND SSSC.CATALOG_CODE = #{catalog_code}
+  	</select>
+  	
+  	<select id="getObtainLt" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT CASE WHEN F_FULL_LEAD_TIME IS NULL 
+		            THEN CASE WHEN N_FULL_LEAD_TIME IS NULL 
+			                    THEN FULL_LEAD_TIME 
+			                    ELSE N_FULL_LEAD_TIME  
+				            END 
+				        ELSE F_FULL_LEAD_TIME 
+			     END AS OBTAIN_LT 
+		  FROM STX_PO_PROPERTY_TEMPLATE SPPE
+		      ,MTL_ITEM_CATALOG_GROUPS  B 
+		 WHERE SPPE.ITEM_CATALOG_GROUP_ID = B.ITEM_CATALOG_GROUP_ID 
+		   AND B.SEGMENT1 = #{catalog_code}
+  	</select>
+  	
+  	<select id="getObtApprover" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DECODE(F_FULL_LEAD_TIME, NULL, 	
+		  DECODE(N_FULL_LEAD_TIME, NULL, SUBSTR(SPPE.BUYER, LENGTH(SPPE.BUYER) - 5 ,LENGTH(SPPE.BUYER)), 
+		 SUBSTR(SPPE.N_BUYER, LENGTH(SPPE.N_BUYER) - 5 ,LENGTH(SPPE.N_BUYER))), 
+		 SUBSTR(SPPE.F_BUYER, LENGTH(SPPE.F_BUYER) - 5 ,LENGTH(SPPE.F_BUYER))) AS OBT_APPROVER 
+		   FROM STX_PO_PROPERTY_TEMPLATE SPPE
+		       ,MTL_ITEM_CATALOG_GROUPS B  
+		 WHERE SPPE.ITEM_CATALOG_GROUP_ID = B.ITEM_CATALOG_GROUP_ID AND B.SEGMENT1 = #{catalog_code}
+  	</select>
+  	
+	<select id="getDwgApprover" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >  	
+		SELECT SCIU.EMP_NO 	
+		  FROM STX_DWG_CATEGORY_MASTERS SDCM
+		      ,STX_DWG_DEPT_MANAGER     SDM
+		      ,STX_DWG_DEPT_MAPPING     SDDM
+		      ,STX_COM_INSA_DEPT        SCID
+		      ,STX_COM_INSA_USER        SCIU  
+		 WHERE SDCM.DEPT_ID   = SDM.DEPT_ID 
+		   AND SDCM.DWG_CATEGORY4 IS NOT NULL 
+		   AND SDM.DEPT_ID = SDDM.DEPT_ID  
+		   AND SDDM.DEPT_CODE = SCID.DEPT_CODE 
+		   AND SDCM.DWG_NO_CONCAT = #{p_catalog_code}
+		   AND SCID.DEPT_CODE = SCIU.DEPT_CODE  
+		   AND SCIU.JOB_COD   = '226' 
+		   AND SCIU.DEL_DATE IS NULL 
+		   AND SCIU.EP_MAIL IS NOT NULL 
+	</select>
+  	
+	<insert id="insertMaster" parameterType="java.util.Map">
+		INSERT INTO STX_EMS_DB_MASTER ( CATALOG_CODE 
+		                                      ,ITEM_CODE 
+		                                      ,STATUS 
+		                                      ,CATALOG_NAME 
+		                                      ,EQUIP_NAME 
+		                                      ,DWG_CODE 
+		                                      ,DWG_NAME 
+		                                      ,MIDDLE_CODE 
+		                                      ,MIDDLE_NAME 
+		                                      ,PLAN_PART 
+		                                      ,OBTAIN_LT         
+		                                      ,BUYER 
+		                                      ,CREATED_BY 
+		                                      ,CREATION_DATE 
+		                                      ,LAST_UPDATED_BY 
+		                                      ,LAST_UPDATE_DATE 
+		)
+		VALUES( #{catalog_code}
+		       ,#{item_code}
+		       ,#{stt}
+		       ,#{catalog_name}
+		       ,#{equip_name}
+		       ,#{dwg_code}
+		       ,#{dwg_name}
+		       ,#{middle_code}
+		       ,#{middle_name}
+		       ,#{plan_part}
+		       ,#{obtain_lt}
+		       ,#{buyer}
+		       ,#{user_id}
+		       ,sysdate
+		       ,#{user_id}
+		       ,sysdate
+		)
+	</insert>
+</mapper>

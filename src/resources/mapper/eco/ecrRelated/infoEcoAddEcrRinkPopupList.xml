@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoEcoAddEcrRinkPopupList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	 SELECT y.eng_change_req_code as main_code,
+				  y.eng_change_req_code as main_name,
+				  y.eng_change_related_project ,
+				  y.eng_change_description ,
+				  stx_dis_rp_emp_name_f( y.eng_change_req_code ) related_person_emp_name ,
+				  stx_dis_rp_emp_no_f( y.eng_change_req_code ) related_person_emp_no ,
+		       (SELECT   x.sd_meaning  as states_var1
+				      FROM stx_dis_sd_code x
+				     WHERE x.sd_type = 'ECRBASED' AND y.eng_change_based_on = x.sd_code
+		       )
+		       AS eng_change_based_on ,
+		       STX_DIS_SHORT_EMP_NAME_F( y.user_code ) AS user_code ,
+		       y.user_code evaluator_emp_no ,
+		       stx_dis_short_emp_name_f( stx_dis_de_emp_no_f( y.eng_change_req_code ) ) design_engineer ,
+		       stx_dis_de_emp_no_f( y.eng_change_req_code ) design_engineer_emp_no ,
+		       (SELECT   sd_desc
+			      FROM stx_dis_sd_code x
+			     WHERE x.sd_type = 'ECR_STATES'
+		         AND   x.sd_code = y.states_code ) as states_desc ,
+		       y.states_code ,
+		       stx_dis_short_emp_name_f( y.locker_by ) locker_by_name ,
+		       y.locker_by ,
+		       stx_dis_short_emp_name_f( y.create_by ) created_by_name ,
+		       y.create_by,
+		       y.eng_change_based_on as stx_dis_eng_change_req
+		FROM    stx_dis_eng_change_req y
+			where 1=1 
+			
+		    <!-- where y.states_code ='PLAN_ECO' -->
+		<if test="main_name != null and main_name !='' ">
+			and y.eng_change_req_code like '%'||#{main_name}||'%' <!--  ecr,eco,item의 이름으로 검색-->
+		</if>
+		<if test="created_by != null and created_by !='' ">
+			and y.create_by = #{created_by} <!--  작성자 이름으로 검색-->
+		</if>
+		<if test="user_group != null and user_group !='' ">
+			AND y.user_code in (select emp_no from stx_com_insa_user@stxerp x where x.dept_code = #{user_group}) 
+		</if>
+		<if test="main_code != null and main_code !='' ">
+		 and y.eng_change_based_on in (select MAIN_STATES_CODE
+    from stx_dis_ecr_based
+    where SUB_STATES_CODE=(
+        select ENG_CHANGE_ORDER_CAUSE
+        from STX_DIS_ENG_CHANGE_ORDER
+        where ENG_CHANGE_ORDER_CODE=#{main_code}))
+         </if>   
+         <if test="created_date_start != null and created_date_start !='' "> <!--  작성 날자로 검색  -->
+			<![CDATA[
+				and y.create_date >= TO_DATE(#{created_date_start},'YYYY-MM-DD') 
+			]]>
+		</if>
+		<if test="created_date_end != null and created_date_end !='' "> <!--  작성 날자로 검색  -->
+			<![CDATA[
+				and y.create_date <= TO_DATE(#{created_date_end},'YYYY-MM-DD') + 1
+			]]>
+		</if>   
+		<if test="eco_cause != null and eco_cause !='' "> <!--  원인코드가 있을때  -->
+				and y.eng_change_based_on in (SELECT main_states_code  FROM stx_dis_ecr_based WHERE sub_states_code=#{eco_cause} )
+		</if>   
+  	</select>
+  	
+  	
+</mapper>

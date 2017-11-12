@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpSupplyDeptCodeList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT B.DWGDEPTCODE   AS SD_CODE
+	      ,B.DWGDEPTNM  AS SD_DESC
+	  FROM DCC_DWGDEPTCODE@STXDP B
+	 WHERE B.USERYN = 'Y'
+	   <if test='p_deptName != ""'>
+	   AND B.DWGDEPTNM LIKE REPLACE(#{p_deptName},'*','%') || '%'
+	   </if>
+	 ORDER BY B.DWGDEPTNM
+	</select>
+  	
+</mapper>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePartFamilyType">
+  	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt
+	   from stx_dis_sd_part_family   t1
+	       ,stx_dis_sd_category_type t2
+	  where 1=1
+	    and t1.category_type 	= t2.category_type(+)
+	    and t1.part_family_code = #{part_family_code}
+	    and t1.category_type 	= #{category_type}
+  	</select>
+  	<insert id="insert" parameterType="java.util.Map">
+	 insert into stx_dis_sd_part_family 
+	 	(part_family_code
+	 	,part_family_desc
+	 	,part_family_mean
+	 	,category_type
+	 	,item_value_rule
+	 	,design_register_flag
+	 	,enable_flag
+	 	,shiptype_flag
+	 	,weight_flag
+	 	,created_by
+	 	,creation_date
+	 	,last_updated_by 
+	 	,last_update_date 
+	 	)
+ 	 values
+ 	 	(
+ 	 	 #{part_family_code}
+ 	 	,#{part_family_desc}
+ 	 	,#{part_family_mean}
+ 	 	,#{category_type}
+ 	 	,#{item_value_rule}
+ 	  	,#{design_register_flag}
+		,#{enable_flag}	    	
+		,#{shiptype_flag}
+		,#{weight_flag}
+ 	  	,#{loginId}
+ 	 	,SYSDATE
+ 	 	,#{loginId}
+ 	 	,SYSDATE
+ 	 )
+	</insert>
+	
+	<update id="update" parameterType="java.util.Map">
+	 update stx_dis_sd_part_family
+	 	set	  
+	 		part_family_code 	  = #{part_family_code}
+	 	  	,part_family_desc 	  = #{part_family_desc}
+	 	 	,part_family_mean     = #{part_family_mean}
+	 	  	,category_type	 	  = #{category_type}
+	 	  	,item_value_rule   	  = #{item_value_rule}
+	 		,design_register_flag = #{design_register_flag}
+			,enable_flag 		  = #{enable_flag}	    	
+			,shiptype_flag		  = #{shiptype_flag}
+			,weight_flag		  = #{weight_flag}
+			,last_updated_by      = #{loginId}
+			,last_update_date     = sysdate
+	  where part_family_code 	  = #{o_part_family_code}
+	    and category_type    	  = #{o_category_type}
+	</update>
+	
+	<insert id="insertItemValueRule" parameterType="java.util.Map">
+	  insert into stx_dis_sd_item_rule 
+         (part_family_code 
+         ,category_type 
+         ,item_rule_no 
+         ,item_rule_desc 
+          )
+        values
+          (
+          #{part_family_code}
+         ,#{category_type} 
+         ,STX_DIS_SD_ITEM_RULE_NO.NEXTVAL
+         ,#{item_rule_desc} 
+         ) 
+	</insert>
+	
+	<delete id="delete" parameterType="java.util.Map">
+		delete
+		  from stx_dis_sd_part_family
+		 where 1=1
+		   and part_family_code = #{o_part_family_code}
+		   and category_type	= #{o_category_type}
+	</delete>
+	
+	<delete id="deleteItemValueRule" parameterType="java.util.Map">
+	 delete 
+	   from stx_dis_sd_item_rule
+      where 1=1
+	    and part_family_code = #{part_family_code}
+	    and category_type    = #{category_type}
+	</delete>
+	
+	
+</mapper>

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveCategoryMgnt">
+  
+	<select id="duplicate" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	SELECT *
+	  FROM STX_DIS_SD_CATEGORY SDSC
+	 WHERE SDSC.TYPE_CODE = #{type_code}
+		<if test='category_code1 != null and !category_code1.equalsIgnoreCase("")'>
+	   AND SDSC.category_code1 = #{category_code1}
+		</if>
+		<if test='category_code2 != null and !category_code2.equalsIgnoreCase("")'>
+	   AND SDSC.category_code2 = #{category_code2}
+		</if>
+		<if test='category_code3 != null and !category_code3.equalsIgnoreCase("")'>
+	   AND SDSC.category_code3 = #{category_code3}
+		</if>
+	</select>
+  	
+	<insert id="insertCategoryMgnt" parameterType="java.util.Map">
+		INSERT
+		  INTO STX_DIS_SD_CATEGORY
+		       (
+		               type_code
+		             , category_code1
+		             , category_code2
+		             , category_code3
+		             , category_id
+		             , attribute_id
+		             , category_desc
+		             , category_etc
+		             , attribute_code
+		             , enable_flag
+		             , created_by
+		             , creation_date
+		             , LAST_UPDATED_BY
+		             , LAST_UPDATE_DATE
+		       )
+		       VALUES
+		       (
+		               #{type_code}
+		             , #{category_code1}
+		             , #{category_code2,jdbcType=VARCHAR}
+		             , #{category_code3,jdbcType=VARCHAR}
+		             , stx_dis_sd_category_id.nextval
+		             , #{attribute_id}
+		             , #{category_desc}
+		             , #{category_etc,jdbcType=VARCHAR}
+		             , #{attribute_code}
+		             , 'Y'
+		             , #{loginId}
+		             , SYSDATE
+		             , #{loginId}
+		             , SYSDATE
+		       )
+	</insert>
+	
+	<update id="updateCategoryMgntSTX_DIS_SD_CATEGORY" parameterType="java.util.Map">
+		UPDATE stx_dis_sd_category
+		   SET category_etc = #{category_etc}
+		     , attribute_code = #{attribute_code}
+		     , invalid_date = DECODE(#{enable_flag}, 'N', SYSDATE, '' )
+		     , enable_flag = #{enable_flag}
+		     , category_desc = #{category_desc}
+		     , last_updated_by = #{loginId}
+		     , last_update_date = SYSDATE
+		 WHERE type_code = #{type_code}
+		   AND category_code1 = #{category_code1}
+		   AND category_code2 = #{category_code2}
+		<if test='type_code.equalsIgnoreCase("01")'>
+		   AND category_code3 = #{category_code3}
+		</if>
+	</update>
+	
+	<insert id="insertCategoryMgntMTL_CATEGORIES_B" parameterType="java.util.Map">
+		INSERT
+		  INTO MTL_CATEGORIES_B@stxerp
+		       (
+		               CATEGORY_ID
+		             , STRUCTURE_ID
+		             , DISABLE_DATE
+		             , SEGMENT1
+		             , SEGMENT2
+		             , SEGMENT3
+		             , SUMMARY_FLAG
+		             , ENABLED_FLAG
+		             , ATTRIBUTE_CATEGORY
+		             , ATTRIBUTE1
+		             , LAST_UPDATE_DATE
+		             , LAST_UPDATED_BY
+		             , CREATION_DATE
+		             , CREATED_BY
+		             , LAST_UPDATE_LOGIN
+		       )
+		       VALUES
+		       (
+		               MTL_CATEGORIES_B_S.NEXTVAL@stxerp
+		             , DECODE( #{type_code}, '01', 101, '02', 1, '' )
+		             , DECODE( #{enable_flag}, 'Y', '', TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') )
+		             , #{category_code1}
+		             , #{category_code2}
+		             , #{category_code3}
+		             , 'N'
+		             , #{enable_flag}
+		             , DECODE( #{type_code}, '01', '품목 범주', '02', '회계 범주', '' )
+		             , DECODE( #{type_code}, '01', #{attribute_id}, '02', #{attribute_code}, '' )
+		             , SYSDATE
+		             , #{loginId}
+		             , SYSDATE
+		             , #{loginId}
+		             , #{loginId}
+		       )
+	</insert>
+	 
+	 <!-- 3.FND_FLEX_VALUES INSERT => COST CATEGORY 일 경우에만 반영. 코드값 1,2는 있고 3은 없음 -->
+	<insert id="insertCategoryMgntFND_FLEX_VALUES" parameterType="java.util.Map">           
+		INSERT
+		  INTO FND_FLEX_VALUES@stxerp
+		       (
+		               FLEX_VALUE
+		             , ENABLED_FLAG
+		             , SUMMARY_FLAG
+		             , FLEX_VALUE_SET_ID
+		             , PARENT_FLEX_VALUE_LOW
+		             , FLEX_VALUE_ID
+		             , LAST_UPDATE_DATE
+		             , LAST_UPDATED_BY
+		             , CREATION_DATE
+		             , CREATED_BY
+		             , LAST_UPDATE_LOGIN
+		       )
+		       VALUES
+		       (
+		               #{category_code2}
+		             , 'Y'
+		             , 'N'
+		             , 1007907
+		             , #{category_code1}
+		             , FND_FLEX_VALUES_S.NEXTVAL@stxerp
+		             , SYSDATE
+		             , #{loginId}
+		             , SYSDATE
+		             , #{loginId}
+		             , #{loginId}
+		       )
+	</insert>
+          
+	<!-- 인벤토리일 경우 저장 -->
+	<insert id="insertCategoryMgntMTL_CATEGORIES_TL_Invetory" parameterType="java.util.Map">
+		INSERT
+		  INTO MTL_CATEGORIES_TL@stxerp
+		       (
+		               CATEGORY_ID
+		             , LANGUAGE
+		             , SOURCE_LANG
+		             , DESCRIPTION
+		             , CREATION_DATE
+		             , CREATED_BY
+		             , LAST_UPDATE_DATE
+		             , LAST_UPDATED_BY
+		             , LAST_UPDATE_LOGIN
+		       )
+		SELECT CB.CATEGORY_ID
+		     , 'KO'
+		     , 'KO'
+		     , #{category_desc}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , #{loginId}
+		  FROM MTL_CATEGORIES_B@stxerp CB
+		 WHERE SEGMENT1 = #{category_code1}
+		   AND SEGMENT2 = #{category_code2}
+		   AND SEGMENT3 = #{category_code3}
+		
+		 UNION ALL
+		
+		SELECT CB.CATEGORY_ID
+		     , 'US'
+		     , 'KO'
+		     , #{category_desc}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , #{loginId}
+		  FROM MTL_CATEGORIES_B@stxerp CB
+		 WHERE SEGMENT1 = #{category_code1}
+		   AND SEGMENT2 = #{category_code2}
+		   AND SEGMENT3 = #{category_code3}
+	</insert>
+	
+	<!-- // COST 경우 -->
+	<insert id="insertCategoryMgntMTL_CATEGORIES_TL_Cost" parameterType="java.util.Map">
+		INSERT
+		  INTO MTL_CATEGORIES_TL@stxerp
+		       (
+		               CATEGORY_ID
+		             , LANGUAGE
+		             , SOURCE_LANG
+		             , DESCRIPTION
+		             , CREATION_DATE
+		             , CREATED_BY
+		             , LAST_UPDATE_DATE
+		             , LAST_UPDATED_BY
+		             , LAST_UPDATE_LOGIN
+		       )
+		SELECT CB.CATEGORY_ID
+		     , 'KO'
+		     , 'KO'
+		     , #{category_desc}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , #{loginId}
+		  FROM MTL_CATEGORIES_B@stxerp CB
+		 WHERE SEGMENT1       = #{category_code1}
+		   AND SEGMENT2       = #{category_code2}
+		   AND SEGMENT3 IS NULL
+		
+		 UNION ALL
+		
+		SELECT CB.CATEGORY_ID
+		     , 'US'
+		     , 'KO'
+		     , #{category_desc}
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , #{loginId}
+		  FROM MTL_CATEGORIES_B@stxerp CB
+		 WHERE SEGMENT1       = #{category_code1}
+		   AND SEGMENT2       = #{category_code2}
+		   AND SEGMENT3 IS NULL
+	</insert>
+ 
+	<!--  5.FND_FLEX_VALUES_TL INSERT => COST CATEGORY 일 경우에만 반영.	 -->
+	<insert id="insertCategoryMgntFND_FLEX_VALUES_TL" parameterType="java.util.Map">
+		INSERT
+		  INTO FND_FLEX_VALUES_TL@stxerp
+		       (
+		               FLEX_VALUE_ID
+		             , LANGUAGE
+		             , LAST_UPDATE_DATE
+		             , LAST_UPDATED_BY
+		             , CREATION_DATE
+		             , CREATED_BY
+		             , LAST_UPDATE_LOGIN
+		             , DESCRIPTION
+		             , SOURCE_LANG
+		             , FLEX_VALUE_MEANING
+		       )
+		SELECT B.FLEX_VALUE_ID
+		     , 'KO'
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , #{loginId}
+		     , #{category_desc}
+		     , 'KO'
+		     , #{category_code2}
+		  FROM FND_FLEX_VALUES@stxerp B
+		 WHERE B.FLEX_VALUE_SET_ID     = 1007907
+		   AND B.PARENT_FLEX_VALUE_LOW = #{category_code1}
+		   AND B.FLEX_VALUE            = #{category_code2}
+		 UNION ALL
+		SELECT B.FLEX_VALUE_ID
+		     , 'US'
+		     , SYSDATE
+		     , #{loginId}
+		     , SYSDATE
+		     , #{loginId}
+		     , #{loginId}
+		     , #{category_desc}
+		     , 'KO'
+		     , #{category_code2}
+		  FROM FND_FLEX_VALUES@stxerp B
+		 WHERE B.FLEX_VALUE_SET_ID     = 1007907
+		   AND B.PARENT_FLEX_VALUE_LOW = #{category_code1}
+		   AND B.FLEX_VALUE            = #{category_code2}
+	</insert>
+                                      
+	<!--  2.MTL_CATEGORIES_B UPDATE / MTL_CATEGORIES_TL UPDATE --> 
+	<update id="updateCategoryMgntMTL_CATEGORIES_B" parameterType="java.util.Map">
+		UPDATE mtl_categories_b@stxerp
+		   SET last_update_date = SYSDATE
+		     , last_updated_by = #{loginId}
+		     , last_update_login = #{loginId}
+		     , disable_date = NVL( #{invalid_date}, NULL )
+		     , enabled_flag = #{enable_flag}
+		     , attribute1 = DECODE( #{type_code}, '01', #{attribute_id}, '02', #{attribute_code}, NULL )
+		 WHERE category_id = #{category_id}
+	</update>
+	
+	<!-- 	IF V_CATEGORY_DESC <> :B_MAIN.CATEGORY_DESC THEN -->
+	<update id="updateCategoryMgntMTL_CATEGORIES_TL" parameterType="java.util.Map">
+		UPDATE mtl_categories_tl@stxerp
+		   SET description = #{category_desc}
+		     , last_update_date = SYSDATE
+		     , last_updated_by = #{loginId}
+		     , last_update_login = #{loginId}
+		 WHERE category_id = #{category_id}
+	</update>
+
+	<select id="selectCategoryMgntDivFlex_value_id" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT flex_value_id
+		     , enabled_flag
+		  FROM fnd_flex_values@stxerp
+		 WHERE flex_value_set_id = 1007907
+		   AND parent_flex_value_low = #{category_code1}
+		   AND flex_value = #{category_code2}
+	</select>
+	
+	<!-- IF V_ENABLED_FLAG <> :B_MAIN.ENABLE_FLAG THEN  -->     
+	<update id="updateCategoryMgntFND_FLEX_VALUES" parameterType="java.util.Map">
+		UPDATE fnd_flex_values@stxerp
+		   SET last_update_date = SYSDATE
+		     , last_updated_by = #{loginId}
+		     , last_update_login = #{loginId}
+		     , enabled_flag = #{enable_flag}
+		 WHERE flex_value_set_id = 1007907
+		   AND flex_value_id = #{flex_value_id}
+	</update>
+
+	<!--  IF V_DESCRIPTION <> :B_MAIN.CATEGORY_DESC THEN -->     
+	<update id="updateCategoryMgntFND_FLEX_VALUES_TL" parameterType="java.util.Map">
+		UPDATE fnd_flex_values_tl@stxerp
+		   SET description = #{category_desc}
+		     , last_update_date = SYSDATE
+		     , last_updated_by = #{loginId}
+		     , last_update_login = #{loginId}
+		 WHERE flex_value_id = #{flex_value_id}
+	</update>
+
+  	<!-- category mgnt 변경여부 체크 -->
+  	<select id="selectChangeUpdate" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT DECODE( attribute_id, #{attribute_id}, '1', '0' ) AS attribute_id
+		     , DECODE( category_desc, #{category_desc}, '1', '0' ) AS category_desc
+		     , DECODE( category_etc, #{category_etc}, '1', '0' ) AS category_etc
+		     , DECODE( enable_flag, #{enable_flag}, '1', '0' ) AS enable_flag
+		  FROM stx_dis_sd_category
+		 WHERE type_code = #{type_code}
+		   AND category_code1 = #{category_code1}
+		   AND category_code2 = #{category_code2}
+		<if test='type_code.equalsIgnoreCase("01")'>
+		   AND category_code3 = #{category_code3}
+		</if>
+  	</select>
+	
+</mapper>

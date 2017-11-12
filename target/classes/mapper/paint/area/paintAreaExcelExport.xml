@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="paintAreaExcelExport">  	
+  	<select id="list" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    select  area_code
+	       ,area_desc
+	       ,af_code
+	       ,loss_code
+	  from stx_dis_pis_area
+	 where 1=1
+	 <if test="areaCode != null and areaCode !='' ">
+       and area_code like #{areaCode} || '%'
+     </if>
+     <if test="areaName != null and areaName !='' ">
+  	   and area_desc like '%'|| #{areaName} || '%'
+     </if>
+     <if test="lossCode != null and lossCode !='' ">
+  	   and loss_code like '%'|| #{lossCode} || '%'
+     </if>
+    order by area_code
+	</select>
+ 	
+</mapper>

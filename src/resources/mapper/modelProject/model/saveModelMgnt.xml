@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveModelMgnt">
+	
+	<select id="duplicate" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*) cnt
+		  FROM stx_dis_model
+		 WHERE model_no = #{model_no}
+  	</select>
+  	
+  	<select id="saveModel" statementType="CALLABLE" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+  	{ call stx_dis_model_pkg.model_save_proc(p_action_type            => #{p_action_type},
+                                             p_model_no               => #{p_model_no},
+                                             p_model_type             => #{p_model_type},
+                                             p_category               => #{p_category},
+                                             p_ship_type              => #{p_ship_type},
+                                             p_description            => #{p_description},
+                                             p_marketing_name         => #{p_marketing_name},
+                                             p_marketing_text         => #{p_marketing_text},
+                                             p_representatives_emp_no => #{p_representatives_emp_no},
+                                             p_intended_cargo         => #{p_intended_cargo},
+                                             p_bulk_head_code         => #{p_bulk_head_code},
+                                             p_ice_class_code         => #{p_ice_class_code},
+                                             p_cargo_pump_code        => #{p_cargo_pump_code},
+                                             p_segregation_code       => #{p_segregation_code},
+                                             p_cargo_hold_code        => #{p_cargo_hold_code},
+                                             p_capacity               => #{p_capacity},
+                                             p_gt                     => #{p_gt},
+                                             p_principal_particulars  => #{p_principal_particulars},
+                                             p_bow_thruster_code      => #{p_bow_thruster_code},
+                                             p_enable_flag            => #{p_enable_flag},
+                                             p_class                  => #{p_class},
+                                             p_class2                 => #{p_class2},
+                                             p_speed                  => #{p_speed},
+                                             p_loginid                => #{p_loginid},
+                                             p_error_msg              => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                             p_error_code             => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+  	</select>
+	
+</mapper>

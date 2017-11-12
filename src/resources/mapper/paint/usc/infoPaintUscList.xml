@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoPaintUscList">
+  <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	SELECT LEVEL_NO                                 AS LEVEL_NO
+	      ,STX_DIS_BOM_ACCEPT_PROJECT_F( TOP_ITEM ) AS CONNECT_PROJECT_NO
+	      ,MOTHER_CODE                              AS MOTHER_CODE
+	      ,ITEM_CODE                                AS ITEM_CODE
+	      ,ITEM_CATALOG                             AS ITEM_CATALOG
+	      ,CATALOG_TYPE                             AS CATALOG_TYPE
+	      ,LOCATION_CODE                            AS LOCATION_CODE
+	      ,DWG_NO                                   AS DWG_NO
+	      ,ECO_NO                                   AS ECO_NO
+	      ,ECO_STATE                                AS ECO_STATE
+	      ,EMP_NO                                   AS EMP_NO
+	      ,QTY                                      AS QTY
+	      ,FINDNUMBER                               AS FINDNUMBER
+	      ,BOM1                                     AS BOM1
+	      ,BOM2                                     AS BOM2
+	      ,BOM3                                     AS BOM3
+	      ,BOM4                                     AS BOM4
+	      ,BOM5                                     AS BOM5
+	      ,BOM6                                     AS BOM6
+	      ,BOM7                                     AS BOM7
+	      ,BOM8                                     AS BOM8
+	      ,BOM9                                     AS BOM9
+	      ,BOM10                                    AS BOM10
+	      ,BOM11                                    AS BOM11
+	      ,BOM12                                    AS BOM12
+	      ,BOM13                                    AS BOM13
+	      ,BOM14                                    AS BOM14
+	      ,BOM15                                    AS BOM15 
+	      ,STX_DIS_SHORT_EMP_NAME_F( CREATE_BY )    AS CREATE_BY
+	      ,TO_CHAR( CREATE_DATE, 'YYYY-MM-DD' )     AS CREATE_DATE
+	      ,STX_DIS_SHORT_EMP_NAME_F( MODIFY_BY )    AS MODIFY_BY
+	      ,TO_CHAR( MODIFY_DATE, 'YYYY-MM-DD' )     AS MODIFY_DATE
+	      ,STATES                                   AS STATES
+	      ,STATES_DESC                              AS STATES_DESC
+	      ,#{p_project_no}                          AS PROJECT_NO
+	      ,TOP_ITEM                                 AS TOP_ITEM
+	      ,TOP_CATALOG                              AS TOP_CATALOG
+	   FROM (  
+	         SELECT LEVEL                                                               AS LEVEL_NO
+	               ,TRIM(SYS_CONNECT_BY_PATH(DECODE(LEVEL, 1, A.ITEM_CODE, ''),' '))    AS TOP_ITEM
+	               ,TRIM(SYS_CONNECT_BY_PATH(DECODE(LEVEL, 1, A.ITEM_CATALOG, ''),' ')) AS TOP_CATALOG
+	               ,A.MOTHER_CODE                                                       AS MOTHER_CODE
+	               ,A.ITEM_CODE                                                         AS ITEM_CODE
+	               ,A.ITEM_CATALOG                                                      AS ITEM_CATALOG
+	               ,A.CATALOG_TYPE                                                      AS CATALOG_TYPE
+	               ,A.LOCATION_CODE                                                     AS LOCATION_CODE
+	               ,A.DWG_NO                                                            AS DWG_NO
+	               ,A.ECO_NO                                                            AS ECO_NO
+	               ,SDECO_STATES.SD_DESC                                                        AS ECO_STATE
+	               ,A.EMP_NO                                                            AS EMP_NO
+	               ,A.QTY                                                               AS QTY
+	               ,A.FINDNUMBER                                                        AS FINDNUMBER
+	               ,A.BOM1                                                              AS BOM1
+	               ,A.BOM2                                                              AS BOM2
+	               ,A.BOM3                                                              AS BOM3
+	               ,A.BOM4                                                              AS BOM4
+	               ,A.BOM5                                                              AS BOM5
+	               ,A.BOM6                                                              AS BOM6
+	               ,A.BOM7                                                              AS BOM7
+	               ,A.BOM8                                                              AS BOM8
+	               ,A.BOM9                                                              AS BOM9
+	               ,A.BOM10                                                             AS BOM10
+	               ,A.BOM11                                                             AS BOM11
+	               ,A.BOM12                                                             AS BOM12
+	               ,A.BOM13                                                             AS BOM13
+	               ,A.BOM14                                                             AS BOM14
+	               ,A.BOM15                                                             AS BOM15 
+	               ,A.CREATE_BY                                                         AS CREATE_BY
+	               ,A.CREATE_DATE                                                       AS CREATE_DATE
+	               ,A.MODIFY_BY                                                         AS MODIFY_BY
+	               ,A.MODIFY_DATE                                                       AS MODIFY_DATE
+	               ,A.STATES                                                            AS STATES 
+	               ,CASE WHEN A.STATES = 'O' THEN NULL    
+	                     WHEN A.STATES = 'A' THEN '추가'
+	                     WHEN A.STATES = 'D' THEN '삭제'
+	                     WHEN A.STATES = 'C' THEN '수정'
+	                END                                                                 AS STATES_DESC
+	           FROM (
+	                 SELECT SDB.MOTHER_CODE   AS MOTHER_CODE
+	                       ,SDB.ITEM_CODE     AS ITEM_CODE
+	                       ,SDB.ITEM_CATALOG  AS ITEM_CATALOG
+	                       ,SDB.CATALOG_TYPE  AS CATALOG_TYPE
+	                       ,SDB.LOCATION_CODE AS LOCATION_CODE
+	                       ,SDB.DWG_NO        AS DWG_NO
+	                       ,SDB.ECO_NO        AS ECO_NO
+	                       ,SDB.EMP_NO        AS EMP_NO
+	                       ,SDB.QTY           AS QTY
+	                       ,SDB.FINDNUMBER    AS FINDNUMBER
+	                       ,SDB.BOM1          AS BOM1
+	                       ,SDB.BOM2          AS BOM2
+	                       ,SDB.BOM3          AS BOM3
+	                       ,SDB.BOM4          AS BOM4
+	                       ,SDB.BOM5          AS BOM5
+	                       ,SDB.BOM6          AS BOM6
+	                       ,SDB.BOM7          AS BOM7
+	                       ,SDB.BOM8          AS BOM8
+	                       ,SDB.BOM9          AS BOM9
+	                       ,SDB.BOM10         AS BOM10
+	                       ,SDB.BOM11         AS BOM11
+	                       ,SDB.BOM12         AS BOM12
+	                       ,SDB.BOM13         AS BOM13
+	                       ,SDB.BOM14         AS BOM14
+	                       ,SDB.BOM15         AS BOM15
+	                       ,SDB.CREATE_BY     AS CREATE_BY
+	                       ,SDB.CREATE_DATE   AS CREATE_DATE
+	                       ,SDB.MODIFY_BY     AS MODIFY_BY
+	                       ,SDB.MODIFY_DATE   AS MODIFY_DATE
+	                       ,'O'               AS  STATES            
+	                   FROM STX_DIS_BOM SDB
+	                  WHERE NOT EXISTS
+	                        (SELECT 1
+	                           FROM STX_DIS_BOM_WORK SDBW_SUB
+	                          WHERE SDB.MOTHER_CODE = SDBW_SUB.MOTHER_CODE
+	                            AND SDB.ITEM_CODE   = SDBW_SUB.ITEM_CODE
+	                        )
+	                  UNION ALL
+	                 SELECT SDBW.MOTHER_CODE
+	                       ,SDBW.ITEM_CODE
+	                       ,SDBW.ITEM_CATALOG
+	                       ,SDBW.CATALOG_TYPE
+	                       ,SDBW.LOCATION_CODE
+	                       ,SDBW.DWG_NO
+	                       ,SDBW.ECO_NO
+	                       ,SDBW.EMP_NO
+	                       ,SDBW.QTY
+	                       ,SDBW.FINDNUMBER
+	                       ,SDBW.BOM1
+	                       ,SDBW.BOM2
+	                       ,SDBW.BOM3
+	                       ,SDBW.BOM4
+	                       ,SDBW.BOM5
+	                       ,SDBW.BOM6
+	                       ,SDBW.BOM7
+	                       ,SDBW.BOM8
+	                       ,SDBW.BOM9
+	                       ,SDBW.BOM10
+	                       ,SDBW.BOM11
+	                       ,SDBW.BOM12
+	                       ,SDBW.BOM13
+	                       ,SDBW.BOM14
+	                       ,SDBW.BOM15 
+	                       ,SDBW.CREATE_BY
+	                       ,SDBW.CREATE_DATE
+	                       ,SDBW.MODIFY_BY
+	                       ,SDBW.MODIFY_DATE
+	                       ,SDBW.STATES 
+	                   FROM STX_DIS_BOM_WORK SDBW
+	                ) A
+	               ,STX_DIS_SD_CATALOG SDSC
+		             ,STX_DIS_ENG_CHANGE_ORDER SDECO
+		             ,STX_DIS_SD_CODE          SDECO_STATES
+	          WHERE A.ITEM_CATALOG      = SDSC.CATALOG_CODE
+	            AND SDSC.PAINT_USC_FLAG = 'Y'
+	            AND A.ECO_NO            = SDECO.ENG_CHANGE_ORDER_CODE(+) 
+		          AND SDECO.STATES_CODE   = SDECO_STATES.SD_CODE(+)
+		          AND SDECO_STATES.SD_TYPE(+)= 'ECO_STATES'
+		<if test='p_level.equalsIgnoreCase("1")'>
+	            AND LEVEL               = 1
+		</if>
+	          START WITH  A.MOTHER_CODE = #{p_project_no}
+	    <if test='p_item_code != null and !p_item_code.equalsIgnoreCase("")'>
+	            AND a.item_code LIKE #{p_item_code,jdbcType=VARCHAR} || '%'
+	    </if>
+	          CONNECT BY PRIOR  A.ITEM_CODE = A.MOTHER_CODE
+	        )
+	  <where>
+	    <if test='p_bom1 != null and !p_bom1.equalsIgnoreCase("")'>
+	   AND bom10 = #{p_bom1,jdbcType=VARCHAR}
+	    </if>
+	    <if test='p_bom2 != null and !p_bom2.equalsIgnoreCase("")'>
+	   AND bom11 = #{p_bom2,jdbcType=VARCHAR}
+	    </if>
+	  </where>
+	</select>
+</mapper>  	

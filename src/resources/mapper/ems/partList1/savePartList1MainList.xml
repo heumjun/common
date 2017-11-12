@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePartList1MainList">
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="mainInsert" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PARTLIST_PKG.save_partlist_main_proc(
+					 #{project_no}
+				   , #{dwg_no}
+				   <if test='maker != null and !maker.equalsIgnoreCase("")'>
+				   , #{maker}
+				   </if>
+				   <if test='maker == null or maker.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='maker_no != null and !maker_no.equalsIgnoreCase("")'>
+				   , #{maker_no}
+				   </if>
+				   <if test='maker_no == null or maker_no.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='part_list_s != null and !part_list_s.equalsIgnoreCase("")'>
+				   , #{part_list_s}
+				   </if>
+				   <if test='part_list_s == null or part_list_s.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='maker_desc != null and !maker_desc.equalsIgnoreCase("")'>
+				   , #{maker_desc}
+				   </if>
+				   <if test='maker_desc == null or maker_desc.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   , #{partlist_type}
+				   <if test='item_code != null and !item_code.equalsIgnoreCase("")'>
+				   , #{item_code}
+				   </if>
+				   <if test='item_code == null or item_code.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='ea != null and !ea.equalsIgnoreCase("")'>
+				   , #{ea}
+				   </if>
+				   <if test='ea == null or ea.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='weight != null and !weight.equalsIgnoreCase("")'>
+				   , #{weight}
+				   </if>
+				   <if test='weight == null or weight.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='comments != null and !comments.equalsIgnoreCase("")'>
+				   , #{comments}
+				   </if>
+				   <if test='comments == null or comments.equalsIgnoreCase("")'>
+				   , ''
+				   </if>				   
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+	
+	<select id="subDelete" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PARTLIST_PKG.delete_partlist_sub_proc(
+					 #{part_list_s}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+		}
+	</select>
+	
+	<select id="subInsert" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PARTLIST_PKG.save_partlist_sub_proc(
+					 #{part_list_s}
+				   <if test='block_no != null and !block_no.equalsIgnoreCase("")'>
+				   , #{block_no}
+				   </if>
+				   <if test='block_no == null or block_no.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='stage_no != null and !stage_no.equalsIgnoreCase("")'>
+				   , #{stage_no}
+				   </if>
+				   <if test='stage_no == null or stage_no.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='str_flag != null and !str_flag.equalsIgnoreCase("")'>
+				   , #{str_flag}
+				   </if>
+				   <if test='str_flag == null or str_flag.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='usc_job_type != null and !usc_job_type.equalsIgnoreCase("")'>
+				   , #{usc_job_type}
+				   </if>
+				   <if test='usc_job_type == null or usc_job_type.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='ea != null and !ea.equalsIgnoreCase("")'>
+				   , #{ea}
+				   </if>
+				   <if test='ea == null or ea.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   <if test='mother_code != null and !mother_code.equalsIgnoreCase("")'>
+				   , #{mother_code}
+				   </if>
+				   <if test='mother_code == null or mother_code.equalsIgnoreCase("")'>
+				   , ''
+				   </if>
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+	
+	<select id="sscInsert" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PARTLIST_PKG.save_partlist_ssc_proc(
+					 #{part_list_s}
+				   , #{item_code}
+				   , #{loginId}
+				   , #{error_code, mode=OUT, javaType=string, jdbcType=VARCHAR}
+				   , #{error_msg, mode=OUT, javaType=string, jdbcType=VARCHAR})
+			}
+	</select> 
+</mapper>

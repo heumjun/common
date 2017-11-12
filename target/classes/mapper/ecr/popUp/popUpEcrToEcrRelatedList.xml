@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpEcrToEcoRelatedList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT t2.*
+		  FROM ( SELECT t1.* 
+		              , FLOOR( ( ROWNUM - 1 ) / #{pageSize} + 1 ) AS page
+		           FROM ( SELECT ECO.ENG_CHANGE_ORDER_CODE AS MAIN_CODE
+		                       , ECO.ENG_CHANGE_ORDER_CODE AS MAIN_NAME
+		                       , ECO.ENG_CHANGE_ORDER_DESC AS MAIN_DESCRIPTION
+		                       , ECO.STATES_CODE
+		                       , ( SELECT X.SD_DESC
+						            FROM STX_DIS_SD_CODE X
+						           WHERE X.SD_TYPE = 'ECO_STATES'
+						             AND X.SD_CODE = ECO.STATES_CODE ) STATES_DESC
+		                       , STX_DIS_SHORT_EMP_NAME_F( ECO.CREATE_BY ) CREATED_BY
+		                       , ECO.ENG_CHANGE_ORDER_CAUSE
+		                       , ( SELECT X.SD_DESC
+						            FROM STX_DIS_SD_CODE X
+						           WHERE X.SD_TYPE = 'CAUSE'
+						             AND X.SD_CODE = ECO.ENG_CHANGE_ORDER_CAUSE ) ENG_CHANGE_ORDER_CAUSE_DESC
+		                    FROM STX_DIS_ENG_CHANGE_ORDER ECO
+		                    
+		                   WHERE NOT EXISTS ( SELECT 1 
+		                                        FROM STX_DIS_ENG_REL T
+		                                       WHERE T.SUB_CODE = ECO.ENG_CHANGE_ORDER_CODE
+		                                         AND T.ENG_TYPE = 'ECR' )
+		<if test=" main_name != null and main_name !='' ">
+		                     AND ECO.ENG_CHANGE_ORDER_CODE LIKE #{main_name} || '%'
+		</if>
+		<if test=" emp_no != null and emp_no !='' ">
+		                     AND ECO.CREATE_BY = #{created_by}
+		</if>
+		<if test=" (main_name == null or main_name =='') and (emp_no == null or emp_no =='') and created_date_start != null and created_date_start !='' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		                     AND ECO.CREATE_DATE >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+		]]>
+		</if>		
+		<if test=" (main_name == null or main_name =='') and (emp_no == null or emp_no =='') and created_date_end != null and created_date_end !='' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		                     AND ECO.CREATE_DATE <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+		]]>
+		</if>
+		<if test=" eng_change_based_on != null and eng_change_based_on != '' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		                     AND ECO.ENG_CHANGE_ORDER_CAUSE IN    (  SELECT SDEB.SUB_STATES_CODE 
+                                                            FROM STX_DIS_ECR_BASED SDEB 
+                                                           WHERE SDEB.MAIN_STATES_CODE = #{eng_change_based_on}
+                                                             AND SDEB.ENABLE_FLAG      = 'Y' 
+                                                       ) 
+        ]]>
+		</if>
+		                   ORDER BY ECO.ENG_CHANGE_ORDER_CODE DESC
+				            ) t1
+				   ) t2
+		 WHERE page = #{curPageNo}
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT count(*) cnt
+		  FROM STX_DIS_ENG_CHANGE_ORDER ECO
+		                   WHERE  NOT EXISTS ( SELECT 1 
+		                                        FROM STX_DIS_ENG_REL T
+		                                       WHERE T.SUB_CODE = ECO.ENG_CHANGE_ORDER_CODE
+		                                         AND T.ENG_TYPE = 'ECR' )
+		<if test=" main_name != null and main_name !='' ">
+		                     AND ECO.ENG_CHANGE_ORDER_CODE LIKE #{main_name} || '%'
+		</if>
+		<if test=" emp_no != null and emp_no !='' ">
+		                     AND ECO.CREATE_BY = #{created_by}
+		</if>
+		<if test=" (main_name == null or main_name =='') and (emp_no == null or emp_no =='') and created_date_start != null and created_date_start !='' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		                     AND ECO.CREATE_DATE >= TO_DATE( #{created_date_start}, 'YYYY-MM-DD' ) 
+		]]>
+		</if>		
+		<if test=" (main_name == null or main_name =='') and (emp_no == null or emp_no =='') and created_date_end != null and created_date_end !='' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		                     AND ECO.CREATE_DATE <= TO_DATE( #{created_date_end}, 'YYYY-MM-DD' ) + 1
+		]]>
+		</if>
+		<if test=" eng_change_based_on != null and eng_change_based_on != '' "> <!--  작성 날자로 검색  -->
+		<![CDATA[
+		                     AND ECO.ENG_CHANGE_ORDER_CAUSE IN    (  SELECT SDEB.SUB_STATES_CODE 
+                                                            FROM STX_DIS_ECR_BASED SDEB 
+                                                           WHERE SDEB.MAIN_STATES_CODE = #{eng_change_based_on}
+                                                             AND SDEB.ENABLE_FLAG      = 'Y' 
+                                                       ) 
+        ]]>
+        </if>
+	</select>
+	
+</mapper>

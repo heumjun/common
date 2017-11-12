@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="supplyDwgList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDSD.SUPPLY_ID           AS SUPPLY_ID
+		      ,SDSD.SUPPLY_TYPE         AS SUPPLY_TYPE
+		      ,SDSD.VALUE               AS VALUE
+		      ,SDSD.VALUE               AS OLD_VALUE
+		  FROM STX_DIS_SUPPLY_TYPE        SDSD
+		 WHERE 1=1
+		   AND SDSD.SUPPLY_ID = #{h_supplyId}
+		   AND SDSD.SUPPLY_TYPE = #{h_supplyType}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT COUNT(*)
+		  FROM STX_DIS_SUPPLY_TYPE        SDSD
+		 WHERE 1=1
+		   AND SDSD.SUPPLY_ID = #{h_supplyId}
+		   AND SDSD.SUPPLY_TYPE = #{h_supplyType}
+  	</select>
+</mapper>

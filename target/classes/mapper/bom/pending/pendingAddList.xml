@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="pendingAddList">
+
+	<select id="procDeletePendingWork"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{call STX_DIS_PENDING_PKG.PENDING_TEMP_DELETE_PROC(
+							p_user_id 		=> #{p_user_id, 		jdbcType=VARCHAR, mode=IN},
+							p_li_seq_id 	=> #{p_li_seq_id, 		jdbcType=VARCHAR, mode=IN},
+							p_error_code 	=> #{p_error_code,      jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT},
+							p_error_msg 	=> #{p_error_msg,       jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT})
+		}
+		
+	</select>
+
+	<select id="procInsertPendingWork"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{call STX_DIS_PENDING_PKG.PENDING_TEMP_INSERT_PROC(
+							p_user_id 		=> #{p_user_id, 		jdbcType=VARCHAR, mode=IN},
+							p_dept_code 	=> #{p_dept_code, 		jdbcType=VARCHAR, mode=IN},
+							p_state_flag 	=> #{p_state_flag, 		jdbcType=VARCHAR,mode=IN},
+							p_project_no 	=> #{p_project_no, 		jdbcType=VARCHAR,mode=IN},
+							p_ship_type 	=> #{p_ship_type, 		jdbcType=VARCHAR,mode=IN},
+							p_block_no 		=> #{p_block_no, 		jdbcType=VARCHAR,mode=IN},
+							p_str_flag 		=> #{p_str_flag, 		jdbcType=VARCHAR,mode=IN},
+							p_usc_job_type 	=> #{p_usc_job_type, 	jdbcType=VARCHAR,mode=IN},
+							p_job_catalog 	=> #{p_job_catalog, 	jdbcType=VARCHAR,mode=IN},
+							p_dwg_no 		=> #{p_dwg_no, 			jdbcType=VARCHAR,mode=IN},
+							p_stage_no 		=> #{p_stage_no, 		jdbcType=VARCHAR,mode=IN},
+							p_job_cd 		=> #{p_job_cd, 			jdbcType=VARCHAR,mode=IN},
+							p_mother_code 	=> #{p_mother_code, 	jdbcType=VARCHAR,mode=IN},
+							p_item_catalog 	=> #{p_item_catalog, 	jdbcType=VARCHAR,mode=IN},
+							p_error_code 	=> #{p_error_code,      jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT},
+							p_error_msg 	=> #{p_error_msg,       jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT})
+		}
+	</select>
+
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	<select id="pendingNextList" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PENDING_PKG.PENDING_TEMP_SELECT_PROC(
+				#{p_user_id}
+				, #{p_state_flag}
+				, #{p_error_code,      jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				, #{p_error_msg,       jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				, #{p_ng_flag,         jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				, #{p_cnt,             jdbcType=VARCHAR, javaType=java.lang.String, mode=OUT}
+				, #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=pendingAddList.procResultMap, mode=OUT} )
+		}                                              
+	</select>
+	
+	<select id="procApplyPendingWork"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+		{call STX_DIS_PENDING_PKG.PENDING_TEMP_CONFIRM_PROC(
+							p_user_id 		=> #{p_user_id, 		jdbcType=VARCHAR, 	mode=IN},
+                            p_state_flag 	=> #{p_state_flag, 		jdbcType=VARCHAR,	mode=IN},
+                            p_error_code 	=> #{p_error_code,      jdbcType=VARCHAR, 	javaType=java.lang.String, mode = OUT},
+							p_error_msg 	=> #{p_error_msg,       jdbcType=VARCHAR, 	javaType=java.lang.String, mode = OUT})
+		}
+		
+	</select>
+	
+</mapper>

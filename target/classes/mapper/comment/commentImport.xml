@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="commentImport">
+
+	<resultMap type="org.apache.commons.collections.map.CaseInsensitiveMap" id="procResultMap"></resultMap>
+	
+	<select id="commentReceiptNoSelectBoxDataList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDCRL.RECEIPT_NO     AS SB_VALUE,
+		       SDCRL.RECEIPT_NO 	AS SB_NAME,
+		       SDCRD.RECEIPT_DETAIL_ID AS RECEIPT_DETAIL_ID
+		  FROM STX_DIS_COMMENT_RECEIPT_LIST   SDCRL,
+		       STX_DIS_COMMENT_RECEIPT_DETAIL SDCRD,
+		       STX_DIS_COMMENT_RECEIPT_DWG    SDCRDW
+		 WHERE SDCRL.RECEIPT_ID = SDCRD.RECEIPT_ID
+		   AND SDCRD.RECEIPT_DETAIL_ID = SDCRDW.RECEIPT_DETAIL_ID
+		   AND SDCRDW.DWG_NO = #{p_dwg_no, jdbcType=VARCHAR}
+		   AND SDCRL.PROJECT_NO = #{p_project_no, jdbcType=VARCHAR}
+		   AND SDCRL.ISSUER     = #{p_issuer, jdbcType=VARCHAR}
+		 GROUP BY SDCRL.RECEIPT_NO, SDCRD.RECEIPT_DETAIL_ID
+		 ORDER BY SDCRL.RECEIPT_NO
+  	</select>
+
+	<select id="commentImportAddProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+       { CALL STX_DIS_COMMENT_PKG.COMMENT_IMPORT_ADD_PROC( 
+       			 P_WORK_KEY           => #{p_work_key,			jdbcType=VARCHAR,	mode=IN}
+                ,P_PROJECT_NO         => #{p_project_no,		jdbcType=VARCHAR,	mode=IN}
+                ,P_DWG_NO             => #{p_dwg_no,			jdbcType=VARCHAR,	mode=IN}
+                ,P_ISSUER			  => #{p_issuer,			jdbcType=VARCHAR,	mode=IN}
+                ,P_RECEIPT_NO  		  => #{p_receipt_no,		jdbcType=VARCHAR,	mode=IN}
+                ,P_RECEIPT_DETAIL_ID  => #{p_receipt_detail_id,	jdbcType=VARCHAR,	mode=IN} 
+                ,P_LIST_NO            => #{p_list_no,			jdbcType=VARCHAR,	mode=IN}   
+                ,P_SUB_NO             => #{p_sub_no,			jdbcType=VARCHAR,	mode=IN}
+                ,P_SUB_TITLE          => #{p_sub_title,			jdbcType=VARCHAR,	mode=IN}
+                ,P_INITIALS           => #{p_initials,			jdbcType=VARCHAR,	mode=IN}
+                ,P_BUILDERS_REPLY     => #{p_builders_reply,	jdbcType=VARCHAR,	mode=IN}
+                ,P_SEND_NO            => #{p_send_no,			jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID            => #{p_user_id,			jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         => #{p_error_code,		jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          => #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="commentImportValidationProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.COMMENT_IMPORT_VALIDATION_PROC( 
+       			 P_WORK_KEY           => #{p_work_key,			jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         => #{p_error_code,		jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          => #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="commentReplyImportValidationProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.COMMENT_IMPORT_REF_VAL_PROC( 
+       			 P_WORK_KEY           => #{p_work_key,			jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE         => #{p_error_code,		jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG          => #{p_error_msg,			jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="commentImportSelectProc" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{CALL STX_DIS_COMMENT_PKG.COMMENT_IMPORT_SELECT_PROC(
+			  P_WORK_KEY        => #{p_work_key,		jdbcType=VARCHAR,	mode=IN}
+			, P_ERROR_CODE 		=> #{p_error_code,      jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, P_ERROR_MSG 		=> #{p_error_msg,       jdbcType = VARCHAR, javaType = java.lang.String, mode = OUT}
+			, P_REFER 			=> #{p_refer,           jdbcType=CURSOR,  javaType=ResultSet, resultMap=commentImport.procResultMap, mode=OUT}
+		)}
+	</select>
+	
+	<select id="commentImportConfirmProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.COMMENT_IMPORT_CONFIRM_PROC( 
+       			 P_WORK_KEY        => #{p_work_key,		jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID         => #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE      => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG       => #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	<select id="commentReplyImportConfirmProc"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { CALL STX_DIS_COMMENT_PKG.COMMENT_IMPORT_REF_CON_PROC( 
+       			 P_WORK_KEY        => #{p_work_key,		jdbcType=VARCHAR,	mode=IN}
+                ,P_USER_ID         => #{p_user_id,		jdbcType=VARCHAR,	mode=IN}
+                ,P_ERROR_CODE      => #{p_error_code,	jdbcType=VARCHAR,	mode=OUT}
+                ,P_ERROR_MSG       => #{p_error_msg,	jdbcType=VARCHAR,	mode=OUT} 
+		)}
+	</select>
+	
+	
+</mapper>

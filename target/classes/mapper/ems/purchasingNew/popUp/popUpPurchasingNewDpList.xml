@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingNewDpList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		WITH DWG AS (SELECT DW.PROJECTNO AS PROJECTNO 	                    
+			       ,DDP.DEPTCODE AS DEPTCODE    	
+		           ,DWG_DEPT.DWGDEPTCODE AS DWGDEPTCODE       
+		           ,DWG_DEPT.DWGDEPTNM AS DWGDEPTNM                         
+		           ,SUBSTR(DW.ACTIVITYCODE, 1, 8) AS DWGCODE                      
+		           ,DW.DWGTITLE AS DWGTITLE                   
+		           ,TO_CHAR(OW.PLANFINISHDATE, 'YYYY-MM-DD') AS DR_DATE                  
+		           ,TO_CHAR(DW.PLANSTARTDATE, 'YYYY-MM-DD') AS PR_PLAN_DATE                  
+		           ,TO_CHAR(OW.PLANSTARTDATE, 'YYYY-MM-DD') AS PO_PLAN_DATE                  
+		           ,TO_CHAR(OW.ACTUALFINISHDATE, 'YYYY-MM-DD') AS RECEIVE_ACT_DATE   
+		       FROM PLM_ACTIVITY@STXDP DW 
+		           ,DCC_DEPTCODE@STXDP DDP
+		           ,DCC_DWGDEPTCODE@STXDP DWG_DEPT
+		           ,(SELECT A.PROJECTNO,  
+		                    A.ACTIVITYCODE,  
+		                    A.PLANSTARTDATE,  
+		                    A.PLANFINISHDATE,  
+		                    A.ACTUALFINISHDATE  
+		               FROM PLM_ACTIVITY@STXDP A  
+		              WHERE A.WORKTYPE = 'OW' ) OW   
+		      WHERE 1 = 1   
+		        AND DW.WORKTYPE = 'DW'   
+		        AND DW.DWGCATEGORY = 'B'   
+		        AND DW.DWGTYPE = 'V'   
+		        AND DWG_DEPT.DWGDEPTCODE = DDP.DWGDEPTCODE   
+		        AND DW.PROJECTNO = OW.PROJECTNO(+)   
+		        AND SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(OW.ACTIVITYCODE(+), 1, 8)   
+		        AND DW.DWGDEPTCODE = DWG_DEPT.DWGDEPTCODE   
+
+		<if test="p_dwg_no != null and !p_dwg_no.equalsIgnoreCase('') and !p_dwg_no.equalsIgnoreCase('null') and !p_dwg_no.equalsIgnoreCase('*')">
+		    AND SUBSTR(DW.ACTIVITYCODE, 1, 8) IN (
+		    <foreach collection="dwgNosArray" item="item" separator=",">
+					#{item}
+			</foreach>
+		    )
+		</if>
+
+		<if test="p_project != null and !p_project.equalsIgnoreCase('') and !p_project.equalsIgnoreCase('null') and !p_project.equalsIgnoreCase('*')">
+		    AND DW.PROJECTNO IN (
+		    <foreach collection="projectsArray" item="item" separator=",">
+						#{item}
+			</foreach>
+		    )
+		</if>
+		)
+		
+		select t2.*
+		from (
+		select t1.*, COUNT(*) OVER() AS CNT
+		,floor((rownum - 1) / #{rows} + 1 ) as page
+		from                                               
+		(                                                        
+		SELECT DISTINCT SEP.MASTER                                    
+		  , SEP.PROJECT                                          
+		  , SEP.DWG_NO                                          
+		  , (SELECT DEPT_NAME FROM STX_COM_INSA_USER@STXERP WHERE EMP_NO = SEP.CREATED_BY) DEPT_NAME      
+		  , (SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE EMP_NO = SEP.CREATED_BY) CREATED_BY      
+		  , ( SELECT PVS.VENDOR_SITE_CODE_ALT                              
+		      FROM PO_REQUISITION_HEADERS_ALL@STXERP     PRH                          
+		          ,PO_REQUISITION_LINES_ALL@STXERP       PRL                          
+		          ,PO_REQ_DISTRIBUTIONS_ALL@STXERP       PRD                          
+		          ,PO_LINE_LOCATIONS_ALL@STXERP          PLL                          
+		          ,PO_HEADERS_ALL@STXERP                 PHA                          
+		          ,PO_VENDOR_SITES_ALL@STXERP            PVS                          
+		     WHERE 1=1                                         
+		       AND PRH.REQUISITION_HEADER_ID         = PRL.REQUISITION_HEADER_ID            
+		       AND PRL.REQUISITION_LINE_ID           = PRD.REQUISITION_LINE_ID            
+		       AND PRL.LINE_LOCATION_ID              = PLL.LINE_LOCATION_ID (+)            
+		       AND PLL.PO_HEADER_ID                  = PHA.PO_HEADER_ID     (+)            
+		       AND PHA.VENDOR_SITE_ID                = PVS.VENDOR_SITE_ID   (+)            
+		       AND PRH.SEGMENT1                      = SEP.PR_NO                    
+		       AND ROWNUM = 1 ) AS CORP_NAME                              
+		  , (SELECT SUBSTR(SPPE.BUYER, 0 ,INSTR(SPPE.BUYER,',',1,1) - 1) BUYER              
+		    FROM STX_PO_PROPERTY_TEMPLATE@STXERP SPPE
+		        ,MTL_ITEM_CATALOG_GROUPS@STXERP B
+		    WHERE SPPE.ITEM_CATALOG_GROUP_ID = B.ITEM_CATALOG_GROUP_ID AND B.SEGMENT1 = SES.CATALOG_CODE) OBTAIN_BY  
+		  , SEP.PR_NO                                          
+		  , ( SELECT PHA.SEGMENT1                                    
+		      FROM PO_REQUISITION_HEADERS_ALL@STXERP     PRH                          
+		          ,PO_REQUISITION_LINES_ALL@STXERP       PRL                          
+		          ,PO_REQ_DISTRIBUTIONS_ALL@STXERP       PRD                          
+		          ,PO_LINE_LOCATIONS_ALL@STXERP          PLL                          
+		          ,PO_HEADERS_ALL@STXERP                 PHA                          
+		     WHERE 1=1                                         
+		       AND PRH.REQUISITION_HEADER_ID         = PRL.REQUISITION_HEADER_ID            
+		       AND PRL.REQUISITION_LINE_ID           = PRD.REQUISITION_LINE_ID            
+		       AND PRL.LINE_LOCATION_ID              = PLL.LINE_LOCATION_ID (+)            
+		       AND PLL.PO_HEADER_ID                  = PHA.PO_HEADER_ID     (+)            
+		       AND PRH.SEGMENT1                      = SEP.PR_NO                    
+		       AND ROWNUM = 1 ) AS PO_NO                                
+		  , DWG.PR_PLAN_DATE                                      
+		  , TO_CHAR(( SELECT PRH.APPROVED_DATE                                  
+		      FROM PO_REQUISITION_HEADERS_ALL@STXERP     PRH                          
+		          ,PO_REQUISITION_LINES_ALL@STXERP       PRL                          
+		          ,PO_REQ_DISTRIBUTIONS_ALL@STXERP       PRD                          
+		          ,PO_LINE_LOCATIONS_ALL@STXERP          PLL                          
+		          ,PO_HEADERS_ALL@STXERP                 PHA                          
+		     WHERE 1=1                                         
+		       AND PRH.REQUISITION_HEADER_ID         = PRL.REQUISITION_HEADER_ID            
+		       AND PRL.REQUISITION_LINE_ID           = PRD.REQUISITION_LINE_ID            
+		       AND PRL.LINE_LOCATION_ID              = PLL.LINE_LOCATION_ID (+)            
+		       AND PLL.PO_HEADER_ID                  = PHA.PO_HEADER_ID     (+)            
+		       AND PRH.SEGMENT1                      = SEP.PR_NO                    
+		       AND ROWNUM = 1 ), 'YYYY-MM-DD') AS PR_AP_DATE                              
+		  , DWG.PO_PLAN_DATE                                      
+		  , TO_CHAR(( SELECT PHA.APPROVED_DATE                                 
+		      FROM PO_REQUISITION_HEADERS_ALL@STXERP     PRH                          
+		          ,PO_REQUISITION_LINES_ALL@STXERP       PRL                          
+		          ,PO_REQ_DISTRIBUTIONS_ALL@STXERP       PRD                          
+		          ,PO_LINE_LOCATIONS_ALL@STXERP          PLL                          
+		          ,PO_HEADERS_ALL@STXERP                 PHA                          
+		     WHERE 1=1                                         
+		       AND PRH.REQUISITION_HEADER_ID         = PRL.REQUISITION_HEADER_ID            
+		       AND PRL.REQUISITION_LINE_ID           = PRD.REQUISITION_LINE_ID            
+		       AND PRL.LINE_LOCATION_ID              = PLL.LINE_LOCATION_ID (+)            
+		       AND PLL.PO_HEADER_ID                  = PHA.PO_HEADER_ID     (+)            
+		       AND PRH.SEGMENT1                      = SEP.PR_NO                    
+		       AND ROWNUM = 1 ), 'YYYY-MM-DD') AS PO_AP_DATE                              
+		  , DWG.RECEIVE_ACT_DATE                                    
+		  FROM STX_EMS_PURCHASING@STXERP SEP
+		      ,STX_EMS_STANDARD_V@STXERP SES
+		      ,DWG                     
+		  WHERE 1=1                                           
+		    AND SEP.DWG_NO = SES.DWG_NO                                 
+		    AND SEP.ITEM_CODE = SES.ITEM_CODE                             
+		    AND SEP.PROJECT = DWG.PROJECTNO                               
+		    AND SEP.DWG_NO = DWG.DWGCODE                                 
+		<if test="p_master != null and !p_master.equalsIgnoreCase('') and !p_master.equalsIgnoreCase('null') and !p_master.equalsIgnoreCase('*')">
+		    AND SEP.MASTER = #{p_master}
+		</if>
+		<if test="p_dwg_no != null and !p_dwg_nos.equalsIgnoreCase('') and !p_dwg_no.equalsIgnoreCase('null') and !p_dwg_no.equalsIgnoreCase('*')">
+		    AND SEP.DWG_NO IN (
+		    <foreach collection="dwgNosArray" item="item" separator=",">
+				#{item}
+			</foreach>
+		    )
+		</if>
+		<if test="p_project != null and !p_project.equalsIgnoreCase('') and !p_project.equalsIgnoreCase('null') and !p_project.equalsIgnoreCase('*')">
+		    AND SEP.PROJECT IN (
+		    <foreach collection="projectsArray" item="item" separator=",">
+				#{item}
+			</foreach>
+		    )
+		</if>
+		) t1                                              
+		  WHERE 1=1                                                   
+		) t2                                                       
+		
+		ORDER BY t2.PROJECT, t2.DWG_NO
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+		WITH DWG AS (SELECT DW.PROJECTNO AS PROJECTNO 	                    
+			       ,DDP.DEPTCODE AS DEPTCODE    	
+		           ,DWG_DEPT.DWGDEPTCODE AS DWGDEPTCODE       
+		           ,DWG_DEPT.DWGDEPTNM AS DWGDEPTNM                         
+		           ,SUBSTR(DW.ACTIVITYCODE, 1, 8) AS DWGCODE                      
+		           ,DW.DWGTITLE AS DWGTITLE                   
+		           ,TO_CHAR(OW.PLANFINISHDATE, 'YYYY-MM-DD') AS DR_DATE                  
+		           ,TO_CHAR(DW.PLANSTARTDATE, 'YYYY-MM-DD') AS PR_PLAN_DATE                  
+		           ,TO_CHAR(OW.PLANSTARTDATE, 'YYYY-MM-DD') AS PO_PLAN_DATE                  
+		           ,TO_CHAR(OW.ACTUALFINISHDATE, 'YYYY-MM-DD') AS RECEIVE_ACT_DATE   
+		       FROM PLM_ACTIVITY@STXDP DW 
+		           ,DCC_DEPTCODE@STXDP DDP
+		           ,DCC_DWGDEPTCODE@STXDP DWG_DEPT
+		           ,(SELECT A.PROJECTNO,  
+		                    A.ACTIVITYCODE,  
+		                    A.PLANSTARTDATE,  
+		                    A.PLANFINISHDATE,  
+		                    A.ACTUALFINISHDATE  
+		               FROM PLM_ACTIVITY@STXDP A  
+		              WHERE A.WORKTYPE = 'OW' ) OW   
+		      WHERE 1 = 1   
+		        AND DW.WORKTYPE = 'DW'   
+		        AND DW.DWGCATEGORY = 'B'   
+		        AND DW.DWGTYPE = 'V'   
+		        AND DWG_DEPT.DWGDEPTCODE = DDP.DWGDEPTCODE   
+		        AND DW.PROJECTNO = OW.PROJECTNO(+)   
+		        AND SUBSTR(DW.ACTIVITYCODE, 1, 8) = SUBSTR(OW.ACTIVITYCODE(+), 1, 8)   
+		        AND DW.DWGDEPTCODE = DWG_DEPT.DWGDEPTCODE   
+		<if test="p_dwg_no != null and !p_dwg_no.equalsIgnoreCase('') and !p_dwg_no.equalsIgnoreCase('null') and !p_dwg_no.equalsIgnoreCase('*')">
+		    AND SUBSTR(DW.ACTIVITYCODE, 1, 8) IN (
+		    <foreach collection="dwgNosArray" item="item" separator=",">
+						#{item}
+				</foreach>
+		    )
+		</if>
+		<if test="p_project != null and !p_project.equalsIgnoreCase('') and !p_project.equalsIgnoreCase('null') and !p_project.equalsIgnoreCase('*')">
+		    AND DW.PROJECTNO IN (
+		    <foreach collection="projectsArray" item="item" separator=",">
+					#{item}
+			</foreach>
+		    )
+		</if>
+		)
+		SELECT COUNT(*) AS CNT
+		  FROM (
+		SELECT DISTINCT SEP.MASTER                                    
+		  , SEP.PROJECT                                          
+		  , SEP.DWG_NO                                          
+		  , (SELECT DEPT_NAME FROM STX_COM_INSA_USER@STXERP WHERE EMP_NO = SEP.CREATED_BY) DEPT_NAME      
+		  , (SELECT USER_NAME FROM STX_COM_INSA_USER@STXERP WHERE EMP_NO = SEP.CREATED_BY) CREATED_BY      
+		  , ( SELECT PVS.VENDOR_SITE_CODE_ALT                              
+		      FROM PO_REQUISITION_HEADERS_ALL@STXERP     PRH                          
+		          ,PO_REQUISITION_LINES_ALL@STXERP       PRL                          
+		          ,PO_REQ_DISTRIBUTIONS_ALL@STXERP       PRD                          
+		          ,PO_LINE_LOCATIONS_ALL@STXERP          PLL                          
+		          ,PO_HEADERS_ALL@STXERP                 PHA                          
+		          ,PO_VENDOR_SITES_ALL@STXERP            PVS                          
+		     WHERE 1=1                                         
+		       AND PRH.REQUISITION_HEADER_ID         = PRL.REQUISITION_HEADER_ID            
+		       AND PRL.REQUISITION_LINE_ID           = PRD.REQUISITION_LINE_ID            
+		       AND PRL.LINE_LOCATION_ID              = PLL.LINE_LOCATION_ID (+)            
+		       AND PLL.PO_HEADER_ID                  = PHA.PO_HEADER_ID     (+)            
+		       AND PHA.VENDOR_SITE_ID                = PVS.VENDOR_SITE_ID   (+)            
+		       AND PRH.SEGMENT1                      = SEP.PR_NO                    
+		       AND ROWNUM = 1 ) AS CORP_NAME                              
+		  , (SELECT SUBSTR(SPPE.BUYER, 0 ,INSTR(SPPE.BUYER,',',1,1) - 1) BUYER              
+		    FROM STX_PO_PROPERTY_TEMPLATE@STXERP SPPE
+		        ,MTL_ITEM_CATALOG_GROUPS@STXERP B
+		    WHERE SPPE.ITEM_CATALOG_GROUP_ID = B.ITEM_CATALOG_GROUP_ID AND B.SEGMENT1 = SES.CATALOG_CODE) OBTAIN_BY  
+		  , SEP.PR_NO                                          
+		  , ( SELECT PHA.SEGMENT1                                    
+		      FROM PO_REQUISITION_HEADERS_ALL@STXERP     PRH                          
+		          ,PO_REQUISITION_LINES_ALL@STXERP       PRL                          
+		          ,PO_REQ_DISTRIBUTIONS_ALL@STXERP       PRD                          
+		          ,PO_LINE_LOCATIONS_ALL@STXERP          PLL                          
+		          ,PO_HEADERS_ALL@STXERP                 PHA                          
+		     WHERE 1=1                                         
+		       AND PRH.REQUISITION_HEADER_ID         = PRL.REQUISITION_HEADER_ID            
+		       AND PRL.REQUISITION_LINE_ID           = PRD.REQUISITION_LINE_ID            
+		       AND PRL.LINE_LOCATION_ID              = PLL.LINE_LOCATION_ID (+)            
+		       AND PLL.PO_HEADER_ID                  = PHA.PO_HEADER_ID     (+)            
+		       AND PRH.SEGMENT1                      = SEP.PR_NO                    
+		       AND ROWNUM = 1 ) AS PO_NO                                
+		  , DWG.PR_PLAN_DATE                                      
+		  , ( SELECT PRH.APPROVED_DATE                                  
+		      FROM PO_REQUISITION_HEADERS_ALL@STXERP     PRH                          
+		          ,PO_REQUISITION_LINES_ALL@STXERP       PRL                          
+		          ,PO_REQ_DISTRIBUTIONS_ALL@STXERP       PRD                          
+		          ,PO_LINE_LOCATIONS_ALL@STXERP          PLL                          
+		          ,PO_HEADERS_ALL@STXERP                 PHA                          
+		     WHERE 1=1                                         
+		       AND PRH.REQUISITION_HEADER_ID         = PRL.REQUISITION_HEADER_ID            
+		       AND PRL.REQUISITION_LINE_ID           = PRD.REQUISITION_LINE_ID            
+		       AND PRL.LINE_LOCATION_ID              = PLL.LINE_LOCATION_ID (+)            
+		       AND PLL.PO_HEADER_ID                  = PHA.PO_HEADER_ID     (+)            
+		       AND PRH.SEGMENT1                      = SEP.PR_NO                    
+		       AND ROWNUM = 1 ) AS PR_AP_DATE                              
+		  , DWG.PO_PLAN_DATE                                      
+		  , ( SELECT PHA.APPROVED_DATE                                 
+		      FROM PO_REQUISITION_HEADERS_ALL@STXERP     PRH                          
+		          ,PO_REQUISITION_LINES_ALL@STXERP       PRL                          
+		          ,PO_REQ_DISTRIBUTIONS_ALL@STXERP       PRD                          
+		          ,PO_LINE_LOCATIONS_ALL@STXERP          PLL                          
+		          ,PO_HEADERS_ALL@STXERP                 PHA                          
+		     WHERE 1=1                                         
+		       AND PRH.REQUISITION_HEADER_ID         = PRL.REQUISITION_HEADER_ID            
+		       AND PRL.REQUISITION_LINE_ID           = PRD.REQUISITION_LINE_ID            
+		       AND PRL.LINE_LOCATION_ID              = PLL.LINE_LOCATION_ID (+)            
+		       AND PLL.PO_HEADER_ID                  = PHA.PO_HEADER_ID     (+)            
+		       AND PRH.SEGMENT1                      = SEP.PR_NO                    
+		       AND ROWNUM = 1 ) AS PO_AP_DATE                              
+		  , DWG.RECEIVE_ACT_DATE                                    
+		  FROM STX_EMS_PURCHASING@STXERP SEP
+		      ,STX_EMS_STANDARD_V@STXERP SES
+		      ,DWG                     
+		  WHERE 1=1                                           
+		    AND SEP.DWG_NO = SES.DWG_NO                                 
+		    AND SEP.ITEM_CODE = SES.ITEM_CODE                             
+		    AND SEP.PROJECT = DWG.PROJECTNO                               
+		    AND SEP.DWG_NO = DWG.DWGCODE                                 
+		<if test="p_master != null and !p_master.equalsIgnoreCase('') and !p_master.equalsIgnoreCase('null') and !p_master.equalsIgnoreCase('*')">
+		    AND SEP.MASTER = #{p_master}
+		</if>
+		<if test="p_dwg_no != null and !p_dwg_no.equalsIgnoreCase('') and !p_dwg_no.equalsIgnoreCase('null') and !p_dwg_no.equalsIgnoreCase('*')">
+		    AND SEP.DWG_NO IN (
+		    <foreach collection="dwgNosArray" item="item" separator=",">
+				#{item}
+			</foreach>
+		    )
+		</if>
+		<if test="p_project != null and !p_project.equalsIgnoreCase('') and !p_project.equalsIgnoreCase('null') and !p_project.equalsIgnoreCase('*')">
+		    AND SEP.PROJECT IN (
+		    <foreach collection="projectsArray" item="item" separator=",">
+				#{item}
+			</foreach>
+		    )
+		</if>
+		)
+	</select>
+	
+</mapper>

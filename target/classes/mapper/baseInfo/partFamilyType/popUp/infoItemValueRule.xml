@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoItemValueRule">  	
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select sd_code as code
+	 	   ,sd_desc as data
+	 	   ,(case sd_code when 'A' then 'Z'
+                          when 'F' then '7'
+                          else ''
+            end)    as desc1  
+	   from stx_dis_sd_code t 
+	  where sd_type 	= 'ITEM_RULE' 
+	    and enable_flag = 'Y'
+  	</select>
+ 	
+</mapper>

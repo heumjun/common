@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dpApprovalCommon">
+	<select id="selectPartDPConfirmsList" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT WORK_DAY,
+		       CASE
+		         WHEN ISWORKDAY = 'N' THEN (
+		                       CASE
+		                         WHEN PART_INPUT_EMP_COUNT = 0 THEN '-'
+		                         WHEN CONFIRM_NO_COUNT = 0 THEN 'Y'
+		                         ELSE 'N'
+		                       END )
+		         ELSE (
+		                       CASE
+		                         WHEN CONFIRM_NO_COUNT = 0
+		        AND    PART_EMP_COUNT = PART_INPUT_EMP_COUNT THEN 'Y'
+		                         ELSE 'N'
+		                       END )
+		       END AS CONFIRM_YN
+		FROM   (SELECT TO_CHAR(WORKINGDAY, 'YYYY-MM-DD') AS WORK_DAY,
+		               ISWORKDAY,
+		               CONFIRM_NO_COUNT,
+		               (SELECT COUNT(*)
+		                FROM   CCC_SAWON
+		                WHERE  1= 1
+		                AND    TERMINATION_DATE IS NULL
+		                AND    INPUT_MAN_HOUR_ENABLED = 'Y'
+		                AND    DEPT_CODE = #{dept_code} ) AS PART_EMP_COUNT,
+		               (SELECT COUNT(DISTINCT EMPLOYEE_NO)
+		                FROM   PLM_DESIGN_MH C
+		                WHERE  C.WORK_DAY = WORKINGDAY
+		                AND    DEPT_CODE = #{dept_code} ) AS PART_INPUT_EMP_COUNT
+		        FROM   (SELECT B.WORKINGDAY,
+		                       B.ISWORKDAY,
+		                       A.CONFIRM_NO_COUNT
+		                FROM   (SELECT B.WORK_DAY,
+		                               SUM(DECODE(B.CONFIRM_YN, 'N', 1, 0)) AS CONFIRM_NO_COUNT
+		                        FROM   CCC_SAWON A,
+		                               PLM_DESIGN_MH B
+		                        WHERE  A.EMPLOYEE_NUM = B.EMPLOYEE_NO
+		                        AND    A.DEPT_CODE = #{dept_code}
+		                        AND    B.WORK_DAY >= TO_DATE(#{dateFrom}, 'YYYY-MM-DD')
+		                        AND    B.WORK_DAY &lt;= TO_DATE(#{dateTo}, 'YYYY-MM-DD')
+		                        GROUP BY B.WORK_DAY ) A,
+		                       CCC_CALENDAR B
+		                WHERE  1 = 1
+		                AND    B.WORKINGDAY >= TO_DATE(#{dateFrom}, 'YYYY-MM-DD')
+		                AND    B.WORKINGDAY &lt;= TO_DATE(#{dateTo}, 'YYYY-MM-DD')
+		                AND    B.WORKINGDAY = A.WORK_DAY(+) ) )
+		ORDER BY WORK_DAY 
+	</select>
+	
+	<select id="selectPartDPInputRateList" parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT WORK_DAY,
+		       ISWORKDAY as IS_WORK_DAY,
+		       CASE
+		         WHEN ISWORKDAY = 'N' THEN (
+		                       CASE
+		                         WHEN PART_EMP_COUNT = 0 THEN '0'
+		                         WHEN INPUTDONE_NO_COUNT != 0 THEN (
+		                                       CASE
+		                                         WHEN ROUND(INPUTDONE_NO_COUNT / PART_EMP_COUNT * 100, 0) > 100 THEN '100'
+		                                         ELSE TO_CHAR(ROUND(INPUTDONE_NO_COUNT / PART_EMP_COUNT * 100, 0))
+		                                       END )
+		                         ELSE '-'
+		                       END )
+		         ELSE (
+		                       CASE
+		                         WHEN PART_EMP_COUNT = 0 THEN '0'
+		                         WHEN ROUND(INPUTDONE_NO_COUNT / PART_EMP_COUNT * 100, 0) > 100 THEN '100'
+		                         ELSE TO_CHAR(ROUND(INPUTDONE_NO_COUNT / PART_EMP_COUNT * 100, 0))
+		                       END )
+		       END AS INPUT_RATE
+		FROM   (SELECT TO_CHAR(WORKINGDAY, 'YYYY-MM-DD') AS WORK_DAY,
+		               ISWORKDAY,
+		               INPUTDONE_NO_COUNT,
+		               (SELECT COUNT(*)
+		                FROM   CCC_SAWON
+		                WHERE  1= 1
+		                AND    TERMINATION_DATE IS NULL
+		                AND    INPUT_MAN_HOUR_ENABLED = 'Y'
+		                AND    DEPT_CODE = #{dept_code} ) AS PART_EMP_COUNT
+		        FROM   (SELECT B.WORKINGDAY,
+		                       B.ISWORKDAY,
+		                       NVL(A.INPUTDONE_NO_COUNT, 0) AS INPUTDONE_NO_COUNT
+		                FROM   (SELECT B.WORK_DAY,
+		                               COUNT(DISTINCT EMPLOYEE_NO) AS INPUTDONE_NO_COUNT
+		                        FROM   CCC_SAWON A,
+		                               PLM_DESIGN_MH B
+		                        WHERE  A.EMPLOYEE_NUM = B.EMPLOYEE_NO
+		                        AND    A.DEPT_CODE = #{dept_code}
+		                        AND    B.WORK_DAY >= TO_DATE(#{dateFrom}, 'YYYY-MM-DD')
+		                        AND    B.WORK_DAY &lt;= TO_DATE(#{dateTo}, 'YYYY-MM-DD')
+		                        AND    B.INPUTDONE_YN = 'Y'
+		                        GROUP BY B.WORK_DAY ) A,
+		                       CCC_CALENDAR B
+		                WHERE  1 = 1
+		                AND    B.WORKINGDAY >= TO_DATE(#{dateFrom}, 'YYYY-MM-DD')
+		                AND    B.WORKINGDAY &lt;= TO_DATE(#{dateTo}, 'YYYY-MM-DD')
+		                AND    B.WORKINGDAY = A.WORK_DAY(+) ) )
+		ORDER BY WORK_DAY 
+	</select>
+	
+	<select id="selectDwgMH_Overtime"  parameterType="java.util.Map"  resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT PROJECT_NO,
+		       DWG_CODE,
+		       PLAN_MH,
+		       ACTUAL_MH,
+		       DECODE(SIGN(ACTUAL_MH - PLAN_MH), -1, '', 0, '', 1, ACTUAL_MH - PLAN_MH) AS DIFF_MH
+		FROM   (SELECT A.PROJECT_NO,
+		               A.DWG_CODE,
+		               NVL(B.PLANSTDMH, 0) + NVL(B.PLANFOLLOWMH, 0) AS PLAN_MH,
+		               NVL(A.TOTAL_MH, 0) + NVL(B.ACTUALSTDMH, 0) + NVL(B.ACTUALFOLLOWMH, 0) AS ACTUAL_MH
+		        FROM   (SELECT PROJECT_NO,
+		                       DWG_CODE,
+		                       SUM(TOTAL_MH * MH_FACTOR) AS TOTAL_MH
+		                FROM   (SELECT PROJECT_NO,
+		                               DWG_CODE,
+		                               TOTAL_MH,
+		                                                       CASE
+		                                                         WHEN CAREER_MONTHS IS NULL THEN 1
+		                                                         ELSE (SELECT FACTOR_VALUE
+		                                FROM   (SELECT CAREER_MONTH_FROM,
+		                                               CAREER_MONTH_TO,
+		                                               FACTOR_VALUE
+		                                        FROM   PLM_DESIGN_MH_FACTOR A
+		                                        WHERE  1 = 1
+		                                        AND    A.CASE_NO = (SELECT VALUE
+		                                                FROM   PLM_CODE_TBL A
+		                                                WHERE  A.CATEGORY = 'MH_FACTOR'
+		                                                AND    A.KEY = 'ACTIVE_CASE' ) )
+		                                WHERE  CAREER_MONTH_FROM &lt;= CAREER_MONTHS
+		                                AND    NVL(CAREER_MONTH_TO, 9999) >= CAREER_MONTHS )
+		                                                       END AS MH_FACTOR
+		                        FROM   (SELECT A.PROJECT_NO,
+		                                       A.DWG_CODE,
+		                                       A.NORMAL_TIME + A.OVERTIME + A.SPECIAL_TIME AS TOTAL_MH,
+		                                       ((TO_CHAR(A.WORK_DAY, 'YYYY') - TO_CHAR(B.DESIGN_APPLY_DATE, 'YYYY'))* 12 + (TO_CHAR(A.WORK_DAY, 'MM') - TO_CHAR(B.DESIGN_APPLY_DATE, 'MM'))) +
+		                                                                       CASE
+		                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') &lt;= 15 THEN 1
+		                                                                         WHEN TO_CHAR(B.DESIGN_APPLY_DATE, 'DD') > 15 THEN 0
+		                                                                       END + NVL(ROUND(B.BEFORE_ENTRANCE_CAREER * 12, 0), 0) AS CAREER_MONTHS
+		                                FROM   PLM_DESIGN_MH A,
+		                                       CCC_SAWON B
+		                                WHERE  1 = 1
+		                                AND    A.WORK_DAY = TO_DATE(#{dateselected}, 'YYYY-MM-DD')
+		                                AND    A.EMPLOYEE_NO = #{employee_num}
+		                                AND    A.CONFIRM_YN &lt;&gt; 'Y'
+		                                AND    SUBSTR(A.DWG_CODE, 1, 1) &lt;&gt; '*'
+		                                AND    A.DWG_CODE IS NOT NULL
+		                                AND    A.EMPLOYEE_NO = B.EMPLOYEE_NUM ) )
+		                GROUP BY PROJECT_NO, DWG_CODE ) A,
+		               PLM_ACTIVITY B
+		        WHERE  1 = 1
+		        AND    A.PROJECT_NO = B.PROJECTNO
+		        AND    A.DWG_CODE || 'DW' = B.ACTIVITYCODE )
+		ORDER BY PROJECT_NO, DWG_CODE 
+	</select>
+</mapper>

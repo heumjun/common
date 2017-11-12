@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dwgInformationList">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select t12.* 
+	from (   
+		select t11.*  
+				,floor((rownum - 1) / #{pageSize} + 1 ) as page
+		from 
+		(  
+		   SELECT t1.dwg_rev as rev 
+		         ,t1.shp_no 
+		         ,t1.dwg_no 
+		         ,t3.description as text_des 
+		         ,t1.dwg_sq 
+		         ,t1.dwg_rev 
+		         ,t1.pri_set 
+		         ,t1.trans_plm 
+		         ,t2.user_name 
+		         ,t1.emp_no 
+		         ,t2.dept_name 
+		         ,to_char(t1.inp_date,'yyyy-mm-dd hh24:mi') as inp_date 
+		         ,t1.file_name 
+		         ,t1.pcs_no 
+		         ,t1.form_type 
+		         ,t1.form_name 
+		         ,t1.paint_code 
+		         ,t1.dwg_seq_id 
+			   FROM stx_dwg_dw302tbl@stxerp t1
+			      , stx_com_insa_user@stxerp t2
+			      , stx_dwg_category_masters@stxerp t3
+			  WHERE t3.dwg_no_concat = SUBSTR(t1.dwg_no, 1, 5)
+			    AND t1.emp_no        = t2.emp_no(+)
+		  		AND t1.shp_no = #{h_ShipNo}
+		  		AND t1.dwg_no = #{h_DwgNo}
+		  		AND	t1.dwg_rev <![CDATA[<=]]> #{dwg_rev}
+		  		<if test="result == 'true' ">
+		  		AND t1.dwg_rev <![CDATA[>=]]> '0A'
+		  		</if>
+		 		AND 1                = (
+		        	CASE
+		                WHEN t1.dwg_rev      <![CDATA[<]]> #{dwg_rev} AND t1.trans_plm = 'Y'
+		                    AND t1.trans_plm = 'Y'
+		                THEN 1
+		                WHEN t1.dwg_rev = #{dwg_rev}
+		                THEN 1
+		                ELSE 2
+		        	END)
+				<if test="h_returnChk != null and h_returnChk !='' ">
+		   		AND t1.dwg_rev = (
+		   			CASE 
+		   				WHEN t1.dwg_rev = #{dwg_rev} 
+		   					AND (
+		   								t1.trans_plm !='R' 
+		   							 OR t1.trans_plm is null
+		   						) 
+		   					THEN NULL
+		   	  				ELSE t1.dwg_rev
+		   	  		END)
+		   	 	</if>
+			<if test="h_state == 'Request' ">
+				and 1 = (case when t1.dwg_rev = #{dwg_rev} and t1.trans_plm  = 'S' then 1 
+		 				  when t1.dwg_rev <![CDATA[<]]> #{dwg_rev}					     then 1 
+		 				  else 2 											  
+		 			end)
+				
+			</if>
+			<if test="h_state == 'Release' ">    																				
+		 		and 1 = (case when t1.dwg_rev = #{dwg_rev} and t1.trans_plm  = 'Y' then 1 
+		 				  when t1.dwg_rev <![CDATA[<]]> #{dwg_rev}					     then 1 
+		 				  else 2 											  
+		 		end) 													  
+			</if>
+		   	ORDER BY  t1.dwg_no 
+	               , STX_DIS_DTS_INDEX_ORDERBY_F(t1.dwg_no, t1.FILE_NAME)
+	               , t1.dwg_sq
+	               , t1.dwg_rev 
+  			) t11 
+		) t12 
+	where page = #{curPageNo}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+  	 SELECT COUNT(*) AS cnt
+	   FROM stx_dwg_dw302tbl@stxerp t1
+	      , stx_com_insa_user@stxerp t2
+	      , stx_dwg_category_masters@stxerp t3
+	  WHERE t3.dwg_no_concat = SUBSTR(t1.dwg_no, 1, 5)
+	    AND t1.emp_no        = t2.emp_no(+)
+  		AND t1.shp_no = #{h_ShipNo}
+  		AND t1.dwg_no = #{h_DwgNo}
+  		AND	t1.dwg_rev <![CDATA[<=]]> #{dwg_rev}
+  		<if test="result == 'true' ">
+  		AND t1.dwg_rev <![CDATA[>=]]> '0A'
+  		</if>
+ 		AND 1                = (
+        	CASE
+                WHEN t1.dwg_rev      <![CDATA[<]]> #{dwg_rev} AND t1.trans_plm = 'Y'
+                    AND t1.trans_plm = 'Y'
+                THEN 1
+                WHEN t1.dwg_rev = #{dwg_rev}
+                THEN 1
+                ELSE 2
+        	END)
+		<if test="h_returnChk != null and h_returnChk !='' ">
+   		AND t1.dwg_rev = (
+   			CASE 
+   				WHEN t1.dwg_rev = #{dwg_rev} 
+   					AND (
+   								t1.trans_plm !='R' 
+   							 OR t1.trans_plm is null
+   						) 
+   					THEN NULL
+   	  				ELSE t1.dwg_rev
+   	  		END)
+   	 	</if>
+	<if test="h_state == 'Request' ">
+		and 1 = (case when t1.dwg_rev = #{dwg_rev} and t1.trans_plm  = 'S' then 1 
+ 				  when t1.dwg_rev <![CDATA[<]]> #{dwg_rev}					     then 1 
+ 				  else 2 											  
+ 			end)
+		
+	</if>
+	<if test="h_state == 'Release' ">    																				
+ 		and 1 = (case when t1.dwg_rev = #{dwg_rev} and t1.trans_plm  = 'Y' then 1 
+ 				  when t1.dwg_rev <![CDATA[<]]> #{dwg_rev}					     then 1 
+ 				  else 2 											  
+ 		end) 													  
+	</if>
+   	ORDER BY  t1.dwg_no
+      		, t1.dwg_sq
+      		, t1.dwg_rev
+      		
+  	</select>
+</mapper>

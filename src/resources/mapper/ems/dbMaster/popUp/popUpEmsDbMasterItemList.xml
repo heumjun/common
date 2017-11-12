@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpEmsDbMasterItemList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	WITH AAA AS ( 
+	SELECT SEP.ITEM_CODE, SEP.USE_YN, SED.SHIP_ORDER 
+	  FROM STX_EMS_SHIP SEP
+	      ,STX_EMS_SHIP_DP SED 
+	 WHERE SEP.SHIP_TYPE = SED.SHIP_TYPE 
+	   AND SEP.SHIP_SIZE = SED.SHIP_SIZE 
+	) 
+	
+	select t2.* 
+	from (  
+	select t1.*, COUNT(*) OVER() AS CNT 
+	,floor((rownum - 1) / #{rows} + 1 ) as page         
+	from 
+	( 
+	SELECT T.CATALOG_CODE
+	      ,T.CATALOG_NAME
+	      ,T.EQUIP_NAME
+	      ,T.ITEM_CODE
+	      ,T.ITEM_DESC
+	      ,T.ITEMCODE
+	      ,T.ITEMDESC
+	      ,T.SUB_DWG_CODE
+	      ,T.MOTHER_BUY
+	      ,T.PLAN_PART
+	      ,T.BUYER
+	      ,TO_CHAR(T.VOYAGE_NO) AS VOYAGE_NO 
+	      ,T.IMPORTANCE
+	      ,T.MAIN_ACCESSARIES
+	      ,T.PRICE_BREAKDOWN
+	      ,T.OBTAIN_LT
+	      ,T.EQUIP
+	      ,T.STATUS
+	      ,T.CREATED_BY
+	      ,T.CREATION_DATE
+	      ,T.DWG_CODE
+	      ,T.LAST_UPDATE_DATE 
+	      ,T.MIDDLE_CODE
+	      ,T.MIDDLE_NAME
+	      ,T.CREATION_DATE_ORD
+	      ,T.ORD, T.SPEC_NAME1
+	      ,T.SPEC_NAME2
+	      ,T.SPEC_NAME3
+	      ,T.USE_SSC_TYPE
+	      ,T.REMARK
+	      ,T.IS_DIRECT_INPUT
+	      ,DECODE(T.IS_DIRECT_INPUT, '', 'N', T.IS_DIRECT_INPUT) AS H_IS_DIRECT_INPUT
+	      ,T.IS_OWNER_ITEM
+	      ,DECODE(T.IS_OWNER_ITEM, '', 'N', T.IS_OWNER_ITEM) AS H_IS_OWNER_ITEM
+	      ,T.UNITCOST_CONTRACT
+	      ,DECODE(T.UNITCOST_CONTRACT, '', 'N', T.UNITCOST_CONTRACT) AS H_UNITCOST_CONTRACT
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 1 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP1 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 2 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP2 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 3 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP3 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 4 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP4 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 5 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP5 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 6 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP6 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 7 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP7 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 8 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP8 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 9 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP9 
+	      ,MAX(CASE WHEN AAA.SHIP_ORDER = 10 AND AAA.USE_YN = 'Y' THEN 'Y' ELSE 'N' END) SHIP10 
+	  FROM 
+	(SELECT 
+	    SEDM.CATALOG_CODE         
+	  , (SELECT CATALOG_DESC 
+	       FROM STX_DIS_SD_CATALOG@STXDIS
+	      WHERE CATALOG_CODE = SEDM.CATALOG_CODE) AS CATALOG_NAME  
+	  , (SELECT SSSCV.VALUE_NAME 
+	     FROM STX_DIS_SD_CATALOG@STXDIS         SSSC 
+	           ,STX_DIS_SD_CATALOG_VALUE@STXDIS SSSCV 
+	      WHERE SSSC.CATALOG_CODE = SSSCV.CATALOG_CODE 
+	      AND SSSCV.VALUE_TYPE  = 'CATALOG_PO' 
+	       AND SSSCV.VALUE_CODE  = '02' 
+	      AND SSSC.CATALOG_CODE = SEDM.CATALOG_CODE) AS EQUIP_NAME 
+	  , SEDM.MIDDLE_CODE 
+	  , (SELECT LINE_DESC FROM STX_DT_MAT_BASE_LINE WHERE LINE_CODE = SEDM.MIDDLE_CODE) AS MIDDLE_NAME 
+	  , SEDM.DWG_CODE 
+	  , SEDM.ITEM_CODE 
+	  , CASE WHEN STATUS = 'S' 
+	         THEN (SELECT MSI.DESCRIPTION 
+	                 FROM MTL_SYSTEM_ITEMS_B MSI --STX_TBC_ITEM
+	                WHERE MSI.ORGANIZATION_ID = 82 
+	                  AND MSI.SEGMENT1        = SEDM.ITEM_CODE)  
+	         ELSE (SELECT ITEM_DESC FROM STX_EMS_ITEM_SPEC WHERE CATALOG||'-'||ITEM_CODE||SPEC_CODE = SEDM.ITEM_CODE)         
+	     END AS ITEM_DESC  
+	  , (SELECT ITEM_CODE FROM STX_EMS_ITEM WHERE CATALOG_CODE = SEDM.CATALOG_CODE AND ITEM_CODE = SUBSTR(SEDM.ITEM_CODE,7,4)) ITEMCODE  
+	  , (SELECT ITEM_DESC FROM STX_EMS_ITEM WHERE CATALOG_CODE = SEDM.CATALOG_CODE AND ITEM_CODE = SUBSTR(SEDM.ITEM_CODE,7,4)) ITEMDESC  
+	  , SEDM.MOTHER_BUY 
+	  , SEDM.SUB_DWG_CODE 
+	  , (SELECT DEPT_NAME FROM STX_COM_INSA_DEPT WHERE DEPT_CODE = SEDM.PLAN_PART) AS PLAN_PART 
+	  , (SELECT USER_NAME FROM STX_COM_INSA_USER WHERE EMP_NO = SEDM.BUYER) BUYER 
+	  , SEDM.VOYAGE_NO         
+	  , SEDM.IMPORTANCE 
+	  , SEDM.MAIN_ACCESSARIES 
+	  , SEDM.PRICE_BREAKDOWN 
+	  , SEDM.OBTAIN_LT 
+	  , SEDM.EQUIP 
+	  , SEDM.STATUS 
+	  , (SELECT USER_NAME FROM STX_COM_INSA_USER WHERE EMP_NO = SEDM.CREATED_BY) CREATED_BY  
+	  , TO_CHAR(SEDM.CREATION_DATE, 'YYYY-MM-DD') CREATION_DATE  
+	  , SEDM.CREATION_DATE AS CREATION_DATE_ORD  
+	  , SEDM.LAST_UPDATE_DATE 
+	  , CASE WHEN SEDM.STATUS LIKE '%R%' THEN '1' WHEN SEDM.STATUS = 'S' THEN '2' WHEN SEDM.STATUS = 'C' THEN '3' ELSE '9' END AS ORD 
+	  , SES.SPEC_NAME1 
+	  , SES.SPEC_NAME2 
+	  , SES.SPEC_NAME3 
+	  , SEDM.USE_SSC_TYPE 
+	  , SEDM.REMARK 
+	  , SEDM.IS_DIRECT_INPUT 
+	  , SEDM.IS_OWNER_ITEM 
+	  , SEDM.UNITCOST_CONTRACT 
+	 FROM STX_EMS_DB_MASTER SEDM 
+	INNER JOIN STX_EMS_ITEM_SPEC SES ON SEDM.ITEM_CODE = SES.CATALOG || '-' || SES.ITEM_CODE || SES.SPEC_CODE   
+	) T, AAA 
+	 WHERE AAA.ITEM_CODE(+) = T.ITEM_CODE 
+	 GROUP BY T.CATALOG_CODE, T.CATALOG_NAME, T.EQUIP_NAME, T.ITEM_CODE, T.ITEM_DESC, T.ITEMCODE, T.ITEMDESC, T.SUB_DWG_CODE, T.MOTHER_BUY, T.PLAN_PART, T.BUYER, T.VOYAGE_NO 
+	      , T.IMPORTANCE, T.MAIN_ACCESSARIES, T.PRICE_BREAKDOWN, T.OBTAIN_LT, T.EQUIP, T.STATUS, T.CREATED_BY, T.CREATION_DATE, T.DWG_CODE, T.LAST_UPDATE_DATE 
+	        , T.MIDDLE_CODE, T.MIDDLE_NAME,T.CREATION_DATE_ORD, T.ORD, T.SPEC_NAME1, T.SPEC_NAME2, T.SPEC_NAME3, T.USE_SSC_TYPE, T.REMARK, T.IS_DIRECT_INPUT, T.IS_OWNER_ITEM, T.UNITCOST_CONTRACT 
+	 ORDER BY ORD, EQUIP_NAME, ITEM_CODE, CATALOG_CODE  
+	) t1  
+	  WHERE 1=1         
+	
+	<if test="p_equip_name != null and !p_equip_name.equalsIgnoreCase('') and !p_equip_name.equalsIgnoreCase('null') and !p_equip_name.equalsIgnoreCase('*') and !p_equip_name.equalsIgnoreCase('ALL')">
+	AND EQUIP_NAME LIKE '%' || #{p_equip_name} || '%'
+	</if>
+	<if test="p_middle_code != null and !p_middle_code.equalsIgnoreCase('') and !p_middle_code.equalsIgnoreCase('null') and !p_middle_code.equalsIgnoreCase('*') and !p_middle_code.equalsIgnoreCase('ALL')">
+	AND MIDDLE_CODE LIKE '%' || #{p_middle_code} || '%'
+	</if>
+	<if test="p_dwg_code != null and !p_dwg_code.equalsIgnoreCase('') and !p_dwg_code.equalsIgnoreCase('null') and !p_dwg_code.equalsIgnoreCase('*') and !p_dwg_code.equalsIgnoreCase('ALL')">
+	AND DWG_CODE LIKE '%' || #{p_dwg_code} || '%'
+	</if>
+	<if test="p_catalog_code != null and !p_catalog_code.equalsIgnoreCase('') and !p_catalog_code.equalsIgnoreCase('null') and !p_catalog_code.equalsIgnoreCase('*') and !p_catalog_code.equalsIgnoreCase('ALL')">
+	AND CATALOG_CODE LIKE '%' || #{p_catalog_code} || '%'
+	</if>
+	<if test="p_catalog_name != null and !p_catalog_name.equalsIgnoreCase('') and !p_catalog_name.equalsIgnoreCase('null') and !p_catalog_name.equalsIgnoreCase('*') and !p_catalog_name.equalsIgnoreCase('ALL')">
+	AND CATALOG_NAME LIKE '%' || #{p_catalog_name} || '%'
+	</if>
+	<if test="p_item_code != null and !p_item_code.equalsIgnoreCase('') and !p_item_code.equalsIgnoreCase('null') and !p_item_code.equalsIgnoreCase('*') and !p_item_code.equalsIgnoreCase('ALL')">
+	AND ITEM_CODE LIKE '%' || #{p_item_code} || '%'
+	</if>
+	<if test="p_item_desc != null and !p_item_desc.equalsIgnoreCase('') and !p_item_desc.equalsIgnoreCase('null') and !p_item_desc.equalsIgnoreCase('*') and !p_item_desc.equalsIgnoreCase('ALL')">
+	AND ITEM_DESC LIKE '%' || #{p_item_desc} || '%'
+	</if>
+	<if test="p_plan_part != null and !p_plan_part.equalsIgnoreCase('') and !p_plan_part.equalsIgnoreCase('null') and !p_plan_part.equalsIgnoreCase('*') and !p_plan_part.equalsIgnoreCase('ALL')">
+	AND PLAN_PART LIKE '%' || #{p_plan_part} || '%'
+	</if>
+	<if test="p_buyer != null and !p_buyer.equalsIgnoreCase('') and !p_buyer.equalsIgnoreCase('null') and !p_buyer.equalsIgnoreCase('*') and !p_buyer.equalsIgnoreCase('ALL')">
+	AND BUYER LIKE '%' || #{p_buyer} || '%'
+	</if>
+	<if test="p_importance != null and !p_importance.equalsIgnoreCase('') and !p_importance.equalsIgnoreCase('null') and !p_importance.equalsIgnoreCase('*') and !p_importance.equalsIgnoreCase('ALL')">
+	AND IMPORTANCE LIKE '%' || #{p_importance} || '%'
+	</if>
+	<if test="p_equip != null and !p_equip.equalsIgnoreCase('') and !p_equip.equalsIgnoreCase('null') and !p_equip.equalsIgnoreCase('*') and !p_equip.equalsIgnoreCase('ALL')">
+	AND EQUIP LIKE '%' || #{p_equip} || '%'
+	</if>
+	<if test="p_selStatus != null and !p_selStatus.equalsIgnoreCase('') and !p_selStatus.equalsIgnoreCase('null') and !p_selStatus.equalsIgnoreCase('*') and !p_selStatus.equalsIgnoreCase('ALL')">
+	AND STATUS LIKE '%' || #{p_selStatus} || '%'
+	</if>
+	
+	) t2                                               
+	where page = #{page} 	
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+SELECT COUNT(*)
+  FROM (
+   SELECT 
+	    SEDM.CATALOG_CODE         
+	  , (SELECT CATALOG_DESC 
+	       FROM STX_DIS_SD_CATALOG@STXDIS
+	      WHERE CATALOG_CODE = SEDM.CATALOG_CODE) AS CATALOG_NAME  
+	  , (SELECT SSSCV.VALUE_NAME 
+	     FROM STX_DIS_SD_CATALOG@STXDIS       SSSC 
+	         ,STX_DIS_SD_CATALOG_VALUE@STXDIS SSSCV 
+	      WHERE SSSC.CATALOG_CODE = SSSCV.CATALOG_CODE 
+	      AND SSSCV.VALUE_TYPE  = 'CATALOG_PO' 
+	       AND SSSCV.VALUE_CODE  = '02' 
+	      AND SSSC.CATALOG_CODE = SEDM.CATALOG_CODE) AS EQUIP_NAME 
+	  , SEDM.MIDDLE_CODE 
+	  , (SELECT LINE_DESC FROM STX_DT_MAT_BASE_LINE WHERE LINE_CODE = SEDM.MIDDLE_CODE) AS MIDDLE_NAME 
+	  , SEDM.DWG_CODE 
+	  , SEDM.ITEM_CODE 
+	  , CASE WHEN STATUS = 'S' 
+	         THEN (SELECT MSI.DESCRIPTION 
+	                 FROM MTL_SYSTEM_ITEMS_B MSI 
+	                WHERE MSI.ORGANIZATION_ID = 82 
+	                  AND MSI.SEGMENT1        = SEDM.ITEM_CODE)  
+	         ELSE (SELECT ITEM_DESC FROM STX_EMS_ITEM_SPEC WHERE CATALOG||'-'||ITEM_CODE||SPEC_CODE = SEDM.ITEM_CODE)         
+	     END AS ITEM_DESC  
+	  , (SELECT ITEM_CODE FROM STX_EMS_ITEM WHERE CATALOG_CODE = SEDM.CATALOG_CODE AND ITEM_CODE = SUBSTR(SEDM.ITEM_CODE,7,4)) ITEMCODE  
+	  , (SELECT ITEM_DESC FROM STX_EMS_ITEM WHERE CATALOG_CODE = SEDM.CATALOG_CODE AND ITEM_CODE = SUBSTR(SEDM.ITEM_CODE,7,4)) ITEMDESC  
+	  , SEDM.MOTHER_BUY 
+	  , SEDM.SUB_DWG_CODE 
+	  , (SELECT DEPT_NAME FROM STX_COM_INSA_DEPT WHERE DEPT_CODE = SEDM.PLAN_PART) AS PLAN_PART 
+	  , (SELECT USER_NAME FROM STX_COM_INSA_USER WHERE EMP_NO = SEDM.BUYER) BUYER 
+	  , SEDM.VOYAGE_NO         
+	  , SEDM.IMPORTANCE 
+	  , SEDM.MAIN_ACCESSARIES 
+	  , SEDM.PRICE_BREAKDOWN 
+	  , SEDM.OBTAIN_LT 
+	  , SEDM.EQUIP 
+	  , SEDM.STATUS 
+	  , (SELECT USER_NAME FROM STX_COM_INSA_USER WHERE EMP_NO = SEDM.CREATED_BY) CREATED_BY  
+	  , TO_CHAR(SEDM.CREATION_DATE, 'YYYY-MM-DD') CREATION_DATE  
+	  , SEDM.CREATION_DATE AS CREATION_DATE_ORD  
+	  , SEDM.LAST_UPDATE_DATE 
+	  , CASE WHEN SEDM.STATUS LIKE '%R%' THEN '1' WHEN SEDM.STATUS = 'S' THEN '2' WHEN SEDM.STATUS = 'C' THEN '3' ELSE '9' END AS ORD 
+	  , SES.SPEC_NAME1 
+	  , SES.SPEC_NAME2 
+	  , SES.SPEC_NAME3 
+	  , SEDM.USE_SSC_TYPE 
+	  , SEDM.REMARK 
+	  , SEDM.IS_DIRECT_INPUT 
+	  , SEDM.IS_OWNER_ITEM 
+	  , SEDM.UNITCOST_CONTRACT 
+	 FROM STX_EMS_DB_MASTER SEDM 
+	     ,STX_EMS_ITEM_SPEC SES
+	 WHERE  SEDM.ITEM_CODE = SES.CATALOG || '-' || SES.ITEM_CODE || SES.SPEC_CODE
+	) T
+WHERE 1=1
+
+<if test="p_equip_name != null and !p_equip_name.equalsIgnoreCase('') and !p_equip_name.equalsIgnoreCase('null') and !p_equip_name.equalsIgnoreCase('*') and !p_equip_name.equalsIgnoreCase('ALL')">
+AND EQUIP_NAME LIKE '%' || #{p_equip_name} || '%'
+</if>
+<if test="p_middle_code != null and !p_middle_code.equalsIgnoreCase('') and !p_middle_code.equalsIgnoreCase('null') and !p_middle_code.equalsIgnoreCase('*') and !p_middle_code.equalsIgnoreCase('ALL')">
+AND MIDDLE_CODE LIKE '%' || #{p_middle_code} || '%'
+</if>
+<if test="p_dwg_code != null and !p_dwg_code.equalsIgnoreCase('') and !p_dwg_code.equalsIgnoreCase('null') and !p_dwg_code.equalsIgnoreCase('*') and !p_dwg_code.equalsIgnoreCase('ALL')">
+AND DWG_CODE LIKE '%' || #{p_dwg_code} || '%'
+</if>
+<if test="p_catalog_code != null and !p_catalog_code.equalsIgnoreCase('') and !p_catalog_code.equalsIgnoreCase('null') and !p_catalog_code.equalsIgnoreCase('*') and !p_catalog_code.equalsIgnoreCase('ALL')">
+AND CATALOG_CODE LIKE '%' || #{p_catalog_code} || '%'
+</if>
+<if test="p_catalog_name != null and !p_catalog_name.equalsIgnoreCase('') and !p_catalog_name.equalsIgnoreCase('null') and !p_catalog_name.equalsIgnoreCase('*') and !p_catalog_name.equalsIgnoreCase('ALL')">
+AND CATALOG_NAME LIKE '%' || #{p_catalog_name} || '%'
+</if>
+<if test="p_item_code != null and !p_item_code.equalsIgnoreCase('') and !p_item_code.equalsIgnoreCase('null') and !p_item_code.equalsIgnoreCase('*') and !p_item_code.equalsIgnoreCase('ALL')">
+AND ITEM_CODE LIKE '%' || #{p_item_code} || '%'
+</if>
+<if test="p_item_desc != null and !p_item_desc.equalsIgnoreCase('') and !p_item_desc.equalsIgnoreCase('null') and !p_item_desc.equalsIgnoreCase('*') and !p_item_desc.equalsIgnoreCase('ALL')">
+AND ITEM_DESC LIKE '%' || #{p_item_desc} || '%'
+</if>
+<if test="p_plan_part != null and !p_plan_part.equalsIgnoreCase('') and !p_plan_part.equalsIgnoreCase('null') and !p_plan_part.equalsIgnoreCase('*') and !p_plan_part.equalsIgnoreCase('ALL')">
+AND PLAN_PART LIKE '%' || #{p_plan_part} || '%'
+</if>
+<if test="p_buyer != null and !p_buyer.equalsIgnoreCase('') and !p_buyer.equalsIgnoreCase('null') and !p_buyer.equalsIgnoreCase('*') and !p_buyer.equalsIgnoreCase('ALL')">
+AND BUYER LIKE '%' || #{p_buyer} || '%'
+</if>
+<if test="p_importance != null and !p_importance.equalsIgnoreCase('') and !p_importance.equalsIgnoreCase('null') and !p_importance.equalsIgnoreCase('*') and !p_importance.equalsIgnoreCase('ALL')">
+AND IMPORTANCE LIKE '%' || #{p_importance} || '%'
+</if>
+<if test="p_equip != null and !p_equip.equalsIgnoreCase('') and !p_equip.equalsIgnoreCase('null') and !p_equip.equalsIgnoreCase('*') and !p_equip.equalsIgnoreCase('ALL')">
+AND EQUIP LIKE '%' || #{p_equip} || '%'
+</if>
+<if test="p_selStatus != null and !p_selStatus.equalsIgnoreCase('') and !p_selStatus.equalsIgnoreCase('null') and !p_selStatus.equalsIgnoreCase('*') and !p_selStatus.equalsIgnoreCase('ALL')">
+AND STATUS LIKE '%' || #{p_selStatus} || '%'
+</if>
+
+
+  	</select>
+
+</mapper>

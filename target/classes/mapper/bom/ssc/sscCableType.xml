@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sscCableType">
+	
+	<select id="sscCableTypeMainList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+	<if test='!p_is_excel.equalsIgnoreCase("Y")'>
+		SELECT B.*
+		  FROM (SELECT A.*
+					  ,ROWNUM RNUM
+				  FROM (
+	</if>
+				  		SELECT COUNT(*) OVER() AS CNT
+							  ,C.*
+						  FROM (	
+								SELECT TYPE_ABBR
+									 , TYPE_SPEC
+									 , TYPE_TYPE
+									 , TYPE_WEIGHT
+									 , TYPE_AREA
+									 , OUT_DIA
+									 , INSERT_BLOCK
+									 , DRUM_LEN
+									 , UOM
+									 , LOC_CLASS
+									 , BIND_GROUP
+									 , TO_CHAR(CREATE_DATE, 'YYYY-MM-DD') AS CREATE_DATE
+									 , CREATE_USER
+									 , STX_DIS_GET_USER_NAME_F(CREATE_USER) AS USER_NAME
+									 , LAST_UPDATE_DATE
+									 , LAST_UPDATE_USER
+									 , IS_USE
+								  FROM STX_DIS_CABLE_TYPE
+								 WHERE 1=1
+								 <if test='p_type_abbr != null and !p_type_abbr.equalsIgnoreCase("")'>
+								   AND TYPE_ABBR LIKE (#{p_type_abbr, jdbcType=VARCHAR} || '%')
+								 </if>
+								 <if test='TYPE_SPEC != null and !TYPE_SPEC.equalsIgnoreCase("")'>
+								   AND TYPE_SPEC  LIKE (#{TYPE_SPEC, jdbcType=VARCHAR} || '%')
+								 </if>
+   		
+								) C	
+		<if test='!p_is_excel.equalsIgnoreCase("Y")'>	
+							 ) A
+			<![CDATA[ 									 
+					 WHERE ROWNUM <= #{p_page_end_no, jdbcType=VARCHAR}) B
+			 WHERE RNUM > #{p_page_start_no, jdbcType=VARCHAR}
+			]]>
+		</if>
+		
+	</select>
+	
+	<select id="procCableTypeSaveAction"  statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+       { call stx_dis_cabletype_proc(p_type_abbr => #{p_type_abbr, jdbcType=VARCHAR,mode=IN},
+			                         p_type_spec => #{p_type_spec, jdbcType=VARCHAR,mode=IN},
+			                         p_type_type => #{p_type_type, jdbcType=VARCHAR,mode=IN},
+			                         p_type_weight => #{p_type_weight, jdbcType=VARCHAR,mode=IN},
+			                         p_type_area => #{p_type_area, jdbcType=VARCHAR,mode=IN},
+			                         p_out_dia => #{p_out_dia, jdbcType=VARCHAR,mode=IN},
+			                         p_insert_block => #{p_insert_block, jdbcType=VARCHAR,mode=IN},
+			                         p_drum_len => #{p_drum_len, jdbcType=VARCHAR,mode=IN},
+			                         p_uom => #{p_uom, jdbcType=VARCHAR,mode=IN},
+			                         p_loc_class => #{p_loc_class, jdbcType=VARCHAR,mode=IN},
+			                         p_bind_group => #{p_bind_group, jdbcType=VARCHAR,mode=IN},
+			                         p_is_use => #{p_is_use, jdbcType=VARCHAR,mode=IN},
+			                         p_user_id => #{p_user_id, jdbcType=VARCHAR,mode=IN},
+			                         p_err_code => #{p_err_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+			                         p_err_msg => #{p_err_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT}
+                                    )
+        }
+	</select>
+		
+</mapper>

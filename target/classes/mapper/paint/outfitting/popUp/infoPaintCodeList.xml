@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoPaintCodeList">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t2.*
+      from (  
+            select t1.* 
+                  ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+              from
+                  ( 
+					select /*+ INDEX_ASC(stx_dis_item stx_dis_item_idx03) */ 
+						   item_code 		 as paint_code
+					      ,item_desc 	     as paint_desc
+					      ,stxsvr	 		 as stxsvr
+					      ,nvl(can_size,0)   as can_size
+					  from stx_dis_item
+				     where 1 = 1
+				       and item_code like #{item_code} || '%'
+				       and item_desc like #{item_desc} || '%' 
+  				   ) t1
+       		) t2
+ 	where page = #{curPageNo}
+  	</select>
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+	select count(*) as cnt
+	  from stx_dis_item
+	 where item_code like #{item_code} || '%'
+	   and item_desc like #{item_desc} || '%'
+  	</select>
+</mapper>

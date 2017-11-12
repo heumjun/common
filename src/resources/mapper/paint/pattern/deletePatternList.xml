@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="deletePatternList">
+ 	<select id="selectPatternDefineFlag" parameterType="java.util.Map" resultType="string" >
+	select define_flag
+	  from stx_dis_pis_pattern 
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</select> 
+	
+	<delete id="deletePaintPatternCode">
+	delete from stx_dis_pis_pattern
+     where 1=1
+	   and project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</delete> 	
+	
+	<delete id="deletePaintPatternItemList">
+	delete from stx_dis_pis_pattern_item
+	 where 1=1
+	   and project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</delete>	
+	
+	<delete id="deletePaintPatternAreaList">
+	delete from stx_dis_pis_pattern_area
+     where 1=1 
+	   and project_no   = #{project_no}
+	   and revision     = #{revision}
+	   and pattern_code = #{pattern_code}
+	</delete>	
+</mapper>

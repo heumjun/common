@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="itemStandardUpload">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		select *
+		from(
+		select ROWNUM as rnum,
+		t.*
+		from(
+		SELECT SDPLI.ITEM_CATALOG_GROUP_ID
+			,SDPLI.CATALOG_CODE
+			,SDPLI.CATALOG_DESC
+			,TO_CHAR(SDPLI.REQ_DATE, 'YYYY-MM-DD') REQ_DATE
+			,SDPLI.REV_NO
+			,SDPLI.REQ_DEPT_NAME
+			,SDPLI.REQ_USER_NAME
+			,SDPLI.CONFIRM_DESC
+			,SDPLI.CONFIRM_FLAG
+			,SDPLI.CONFIRM_FLAG AS CONFIRM_FLAG_CHANGED
+        	,SDPLI.REQ_EMP_NO
+        	,SDPLI.REQ_DEPT_NO
+        	,SDPLI.PART_SEQ_ID
+		 FROM STX_DWG_PART_LIST_INDEX_V@STXERP SDPLI
+		WHERE 1=1	
+		<if test='catalog1 != null and !catalog1.equalsIgnoreCase("")'>
+			AND SDPLI.CATALOG_CODE LIKE #{catalog1} || '%'
+		</if>
+		<if test='catalog1 == null or catalog1.equalsIgnoreCase("")'>
+			<if test='catalogDesc != null and !catalogDesc.equalsIgnoreCase("")'>
+				AND SDPLI.CATALOG_DESC LIKE REPLACE(UPPER(#{catalogDesc}) , '*', '%') || '%'
+			</if>
+		</if>
+		<if test='reqName1 != null and !reqName1.equalsIgnoreCase("")'>
+			AND SDPLI.REQ_EMP_NO LIKE #{reqName1} || '%'
+		</if>
+		<if test='reqName1 == null or reqName1.equalsIgnoreCase("")'>
+			<if test='reqNameDesc != null and !reqNameDesc.equalsIgnoreCase("")'>
+				AND SDPLI.REQ_USER_NAME LIKE REPLACE(UPPER(#{reqNameDesc}) , '*', '%') || '%'
+			</if>
+		</if>
+		<if test='reqDeptCmb != null and !reqDeptCmb.equalsIgnoreCase("")'>
+			AND SDPLI.REQ_DEPT_NO LIKE #{reqDeptCmb} || '%'
+		</if>
+		<if test='reqDeptCmb == null or reqDeptCmb.equalsIgnoreCase("")'>
+			<if test='reqDeptDesc != null and !reqDeptDesc.equalsIgnoreCase("")'>
+				AND SDPLI.REQ_DEPT_NAME LIKE REPLACE(UPPER(#{reqDeptDesc}) , '*', '%') || '%'
+			</if>
+		</if>
+		<if test='revNo1 != null and !revNo1.equalsIgnoreCase("")'>
+			AND SDPLI.REV_NO = #{revNo1}
+		</if>
+		<if test='btnUse == "N"'>
+			AND SDPLI.CONFIRM_FLAG = 'N'
+		</if>
+		<if test='reqFromDate != null and !reqFromDate.equalsIgnoreCase("")'>
+		<![CDATA[
+			AND TO_CHAR(SDPLI.REQ_DATE, 'YYYY-MM-DD') >= #{reqFromDate}
+		]]>
+		</if>
+		<if test='reqToDate != null and !reqToDate.equalsIgnoreCase("")'>
+		<![CDATA[
+			AND TO_CHAR(SDPLI.REQ_DATE, 'YYYY-MM-DD') <= #{reqToDate}
+		]]>
+		</if>
+		)t
+	        <![CDATA[
+	    where ROWNUM <= (#{curPageNo}*#{pageSize}))
+	    	]]>
+		where rnum >= (#{curPageNo}*#{pageSize}) - (#{pageSize}-1)
+
+
+	</select>
+
+	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="String">
+		SELECT count(*) as cnt
+		  FROM STX_DWG_PART_LIST_INDEX_V@STXERP SDPLI
+		WHERE 1=1
+		<if test='catalog1 != null and !catalog1.equalsIgnoreCase("")'>
+			AND SDPLI.CATALOG_CODE = #{catalog1}
+		</if>
+		<if test='catalog1 == null or catalog1.equalsIgnoreCase("")'>
+			<if test='catalogDesc != null and !catalogDesc.equalsIgnoreCase("")'>
+				AND SDPLI.CATALOG_DESC LIKE REPLACE(UPPER(#{catalogDesc}) , '*', '%') || '%'
+			</if>
+		</if>
+		<if test='reqName1 != null and !reqName1.equalsIgnoreCase("")'>
+			AND SDPLI.REQ_EMP_NO = #{reqName1}
+		</if>
+		<if test='reqName1 == null or reqName1.equalsIgnoreCase("")'>
+			<if test='reqNameDesc != null and !reqNameDesc.equalsIgnoreCase("")'>
+				AND SDPLI.REQ_USER_NAME LIKE REPLACE(UPPER(#{reqNameDesc}) , '*', '%') || '%'
+			</if>
+		</if>
+		<if test='reqDeptCmb != null and !reqDeptCmb.equalsIgnoreCase("")'>
+			AND SDPLI.REQ_DEPT_NO = #{reqDeptCmb}
+		</if>
+		<if test='reqDeptCmb == null or reqDeptCmb.equalsIgnoreCase("")'>
+			<if test='reqDeptDesc != null and !reqDeptDesc.equalsIgnoreCase("")'>
+				AND SDPLI.REQ_DEPT_NAME LIKE REPLACE(UPPER(#{reqDeptDesc}) , '*', '%') || '%'
+			</if>
+		</if>
+		<if test='revNo1 != null and !revNo1.equalsIgnoreCase("")'>
+			AND SDPLI.REV_NO = #{revNo1}
+		</if>
+		<if test='btnUse == "N"'>
+			AND SDPLI.CONFIRM_FLAG = 'N'
+		</if>
+		<if test='reqFromDate != null and !reqFromDate.equalsIgnoreCase("")'>
+		<![CDATA[
+			AND TO_CHAR(SDPLI.REQ_DATE, 'YYYY-MM-DD') >= #{reqFromDate}
+		]]>
+		</if>
+		<if test='reqToDate != null and !reqToDate.equalsIgnoreCase("")'>
+		<![CDATA[
+			AND TO_CHAR(SDPLI.REQ_DATE, 'YYYY-MM-DD') <= #{reqToDate}
+		]]>
+		</if>
+	</select>
+	
+	<select id="selectCatalogList" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	   SELECT SDCCV.CATALOG_CODE OBJECT
+		 FROM STX_DWG_CONVERT_PART_CATALOG_V@STXERP SDCCV
+		WHERE (   SDCCV.CATALOG_CODE LIKE '1%'  
+		       OR SDCCV.CATALOG_CODE LIKE '2%' 
+		       OR SDCCV.CATALOG_CODE LIKE '3%' 
+		       OR SDCCV.CATALOG_CODE LIKE '4%' 
+		       OR SDCCV.CATALOG_CODE LIKE '5%' 
+		      )
+		  AND SDCCV.CATALOG_CODE LIKE #{catalog} || '%'                                
+		  ORDER BY SDCCV.CATALOG_CODE
+	</select>
+	
+	<select id="selectCatalogName" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDCCV.CATALOG_NAME
+		      ,SDCCV.ITEM_CATALOG_GROUP_ID
+		FROM STX_DWG_CONVERT_PART_CATALOG_V@STXERP SDCCV
+		WHERE (   SDCCV.CATALOG_CODE LIKE '1%'
+		      OR SDCCV.CATALOG_CODE LIKE '2%'
+		      OR SDCCV.CATALOG_CODE LIKE '3%'
+		      OR SDCCV.CATALOG_CODE LIKE '4%'
+		      OR SDCCV.CATALOG_CODE LIKE '5%'
+		      )                              
+		  AND SDCCV.CATALOG_CODE = #{catalog}
+	</select>
+	
+	<select id="selectCatalogRevNo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT NVL(MAX(SDCCV.PART_REV_NO), 0) AS PART_REV_NO
+		  FROM STX_DWG_CONVERT_PART_REV_V@STXERP SDCCV
+		 WHERE SDCCV.ITEM_CATALOG_GROUP_ID = #{catalog_group_id}
+	</select>
+	
+	<select id="selectRequestList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+        SELECT SCIU.USER_NAME || ':' || SCIU.EMP_NO AS OBJECT
+   		  FROM STX_COM_INSA_USER@STXERP SCIU   
+         WHERE SCIU.DEL_DATE IS NULL
+           AND SCIU.USER_NAME LIKE REPLACE(#{reqInfo} , '*', '%') || '%'          
+         ORDER BY SCIU.USER_NAME, SCIU.EMP_NO
+        		
+	</select>
+	
+	<select id="selectRequestInfo" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SCIU.EMP_NO 
+                ,SCIU.DEPT_CODE  
+                ,SCIU.DEPT_NAME  
+           FROM STX_COM_INSA_USER@STXERP SCIU 
+           WHERE SCIU.EMP_NO = SUBSTR(#{reqName},INSTR(#{reqName},':')+1)
+	</select>
+	
+	<select id="selectSeqId" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDPLI.PART_SEQ_ID,
+	        SDPLI.CONFIRM_FLAG,
+	        SDPLI.ITEM_CATALOG_GROUP_ID,
+	        SDPLI.PART_REV_NO
+	    FROM STXDEV.STX_DWG_PART_LIST_INDEX@STXERP SDPLI
+	   WHERE SDPLI.ITEM_CATALOG_GROUP_ID = #{catalog_group_id}
+	     AND SDPLI.PART_REV_NO = #{revNo}
+	</select>
+	
+	<select id="selectDeptList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SCID.DEPT_CODE SB_VALUE
+		      ,SCID.DEPT_NAME SB_NAME
+		      ,CASE WHEN SCID.DEPT_CODE = #{reqDeptCmb} THEN 'selected=\"selected\"' 
+		            ELSE '' 
+		        END AS SB_SELECTED
+		  FROM STX_COM_INSA_DEPT@STXERP SCID
+	</select>
+	
+	<select id="selectServerInfoList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDFSS.SETUP_NAME     AS CODE_TYPE
+		      ,SDFSS.SETUP_CODE     AS CODE_VALUE
+		  FROM STX_DWG_FTP_SERVER_SETUP@STXERP SDFSS
+		 WHERE SDFSS.SETUP_TYPE = 'ITEMDWG'
+	</select>
+	
+	<select id="insert" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		{call STX_DIS_PART_INTERFACE_PROC(
+					 #{catalog_group_id}
+				   , #{revNo}
+				   , #{file_name}
+				   , #{reqId}
+				   , #{reqDept}
+				   , #{catalogDate}
+				   , #{seq_id})
+		}
+	</select>
+	
+	<select id="update" statementType="CALLABLE" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		UPDATE STX_DWG_PART_LIST_INDEX@STXERP SDPLI
+		   SET SDPLI.LAST_UPDATE_DATE   = SYSDATE
+		      ,SDPLI.LAST_UPDATED_BY    = #{loginId}
+		      ,SDPLI.LAST_UPDATE_LOGIN  = #{loginId}
+		      ,SDPLI.CONFIRM_FLAG       = #{confirm_flag}
+		      ,SDPLI.CONFIRM_DATE       = DECODE(#{confirm_flag}, 'Y', SYSDATE, NULL)
+		 WHERE SDPLI.PART_SEQ_ID        = #{part_seq_id}
+	</select>
+</mapper>  	

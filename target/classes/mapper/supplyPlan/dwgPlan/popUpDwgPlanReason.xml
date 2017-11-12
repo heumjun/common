@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpDwgPlanReason">
+
+	<select id="reasonDetail" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDSM.SUPPLY_ID                                     AS SUPPLY_ID
+		      ,(SELECT SDSC.SD_DESC
+		          FROM STX_DIS_SD_CODE SDSC
+		         WHERE SDSC.SD_TYPE = 'SUPPLY_GBN'
+		           AND SDSC.SD_CODE = SUBSTR(SDSM.SUPPLY_ID,1,1)) AS SUPPLY_GBN
+		      ,SDSM.GROUP1                                        AS GROUP1
+		      ,SDSM.GROUP2                                        AS GROUP2
+		      ,SDSM.DESCRIPTION                                   AS DESCRIPTION
+		      ,SDSM.UOM1                                          AS UOM
+		      ,(SELECT B.DWGDEPTNM
+		          FROM DCC_DEPTCODE@STXDP    A
+		              ,DCC_DWGDEPTCODE@STXDP B
+		         WHERE A.DEPTCODE = SDSM.DEPT_CODE
+		           AND A.DWGDEPTCODE = B.DWGDEPTCODE)             AS DEPT_NAME
+		      ,SDSM.JOIN_DATA                                     AS JOIN_DATA
+		      ,SDSP.PURPOSE_SUPPLY                                AS PURPOSE_SUPPLY
+		      ,SDSP.CORRESPOND_SUPPLY                             AS CORRESPOND_SUPPLY
+		      ,SDSP.RESULT_SUPPLY                                 AS RESULT_SUPPLY
+		  FROM STX_DIS_SUPPLY_MAIN   SDSM
+		      ,STX_DIS_SUPPLY_PLAN   SDSP
+		 WHERE SDSM.SUPPLY_ID    = SDSP.SUPPLY_ID
+		   AND SDSP.SUPPLY_ID    = #{p_supplyId}
+		   AND SDSP.PROJECT_NO   = #{p_project}       
+  	</select>
+  	
+  	<select id="reasonDetail2" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT SDSR.TITLE          AS TITLE
+		      ,SDSR.REASON_GUBUN   AS REASON_GUBUN
+		      ,SDSR.REASON_COMMENT AS REASON_COMMENT
+		  FROM STX_DIS_SUPPLY_REASON SDSR
+		 WHERE SDSR.SUPPLY_ID    = #{p_supplyId}
+		   AND SDSR.PROJECT_NO   = #{p_project}
+		   AND SDSR.REASON_GUBUN = #{p_reasonGubun}      
+  	</select>
+  	
+  	<select id="reasonAlreadyKey" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT COUNT(*) AS CNT
+		  FROM STX_DIS_SUPPLY_REASON SDSR
+		 WHERE SDSR.SUPPLY_ID    = #{p_supplyId}
+		   AND SDSR.PROJECT_NO   = #{p_project}
+		   AND SDSR.REASON_GUBUN = #{p_reasonGubun}
+  	</select>
+
+	<insert id="reasonInsert" parameterType="java.util.Map">
+		INSERT INTO STX_DIS_SUPPLY_REASON ( SEQ
+		                                   ,SUPPLY_ID
+		                                   ,PROJECT_NO
+		                                   ,REASON_GUBUN
+		                                   ,TITLE
+		                                   ,CREATE_BY
+		                                   ,CREATE_DATE
+		                                   ,MODIFY_BY
+		                                   ,MODIFY_DATE
+		)
+		VALUES ( STX_DIS_SUPPLY_REASON_S.NEXTVAL 
+		        ,#{supply_id}
+		        ,#{project}
+		        ,#{reason_gubun}
+		        ,#{title}
+		        ,#{loginId}
+		        ,SYSDATE
+		        ,#{loginId}
+		        ,SYSDATE
+		)
+	</insert>
+	
+	<update id="reasonUpdate" parameterType="java.util.Map">
+		UPDATE STX_DIS_SUPPLY_REASON
+		   SET TITLE          = #{title}
+		      ,CREATE_BY      = #{loginId}
+		      ,CREATE_DATE    = SYSDATE
+		      ,MODIFY_BY      = #{loginId}
+		      ,MODIFY_DATE    = SYSDATE
+		 WHERE SEQ = #{seq}
+	</update>
+  	
+  	<delete id="reasonDelete" parameterType="java.util.Map">
+		DELETE STX_DIS_SUPPLY_REASON
+		 WHERE SEQ = #{seq}
+  	</delete>
+  	
+</mapper>

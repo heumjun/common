@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ecrLifeCycleList">
+  
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		SELECT ECR.ENG_CHANGE_REQ_CODE AS MAIN_CODE
+			 , ECR.ENG_CHANGE_REQ_CODE AS MAIN_NAME
+			 , ECR.ENG_CHANGE_RELATED_PROJECT
+			 , ECR.ENG_CHANGE_DESCRIPTION
+			 , STX_DIS_RP_EMP_NAME_F( ECR.ENG_CHANGE_REQ_CODE ) RELATED_PERSON_EMP_NAME
+			 , ECR.ENG_CHANGE_BASED_ON
+			 , STX_DIS_SHORT_EMP_NAME_F( ECR.USER_CODE ) USER_CODE
+			 , STX_DIS_SHORT_EMP_NAME_F( 
+			   (select /*+ INDEX_DESC(SDS STX_DIS_STATEREQ_IDX03) */
+                		SDS.EMP_NO
+           		from STX_DIS_STATEREQ SDS
+          		WHERE SDS.MAIN_CODE = ECR.ENG_CHANGE_REQ_CODE
+            	AND SDS.REFERRERS = 'N'
+            	AND ROWNUM = 1) ) AS DESIGN_ENGINEER
+			 , STX_DIS_SD_CODE_DESC_F('ECR_STATES',ECR.STATES_CODE) AS STATES_DESC
+			 , STX_DIS_SHORT_EMP_NAME_F( ECR.LOCKER_BY ) LOCKER_BY_NAME
+			 , STX_DIS_SHORT_EMP_NAME_F( ECR.CREATE_BY ) CREATED_BY_NAME
+		  FROM STX_DIS_ENG_CHANGE_REQ ECR
+		 WHERE ECR.ENG_CHANGE_REQ_CODE = #{main_code,jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpEmsDbMasterItemSave">
+
+	<update id="modPlanItem">
+		UPDATE STX_EMS_DB_MASTER
+		   SET MOTHER_BUY       = #{mother_buy} 
+		      ,SUB_DWG_CODE     = #{sub_dwg_code}
+		      ,REMARK           = #{remark} 
+		      ,LAST_UPDATED_BY  = #{user_id}
+		      ,LAST_UPDATE_DATE = SYSDATE
+		 WHERE ITEM_CODE = #{item_code}	
+	</update>
+	
+	<update id="modObtainItem">
+		UPDATE STX_EMS_DB_MASTER
+		   SET VOYAGE_NO = #{voyage_no}
+		      ,IMPORTANCE = #{importance}
+		      ,MAIN_ACCESSARIES = #{main_accessaries} 
+		      ,PRICE_BREAKDOWN = #{price_breakdown}
+		      ,EQUIP = #{equip}
+		      ,REMARK = #{remark}  
+		      ,USE_SSC_TYPE = #{use_ssc_type}
+		      ,IS_DIRECT_INPUT = #{is_direct_input}
+		      ,IS_OWNER_ITEM = #{is_owner_item}
+		      ,UNITCOST_CONTRACT = #{unitcost_contract}
+		      ,LAST_UPDATE_DATE = SYSDATE
+		 WHERE ITEM_CODE = #{item_code}	
+	</update>
+	
+</mapper>

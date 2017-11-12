@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePaintPlanRelease">
+
+    <select id="savePaintPlanRelease" statementType="CALLABLE" parameterType="java.util.HashMap"  resultType="java.util.HashMap" >
+    { call stx_dis_paint_pkg.paint_plan_release_proc(p_project_no  => #{p_project_no},
+                                                     p_revision_no => #{p_revision_no},
+                                                     p_login_id    => #{p_login_id},
+                                                     p_error_code  => #{p_error_code,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT},
+                                                     p_error_msg   => #{p_error_msg,jdbcType=VARCHAR,javaType=java.lang.String,mode=OUT})
+	}
+    </select>
+
+
+</mapper>

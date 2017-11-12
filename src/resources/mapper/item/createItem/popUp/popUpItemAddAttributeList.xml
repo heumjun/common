@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpItemAddAttributeList">
+    <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+  	select t1.*
+	  from (
+	        select b.value_code
+	              ,b.item_make_value
+	          from stx_dis_sd_catalog_attribute  a
+	              ,stx_dis_sd_catalog_attr_value b
+	         where a.catalog_code   = b.catalog_code
+	           and a.attribute_type = b.attribute_type
+	           and a.attribute_code = b.attribute_code
+	           and b.attribute_type = 'ADDITEM'
+	           and b.catalog_code   = #{catalog_code}
+	           and b.attribute_code = #{type_code}
+	           and a.assy_attribute_code is null 
+	        union all
+	        select #{value_code}  as value_code
+	               ,null          as item_make_value
+	        from dual
+	        where not exists
+	                       (select 0
+	                          from stx_dis_sd_catalog_attribute  a
+	                              ,stx_dis_sd_catalog_attr_value b
+	                         where a.catalog_code   = b.catalog_code
+	                           and a.attribute_type = b.attribute_type
+	                           and a.attribute_code = b.attribute_code
+	                           and b.attribute_type = 'ADDITEM'
+	                           and b.catalog_code   = #{catalog_code}
+	                           and b.attribute_code = #{type_code}
+	                           and a.assy_attribute_code is null
+	                         )               
+	        ) t1
+	 where t1.value_code like #{p_code_find} || '%'    
+  	</select>
+</mapper>

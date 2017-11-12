@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpPurchasingPosList">
+
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+		select t2.* 
+		from ( 
+		select t1.* , COUNT(*) OVER() AS CNT 
+		,floor((rownum - 1) / #{rows} + 1 ) as page 
+		from ( 
+		  SELECT MASTER 
+		       , DWG_NO 
+		     , LPAD(POS_REV,2,0) AS POS_REV 
+		     , POS_TYPE 
+		     , CAUSE_DEPT 
+		     , IS_COST 
+		     , EXTRA_COST 
+		     , IS_APPROVED 
+		     , FILE_ID 
+		     , CASE WHEN FILE_ID = 0 THEN 'N' ELSE 'Y' END AS IS_POS 
+		     , CREATED_BY 
+		     , TO_CHAR(CREATION_DATE, 'YY/MM/DD') AS CREATION_DATE 
+		     , LAST_UPDATED_BY 
+		     , LAST_UPDATE_DATE 
+		     FROM STX_EMS_POS_REVISION@STXERP SEPR 
+		    WHERE SEPR.MASTER = #{p_master} 
+		      AND SEPR.DWG_NO = #{p_dwg_no} 
+		 ORDER BY DWG_NO ASC, POS_REV DESC 
+		) t1  
+		) t2 
+		where page = #{page}
+  	</select>
+  	
+  	<select id="selectTotalRecord" parameterType="java.util.Map" resultType="int" >
+		SELECT COUNT(*) AS CNT
+		  FROM STX_EMS_POS_REVISION@STXERP SEPR 
+		 WHERE SEPR.MASTER = #{p_master} 
+		   AND SEPR.DWG_NO = #{p_dwg_no} 
+	</select>
+	
+</mapper>

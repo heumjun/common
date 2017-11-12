@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="saveDoc">
+	
+  	<insert id="saveDocFileAdd" parameterType="java.util.Map">
+		INSERT
+		  INTO stx_dis_document
+		       (
+		               document_code
+		             , main_code
+		             , filename
+		             , blobdata
+		             , fileContentType
+		             , commentes
+		             , created_by
+		             , creation_date
+		       )
+		       VALUES
+		       (
+		               stx_dis_main_code.nextval
+		             , #{main_code}
+		             , #{uploadfileName,jdbcType=VARCHAR}
+		             , #{uploadfileByte}
+		             , #{uploadfileType,jdbcType=VARCHAR}
+		             , #{commentes}
+		             , #{createdBy}
+		             , SYSDATE
+		       )
+	</insert>
+	<delete id="deleteFileAdd" parameterType="java.util.Map" >
+		delete from STX_DIS_DOCUMENT
+	    where document_code = #{document_code}
+	</delete> 
+</mapper>

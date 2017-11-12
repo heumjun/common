@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="supplyChartList">
+
+       <select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+        WITH RESULT_LIST AS ( SELECT AA.PROJECT_NO
+                                    ,AA.JOIN_DATA_DESC
+                                    ,AA.GROUP2
+                                    ,AA.JOIN_DATA
+                                    ,AA.UOM
+                                    ,SUM(AA.PURPOSE_SUPPLY)    AS PURPOSE_SUPPLY
+                                    ,SUM(AA.correspond_supply) AS correspond_supply
+                                    ,SUM(AA.RESULT_SUPPLY)     AS RESULT_SUPPLY
+                                FROM (SELECT SDSP.PROJECT_NO                                            AS PROJECT_NO
+                                            ,SDSC.SD_DESC                                               AS JOIN_DATA_DESC 
+                                            ,SDSM.JOIN_DATA                                             AS JOIN_DATA
+                                            ,SDSM.GROUP2                                                AS GROUP2
+                                            ,REPLACE(MIN(NVL(SDSM.UOM1,'*')),'*', '')                   AS UOM
+                                            ,SUM(SDSP.PURPOSE_SUPPLY)                                   AS PURPOSE_SUPPLY
+                                            ,SUM(SDSP.correspond_supply)                                AS correspond_supply
+                                            ,SUM(CASE WHEN SDSM.RESULT_YN = 'Y' THEN SDSP.RESULT_SUPPLY
+                                                 ELSE NVL(stx_dis_supply_pkg.bom_cnt_f(SDSP.PROJECT_NO, SDSP.SUPPLY_ID, SDSM.UOM1, SDSM.UOM2),0)
+                                                 END )                                                  AS RESULT_SUPPLY
+                                                                                                   
+                                        FROM STX_DIS_SUPPLY_MAIN       SDSM
+                                            ,STX_DIS_SUPPLY_PLAN       SDSP  
+                                            ,STX_DIS_SD_CODE           SDSC
+                                       WHERE SDSM.SUPPLY_ID  = SDSP.SUPPLY_ID
+                                         AND SDSP.PROJECT_NO = #{p_project_no}
+                                         AND SDSM.GROUP2     LIKE '%' || #{p_group2} || '%'
+                                         AND SDSC.SD_CODE    = SDSM.JOIN_DATA
+                                         AND SDSC.SD_TYPE    = 'SUPPLY_PLAN_TRACK'
+                                         <if test='p_join_data != null and !p_join_data.equalsIgnoreCase("")'>
+                                         AND SDSM.JOIN_DATA  = #{p_join_data}
+                                         </if>
+                                         AND SDSM.UNIT_YN = 'Y'
+                                     GROUP BY SDSP.PROJECT_NO       
+                                             ,SDSC.SD_DESC       
+                                             ,SDSM.JOIN_DATA   
+                                             ,SDSM.GROUP2     
+                                     UNION ALL
+                                     SELECT #{p_project_no}                                             AS PROJECT_NO
+                                            ,SDSC.SD_DESC                                               AS JOIN_DATA_DESC
+                                            ,SDSM.JOIN_DATA                                             AS JOIN_DATA 
+                                            ,SDSM.GROUP2                                                as GROUP2
+                                            ,REPLACE(MIN(NVL(SDSM.UOM1,'*')),'*', '')                   AS UOM 
+                                            ,0                                                          AS PURPOSE_SUPPLY
+                                            ,0                                                          AS correspond_supply
+                                            ,SUM(CASE WHEN SDSM.RESULT_YN = 'Y' THEN 0   
+                                                 ELSE NVL(stx_dis_supply_pkg.bom_cnt_f(#{p_project_no}, SDSM.SUPPLY_ID, SDSM.UOM1, SDSM.UOM2),0)
+                                                 END                                               )    AS RESULT_SUPPLY 
+                                        FROM STX_DIS_SUPPLY_MAIN       SDSM  
+                                            ,STX_DIS_SD_CODE           SDSC
+                                       WHERE SDSM.GROUP2     LIKE '%' || #{p_group2} || '%'
+                                         AND SDSC.SD_CODE    = SDSM.JOIN_DATA
+                                         AND SDSC.SD_TYPE    = 'SUPPLY_PLAN_TRACK'
+                                         <if test='p_join_data != null and !p_join_data.equalsIgnoreCase("")'>
+                                         AND SDSM.JOIN_DATA  = #{p_join_data}
+                                         </if>
+                                         AND SDSM.UNIT_YN = 'Y'
+                                         AND NOT EXISTS
+                                             (SELECT 1
+                                                FROM STX_DIS_SUPPLY_PLAN       SDSP
+                                               WHERE SDSP.SUPPLY_ID   = SDSM.SUPPLY_ID
+                                                 AND SDSP.PROJECT_NO  = #{p_project_no}
+                                             )
+                                     GROUP BY  SDSC.SD_DESC   
+                                              ,SDSM.JOIN_DATA  
+                                              ,SDSM.GROUP2
+                                      ) AA
+                                 GROUP BY AA.PROJECT_NO
+                                          ,AA.JOIN_DATA_DESC
+                                          ,AA.JOIN_DATA
+                                          ,AA.GROUP2
+                                          ,AA.UOM
+                             ) 
+       select t2.*
+           from (  
+                 select t1.*  
+                       ,floor((rownum - 1) / #{pageSize} + 1 ) as page
+                   from
+                       ( 
+                      SELECT  COUNT(*) OVER()                  AS ALL_CNT
+                             ,CC.JOIN_DATA_DESC
+                             ,CC.UOM
+                             ,CC.GROUP2
+                             ,CC.ESTIMATE_SUPPLY             --견적물량
+                             ,CC.PURPOSE_SUPPLY              --사업계획물량
+                             ,CC.CORRESPOND_SUPPLY           --설계목표물량
+                             ,CC.CORRESPOND_PER              --목표율(설계목표량)/사업계획물량)
+                             ,CC.RESULT_SUPPLY                --실적물량
+                             ,CC.PURPOSE_PER                 --계획달성율(실적물량/계획물량)
+                             ,CC.RESULT_PER                  --목표달성율(실적물량/목표물량)
+                             ,CC.PROJECT_NO
+                             ,CC.JOIN_DATA 
+                             ,CC.ORDER_BY 
+                        FROM (
+                               SELECT BB.JOIN_DATA_DESC                         AS JOIN_DATA_DESC
+                                     ,BB.UOM                                       AS UOM
+                                     ,CASE WHEN BB.GROUP2 IS NULL THEN 'TOTAL' 
+                                      ELSE BB.GROUP2   
+                                      END                                          AS GROUP2
+                                     ,BB.ESTIMATE_SUPPLY              AS ESTIMATE_SUPPLY             --견적물량
+                                     ,TO_CHAR(BB.PURPOSE_SUPPLY, 'FM999,999,990')               AS PURPOSE_SUPPLY              --사업계획물량
+                                     ,TO_CHAR(BB.CORRESPOND_SUPPLY, 'FM999,999,990')            AS CORRESPOND_SUPPLY           --설계목표물량
+                                     ,CASE WHEN BB.PURPOSE_SUPPLY = 0 OR BB.CORRESPOND_SUPPLY = 0 OR BB.PURPOSE_SUPPLY IS NULL OR BB.CORRESPOND_SUPPLY IS NULL THEN ''
+                                      ELSE TO_CHAR(ROUND((BB.CORRESPOND_SUPPLY/BB.PURPOSE_SUPPLY) *100, 2), 'FM999,999,990') || '%' 
+                                      END                                          AS CORRESPOND_PER              --목표율(설계목표량)/사업계획물량)
+                                     ,CASE WHEN BB.RESULT_SUPPLY = 0 THEN NULL
+                                      ELSE TO_CHAR(ROUND(BB.RESULT_SUPPLY, 2), 'FM999,999,990')                   
+                                      END                                          AS RESULT_SUPPLY               --실적물량
+                                     ,CASE WHEN BB.RESULT_SUPPLY  = 0 OR BB.PURPOSE_SUPPLY = 0 OR BB.RESULT_SUPPLY IS NULL OR BB.PURPOSE_SUPPLY IS NULL THEN ''
+                                      ELSE TO_CHAR(ROUND((BB.RESULT_SUPPLY/BB.PURPOSE_SUPPLY) *100, 2), 'FM999,999,990') || '%'
+                                      END                                          AS PURPOSE_PER                 --계획달성율(실적물량/계획물량)
+                                     ,CASE WHEN BB.RESULT_SUPPLY  = 0 OR BB.CORRESPOND_SUPPLY = 0 OR BB.RESULT_SUPPLY IS NULL OR BB.CORRESPOND_SUPPLY IS NULL THEN ''
+                                      ELSE TO_CHAR(ROUND((BB.RESULT_SUPPLY/BB.CORRESPOND_SUPPLY)*100, 2), 'FM999,999,990') || '%' 
+                                      END                                                         AS RESULT_PER                  --목표달성율(실적물량/목표물량)
+                                     ,BB.PROJECT_NO                                               AS PROJECT_NO
+                                     ,BB.JOIN_DATA                                                AS JOIN_DATA 
+                                     ,ORDER_BY                                                    AS ORDER_BY
+                                FROM (SELECT BB.NO
+                                             ,AA.PROJECT_NO
+                                             ,AA.JOIN_DATA_DESC                                      AS JOIN_DATA_DESC 
+                                             ,AA.JOIN_DATA                                           AS JOIN_DATA
+                                             ,CASE WHEN BB.NO = 1 THEN AA.GROUP2 ELSE 'TOTAL'    END AS GROUP2
+                                             ,CASE WHEN BB.NO = 1 THEN AA.UOM       ELSE ''      END AS UOM 
+                                             ,SUM(AA.ESTIMATE_SUPPLY)                                AS ESTIMATE_SUPPLY
+                                             ,SUM(AA.PURPOSE_SUPPLY)                                 AS PURPOSE_SUPPLY
+                                             ,SUM(AA.CORRESPOND_SUPPLY)                              AS CORRESPOND_SUPPLY
+                                             ,SUM(AA.RESULT_SUPPLY)                                  AS RESULT_SUPPLY
+                                             ,CC.ORDER_BY                                            AS ORDER_BY
+                                          FROM ( 
+                                                SELECT SDS.PROJECT_NO                            AS PROJECT_NO
+                                                      ,RL.JOIN_DATA_DESC                         AS JOIN_DATA_DESC 
+                                                      ,RL.GROUP2                                 AS GROUP2
+                                                      ,RL.UOM                                    AS UOM 
+                                                      ,SDS.JOIN_DATA                             AS JOIN_DATA
+                                                      ,SDS.ESTIMATE_SUPPLY                       AS ESTIMATE_SUPPLY
+                                                      ,RL.PURPOSE_SUPPLY                         AS PURPOSE_SUPPLY
+                                                      ,RL.CORRESPOND_SUPPLY                      AS CORRESPOND_SUPPLY
+                                                      ,RL.RESULT_SUPPLY                          AS RESULT_SUPPLY 
+                                                  FROM STX_DIS_SUPPLY_ESTIMATE   SDS 
+                                                      ,RESULT_LIST               RL
+                                                 WHERE SDS.PROJECT_NO = RL.PROJECT_NO
+                                                   AND SDS.JOIN_DATA  = RL.JOIN_DATA
+                                                   AND SDS.GROUP2     = RL.GROUP2 
+                                                 UNION ALL
+                                                SELECT RL.PROJECT_NO                             AS PROJECT_NO
+                                                       ,RL.JOIN_DATA_DESC                         AS JOIN_DATA_DESC 
+                                                       ,RL.GROUP2                                 AS GROUP2
+                                                       ,RL.UOM                                    AS UOM 
+                                                       ,RL.JOIN_DATA                              AS JOIN_DATA
+                                                       ,0                                         AS ESTIMATE_SUPPLY
+                                                       ,RL.PURPOSE_SUPPLY                         AS PURPOSE_SUPPLY
+                                                       ,RL.CORRESPOND_SUPPLY                      AS CORRESPOND_SUPPLY
+                                                       ,RL.RESULT_SUPPLY                          AS RESULT_SUPPLY 
+                                                  FROM RESULT_LIST               RL
+                                                 WHERE NOT EXISTS
+                                                       (SELECT 1
+                                                          FROM STX_DIS_SUPPLY_ESTIMATE SDS
+                                                         WHERE SDS.PROJECT_NO = RL.PROJECT_NO
+                                                           AND SDS.JOIN_DATA  = RL.JOIN_DATA
+                                                           AND SDS.GROUP2     = RL.GROUP2
+                                                        ) 
+                                                 ORDER BY 1,2,3
+                                                )                   AA 
+                                               ,STX_DIS_COPY_T      BB
+                                               ,STX_DIS_SD_CODE     CC
+                                          <![CDATA[      
+                                         WHERE BB.NO < 3
+                                         ]]>
+                                           AND CC.SD_TYPE        = 'SUPPLY_PLAN_TRACK'
+                                           AND AA.JOIN_DATA_DESC = CC.SD_DESC
+                                         GROUP BY BB.NO
+                                                 ,AA.PROJECT_NO
+                                                 ,AA.JOIN_DATA_DESC                                      
+                                                 ,AA.JOIN_DATA                                          
+                                                 ,CASE WHEN BB.NO = 1 THEN AA.GROUP2 ELSE 'TOTAL' END   
+                                                 ,CASE WHEN BB.NO = 1 THEN AA.UOM       ELSE '' END   
+                                                 ,CC.ORDER_BY 
+                                     ) BB
+                                  ) CC
+                           ORDER BY CC.JOIN_DATA 
+                                   ,CC.UOM
+                                   ,DECODE(CC.GROUP2,'TOTAL',1) DESC
+                                   ,CC.JOIN_DATA_DESC
+                                   ,CC.ESTIMATE_SUPPLY             --견적물량
+                                   ,CC.PURPOSE_SUPPLY              --사업계획물량  
+                       ) t1
+                ) t2
+             where page = #{curPageNo}           
+       </select> 
+</mapper>

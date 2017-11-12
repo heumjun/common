@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="savePatternConfirm">
+
+  	<select id="selectAllPatternList" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 with temp_paint_block as (
+		                         select project_no
+		                               ,revision
+		                               ,area_code
+		                               ,min(area_desc)
+		                                as area_desc  
+		                           from stx_dis_pis_block
+		                          where project_no = #{project_no} 
+		                            and revision   = #{revision}
+		                          group by project_no, revision, area_code
+		                         )
+		select t6.project_no
+		      ,t6.revision
+		      ,t6.pattern_code
+		      ,t6.define_flag
+		      ,t1.project_no || '_' || t1.pattern_code
+		       as pattern_desc
+		      ,t1.paint_count
+		      ,t1.paint_dft
+		      ,t1.paint_svr
+		      ,t1.paint_stage
+		      ,t1.pre_loss
+		      ,t1.post_loss
+		      ,t2.area_code
+		      ,t3.area_desc
+		      ,t1.paint_item
+		      ,t4.item_desc 
+		      ,t1.season_code
+		      ,t4.stxsvr
+		  from stx_dis_pis_pattern      t6,
+		       stx_dis_pis_pattern_item t1,
+		       stx_dis_pis_pattern_area t2,
+		       temp_paint_block        	t3,
+		       stx_dis_item             t4
+		 where t6.project_no 	= t1.project_no(+) 
+		   and t6.revision 		= t1.revision(+) 
+		   and t6.pattern_code 	= t1.pattern_code(+) 
+		   and t6.project_no 	= t2.project_no(+) 
+		   and t6.revision 		= t2.revision(+) 
+		   and t6.pattern_code 	= t2.pattern_code(+) 
+		   and t2.project_no 	= t3.project_no(+) 
+		   and t2.revision 		= t3.revision(+) 
+		   and t2.area_code 	= t3.area_code(+) 
+		   and t1.paint_item 	= t4.item_code(+) 
+		   and t6.project_no    = #{project_no}
+		   and t6.revision      = #{revision}
+		   
+		   <if test="pattern_code != null and pattern_code !='' ">
+	       and t1.pattern_code like #{pattern_code} || '%'
+	       </if>
+		             
+		  <if test="season_code != '0'.toString() ">
+		   and t1.season_code = #{season_code}
+		   </if>
+		  order by t6.pattern_code, t2.area_code, t1.paint_count, t1.season_code
+	   						  
+  	</select>
+  	
+  	<select id="selectExistPatternScheme" parameterType="java.util.Map" resultType="int" >
+	 select count(*) as cnt
+  	   from stx_dis_pis_pattern_scheme
+	  where 1=1
+	    and project_no 	  = #{project_no}
+	    and revision   	  = #{revision}  
+	    and pattern_code  = #{pattern_code}
+	</select>   
+	
+	<delete id="deletePatternScheme">
+	delete from stx_dis_pis_pattern_scheme
+     where 1=1
+	   and project_no 	  = #{project_no}
+	   and revision   	  = #{revision}  
+	   and pattern_code   = #{pattern_code}
+	</delete>	
+	
+	<select id="searchPatternPaintCodeTsr" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	select t3.*
+	      ,(t3.paint_tsr * (100 - t3.pre_loss) / 100)  as pre_tsr
+	      ,(t3.paint_tsr * (100 - t3.post_loss) / 100) as post_tsr
+	  from (
+	        select t1.project_no
+	              ,t1.revision
+	              ,t1.pattern_code	
+	              ,t1.paint_count
+	              ,t1.paint_item
+	              ,t2.item_desc 			   as paint_desc      
+	              ,t1.paint_dft
+	              ,t1.paint_stage
+	              ,t1.paint_svr
+	              ,t1.season_code
+	              ,t1.pre_loss
+	              ,t1.post_loss 
+	              ,(decode(t1.paint_svr,0,50,t1.paint_svr) * 10 ) / t1.paint_dft
+	               as paint_tsr       
+	          from stx_dis_pis_pattern_item t1
+	              ,stx_dis_item             t2
+	         where t1.paint_item       =   t2.item_code
+			   and t1.project_no       =   #{project_no}                 
+			   and t1.revision         =   #{revision}
+			   and t1.pattern_code     =   #{pattern_code}
+			) t3    
+     order by t3.paint_count, t3.season_code   
+ 	</select>	
+ 	
+	<select id="selectBlockCodeFromAreaCode" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	with temp_stage as (select block_rate
+	                          ,pe_rate
+	                          ,dock_rate
+	                          ,quay_rate
+	                     from stx_dis_pis_stage
+	                    where stage_code = #{paint_stage}
+	                    ) 
+	select t3.*
+	      ,round(t3.temp_block_area / pre_tsr,   3) as block_quantity
+	      ,round(t3.temp_pe_area /  post_tsr,    3) as pe_quantity
+	      ,round(t3.temp_hull_area / post_tsr,   3) as hull_quantity
+	      ,round(t3.temp_quay_area / post_tsr,   3) as quay_quantity
+	      ,round(t3.temp_block_area / paint_tsr, 3) as block_theory_quantity
+	      ,round(t3.temp_pe_area /  paint_tsr,   3) as pe_theory_quantity
+	      ,round(t3.temp_hull_area / paint_tsr,  3) as hull_theory_quantity
+	      ,round(t3.temp_quay_area / paint_tsr,  3) as quay_theory_quantity
+	  from (                          
+	        select t1.project_no
+	              ,t1.revision
+	              ,#{pattern_code}                         as pattern_code   
+	              ,t1.area_code
+	              ,t1.area_desc
+	              ,t1.block_code
+	              ,t1.area
+	              ,t3.pe_code
+	              ,nvl(t3.pre_pe_code, '')				   as pre_pe_code
+	              ,round(t1.area * t2.block_rate / 100, 3) as block_area
+	              ,round(t1.area * t2.pe_rate 	 / 100, 3) as pe_area
+	              ,round(t1.area * t2.dock_rate  / 100, 3) as hull_area
+	              ,round(t1.area * t2.quay_rate  / 100, 3) as quay_area	              
+	              ,t1.area * t2.block_rate / 100           as temp_block_area
+	              ,t1.area * t2.pe_rate 	 / 100         as temp_pe_area
+	              ,t1.area * t2.dock_rate  / 100           as temp_hull_area
+	              ,t1.area * t2.quay_rate  / 100           as temp_quay_area	              	              
+	              ,t2.block_rate						   as block_rate
+	              ,t2.pe_rate							   as pe_rate 
+	              ,t2.dock_rate							   as dock_rate 
+	              ,t2.quay_rate							   as quay_rate
+	              ,#{zone_code}							   as zone_code
+	              ,#{paint_tsr}                            as paint_tsr
+	              ,#{pre_tsr}                              as pre_tsr
+	              ,#{post_tsr}                             as post_tsr    
+	          from stx_dis_pis_block t1
+	              ,temp_stage        t2 
+	              ,stx_dis_pis_pe	 t3
+	         where t1.project_no   = #{project_no}
+	           and t1.revision     = #{revision} 
+	           and t1.area_code    = #{area_code}
+	           and t1.project_no   = t3.project_no(+)
+	           and t1.revision	   = t3.revision(+)
+	           and t1.block_code   = t3.block_code(+)
+	        ) t3  
+	 order by t3.block_code
+	</select> 	
+	
+	<insert id="insertPaintPatternScheme" parameterType="java.util.Map">
+	insert into stx_dis_pis_pattern_scheme
+	   (
+		 project_no            
+		,revision              
+		,pattern_code          
+		,block_code 
+		,pe_code
+		,pre_pe_code
+		,zone_code           
+		,area_code             
+		,season_code           
+		,paint_count           
+		,paint_item            
+		,paint_dft             
+		,paint_stage           
+		,paint_svr             
+		,pre_loss              
+		,post_loss             
+		,block_area            
+		,pe_area               
+		,hull_area             
+		,quay_area 
+		,pre_pe_area            
+		,block_quantity        
+		,pe_quantity           
+		,hull_quantity         
+		,quay_quantity  
+		,pre_pe_quantity       
+		,block_theory_quantity 
+		,pe_theory_quantity    
+		,hull_theory_quantity  
+		,quay_theory_quantity  
+		,pre_pe_theory_quantity
+		,created_by            
+		,creation_date         
+		,last_updated_by       
+		,last_update_date   
+	   )
+	   values
+	   ( 
+	     #{project_no}            
+		,#{revision}              
+		,#{pattern_code}          
+		,#{block_code}   
+		,#{pe_code}
+		,#{pre_pe_code}
+		,#{zone_code}            
+		,#{area_code}             
+		,#{season_code}           
+		,#{paint_count}           
+		,#{paint_item}            
+		,#{paint_dft}             
+		,#{paint_stage}           
+		,#{paint_svr}             
+		,#{pre_loss}              
+		,#{post_loss}             
+		,#{block_area}            
+		,#{pe_area}               
+		,#{hull_area}             
+		,#{quay_area}    
+		,0         
+		,#{block_quantity}        
+		,#{pe_quantity}           
+		,#{hull_quantity}         
+		,#{quay_quantity}  
+		,0       
+		,#{block_theory_quantity} 
+		,#{pe_theory_quantity}    
+		,#{hull_theory_quantity}  
+		,#{quay_theory_quantity}  
+		,0
+	    ,#{loginId}
+	    ,sysdate
+	    ,#{loginId}
+	    ,sysdate     
+	   )
+	</insert>		
+	
+	<update id="updatePatternCodeConfirm">
+	update stx_dis_pis_pattern
+	   set define_flag  = 'Y'
+	 where project_no   = #{project_no}
+	   and revision     = #{revision}	
+	   and pattern_code = #{pattern_code}
+	   and define_flag  = 'N'
+	</update>	
+	
+	<select id="selectBlockSeasonCodeCnt" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+	 select project_no                                              
+	      , block_code                                           
+	      , nvl(max(cnt_season_blk),0)    as cnt_season_blk
+	      , nvl(max(cnt_season_pe),0)     as cnt_season_pe
+	      , nvl(max(cnt_season_pre_pe),0) as cnt_season_pre_pe
+	      , nvl(max(cnt_season_hull),0)   as cnt_season_hull
+	      , nvl(max(cnt_season_quay),0)   as cnt_season_quay
+	     
+	   from                                                      
+	       (                                                     
+	        select project_no
+	              ,block_code
+	              ,count(distinct season_code)  as cnt_season_blk
+	              ,null                         as cnt_season_pe
+	              ,null                         as cnt_season_pre_pe   
+	              ,null                         as cnt_season_hull
+	              ,null                         as cnt_season_quay
+	          from stx_dis_pis_pattern_scheme
+	         where project_no        = #{project_no}
+	           and revision          = #{revision}
+	           and block_quantity    <![CDATA[>]]> 0
+	           and block_define_flag = 'Y'
+	           
+	           <if test="block_code != null and block_code !='' ">
+			   and block_code in ( ${block_code} )
+			   </if>	   
+			   <if test="area_code != null and area_code !='' ">
+			   and area_code in ( ${area_code} )
+		   	   </if>
+	           	
+	         group by project_no, block_code
+	        having count(distinct season_code) <![CDATA[>]]> 1
+	        union all
+	        select project_no
+	              ,block_code
+	              ,null                        
+	              ,count(distinct season_code)  
+	              ,null                           
+	              ,null                         
+	              ,null                         
+	          from stx_dis_pis_pattern_scheme
+	         where project_no       = #{project_no}
+	           and revision         = #{revision}
+	           and pe_quantity      <![CDATA[>]]> 0
+	           and pe_define_flag   = 'Y'
+	           
+	           <if test="block_code != null and block_code !='' ">
+			   and block_code in ( ${block_code} )
+			   </if>	   
+			   <if test="area_code != null and area_code !='' ">
+			   and area_code in ( ${area_code} )
+		   	   </if>
+	           
+	         group by project_no, block_code
+	        having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,count(distinct season_code)                           
+	             ,null                         
+	             ,null                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and pre_pe_quantity    <![CDATA[>]]> 0
+	          and pre_pe_define_flag = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,null                        
+	             ,count(distinct season_code)                            
+	             ,null                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and hull_quantity      <![CDATA[>]]> 0
+	          and hull_define_flag   = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]> 1
+	       union all
+	       select project_no
+	             ,block_code
+	             ,null                        
+	             ,null  
+	             ,null                        
+	             ,null                            
+	             ,count(distinct season_code)                         
+	         from stx_dis_pis_pattern_scheme
+	        where project_no         = #{project_no}
+	          and revision           = #{revision}
+	          and quay_quantity      <![CDATA[>]]> 0
+	          and quay_define_flag   = 'Y'
+	          
+	          <if test="block_code != null and block_code !='' ">
+			  and block_code in ( ${block_code} )
+			  </if>	   
+			  <if test="area_code != null and area_code !='' ">
+			  and area_code in ( ${area_code} )
+		   	  </if>
+	           
+	        group by project_no, block_code
+	       having count(distinct season_code) <![CDATA[>]]>  1                      
+	       )                                                   
+	 group by project_no, block_code
+	 order by project_no, block_code	
+	</select>	
+</mapper>

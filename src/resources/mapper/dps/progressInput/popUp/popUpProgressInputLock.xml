@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="popUpProgressInputLock">
+  	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap">
+		SELECT A.DWGDEPTCODE AS DEPT_CODE,
+		       A.DWGDEPTNM AS DEPT_NAME,
+		       NVL((SELECT C.RESTRICT_TO
+		                FROM   PLM_PROGRESS_LOCK C
+		                WHERE  C.DEPT_CODE = A.DWGDEPTCODE), '') AS LOCK_DATE
+		FROM   DCC_DWGDEPTCODE A
+		WHERE  A.COUNTYN = 'Y'
+		ORDER BY A.DWGDEPTCODE 
+	</select>
+</mapper>

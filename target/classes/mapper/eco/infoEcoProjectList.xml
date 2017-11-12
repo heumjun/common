@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="infoEcoProjectList">
+	<select id="list" parameterType="java.util.Map" resultType="org.apache.commons.collections.map.CaseInsensitiveMap" >
+			SELECT X.project_no                                AS PROJECT_NO
+					  ,X.MODEL_NO                                  AS MODEL
+					  ,STX_DIS_SHORT_EMP_NAME_F(X.LAST_UPDATED_BY) AS MODIFY_BY
+					  ,X.FLAG                                      AS FLAG
+					  ,X.BUYER                                     AS BUYER 
+			  FROM STX_DIS_BOM_SCHEDULE_V X 
+			 WHERE X.PROJECT_NO IN (SELECT DISTINCT R.PROJECT_NO
+			                          FROM STX_DIS_USC_BOM_WORK R
+			                         WHERE R.ECO_NO = #{eco_no}
+			                        UNION ALL
+			                        SELECT DISTINCT R.PROJECT_NO
+			                          FROM STX_DIS_PENDING_WORK R
+			                         WHERE R.ECO_NO = #{eco_no}
+			                        UNION ALL
+			                        SELECT DISTINCT R.PROJECT_NO
+			                          FROM STX_DIS_SSC_HEAD_WORK R
+			                         WHERE R.ECO_NO = #{eco_no}
+			                        UNION ALL
+			                        SELECT DISTINCT R.PROJECT_NO
+			                          FROM STX_DIS_RAWLEVEL_WORK R
+			                         WHERE R.ECO_NO = #{eco_no}
+			                        UNION ALL
+			                        SELECT DISTINCT R.PROJECT_NO
+			                          FROM STX_DIS_USC_BOM_ACTION R
+			                         WHERE R.ECO_NO = #{eco_no}
+			                        UNION ALL
+			                        SELECT DISTINCT R.PROJECT_NO
+			                          FROM STX_DIS_PENDING_ACT R
+			                         WHERE R.ECO_NO = #{eco_no}
+			                        UNION ALL
+			                        SELECT DISTINCT R.PROJECT_NO
+			                          FROM STX_DIS_SSC_HEAD_ACT R
+			                         WHERE R.ECO_NO = #{eco_no}
+			                        UNION ALL
+			                        SELECT DISTINCT R.PROJECT_NO
+			                          FROM STX_DIS_RAWLEVEL_ACT R
+			                         WHERE R.ECO_NO = #{eco_no}
+			                      ) 
+  	</select>
+  	
+</mapper>
